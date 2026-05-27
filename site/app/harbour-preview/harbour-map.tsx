@@ -132,6 +132,9 @@ export function HarbourMap() {
             }
             aria-expanded={card?.slug === boat.slug}
           >
+            {/* ── persistent name label ──────────────────────────── */}
+            <span className={styles.boatLabel}>{boat.label}</span>
+
             {/* ── SVG image artwork ──────────────────────────────── */}
             {boat.svgPair ? (
               /* side-by-side pair */

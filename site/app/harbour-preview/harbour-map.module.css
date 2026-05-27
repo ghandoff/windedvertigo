@@ -78,6 +78,32 @@
   height: 100%;
 }
 
+/* ── persistent app-name label ───────────────────────────────────────
+   Floats above each boat. overflow:visible on .boat (default for
+   positioned elements) lets it extend outside the bounding box.
+   pointer-events:none so it never blocks a tap on the boat below. */
+.boatLabel {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 235, 210, 0.92);
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.7),
+    0 0 8px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  text-transform: lowercase;
+  user-select: none;
+}
+
+.boatComing .boatLabel {
+  opacity: 0.55;
+}
+
 /* ── tap nudge hint ──────────────────────────────────────────────────
    Fades in at 1.2s, holds until ~6s, then fades out. Runs once only
    (animation-fill-mode: forwards keeps it at opacity 0 after). */
