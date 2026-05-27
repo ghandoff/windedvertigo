@@ -6,12 +6,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, Save, Trash2, Send, CheckCircle2, AlertTriangle, ExternalLink, Sparkles, RefreshCw } from "lucide-react";
+import {
+  Loader2, Save, Trash2, Send, CheckCircle2, AlertTriangle, ExternalLink,
+  Sparkles, RefreshCw, Cloud, BookOpen, Mail, MessageSquare, Camera,
+  Image as ImageIcon, X, Upload,
+} from "lucide-react";
 import {
   CHANNEL_CHAR_LIMITS,
   CHANNEL_LABELS,
   type ComposeDraft,
+  type ComposeChannel,
 } from "@/lib/supabase/compose-drafts";
+
+// Channel → sidebar icon + brand color. lucide-react doesn't ship brand
+// logos (Facebook / Instagram / Bluesky butterfly), so we use neutral
+// substitutes: MessageSquare for FB (chat-bubble vibe), Camera for IG (the
+// IG logo IS basically a camera), Cloud for Bluesky.
+const CHANNEL_ICONS: Record<
+  ComposeChannel,
+  { Icon: typeof Send; color: string }
+> = {
+  linkedin:         { Icon: Send,           color: "#5872cb" },
+  bluesky:          { Icon: Cloud,          color: "#1d9bf0" },
+  substack:         { Icon: BookOpen,       color: "#ff6719" },
+  "meta-facebook":  { Icon: MessageSquare,  color: "#1877f2" },
+  "meta-instagram": { Icon: Camera,         color: "#e1306c" },
+  email:            { Icon: Mail,           color: "#888888" },
+};
+
+// Channels with a live publish path today. Email is the only remaining
+// "ships in a follow-up" channel after this PR.
+const PUBLISHABLE_CHANNELS = new Set<ComposeChannel>([
+  "linkedin",
+  "bluesky",
+  "substack",
+  "meta-facebook",
+  "meta-instagram",
+]);
 
 export interface ComposeEditorProps {
   initial: ComposeDraft;
@@ -20,6 +51,9 @@ export interface ComposeEditorProps {
 export function ComposeEditor({ initial }: ComposeEditorProps) {
   const [title, setTitle] = useState(initial.title ?? "");
   const [contentText, setContentText] = useState(initial.contentText);
+  const [attachedImageUrls, setAttachedImageUrls] = useState<string[]>(
+    initial.attachedImageUrls,
+  );
   const [savedAt, setSavedAt] = useState<Date | null>(new Date(initial.updatedAt));
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -124,6 +158,13 @@ export function ComposeEditor({ initial }: ComposeEditorProps) {
   const overLimit = limit !== null && contentText.length > limit;
   const usesTitle = initial.channel === "email" || initial.channel === "substack";
 
+  // Instagram won't publish without an image. The button-disable + warning
+  // banner both gate on this; the publish route also returns 400 if it
+  // somehow gets through.
+  const instagramNeedsImage =
+    initial.channel === "meta-instagram" && attachedImageUrls.length === 0;
+  const { Icon: ChannelIcon, color: channelColor } = CHANNEL_ICONS[initial.channel];
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Editor column (2/3) */}
@@ -183,7 +224,7 @@ export function ComposeEditor({ initial }: ComposeEditorProps) {
           </CardHeader>
           <CardContent className="py-2 text-xs">
             <p className="flex items-center gap-2">
-              {initial.channel === "linkedin" && <Send className="h-3.5 w-3.5 text-[#5872cb]" />}
+              <ChannelIcon className="h-3.5 w-3.5" style={{ color: channelColor }} />
               <span className="text-[#273248]">{CHANNEL_LABELS[initial.channel]}</span>
             </p>
             <p className="text-[10px] text-muted-foreground mt-1">
@@ -211,14 +252,17 @@ export function ComposeEditor({ initial }: ComposeEditorProps) {
               save now
             </Button>
 
-            {/* Publish — LinkedIn / Bluesky / Substack live. Others show a hint */}
-            {(initial.channel === "linkedin" ||
-              initial.channel === "bluesky" ||
-              initial.channel === "substack") &&
+            {/* Publish — LinkedIn / Bluesky / Substack / Meta live. Email queued. */}
+            {PUBLISHABLE_CHANNELS.has(initial.channel) &&
             publishState.kind !== "published" ? (
               <Button
                 onClick={handlePublish}
-                disabled={isPending || overLimit || !contentText.trim()}
+                disabled={
+                  isPending ||
+                  overLimit ||
+                  !contentText.trim() ||
+                  instagramNeedsImage
+                }
                 className="w-full"
               >
                 {publishState.kind === "publishing" ? (
@@ -277,16 +321,34 @@ export function ComposeEditor({ initial }: ComposeEditorProps) {
           </CardContent>
         </Card>
 
-        {initial.channel !== "linkedin" &&
-          initial.channel !== "bluesky" &&
-          initial.channel !== "substack" && (
-            <Card className="bg-muted/20">
-              <CardContent className="py-3 text-[11px] text-muted-foreground space-y-1">
-                <p><strong className="text-[#273248]">Publishing</strong> for {CHANNEL_LABELS[initial.channel]} ships in a follow-up. LinkedIn, Bluesky, and Substack are live today.</p>
-                <p>For now: drafts persist + are visible to the team.</p>
-              </CardContent>
-            </Card>
-          )}
+        {!PUBLISHABLE_CHANNELS.has(initial.channel) && (
+          <Card className="bg-muted/20">
+            <CardContent className="py-3 text-[11px] text-muted-foreground space-y-1">
+              <p><strong className="text-[#273248]">Publishing</strong> for {CHANNEL_LABELS[initial.channel]} ships in a follow-up. LinkedIn, Bluesky, Substack, Facebook, and Instagram are live today.</p>
+              <p>For now: drafts persist + are visible to the team.</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {instagramNeedsImage && (
+          <Card className="border-[#cb7858]/40 bg-[#cb7858]/5">
+            <CardContent className="py-3 text-[11px] text-[#cb7858]">
+              <p className="flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <strong>Instagram requires an image.</strong>
+              </p>
+              <p className="mt-1 text-[10px] opacity-90">
+                Attach one in the panel below to enable publish.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        <AttachmentPanel
+          draftId={initial.id}
+          imageUrls={attachedImageUrls}
+          onChange={setAttachedImageUrls}
+        />
 
         <AiAssistPanel
           channel={initial.channel}
@@ -438,6 +500,166 @@ function AiAssistPanel({
 
         <p className="text-[10px] text-muted-foreground pt-1">
           uses brand voice from <code className="text-[10px]">readStrategyDoc</code>. drafts cost ~$0.01-0.03 per attempt.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * AttachmentPanel — drag-drop image upload bound to a compose draft.
+ *
+ * Upload posts multipart to /api/compose/drafts/[id]/attach, which uploads
+ * to R2 via lib/r2/upload.ts::uploadAsset (the same path /transcribe uses)
+ * and appends the public URL to the draft's attached_image_urls array.
+ *
+ * Delete sends a PATCH to /api/compose/drafts/[id] with the filtered array.
+ * No dedicated delete endpoint — the existing PATCH route already accepts
+ * `attachedImageUrls`.
+ */
+function AttachmentPanel({
+  draftId,
+  imageUrls,
+  onChange,
+}: {
+  draftId: string;
+  imageUrls: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  async function uploadFile(file: File) {
+    setError(null);
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Max 10 MB per image.");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files supported.");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      const form = new FormData();
+      form.append("image", file);
+      const res = await fetch(`/api/compose/drafts/${draftId}/attach`, {
+        method: "POST",
+        body: form,
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        draft?: { attachedImageUrls?: string[] };
+        message?: string;
+        error?: string;
+      };
+      if (!res.ok) {
+        setError(data.message ?? data.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      if (data.draft?.attachedImageUrls) {
+        onChange(data.draft.attachedImageUrls);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "upload failed");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  async function removeImage(url: string) {
+    const next = imageUrls.filter((u) => u !== url);
+    // Optimistic update; revert if PATCH fails.
+    onChange(next);
+    const res = await fetch(`/api/compose/drafts/${draftId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ attachedImageUrls: next }),
+    });
+    if (!res.ok) {
+      setError(`remove failed: HTTP ${res.status}`);
+      onChange(imageUrls);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm text-[#273248] inline-flex items-center gap-2">
+          <ImageIcon className="h-4 w-4 text-[#cb7858]" />
+          images
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const file = e.dataTransfer.files[0];
+            if (file) uploadFile(file);
+          }}
+          onClick={() => fileInputRef.current?.click()}
+          className={`rounded border-2 border-dashed p-4 text-center cursor-pointer transition-colors ${
+            isDragging
+              ? "border-[#cb7858] bg-[#cb7858]/5"
+              : "border-border hover:border-[#cb7858]/60"
+          }`}
+        >
+          {isUploading ? (
+            <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              uploading…
+            </p>
+          ) : (
+            <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1.5">
+              <Upload className="h-3 w-3" />
+              drag image here · or click
+            </p>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) uploadFile(file);
+              // reset so the same file can be re-selected after delete
+              e.target.value = "";
+            }}
+          />
+        </div>
+
+        {error && <p className="text-[10px] text-[#b15043]">{error}</p>}
+
+        {imageUrls.length > 0 && (
+          <div className="grid grid-cols-3 gap-1.5">
+            {imageUrls.map((url) => (
+              <div key={url} className="relative group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt="attached"
+                  className="w-full h-16 object-cover rounded border border-border"
+                />
+                <button
+                  onClick={() => removeImage(url)}
+                  type="button"
+                  className="absolute top-0.5 right-0.5 bg-background/90 rounded p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="remove"
+                >
+                  <X className="h-3 w-3 text-[#b15043]" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="text-[10px] text-muted-foreground">
+          stored in R2 · max 10 MB · jpg/png/gif/webp
         </p>
       </CardContent>
     </Card>
