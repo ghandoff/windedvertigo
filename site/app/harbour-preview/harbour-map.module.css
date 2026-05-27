@@ -195,6 +195,33 @@
   color: rgba(255, 235, 210, 0.75);
 }
 
+/* ── tap nudge hint ──────────────────────────────────────────────────
+   Fades in at 1s, holds until 4s, then fades out. Runs once, then
+   disappears. pointer-events: none so it doesn't block boat clicks. */
+@keyframes hintFade {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.tapHint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 235, 210, 0.75);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: hintFade 5s ease-in-out 1.2s both;
+  /* after animation completes stay hidden */
+  animation-fill-mode: forwards;
+  z-index: 20;
+}
+
 /* ── reduced motion ──────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .boat {
@@ -204,5 +231,8 @@
   .boat:hover,
   .boat:focus-visible {
     filter: none;
+  }
+  .tapHint {
+    display: none;
   }
 }

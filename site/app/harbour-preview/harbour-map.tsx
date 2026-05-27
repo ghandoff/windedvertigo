@@ -229,6 +229,13 @@ export function HarbourMap() {
         </g>
       </svg>
 
+      {/* ── one-shot tap nudge — always rendered; CSS animation plays once
+          then holds at opacity:0 (forwards fill). The element remains in
+          the DOM but invisible so it doesn't remount on card open/close. */}
+      <p className={styles.tapHint} aria-hidden="true">
+        tap any boat to explore
+      </p>
+
       {/* ── fixed-bottom card ────────────────────────────────────────── */}
       {card && (
         <div

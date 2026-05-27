@@ -24,6 +24,10 @@ import styles from "./harbour-map.module.css";
  * placeholder.
  */
 
+// Internal preview — force SSR so deploys are immediately visible without
+// needing to purge the CDN cache. This page is noindex anyway.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://windedvertigo.com"),
   title: "harbour preview — winded.vertigo",
