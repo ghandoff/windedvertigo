@@ -14,6 +14,10 @@
  * Boat positions roughly mirror the mockup screenshot from the design
  * session — they're not authoritative; expect Maria/Payton to nudge them
  * during review.
+ *
+ * Custom artwork: when Payton delivers a boat SVG, add `svgHref` (single
+ * image) or `svgPair` ([left, right] side-by-side pair) to the entry.
+ * The renderer swaps the placeholder ellipse for <image> automatically.
  */
 
 export type BoatStatus = "live" | "coming-soon";
@@ -41,6 +45,20 @@ export interface Boat {
    * says "coming soon".
    */
   status: BoatStatus;
+  /**
+   * Optional custom artwork from Payton.
+   *
+   * svgHref   — single SVG image, centred on cx/cy.
+   * svgPair   — [left, right] two SVGs displayed side-by-side, centred on cx/cy.
+   *             Both files in a pair must share the same viewBox aspect ratio.
+   * svgHeight — render height in viewBox units (width computed from aspect ratio).
+   *             Defaults to ry * 2 when omitted.
+   * svgAspect — width / height of the SVG viewBox (default: 1).
+   */
+  svgHref?:   string;
+  svgPair?:   readonly [string, string];
+  svgHeight?: number;
+  svgAspect?: number;
 }
 
 export interface Landmark {
@@ -120,6 +138,9 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "live",
+    svgPair:   ["/harbour-preview/read-the-room-left.svg", "/harbour-preview/read-the-room-right.svg"],
+    svgHeight: 90,
+    svgAspect: 1706.88 / 651, // ≈ 2.621 — viewBox of Payton's boat SVGs
   },
   {
     slug: "values-companion",

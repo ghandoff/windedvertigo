@@ -84,6 +84,11 @@ export function HarbourMap() {
             const stroke   = isLive ? COLOURS.boatStroke : COLOURS.boatComing;
             const styleVars = { ["--boat-index" as string]: String(index) } as React.CSSProperties;
 
+            // ── custom artwork (svgPair / svgHref) or placeholder ellipse ──
+            const hasCustomArt = !!(boat.svgPair || boat.svgHref);
+            const svgH  = boat.svgHeight ?? boat.ry * 2;
+            const svgW  = Math.round(svgH * (boat.svgAspect ?? 1));
+
             const boatVisual = (
               <g
                 className={`${styles.boat} ${!isLive ? styles.boatComing : ""}`}
@@ -102,29 +107,67 @@ export function HarbourMap() {
                 tabIndex={isLive ? 0 : undefined}
                 aria-describedby={`tip-${boat.slug}`}
               >
-                <ellipse
-                  cx={boat.cx}
-                  cy={boat.cy}
-                  rx={boat.rx}
-                  ry={boat.ry}
-                  fill={fill}
-                  stroke={stroke}
-                  strokeWidth={isLive ? "3" : "2"}
-                  strokeDasharray={isLive ? undefined : "8 6"}
-                  opacity={isLive ? 1 : 0.85}
-                />
-                <text
-                  x={boat.cx}
-                  y={boat.cy + 8}
-                  fontSize="26"
-                  fontWeight="700"
-                  fill={COLOURS.text}
-                  textAnchor="middle"
-                  fontFamily="Inter, system-ui, sans-serif"
-                  pointerEvents="none"
-                >
-                  {boat.label}
-                </text>
+                {hasCustomArt ? (
+                  /* ── Payton's custom SVG artwork ─────────────────────── */
+                  boat.svgPair ? (
+                    /* side-by-side pair, centred on cx/cy */
+                    <>
+                      <image
+                        href={boat.svgPair[0]}
+                        x={boat.cx - svgW}
+                        y={boat.cy - svgH / 2}
+                        width={svgW}
+                        height={svgH}
+                        preserveAspectRatio="xMidYMid meet"
+                      />
+                      <image
+                        href={boat.svgPair[1]}
+                        x={boat.cx}
+                        y={boat.cy - svgH / 2}
+                        width={svgW}
+                        height={svgH}
+                        preserveAspectRatio="xMidYMid meet"
+                      />
+                    </>
+                  ) : (
+                    /* single image, centred on cx/cy */
+                    <image
+                      href={boat.svgHref}
+                      x={boat.cx - svgW / 2}
+                      y={boat.cy - svgH / 2}
+                      width={svgW}
+                      height={svgH}
+                      preserveAspectRatio="xMidYMid meet"
+                    />
+                  )
+                ) : (
+                  /* ── placeholder ellipse + label ──────────────────────── */
+                  <>
+                    <ellipse
+                      cx={boat.cx}
+                      cy={boat.cy}
+                      rx={boat.rx}
+                      ry={boat.ry}
+                      fill={fill}
+                      stroke={stroke}
+                      strokeWidth={isLive ? "3" : "2"}
+                      strokeDasharray={isLive ? undefined : "8 6"}
+                      opacity={isLive ? 1 : 0.85}
+                    />
+                    <text
+                      x={boat.cx}
+                      y={boat.cy + 8}
+                      fontSize="26"
+                      fontWeight="700"
+                      fill={COLOURS.text}
+                      textAnchor="middle"
+                      fontFamily="Inter, system-ui, sans-serif"
+                      pointerEvents="none"
+                    >
+                      {boat.label}
+                    </text>
+                  </>
+                )}
               </g>
             );
 
