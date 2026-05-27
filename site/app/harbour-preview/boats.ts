@@ -135,7 +135,10 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "coming-soon",
-    // no artwork — rendered as a corrected oval (coming-soon)
+    // Static boat image — same SVG as live boats, rendered without bob
+    // animation and at reduced opacity (via .boatComing .boatImg CSS).
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
   {
     slug: "read-the-room",
@@ -199,6 +202,8 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "coming-soon",
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
 ];
 

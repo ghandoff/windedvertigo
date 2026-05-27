@@ -71,6 +71,11 @@
 .boatComing:hover {
   filter: none;
 }
+/* Static coming-soon boat images are dimmed to distinguish them from live
+   boats — same SVG but at ~55% opacity so they read as "not yet open". */
+.boatComing .boatImg {
+  opacity: 0.55;
+}
 
 .boatImg {
   display: block;
