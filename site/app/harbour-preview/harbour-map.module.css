@@ -15,14 +15,14 @@
    Fruit's exact CSS — fixed 1300px height, three background-image
    layers, water-blue fill. No SVG scaling; no responsive tricks.
 
-   Left-Bank:  top left,    auto × 78%    (= ~1014px tall)
-   Right-Bank: top right,   auto × 78%
-   south-bank1: bottom right, 1900px wide (panoramic slide-in)
+   Left-Bank:   top left,    auto × 78%    (= ~1014px tall)
+   Right-Bank:  top right,   auto × 78%
+   south-bank1: bottom right, 1900px wide  (panoramic)
 */
 .mapWrapper {
   height: 1300px;
   width: 100%;
-  position: relative; /* anchor for the boats SVG + tooltip */
+  position: relative;
   background-color: #273248;
   background-image:
     url('/harbour-preview/Left-Bank.svg'),
@@ -33,42 +33,35 @@
   background-size: auto 78%, auto 78%, 1900px auto;
 }
 
-/* ── boats SVG layer ─────────────────────────────────────────────────
-   Absolutely fills .mapWrapper so boat coordinates (viewBox 0 0 1000 1300)
-   align 1:1 with the CSS background. pointer-events: none at SVG level;
-   individual boat <g> elements opt back in. */
-.boatsLayer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
+/* ── boat elements ───────────────────────────────────────────────────
+   Each boat is a position:absolute div. Sizing and placement are set
+   via inline styles from the component (px dimensions + % positions).
+   Negative margins centre the element on its coordinate point without
+   using `transform`, leaving transform free for the bob animation.
 
-/* ── boat bobbing ────────────────────────────────────────────────────
-   Staggered per-boat via --boat-index CSS custom property. */
+   pointer-events are auto by default on divs — no opt-in needed.
+*/
 @keyframes bob {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-8px); }
 }
 
 .boat {
-  transform-origin: center;
-  transform-box: fill-box;
+  position: absolute;
   animation: bob 5.5s ease-in-out infinite;
   animation-delay: calc(var(--boat-index, 0) * 400ms);
   cursor: pointer;
-  pointer-events: auto;
-  transition: transform 200ms ease;
+  transition: filter 200ms ease;
 }
 .boat:hover,
 .boat:focus-visible {
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4)) brightness(1.08);
+  outline: none;
 }
 .boat:focus-visible {
-  outline: none;
+  outline: 3px solid #3b82f6;
+  outline-offset: 4px;
+  border-radius: 6px;
 }
 
 .boatComing {
@@ -79,62 +72,181 @@
   filter: none;
 }
 
-.boatsLayer a:focus-visible {
-  outline: 3px solid #3b82f6;
-  outline-offset: 4px;
-  border-radius: 6px;
+.boatImg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-/* ── tooltip ─────────────────────────────────────────────────────────
-   Absolute-positioned, anchored via inline left/top from React state. */
-.tooltip {
+/* ── persistent app-name label ───────────────────────────────────────
+   Floats above each boat. overflow:visible on .boat (default for
+   positioned elements) lets it extend outside the bounding box.
+   pointer-events:none so it never blocks a tap on the boat below. */
+.boatLabel {
   position: absolute;
-  transform: translate(-50%, calc(-100% - 12px));
-  background-color: rgba(30, 39, 56, 0.97);
-  color: var(--wv-champagne, #ffebd2);
-  padding: 0.625rem 0.875rem;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 235, 210, 0.15);
-  max-width: 280px;
-  pointer-events: none;
-  z-index: 25;
-}
-.tooltip::after {
-  content: "";
-  position: absolute;
+  bottom: calc(100% + 5px);
   left: 50%;
-  bottom: -6px;
-  transform: translateX(-50%) rotate(45deg);
-  width: 12px;
-  height: 12px;
-  background-color: rgba(30, 39, 56, 0.97);
-  border-right: 1px solid rgba(255, 235, 210, 0.15);
-  border-bottom: 1px solid rgba(255, 235, 210, 0.15);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgba(255, 235, 210, 0.92);
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.7),
+    0 0 8px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  text-transform: lowercase;
+  user-select: none;
 }
 
-.tooltipText {
+.boatComing .boatLabel {
+  opacity: 0.55;
+}
+
+/* ── tap nudge hint ──────────────────────────────────────────────────
+   Fades in at 1.2s, holds until ~6s, then fades out. Runs once only
+   (animation-fill-mode: forwards keeps it at opacity 0 after). */
+@keyframes hintFade {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.tapHint {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 235, 210, 0.75);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: hintFade 5s ease-in-out 1.2s both;
+  animation-fill-mode: forwards;
+  z-index: 20;
+}
+
+/* ── fixed-bottom boat card ──────────────────────────────────────────
+   Slides up from the bottom of the viewport when a boat is tapped or
+   clicked — same behaviour on mobile and desktop. */
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.boatCard {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 2rem));
+  background-color: rgba(22, 30, 46, 0.97);
+  color: var(--wv-champagne, #ffebd2);
+  border: 1px solid rgba(255, 235, 210, 0.18);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  padding: 1.125rem 1.125rem 1.125rem 1.25rem;
+  z-index: 50;
+  animation: cardSlideUp 220ms ease-out both;
+}
+
+.boatCardBody {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.boatCardText {
+  flex: 1;
+  min-width: 0;
+}
+
+.boatCardName {
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--wv-champagne, #ffebd2);
+  opacity: 0.7;
+}
+
+.boatCardTagline {
   margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: 0.9375rem;
+  line-height: 1.45;
   font-weight: 500;
+  color: var(--wv-champagne, #ffebd2);
 }
 
-.tooltipBadge {
+.boatCardLink {
+  flex-shrink: 0;
   display: inline-block;
+  padding: 0.5rem 0.875rem;
+  background-color: var(--wv-redwood, #b15043);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 160ms ease;
+}
+.boatCardLink:hover {
+  background-color: #c75f4e;
+}
+
+.boatCardBadge {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 0.375rem 0.625rem;
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--wv-redwood, #b15043);
-  background-color: rgba(177, 80, 67, 0.12);
-  padding: 0.25rem 0.5rem;
+  background-color: rgba(177, 80, 67, 0.14);
   border-radius: 4px;
-  margin-bottom: 0.375rem;
 }
 
-.tooltipComing .tooltipText {
-  color: rgba(255, 235, 210, 0.82);
+.boatCardClose {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 235, 210, 0.45);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  transition: color 120ms ease;
+}
+.boatCardClose:hover {
+  color: var(--wv-champagne, #ffebd2);
+}
+
+.boatCardComing .boatCardTagline {
+  color: rgba(255, 235, 210, 0.75);
+}
+
+/* ── global animation kill-switch (sit-still button) ────────────── */
+/* html[data-still] is set by AnimationProvider when the user clicks
+   "make this page sit still". CSS Modules classes can't be listed in
+   main.css (they're hashed), so the pause rule lives here instead.  */
+:global(html[data-still]) .boat,
+:global(html[data-still]) .tapHint {
+  animation-play-state: paused !important;
 }
 
 /* ── reduced motion ──────────────────────────────────────────────── */
@@ -146,5 +258,8 @@
   .boat:hover,
   .boat:focus-visible {
     filter: none;
+  }
+  .tapHint {
+    display: none;
   }
 }

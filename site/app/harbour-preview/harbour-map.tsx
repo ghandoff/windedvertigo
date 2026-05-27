@@ -3,12 +3,24 @@
 /**
  * harbour-preview map.
  *
- * Layout: one <div> with Fruit's exact CSS — height: 1300px, three
+ * Layout: .mapWrapper is a fixed 1300px-tall div with three CSS
  * background-image layers (Left-Bank, Right-bank, south-bank1).
- * The boats float on an absolutely-positioned <svg> that fills the div.
  *
- * SVG viewBox: 0 0 1000 1300  (matches the 1300px fixed height;
- * x-axis stays at 1000 units so cx values in boats.ts are unchanged).
+ * Boats are absolutely-positioned HTML elements — NOT an SVG overlay —
+ * so their sizes are in CSS pixels from the start and never stretch
+ * with the viewport.  Positions use percentage-based left/top derived
+ * from the 0–1000 × 0–1300 design coordinate space:
+ *   left = cx / 1000 * 100%
+ *   top  = cy / 1300 * 100%
+ * Centering on that point uses negative margins (not transform, so
+ * the bob CSS animation can use transform freely).
+ *
+ * Coming-soon boats (depth.chart, crease.works) are rendered as inline
+ * SVGs with explicit pixel viewBoxes — also no stretch.
+ *
+ * Interaction: tap/click opens a persistent fixed-bottom card with app
+ * name, tagline, and an "open app" link.  Escape, close button, or
+ * clicking outside the card all dismiss it.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -16,185 +28,212 @@ import { BOATS, type Boat } from "./boats";
 import styles from "./harbour-map.module.css";
 
 const COLOURS = {
-  boat:        "#cb7858",
   boatComing:  "#7a5147",
-  boatStroke:  "#b15043",
   text:        "#ffffff",
 } as const;
 
-interface TooltipState {
+interface CardState {
   slug:    string;
+  label:   string;
   tagline: string;
+  href:    string;
   status:  "live" | "coming-soon";
-  x:       number;
-  y:       number;
 }
 
 export function HarbourMap() {
-  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const [card, setCard] = useState<CardState | null>(null);
+  const cardRef    = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const openTooltip = useCallback((boat: Boat, target: SVGElement) => {
-    const rect = target.getBoundingClientRect();
-    setTooltip({
+  const openCard = useCallback((boat: Boat) => {
+    setCard({
       slug:    boat.slug,
+      label:   boat.label,
       tagline: boat.tagline,
+      href:    boat.href,
       status:  boat.status,
-      x: rect.left + rect.width  / 2 + window.scrollX,
-      y: rect.top                    + window.scrollY,
     });
   }, []);
 
-  const closeTooltip = useCallback(() => setTooltip(null), []);
+  const closeCard = useCallback(() => setCard(null), []);
 
+  /* ── Escape key ─────────────────────────────────────────────────── */
   useEffect(() => {
-    if (!tooltip) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeTooltip(); };
+    if (!card) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeCard(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [tooltip, closeTooltip]);
+  }, [card, closeCard]);
 
+  /* ── click outside the card ─────────────────────────────────────── */
   useEffect(() => {
-    if (!tooltip) return;
+    if (!card) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        closeTooltip();
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        closeCard();
       }
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [tooltip, closeTooltip]);
+  }, [card, closeCard]);
 
   return (
     <div ref={wrapperRef} className={styles.mapWrapper}>
-      {/* Boats — absolutely-positioned SVG overlay.
-          viewBox 0 0 1000 1300 matches the 1300px fixed container height.
-          The CSS backgrounds (banks) are behind this layer. */}
-      <svg
-        viewBox="0 0 1000 1300"
-        preserveAspectRatio="none"
-        role="img"
-        aria-label="harbour map — click a boat to open an app"
-        className={styles.boatsLayer}
-      >
-        <g data-boats>
-          {BOATS.map((boat, index) => {
-            const isLive   = boat.status === "live";
-            const fill     = isLive ? COLOURS.boat   : COLOURS.boatComing;
-            const stroke   = isLive ? COLOURS.boatStroke : COLOURS.boatComing;
-            const styleVars = { ["--boat-index" as string]: String(index) } as React.CSSProperties;
 
-            // ── custom artwork (svgPair / svgHref) or placeholder ellipse ──
-            const hasCustomArt = !!(boat.svgPair || boat.svgHref);
-            const svgH  = boat.svgHeight ?? boat.ry * 2;
-            const svgW  = Math.round(svgH * (boat.svgAspect ?? 1));
+      {BOATS.map((boat, index) => {
+        const isLive = boat.status === "live";
 
-            const boatVisual = (
-              <g
-                className={`${styles.boat} ${!isLive ? styles.boatComing : ""}`}
-                style={styleVars}
-                data-boat={boat.slug}
-                onMouseEnter={(e) => openTooltip(boat, e.currentTarget)}
-                onMouseLeave={closeTooltip}
-                onFocus={(e)    => openTooltip(boat, e.currentTarget)}
-                onBlur={closeTooltip}
-                onClick={(e) => {
-                  if (!window.matchMedia("(hover: hover)").matches && tooltip?.slug !== boat.slug) {
-                    e.preventDefault();
-                    openTooltip(boat, e.currentTarget as SVGElement);
-                  }
-                }}
-                tabIndex={isLive ? 0 : undefined}
-                aria-describedby={`tip-${boat.slug}`}
+        // ── dimensions in CSS pixels ────────────────────────────────
+        // BOAT_SCALE lets you resize the whole fleet in one place.
+        const BOAT_SCALE = 0.5;
+        const svgH = Math.round((boat.svgHeight ?? boat.ry * 2) * BOAT_SCALE);
+        const svgW = (boat.svgHref || boat.svgPair)
+          ? Math.round(svgH * (boat.svgAspect ?? 1))
+          : Math.round(boat.rx * 2 * BOAT_SCALE); // oval width = diameter
+
+        // ── absolute position: map 0–1000/0–1300 coords → percentages.
+        // Negative margins centre the element on the coordinate point
+        // without using `transform`, so the bob animation can use
+        // transform freely.
+        const posStyle: React.CSSProperties = {
+          left:       `${(boat.cx / 1000) * 100}%`,
+          top:        `${(boat.cy / 1300) * 100}%`,
+          width:      `${svgW}px`,
+          height:     `${svgH}px`,
+          marginLeft: `${-svgW / 2}px`,
+          marginTop:  `${-svgH / 2}px`,
+          ["--boat-index" as string]: String(index),
+        };
+
+        const handleClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+          if ("key" in e && e.key !== "Enter" && e.key !== " ") return;
+          e.preventDefault();
+          if (card?.slug === boat.slug) {
+            closeCard();
+          } else {
+            openCard(boat);
+          }
+        };
+
+        return (
+          <div
+            key={boat.slug}
+            className={`${styles.boat} ${!isLive ? styles.boatComing : ""}`}
+            style={posStyle}
+            data-boat={boat.slug}
+            onClick={handleClick}
+            onKeyDown={(e) => handleClick(e)}
+            tabIndex={0}
+            role="button"
+            aria-label={
+              isLive
+                ? `${boat.label} — ${boat.tagline}`
+                : `${boat.label} — coming soon`
+            }
+            aria-expanded={card?.slug === boat.slug}
+          >
+            {/* ── persistent name label ──────────────────────────── */}
+            <span className={styles.boatLabel}>{boat.label}</span>
+
+            {/* ── SVG image artwork ──────────────────────────────── */}
+            {boat.svgPair ? (
+              /* side-by-side pair */
+              <div style={{ display: "flex", width: "100%", height: "100%" }}>
+                <img
+                  src={boat.svgPair[0]}
+                  width={svgW / 2}
+                  height={svgH}
+                  alt=""
+                  className={styles.boatImg}
+                />
+                <img
+                  src={boat.svgPair[1]}
+                  width={svgW / 2}
+                  height={svgH}
+                  alt=""
+                  className={styles.boatImg}
+                />
+              </div>
+            ) : boat.svgHref ? (
+              /* single image */
+              <img
+                src={boat.svgHref}
+                width={svgW}
+                height={svgH}
+                alt=""
+                className={styles.boatImg}
+              />
+            ) : (
+              /* ── coming-soon oval — inline SVG with explicit px viewBox */
+              <svg
+                width={svgW}
+                height={svgH}
+                viewBox={`0 0 ${svgW} ${svgH}`}
+                style={{ display: "block" }}
+                aria-hidden="true"
               >
-                {hasCustomArt ? (
-                  /* ── Payton's custom SVG artwork ─────────────────────── */
-                  boat.svgPair ? (
-                    /* side-by-side pair, centred on cx/cy */
-                    <>
-                      <image
-                        href={boat.svgPair[0]}
-                        x={boat.cx - svgW}
-                        y={boat.cy - svgH / 2}
-                        width={svgW}
-                        height={svgH}
-                        preserveAspectRatio="xMidYMid meet"
-                      />
-                      <image
-                        href={boat.svgPair[1]}
-                        x={boat.cx}
-                        y={boat.cy - svgH / 2}
-                        width={svgW}
-                        height={svgH}
-                        preserveAspectRatio="xMidYMid meet"
-                      />
-                    </>
-                  ) : (
-                    /* single image, centred on cx/cy */
-                    <image
-                      href={boat.svgHref}
-                      x={boat.cx - svgW / 2}
-                      y={boat.cy - svgH / 2}
-                      width={svgW}
-                      height={svgH}
-                      preserveAspectRatio="xMidYMid meet"
-                    />
-                  )
-                ) : (
-                  /* ── placeholder ellipse + label ──────────────────────── */
-                  <>
-                    <ellipse
-                      cx={boat.cx}
-                      cy={boat.cy}
-                      rx={boat.rx}
-                      ry={boat.ry}
-                      fill={fill}
-                      stroke={stroke}
-                      strokeWidth={isLive ? "3" : "2"}
-                      strokeDasharray={isLive ? undefined : "8 6"}
-                      opacity={isLive ? 1 : 0.85}
-                    />
-                    <text
-                      x={boat.cx}
-                      y={boat.cy + 8}
-                      fontSize="26"
-                      fontWeight="700"
-                      fill={COLOURS.text}
-                      textAnchor="middle"
-                      fontFamily="Inter, system-ui, sans-serif"
-                      pointerEvents="none"
-                    >
-                      {boat.label}
-                    </text>
-                  </>
-                )}
-              </g>
-            );
+                <ellipse
+                  cx={svgW / 2}
+                  cy={svgH / 2}
+                  rx={svgW / 2 - 2}
+                  ry={svgH / 2 - 2}
+                  fill={COLOURS.boatComing}
+                  stroke={COLOURS.boatComing}
+                  strokeWidth="2"
+                  strokeDasharray="8 6"
+                  opacity={0.85}
+                />
+                <text
+                  x={svgW / 2}
+                  y={svgH / 2 + 8}
+                  fontSize="22"
+                  fontWeight="700"
+                  fill={COLOURS.text}
+                  textAnchor="middle"
+                  fontFamily="Inter, system-ui, sans-serif"
+                >
+                  {boat.label}
+                </text>
+              </svg>
+            )}
+          </div>
+        );
+      })}
 
-            return isLive ? (
-              <a key={boat.slug} href={boat.href} aria-label={`${boat.label} — ${boat.tagline}`}>
-                {boatVisual}
+      {/* ── one-shot tap nudge ────────────────────────────────────── */}
+      <p className={styles.tapHint} aria-hidden="true">
+        tap any boat to explore
+      </p>
+
+      {/* ── fixed-bottom card ───────────────────────────────────────  */}
+      {card && (
+        <div
+          ref={cardRef}
+          role="dialog"
+          aria-modal="false"
+          aria-label={card.label}
+          className={`${styles.boatCard} ${card.status === "coming-soon" ? styles.boatCardComing : ""}`}
+        >
+          <div className={styles.boatCardBody}>
+            <div className={styles.boatCardText}>
+              <p className={styles.boatCardName}>{card.label}</p>
+              <p className={styles.boatCardTagline}>{card.tagline}</p>
+            </div>
+            {card.status === "live" ? (
+              <a href={card.href} className={styles.boatCardLink}>
+                open app →
               </a>
             ) : (
-              <g key={boat.slug} role="group" aria-label={`${boat.label} — coming soon`}>
-                {boatVisual}
-              </g>
-            );
-          })}
-        </g>
-      </svg>
-
-      {tooltip && (
-        <div
-          id={`tip-${tooltip.slug}`}
-          role="tooltip"
-          className={`${styles.tooltip} ${tooltip.status === "coming-soon" ? styles.tooltipComing : ""}`}
-          style={{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }}
-        >
-          {tooltip.status === "coming-soon" && (
-            <span className={styles.tooltipBadge}>coming soon</span>
-          )}
-          <p className={styles.tooltipText}>{tooltip.tagline}</p>
+              <span className={styles.boatCardBadge}>coming soon</span>
+            )}
+          </div>
+          <button
+            className={styles.boatCardClose}
+            onClick={closeCard}
+            aria-label="close"
+          >
+            ×
+          </button>
         </div>
       )}
     </div>

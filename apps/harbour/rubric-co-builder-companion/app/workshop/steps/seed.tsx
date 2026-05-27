@@ -10,6 +10,17 @@ type Props = {
   onBack: () => void;
 };
 
+// Normalises the artefact string before inserting it into the step-2
+// heading "what counts as a good <artefact>?". Strips a leading
+// indefinite/definite article (a/an/the) so we don't render "a good a
+// 60-minute discussion", and strips trailing sentence punctuation so
+// we don't render "...of their choice.?". Empty input passes through
+// unchanged so the fallback "artefact" placeholder still appears.
+// (PR #149.)
+function normaliseArtefact(s: string): string {
+  return s.replace(/^(a|an|the) /i, "").replace(/[.!?]+$/g, "").trim();
+}
+
 export function StepSeed({ draft, onPatch, onNext, onBack }: Props) {
   function update(i: number, patch: Partial<Criterion>) {
     onPatch({
@@ -39,7 +50,7 @@ export function StepSeed({ draft, onPatch, onNext, onBack }: Props) {
           step 2 of 5 · criteria
         </p>
         <h1 className="text-3xl font-bold" style={{ color: "var(--color-cadet)" }}>
-          what counts as a good {draft.artefact || "artefact"}?
+          what counts as a good {normaliseArtefact(draft.artefact) || "artefact"}?
         </h1>
         <p style={{ color: "var(--color-cadet)" }}>
           rename, rewrite, or remove these. add more if your subject needs them.
