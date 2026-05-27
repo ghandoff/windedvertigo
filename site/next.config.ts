@@ -641,14 +641,11 @@ const nextConfig: NextConfig = {
       // /harbour/<slug> serves natively from the public dir — no rewrite
       // needed. Only the legacy-URL → harbour 301s remain here, for
       // external links / SEO continuity.
-      // lines-become-loops: ONLY redirect the bare URL. The :path* catch-all
-      // is omitted intentionally because /portfolio/assets/lines-become-loops/api/
-      // is a real Next.js API route (session state) and must not be redirected
-      // away. Static frontend pages at /portfolio/assets/lines-become-loops/<page>.html
-      // are no longer present (files moved to /harbour/lines-become-loops/), so
-      // legacy deep links to those HTMLs will 404 — acceptable trade-off vs
-      // breaking the API. The frontend at /harbour/lines-become-loops/ calls the
-      // API at its original /portfolio/assets/... path; users never see this.
+      // lines-become-loops: redirect the bare URL plus specific page routes.
+      // No :path* catch-all — /portfolio/assets/lines-become-loops/api/ is a
+      // real Next.js API route (session KV) and must not be redirected away.
+      // Extensionless page routes (/simulator, /lakeshore-simulator) are listed
+      // explicitly so scenario tab links (still referencing the old path) keep working.
       {
         source: "/portfolio/assets/lines-become-loops",
         destination: "/harbour/lines-become-loops",
@@ -656,6 +653,17 @@ const nextConfig: NextConfig = {
       },
       // Specific HTML subpages — explicit so the API path under the same
       // prefix isn't swept up by a wildcard.
+      // Extensionless scenario routes (scenario tabs in the simulator link here):
+      {
+        source: "/portfolio/assets/lines-become-loops/simulator",
+        destination: "/harbour/lines-become-loops/simulator",
+        permanent: true,
+      },
+      {
+        source: "/portfolio/assets/lines-become-loops/lakeshore-simulator",
+        destination: "/harbour/lines-become-loops/lakeshore-simulator",
+        permanent: true,
+      },
       {
         source: "/portfolio/assets/lines-become-loops/index.html",
         destination: "/harbour/lines-become-loops/",
