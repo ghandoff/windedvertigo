@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import {
   fetchRegenerativePractices,
   fetchCatalogueSchema,
-  fetchSiteContent,
 } from "@/lib/notion";
 import { CataloguePage } from "./catalogue-page";
 
@@ -42,49 +39,33 @@ export const metadata: Metadata = {
   },
 };
 
+// This page is a harbour app (lives under /harbour/...) and uses the
+// shared harbour-nav-widget that every other harbour app loads, not the
+// site-wide SiteHeader/SiteFooter. The visual-identity flag (?v=2) only
+// swaps the page palette; the navbar is the same for both versions.
 export default async function RegenerativeCataloguePage({
   searchParams,
 }: {
   searchParams: Promise<{ v?: string }>;
 }) {
   const params = await searchParams;
-  const isV2 = params.v === "2";
+  const version = params.v === "2" ? 2 : 1;
 
-  const [practices, schema, homeSections] = await Promise.all([
+  const [practices, schema] = await Promise.all([
     fetchRegenerativePractices(),
     fetchCatalogueSchema(),
-    fetchSiteContent("home"),
   ]);
-
-  if (isV2) {
-    // v2: harbour-nav-widget (matches the rest of the harbour) +
-    // edge-to-edge olive ground. No SiteHeader, no SiteFooter.
-    return (
-      <>
-        <main id="main-content">
-          <CataloguePage practices={practices} schema={schema} version={2} />
-        </main>
-        <Script
-          src="/harbour-nav-widget.js"
-          data-app="regenerative-practices-catalogue"
-          strategy="afterInteractive"
-        />
-        <Script
-          src="/feedback-widget.js"
-          data-app-slug="regenerative-practices-catalogue"
-          strategy="afterInteractive"
-        />
-      </>
-    );
-  }
 
   return (
     <>
-      <SiteHeader />
       <main id="main-content">
-        <CataloguePage practices={practices} schema={schema} version={1} />
+        <CataloguePage practices={practices} schema={schema} version={version} />
       </main>
-      <SiteFooter sections={homeSections} />
+      <Script
+        src="/harbour-nav-widget.js"
+        data-app="regenerative-practices-catalogue"
+        strategy="afterInteractive"
+      />
       <Script
         src="/feedback-widget.js"
         data-app-slug="regenerative-practices-catalogue"
