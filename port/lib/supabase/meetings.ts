@@ -454,3 +454,45 @@ export async function getMeeting(id: string): Promise<Meeting | null> {
     return null;
   }
 }
+
+/**
+ * Delete the meeting row whose gcal_event_id matches. Returns whether a row
+ * actually existed (so callers can distinguish "cleaned up" from "no-op").
+ *
+ * Called by gcal-sync when an event comes back with status='cancelled' so
+ * Council stays in step with the user's calendar. ON DELETE CASCADE on
+ * meeting_action_items / meeting_decisions / meeting_transcripts FKs (see
+ * 20260527_council_meetings.sql) removes children automatically.
+ *
+ * Idempotent: returns `{ deleted: false, meetingId: null }` cleanly when
+ * no row matches — multi-member crons race-call this with the same gcal
+ * id, only the first wins.
+ */
+export async function deleteMeetingByGcalEventId(
+  gcalEventId: string,
+): Promise<{ deleted: boolean; meetingId: string | null }> {
+  try {
+    const { data, error } = await supabase
+      .from("meetings")
+      .delete()
+      .eq("gcal_event_id", gcalEventId)
+      .select("id");
+    if (error) {
+      console.warn(
+        "[supabase/meetings] deleteByGcalEventId failed:",
+        error.message,
+      );
+      return { deleted: false, meetingId: null };
+    }
+    const row = data?.[0];
+    return row?.id
+      ? { deleted: true, meetingId: row.id as string }
+      : { deleted: false, meetingId: null };
+  } catch (err) {
+    console.warn(
+      "[supabase/meetings] deleteByGcalEventId threw:",
+      err instanceof Error ? err.message : err,
+    );
+    return { deleted: false, meetingId: null };
+  }
+}
