@@ -2200,16 +2200,8 @@
     // Activate palette v2 (cornflower/lilac) via ?v2=1. Persists in
     // localStorage so refresh keeps it. ?v2=0 clears it. Once the team
     // approves, remove this block and delete the html.v2 CSS scope.
-    (function applyTheme() {
-      const params = new URL(location.href).searchParams;
-      if (params.get('v2') === '0') { try { localStorage.removeItem('rtr-theme'); } catch {} }
-      else if (params.get('v2') === '1') { try { localStorage.setItem('rtr-theme', 'v2'); } catch {} }
-      try {
-        if (localStorage.getItem('rtr-theme') === 'v2') {
-          document.documentElement.classList.add('v2');
-        }
-      } catch {}
-    })();
+    // palette v2 is now the default — class applied unconditionally
+    document.documentElement.classList.add('v2');
 
     // ---------- INIT ----------
     // Bumped whenever the client-side state shape changes in a breaking
