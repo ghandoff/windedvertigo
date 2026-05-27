@@ -124,8 +124,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .mandate-title {
   font-size: 20px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark);
   margin-bottom: 32px;
 }
@@ -145,8 +144,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .mandate-sub {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-top: 32px;
 }
@@ -155,8 +153,7 @@ body { min-height: 100vh; padding-top: 146px; }
   margin-top: 16px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--sienna);
   cursor: pointer;
   border: none;
@@ -339,8 +336,7 @@ body { min-height: 100vh; padding-top: 146px; }
   display: inline-block;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   background: var(--cadet);
   color: var(--champagne);
   padding: 2px 8px;
@@ -490,8 +486,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .pc-label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 6px;
 }
@@ -526,8 +521,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .card-stack-title {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-bottom: 16px;
 }
@@ -635,8 +629,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .leverage-chip {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 3px 8px;
   flex-shrink: 0;
   margin-left: 8px;
@@ -749,8 +742,7 @@ body { min-height: 100vh; padding-top: 146px; }
   font-weight: 600;
   color: var(--cadet);
   font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   margin-top: 8px;
 }
 .card-detail dt:first-child {
@@ -827,8 +819,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .insight-eyebrow {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--sienna);
   margin-bottom: 8px;
 }
@@ -936,8 +927,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .handoff-footer {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   margin-top: 48px;
 }
@@ -1129,8 +1119,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .secondary-label {
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.20em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--on-dark-muted);
   white-space: nowrap;
 }
@@ -1138,6 +1127,48 @@ body { min-height: 100vh; padding-top: 146px; }
   flex: 1;
   position: relative;
   min-height: 0;
+}
+
+/* slider hint — fades on first interaction */
+.slider-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-dark-muted);
+  margin-bottom: 6px;
+  transition: opacity 0.2s;
+}
+.slider-hint.dismissed { opacity: 0; pointer-events: none; }
+
+/* first-run overlay */
+.first-run-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(39, 50, 72, 0.6);
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.first-run-overlay.visible { opacity: 1; pointer-events: all; cursor: pointer; }
+.first-run-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; font-size: 18px;
+  background: none; border: 1px solid var(--on-dark-muted);
+  color: var(--on-dark-muted); cursor: pointer; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+.first-run-label {
+  position: absolute; font-size: 12px; font-weight: 500;
+  color: var(--on-dark); background: rgba(39,50,72,0.85);
+  padding: 6px 10px; border-radius: 4px; max-width: 22ch; line-height: 1.4;
+}
+.first-run-label-left  { left: 24px;  top: 50%; transform: translateY(-50%); }
+.first-run-label-mid   { left: 50%;   top: 24px; transform: translateX(-50%); }
+.first-run-label-right { right: 24px; top: 50%; transform: translateY(-50%); }
+.first-run-dismiss {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 500; color: var(--on-dark-muted);
+  letter-spacing: 0.04em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .first-run-overlay { transition: none; }
 }
 
 /* -- trade-off follow-up within surprise check -- */
@@ -1274,8 +1305,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .export-eyebrow {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--sienna);
   margin-bottom: 8px;
 }
@@ -1299,8 +1329,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .export-section-label {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
   margin-bottom: 6px;
 }
@@ -1323,8 +1352,7 @@ body { min-height: 100vh; padding-top: 146px; }
 .export-li-tier {
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 2px 6px;
   background: rgba(203, 120, 88, 0.15);
   color: var(--sienna);
@@ -1490,8 +1518,7 @@ body { min-height: 100vh; padding-top: 146px; }
   font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
   padding: 8px 16px;
   border: none;
   border-bottom: 2px solid transparent;
@@ -1578,33 +1605,47 @@ body { min-height: 100vh; padding-top: 146px; }
   }
   .insight-blocks { grid-template-columns: 1fr; }
 }
-</style>
 
-  <!-- opengraph / twitter — added for may 28 prme launch -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://windedvertigo.com/harbour/lines-become-loops/lakeshore-simulator.html" />
-  <meta property="og:title" content="lakeshore college — sustainability committee simulator" />
-  <meta property="og:description" content="a custom variant of lines.become.loops for the lakeshore college sustainability committee." />
-  <meta property="og:image" content="https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/lines-become-loops.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="720" />
-  <meta property="og:site_name" content="winded.vertigo · harbour" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="lakeshore college — sustainability committee simulator" />
-  <meta name="twitter:description" content="a custom variant of lines.become.loops for the lakeshore college sustainability committee." />
-  <meta name="twitter:image" content="https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/lines-become-loops.png" />
-  <link rel="canonical" href="https://windedvertigo.com/harbour/lines-become-loops/lakeshore-simulator.html" />
+/* ── theme v2: mint + icy aqua palette (activate with ?v=2) ── */
+body.theme-v2 {
+  --champagne:  #FFFFFF;
+  --sienna:     #58CBB2;
+  --redwood:    #D2FDFF;
+  --rule:       rgba(255,255,255,0.22);
+  --rule-dark:  rgba(255,255,255,0.08);
+  --on-dark:    #FFFFFF;
+  --on-dark-muted: rgba(255,255,255,0.7);
+  --muted:      rgba(255,255,255,0.5);
+  --lbl-lead:   #58CBB2;
+  --lbl-soft:   #D2FDFF;
+  --lbl-lead-glow: rgba(210,253,255,0.35);
+}
+body.theme-v2 .btn { background: var(--lbl-lead); color: #273248; border-radius: 8px; }
+body.theme-v2 .btn:hover { background: var(--lbl-soft); opacity: 1; }
+body.theme-v2 .btn-ghost { color: var(--lbl-lead); border-color: var(--lbl-lead); border-radius: 8px; }
+body.theme-v2 .leverage-chip { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .chip-parameter { background: rgba(210,253,255,0.15); color: var(--lbl-soft); border-radius: 6px; }
+body.theme-v2 .chip-rules { background: rgba(88,203,178,0.15); color: var(--lbl-lead); border-radius: 6px; }
+body.theme-v2 .chip-goals { background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; }
+body.theme-v2 .intervention-card,
+body.theme-v2 .insight-block { border-radius: 8px; }
+body.theme-v2 .scenario-tab.active,
+body.theme-v2 .right-tab.active { color: var(--lbl-lead); border-bottom-color: var(--lbl-lead); }
+body.theme-v2 input[type=range]::-webkit-slider-runnable-track { background: var(--lbl-soft); }
+body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-lead); border-color: #fff; }
+</style>
 </head>
 <body>
+<script>(function(){if(new URLSearchParams(location.search).get('v')==='2')document.body.classList.add('theme-v2');})()</script>
 
 <!-- wordmark -->
 <header class="page-header" role="banner">
   <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
   <nav class="scenario-picker" aria-label="switch scenario">
-    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=churn">saas churn</a>
-    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=burnout">team burnout</a>
-    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=sleep">sleep debt</a>
-    <a class="scenario-tab active" aria-current="page" href="/harbour/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab active" aria-current="page" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
   </nav>
 </header>
 <!-- teacher's guide link moved to facilitator dashboard -->
@@ -1696,7 +1737,7 @@ body { min-height: 100vh; padding-top: 146px; }
     </div>
   </div>
   <div class="onboard-hint onboard-hint-cards" id="hint-cards" style="display:none">
-    <span class="onboard-hint-text">now drag each slider to see what the system does over 25 years. start with your choice — then try the others.</span>
+    <span class="onboard-hint-text">now drag each slider to see what the system does over 25 years. start with your choice. then try the others.</span>
     <span class="onboard-hint-arrow">&#8595;</span>
   </div>
 </div>
@@ -1715,7 +1756,7 @@ body { min-height: 100vh; padding-top: 146px; }
   <div class="pattern-chart-wrap" style="height:180px;margin-top:4px;">
     <canvas id="chart-pattern-secondary" aria-label="political-capital trajectories across all five interventions"></canvas>
   </div>
-  <div class="pattern-caption" style="margin-top:12px;font-size:13px;">the move that bends the primary the most is rarely the move that protects the secondary. notice which interventions cost what — and which, eventually, pay back more than they cost.</div>
+  <div class="pattern-caption" style="margin-top:12px;font-size:13px;">the move that bends the primary the most is rarely the move that protects the secondary. notice which interventions cost what, and which, eventually, pay back more than they cost.</div>
   <div class="pattern-caption">
     the higher you push on the leverage ladder, the more the system bends. the bottom of the ladder produces a sag and a recovery. the top of the ladder produces a structural break.
   </div>
@@ -1726,7 +1767,7 @@ body { min-height: 100vh; padding-top: 146px; }
     </div>
     <div class="insight-block">
       <div class="insight-eyebrow">how to spot the pattern</div>
-      <div class="insight-body">parameter tweaks (pricing, efficiency) produce a dip, then a recovery — the system absorbs them. structural changes (governance, purpose) bend the curve permanently because they change which questions get asked.</div>
+      <div class="insight-body">parameter tweaks (pricing, efficiency) produce a dip, then a recovery, and the system absorbs them. structural changes (governance, purpose) bend the curve permanently because they change which questions get asked.</div>
     </div>
     <div class="insight-block">
       <div class="insight-eyebrow">which lever matters most</div>
@@ -1734,7 +1775,7 @@ body { min-height: 100vh; padding-top: 146px; }
     </div>
   </div>
   <div class="calibration-note">
-    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual emissions. the relative ordering of interventions — not the absolute numbers — is the lesson.
+    note: this model is calibrated to illustrate leverage-point dynamics, not to forecast actual emissions. the relative ordering of interventions (not the absolute numbers) is the lesson.
   </div>
 
   <section class="export-wrap" id="reflection-export" aria-label="take this with you">
@@ -1759,7 +1800,7 @@ body { min-height: 100vh; padding-top: 146px; }
     </div>
 
     <div class="export-section">
-      <div class="export-section-label"><label for="shifted-textarea">one sentence — what shifted?</label></div>
+      <div class="export-section-label"><label for="shifted-textarea">one sentence: what shifted?</label></div>
       <textarea id="shifted-textarea" class="shifted-textarea" maxlength="280" rows="2" placeholder="what changed in how you saw the system?"></textarea>
     </div>
 
@@ -1797,7 +1838,7 @@ body { min-height: 100vh; padding-top: 146px; }
   </div>
   <div class="handoff-links">
     <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
-    <a class="btn" href="/harbour/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
   </div>
   <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
 </div>
@@ -1840,9 +1881,9 @@ body { min-height: 100vh; padding-top: 146px; }
 <div class="commit-confirm" id="commit-confirm" role="dialog" aria-label="confirm your decision">
   <div class="commit-confirm-inner">
     <div class="commit-confirm-title" id="commit-confirm-title"></div>
-    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention — starting with yours.</div>
+    <div class="commit-confirm-body">you chose this before seeing the data. now let's see what the system does with each intervention, starting with yours.</div>
     <div class="hypo-wrap">
-      <label class="hypo-label" for="hypo-textarea">one sentence — I chose this because I think the bottleneck is&hellip;</label>
+      <label class="hypo-label" for="hypo-textarea">one sentence: I chose this because I think the bottleneck is&hellip;</label>
       <textarea id="hypo-textarea" class="hypo-textarea" maxlength="240" rows="3" placeholder="e.g., price, trust, how we measure success, who gets to decide&hellip;" aria-describedby="hypo-counter"></textarea>
       <div class="hypo-meta">
         <span><span id="hypo-counter">0</span>&thinsp;/&thinsp;240</span>
@@ -1854,6 +1895,14 @@ body { min-height: 100vh; padding-top: 146px; }
       <button class="btn btn-small" id="btn-commit-confirm" disabled>lock it in</button>
     </div>
   </div>
+</div>
+
+<!-- first-run overlay: shown once after first commit, dismissed via × -->
+<div id="first-run-overlay" class="first-run-overlay" role="dialog" aria-modal="true" aria-label="how to use this view" hidden>
+  <div class="first-run-label first-run-label-left">interventions: pick one, then watch what the system does</div>
+  <div class="first-run-label first-run-label-mid">trajectory: what the stock does over 25 years</div>
+  <div class="first-run-label first-run-label-right">system map: pressure on each node, 0 to 100</div>
+  <div class="first-run-dismiss">tap anywhere to continue</div>
 </div>
 
 <script>
@@ -1910,9 +1959,9 @@ class SessionLogger {
       data: { scenario: 'lakeshore', ...data },
     });
     if (navigator.sendBeacon) {
-      navigator.sendBeacon('/portfolio/assets/lines-become-loops/api/session/log', payload);
+      navigator.sendBeacon('/api/session/log', payload);
     } else {
-      fetch('/portfolio/assets/lines-become-loops/api/session/log', {
+      fetch('/api/session/log', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: payload,
@@ -1995,16 +2044,18 @@ const FLOOR_GROWTH = 0.02;
 // total rises from 18,600 to ~19,497 — "emits more in 2050 than today"
 const NET_ZERO_LINE = TOTAL_0 * 0.10; // 1,860
 
+const _v2 = document.body.classList.contains('theme-v2');
 const COLORS = {
-  cadet: '#273248',
-  redwood: '#B15043',
-  sienna: '#CB7858',
-  champagne: '#FFEBD2',
-  muted: '#6B7589',
-  rule: '#EAD9BD',
-  softCard: '#ffffff',
-  chartTick: '#B5BBC9',
-  chartGrid: 'rgba(255,235,210,0.08)',
+  cadet:     '#273248',
+  sienna:    _v2 ? '#58CBB2' : '#CB7858',
+  redwood:   _v2 ? '#D2FDFF' : '#B15043',
+  champagne: _v2 ? '#FFFFFF' : '#FFEBD2',
+  softCard:  '#ffffff',
+  muted:     _v2 ? 'rgba(255,255,255,0.5)' : '#6B7589',
+  rule:      _v2 ? 'rgba(255,255,255,0.22)' : '#EAD9BD',
+  chartTick: _v2 ? 'rgba(255,255,255,0.5)' : '#B5BBC9',
+  chartGrid: _v2 ? 'rgba(255,255,255,0.06)' : 'rgba(255,235,210,0.08)',
+  glow:      _v2 ? 'rgba(210,253,255,0.4)' : 'rgba(255,235,210,0.4)',
 };
 
 // ────────────────────────────────────────────
@@ -2417,26 +2468,30 @@ function makeBaselineDataset(opacity = 1.0) {
     const value = node.displayValue !== undefined ? node.displayValue : node.baseValue;
     const valuePct = node.valuePct !== undefined ? node.valuePct : value / 100;
 
-    const pulseAmp = prefersReducedMotion ? 0 : (1 + valuePct * 1.5);
-    const pulse = Math.sin(tick * 0.1 + value * 0.05) * pulseAmp;
+    // pulse — speed scales with node pressure, baseline ~3.5s period
+    const targetMult = prefersReducedMotion ? 0 : (0.030 + valuePct * 0.119);
+    if (node._pulseMult === undefined) node._pulseMult = targetMult;
+    node._pulseMult += (targetMult - node._pulseMult) * 0.035; // ~400ms lerp
+    const pulseAmp = prefersReducedMotion ? 0 : (0.3 + valuePct * 1.2);
+    const pulse = Math.sin(tick * node._pulseMult + value * 0.05) * pulseAmp;
     const radius = NODE_RADIUS + pulse;
 
     if (isHighlighted) {
       ctx.save();
-      ctx.shadowColor = 'rgba(255, 235, 210, 0.4)';
+      ctx.shadowColor = COLORS.glow;
       ctx.shadowBlur = 16;
       ctx.beginPath();
       ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 235, 210, 0.15)';
+      ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.15)' : 'rgba(255,235,210,0.15)';
       ctx.fill();
       ctx.restore();
     } else if (isIndirect) {
       ctx.save();
-      ctx.shadowColor = 'rgba(255, 235, 210, 0.2)';
+      ctx.shadowColor = _v2 ? 'rgba(210,253,255,0.2)' : 'rgba(255,235,210,0.2)';
       ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 235, 210, 0.06)';
+      ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.06)' : 'rgba(255,235,210,0.06)';
       ctx.fill();
       ctx.restore();
     }
@@ -2476,7 +2531,7 @@ function makeBaselineDataset(opacity = 1.0) {
 
     ctx.save();
     ctx.font = LABEL_FONT;
-    ctx.fillStyle = 'rgba(255, 235, 210, 0.7)';
+    ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.7)' : 'rgba(255,235,210,0.7)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     const lines = (node.label || '').split('\n');
@@ -2502,7 +2557,7 @@ function makeBaselineDataset(opacity = 1.0) {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    ctx.fillStyle = 'rgba(255, 235, 210, 0.04)';
+    ctx.fillStyle = _v2 ? 'rgba(210,253,255,0.04)' : 'rgba(255,235,210,0.04)';
     for (let gx = 40; gx < w; gx += 40) {
       for (let gy = 40; gy < h; gy += 40) {
         ctx.beginPath();
@@ -2619,17 +2674,17 @@ const interventionData = [
   {
     id: 1,
     title: 'raise the parking permit price by 40%.',
-    body: 'immediate price signal to commuters. targets mobile emissions — commuter, fleet, and business travel.',
+    body: 'immediate price signal to commuters. targets mobile emissions: commuter, fleet, and business travel.',
     chip: 'parameter',
     chipClass: 'chip-parameter',
     dosage: { label: 'price increase', unit: '%', min: 0, max: 40 },
     detail: {
       targets: 'mobile emissions (commuter vehicles, fleet, business travel)',
       timeline: 'immediate. takes effect next semester.',
-      assumptions: 'price elasticity of ~0.3 — a 40% price rise reduces driving by ~12%. some commuters shift to transit, carpool, or cycling. effect partially rebounds as people adjust.',
+      assumptions: 'price elasticity of ~0.3: a 40% price rise reduces driving by ~12%. some commuters shift to transit, carpool, or cycling. effect partially rebounds as people adjust.',
       stakes: '<strong>chair:</strong> easy revenue win. <strong>facilities:</strong> less parking maintenance. <strong>student rep:</strong> hits low-income commuters hardest. <strong>trustee:</strong> minimal risk. <strong>town:</strong> spillover parking on residential streets.',
     },
-    why: 'this is a <em>parameter-level</em> change — adjusting a number inside the existing system. the curve sags and partially recovers because the system\'s structure hasn\'t changed. people adapt around price signals. meadows calls this the weakest leverage point: "constants, parameters, numbers."',
+    why: 'this is a <em>parameter-level</em> change, adjusting a number inside the existing system. the curve sags and partially recovers because the system\'s structure hasn\'t changed. people adapt around price signals. meadows calls this the weakest leverage point: "constants, parameters, numbers."',
     tradeoff: 'every commuter who pays more is a voter on campus. the committee spends political capital fastest on the move that feels most like punishment, and it buys the least emissions for the spend.',
     mapHighlight: [0, 1],
     influences: [{ nodeId: 1, weight: 1.0 }, { nodeId: 0, weight: 0.4 }],
@@ -2645,7 +2700,7 @@ const interventionData = [
       targets: 'stationary emissions (heating, cooling, hot water)',
       timeline: '12-year phased deployment. most reduction visible after year 8.',
       assumptions: 'heat pumps achieve 3–4× coefficient of performance vs. gas boilers. capital cost ~$45M spread over the plan. grid continues modest decarbonisation, improving heat-pump carbon intensity over time.',
-      stakes: '<strong>chair:</strong> largest capital commitment. <strong>facilities:</strong> years of construction disruption. <strong>student rep:</strong> invisible — no one sees a boiler. <strong>trustee:</strong> $45M is endowment-level. <strong>town:</strong> reduces local air pollutants too.',
+      stakes: '<strong>chair:</strong> largest capital commitment. <strong>facilities:</strong> years of construction disruption. <strong>student rep:</strong> invisible. no one sees a boiler. <strong>trustee:</strong> $45M is endowment-level. <strong>town:</strong> reduces local air pollutants too.',
     },
     why: 'still a <em>parameter-level</em> change, but with a much longer time constant. the 12-year ramp means the committee must sustain political will across multiple leadership cycles. the back-loaded curve is typical of infrastructure: slow to start, powerful once complete. but it\'s still adjusting <em>what flows through</em> the existing system, not the system itself.',
     tradeoff: 'a decade of capital disruption costs authority the committee needs for everything else. the drop in political capital during the ramp is why most institutions never finish the plan they started.',
@@ -2665,7 +2720,7 @@ const interventionData = [
       assumptions: 'campus floor area grows ~2%/year. new buildings at LBC standard use ~85% less operational energy and ~75% less embodied carbon than conventional. no retrofit effect on existing stock.',
       stakes: '<strong>chair:</strong> increases construction costs 15–20%. <strong>facilities:</strong> simpler systems, but unfamiliar. <strong>student rep:</strong> visible flagship buildings. <strong>trustee:</strong> higher per-project cost, lower lifecycle cost. <strong>town:</strong> sets a precedent for municipal code.',
     },
-    why: 'this is a <em>rules-level</em> change — it changes what is permitted. unlike parameters, rules reshape the <em>structure</em> of future decisions. every building project from now on asks a different question. the curve bends more slowly than a parameter change but doesn\'t rebound, because the rule persists after the committee that made it is gone.',
+    why: 'this is a <em>rules-level</em> change: it changes what is permitted. unlike parameters, rules reshape the <em>structure</em> of future decisions. every building project from now on asks a different question. the curve bends more slowly than a parameter change but doesn\'t rebound, because the rule persists after the committee that made it is gone.',
     tradeoff: 'a modest cost in political capital during the early cost-overrun years on new projects. rules that bite first, reward later.',
     mapHighlight: [0, 3, 4],
     influences: [{ nodeId: 3, weight: 0.8 }, { nodeId: 4, weight: 0.6 }, { nodeId: 0, weight: 0.3 }],
@@ -2673,17 +2728,17 @@ const interventionData = [
   {
     id: 4,
     title: 'give the student rep and the town liaison binding votes on capital-project approvals.',
-    body: 'changes who decides. does not directly reduce emissions — changes which interventions get approved next.',
+    body: 'changes who decides. does not directly reduce emissions: changes which interventions get approved next.',
     chip: 'rules',
     chipClass: 'chip-rules',
     dosage: { label: 'governance reform depth', unit: '% adoption', min: 0, max: 100 },
     detail: {
       targets: 'decision-making structure (indirect effect on all emission categories)',
       timeline: 'governance change takes effect immediately. emission effects emerge over 3–5 years as different projects get approved.',
-      assumptions: 'new voting members have stronger sustainability preferences. their influence creates an exogenous drift toward lower-carbon capital decisions. the effect is indirect — they don\'t reduce emissions, they change which proposals pass.',
-      stakes: '<strong>chair:</strong> loses control of capital agenda. <strong>facilities:</strong> may get mandates they didn\'t ask for. <strong>student rep:</strong> <em>gains binding power</em> for the first time. <strong>trustee:</strong> dilution of fiduciary influence. <strong>town:</strong> <em>gains binding power</em> — campus decisions now affect town planning.',
+      assumptions: 'new voting members have stronger sustainability preferences. their influence creates an exogenous drift toward lower-carbon capital decisions. the effect is indirect: they don\'t reduce emissions, they change which proposals pass.',
+      stakes: '<strong>chair:</strong> loses control of capital agenda. <strong>facilities:</strong> may get mandates they didn\'t ask for. <strong>student rep:</strong> <em>gains binding power</em> for the first time. <strong>trustee:</strong> dilution of fiduciary influence. <strong>town:</strong> <em>gains binding power</em>: campus decisions now affect town planning.',
     },
-    why: 'this is a deeper <em>rules-level</em> change — it changes <em>who decides</em>, not just what\'s permitted. the curve shows an indirect but compounding effect because every future decision now passes through a different filter. if you\'re playing roles, this is the moment the student rep and town liaison feel the shift — they\'ve just gained real power at the table.',
+    why: 'this is a deeper <em>rules-level</em> change: it changes <em>who decides</em>, not just what\'s permitted. the curve shows an indirect but compounding effect because every future decision now passes through a different filter. if you\'re playing roles, this is the moment the student rep and town liaison feel the shift, and they\'ve just gained real power at the table.',
     tradeoff: 'the chair loses a lever and spends early political capital to accept the loss. by year two the system has absorbed the new composition; by year five the chair\'s authority is restored at a new equilibrium.',
     mapHighlight: [0, 5, 6],
     influences: [{ nodeId: 5, weight: 1.0 }, { nodeId: 6, weight: 0.5 }, { nodeId: 0, weight: 0.2 }],
@@ -2696,13 +2751,13 @@ const interventionData = [
     chipClass: 'chip-goals',
     dosage: { label: 'purpose reframe depth', unit: '% commitment', min: 0, max: 100 },
     detail: {
-      targets: 'all emission categories simultaneously — reframes every prior intervention',
+      targets: 'all emission categories simultaneously, reframing every prior intervention',
       timeline: 'immediate reframing. effects compound as institutional culture shifts.',
       assumptions: 'every existing intervention (run or not) is now evaluated against a dual mandate: educational mission + watershed stewardship. this multiplies the effectiveness of all other interventions and adds a purpose-driven drift that compounds annually.',
       stakes: '<strong>chair:</strong> accountability expands beyond operations. <strong>facilities:</strong> every maintenance decision becomes a stewardship decision. <strong>student rep:</strong> this is what they came for. <strong>trustee:</strong> fiduciary duty now includes ecological duty. <strong>town:</strong> the institution becomes a watershed partner, not just a neighbour.',
     },
-    why: 'this is a <em>paradigm-level</em> change — the highest leverage point. it doesn\'t just change parameters, rules, or even goals. it changes the <em>question</em> every other decision is being asked. the curve drops furthest because every intervention is now multiplied by institutional purpose. meadows: "the power to transcend paradigms" — the system bends because its identity has shifted.',
-    tradeoff: 'a deep early fall in political capital as factions realign — then a recovery above baseline. the re-charter is the only intervention that eventually returns more authority than it spends. for eighteen months, it looks like committee suicide.',
+    why: 'this is a <em>paradigm-level</em> change: the highest leverage point. it doesn\'t just change parameters, rules, or even goals. it changes the <em>question</em> every other decision is being asked. the curve drops furthest because every intervention is now multiplied by institutional purpose. meadows: "the power to transcend paradigms." the system bends because its identity has shifted.',
+    tradeoff: 'a deep early fall in political capital as factions realign, then a recovery above baseline. the re-charter is the only intervention that eventually returns more authority than it spends. for eighteen months, it looks like committee suicide.',
     mapHighlight: [0, 1, 2, 3, 4, 5, 6],
     influences: [{ nodeId: 6, weight: 1.0 }, { nodeId: 5, weight: 0.7 }, { nodeId: 0, weight: 0.6 }, { nodeId: 1, weight: 0.3 }, { nodeId: 2, weight: 0.3 }, { nodeId: 3, weight: 0.3 }, { nodeId: 4, weight: 0.3 }],
   },
@@ -2775,7 +2830,7 @@ function buildCards() {
       ${wasRun && state.surprise[d.id] ? `<div class="card-why open">${d.why}${d.tradeoff ? '<span class="tradeoff-line">' + d.tradeoff + '</span>' : ''}</div>` : ''}
       ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) && !state.tradeoffNoticed[d.id] ? `
         <div class="tradeoff-wrap">
-          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart — was that trade-off visible to you when you chose?</div>
+          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart: was that trade-off visible to you when you chose?</div>
           <div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-${d.id}">
             <button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="yes" role="radio" aria-pressed="false" tabindex="0">yes</button>
             <button type="button" class="surprise-chip" data-tradeoff-id="${d.id}" data-tradeoff-val="no" role="radio" aria-pressed="false" tabindex="-1">no</button>
@@ -2784,7 +2839,7 @@ function buildCards() {
       ` : ''}
       ${wasRun && state.surprise[d.id] && hasOppositeTradeoff(d.id) && state.tradeoffNoticed[d.id] ? `
         <div class="tradeoff-wrap">
-          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart — was that trade-off visible to you when you chose?</div>
+          <div class="tradeoff-prompt" id="tradeoff-prompt-${d.id}">notice the second chart: was that trade-off visible to you when you chose?</div>
           <div class="surprise-chips" role="radiogroup" aria-labelledby="tradeoff-prompt-${d.id}">
             ${['yes','no'].map((v,i) => {
               const chosen = state.tradeoffNoticed[d.id];
@@ -2807,11 +2862,15 @@ function buildCards() {
           const votingRow = d.id <= 3 && state.interventionsRun.includes(4) && !state.rechartered
             ? '<label class="voting-bloc-label visible" aria-label="run with new voting bloc"><input type="checkbox" ' + (state.withVotingBloc[d.id] ? 'checked' : '') + ' data-voting-id="' + d.id + '"><span>with new voting bloc</span></label>'
             : '';
+          const sliderHint = (!state.sliderTouched || !state.sliderTouched[d.id])
+            ? '<div class="slider-hint">drag to see how this intervention bends the trajectory</div>'
+            : '';
           return '<div class="dosage-slider-wrap">' +
             '<div class="dosage-header">' +
               '<span class="dosage-label">' + label + '</span>' +
               '<span class="dosage-dosage">' + currentVal + unit + '</span>' +
             '</div>' +
+            sliderHint +
             '<input type="range" class="dosage-slider" data-slider-id="' + d.id + '" min="0" max="100" value="' + Math.round(currentDosage * 100) + '" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(currentDosage * 100) + '">' +
             '<span class="card-meta">25-year reduction: ' + (reductionPct !== null ? '<span class="result-value">~' + reductionPct + '%</span>' : '\u2014') + '</span>' +
             votingRow +
@@ -2850,6 +2909,13 @@ function buildCards() {
     slider.addEventListener('input', () => {
       state.sliderActive = true;
       const id = parseInt(slider.dataset.sliderId);
+      // dismiss per-slider hint on first touch
+      if (!state.sliderTouched) state.sliderTouched = {};
+      if (!state.sliderTouched[id]) {
+        state.sliderTouched[id] = true;
+        const hint = slider.closest('.dosage-slider-wrap').querySelector('.slider-hint');
+        if (hint) { hint.classList.add('dismissed'); setTimeout(() => hint.remove(), 220); }
+      }
       const dosageEl = slider.closest('.dosage-slider-wrap').querySelector('.dosage-dosage');
       const metaEl = slider.closest('.dosage-slider-wrap').querySelector('.card-meta');
       const intv = interventionData.find(x => x.id === id);
@@ -3299,6 +3365,30 @@ function render() {
 }
 
 // ────────────────────────────────────────────
+// first-run overlay (shown once after first commit)
+// ────────────────────────────────────────────
+function maybeShowFirstRunOverlay() {
+  try { if (localStorage.getItem('lbl_simulator_overlay_seen')) return; } catch(e) { return; }
+  const overlay = document.getElementById('first-run-overlay');
+  if (!overlay) return;
+  overlay.hidden = false;
+  requestAnimationFrame(() => overlay.classList.add('visible'));
+  let dismissed = false;
+  function dismissOverlay() {
+    if (dismissed) return;
+    dismissed = true;
+    clearTimeout(autoTimer);
+    overlay.classList.remove('visible');
+    overlay.addEventListener('transitionend', () => { overlay.hidden = true; }, { once: true });
+    try { localStorage.setItem('lbl_simulator_overlay_seen', '1'); } catch(e) {}
+  }
+  // click anywhere on overlay to dismiss (not just the × button)
+  overlay.addEventListener('click', dismissOverlay, { once: true });
+  // auto-dismiss after 4s
+  const autoTimer = setTimeout(dismissOverlay, 4000);
+}
+
+// ────────────────────────────────────────────
 // commitment flow
 // ────────────────────────────────────────────
 let pendingCommitId = null;
@@ -3335,7 +3425,7 @@ function updateHypoUi() {
 // ────────────────────────────────────────────
 function buildExportPlainText() {
   const lines = [];
-  lines.push('LAKESHORE COLLEGE SUSTAINABILITY COMMITTEE');
+  lines.push('lakeshore college sustainability committee');
   lines.push('mandate: bring institutional operations to net-zero greenhouse-gas emissions by 2050, without compromising educational quality, equity of access, or institutional solvency.');
   lines.push('');
   // trade-off headline
@@ -3360,8 +3450,8 @@ function buildExportPlainText() {
     const tn = state.tradeoffNoticed[d.id];
     const primaryStr = lastVal !== null ? Math.round(lastVal).toLocaleString() + ' tCO2e' : '—';
     const secondaryStr = lastPc !== null ? lastPc.toFixed(2) + ' PC' : '—';
-    const tnStr = tn ? ' — trade-off noticed: ' + tn : '';
-    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '] — surprise: ' + surprise + tnStr + ' — primary: ' + primaryStr + ' — secondary: ' + secondaryStr);
+    const tnStr = tn ? ', trade-off noticed: ' + tn : '';
+    lines.push('  ' + d.id + '. ' + d.title + ' [' + d.chip + '], surprise: ' + surprise + tnStr + ', primary: ' + primaryStr + ', secondary: ' + secondaryStr);
   });
   lines.push('');
   lines.push('what shifted: ' + (state.shifted || '(blank)'));
@@ -3449,6 +3539,10 @@ document.addEventListener('DOMContentLoaded', () => {
     pendingCommitId = null;
     setState({ committed: true, committedId: id, dosages: { ...state.dosages, [id]: 1 } });
     logger.log('committed', { interventionId: id, hypothesis: state.hypothesis });
+
+    // show first-run guidance overlay (once per browser, persisted in localStorage)
+    maybeShowFirstRunOverlay();
+
     setTimeout(() => handleRunIntervention(id, 1), 400);
   });
 
@@ -3564,7 +3658,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.getElementById('mailing-email').disabled = true;
     document.getElementById('mailing-form').querySelector('.mailing-btn').disabled = true;
-    document.getElementById('mailing-success').textContent = 'thank you — we\'ll keep you posted.';
+    document.getElementById('mailing-success').textContent = 'thank you. we\'ll keep you posted.';
   });
 
   document.getElementById('btn-handoff').addEventListener('click', () => showScreen('handoff'));
@@ -3632,6 +3726,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-    <script src="/feedback-widget.js" data-app-slug="lines-become-loops" defer></script>
-  </body>
+</body>
 </html>
