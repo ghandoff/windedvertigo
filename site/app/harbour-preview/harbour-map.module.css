@@ -40,26 +40,34 @@
    the available width with no horizontal scroll. Aspect ratio comes
    from the SVG's viewBox attribute — no need to set it in CSS.
 
-   Two CSS background layers here (bottom → top):
-     1. background-color (#3b5577) — harbour basin water blue, shows
-        through the transparent areas of the bank SVGs above.
-     2. south-bank1.svg — anchored bottom-right at a fixed height
-        (1014px, matching 78% of the 1300px reference container so it
-        is proportionally the same height as the Left/Right banks).
-        The SVG is 6707px wide at this height; on mobile the viewport
-        clips the left portion and the bank nearly disappears; on
-        wider desktop viewports progressively more of the panorama
-        slides into view from the left. The inline SVG (with Left-Bank,
-        Right-bank, and boats) renders on top of both backgrounds. */
+   Four CSS background layers here (bottom → top):
+     1. background-color (#3b5577) — harbour basin water blue.
+     2. south-bank1.svg — anchored bottom-right, fixed 1900×308px.
+        Panoramic slide-in: as the viewport widens, more of the 1900px
+        wide image slides into view from the right edge.
+     3. Right-bank.svg — anchored top-right. Fixed at auto×1014px so it
+        never grows beyond Fruit's reference size. On viewports narrower
+        than ~650px the bank shrinks proportionally via min(1014px, 78%).
+     4. Left-Bank.svg — anchored top-left, same fixed-size logic.
+
+   All three banks are CSS backgrounds (not SVG <image> elements) so
+   they stay at a fixed visual size regardless of how wide the SVG
+   scales. The inline SVG contains only the interactive boats layer. */
 .mapWrapper {
   width: 100%;
   display: block;
   position: relative; /* anchor for the tooltip overlay */
   background-color: #3b5577;
-  background-image: url('/harbour-preview/south-bank1.svg');
-  background-position: bottom right;
-  background-repeat: no-repeat;
-  background-size: 1900px auto;
+  background-image:
+    url('/harbour-preview/Left-Bank.svg'),
+    url('/harbour-preview/Right-bank.svg'),
+    url('/harbour-preview/south-bank1.svg');
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: top left, top right, bottom right;
+  background-size:
+    auto min(1014px, 78%),
+    auto min(1014px, 78%),
+    1900px auto;
 }
 
 .map {

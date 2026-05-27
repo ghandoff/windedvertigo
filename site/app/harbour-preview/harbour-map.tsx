@@ -105,30 +105,14 @@ export function HarbourMap() {
         aria-label="harbour map — click a boat to open an app"
         className={styles.map}
       >
-        {/* ── layers 1–2: Payton's bank SVGs ──────────────────────
-            Water colour + south bank live on .mapWrapper (CSS) so they
-            can use `background-position: bottom right` anchoring.
-
-            Left-Bank  (394.4 × 2987.93): height = 78% of 2000 = 1560 units
-                                           width  = 1560 × (394.4 / 2987.93) ≈ 206
-            Right-bank (514.18 × 3207.57): same height 1560
-                                            width  = 1560 × (514.18 / 3207.57) ≈ 250
-                                            x      = 1000 − 250 = 750
+        {/* All three banks (Left-Bank, Right-bank, south-bank1) are CSS
+            backgrounds on .mapWrapper — see harbour-map.module.css.
+            Using CSS backgrounds lets us set fixed pixel heights so the
+            banks don't grow as the SVG scales with viewport width.
 
             When Payton adds per-boat SVGs, swap the placeholder ellipses
             in <g data-boats> for <image> elements anchored at each boat's
-            existing cx / cy. boats.ts coordinate data stays the same.
-        */}
-        <image
-          href="/harbour-preview/Left-Bank.svg"
-          x="0" y="0" width="206" height="1560"
-          preserveAspectRatio="xMinYMin meet"
-        />
-        <image
-          href="/harbour-preview/Right-bank.svg"
-          x="750" y="0" width="250" height="1560"
-          preserveAspectRatio="xMaxYMin meet"
-        />
+            existing cx / cy. boats.ts coordinate data stays the same. */}
 
         {/* ── layer 5: boats (the interactive layer) ─────────────── */}
         <g data-boats>
