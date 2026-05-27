@@ -95,6 +95,10 @@ export interface Pier {
  * column) so they feel like a fleet, not a scattered grid.
  */
 export const BOATS: readonly Boat[] = [
+  // Placeholder boat SVG — all six live boats share this image until
+  // Payton delivers per-app artwork. svgHeight omitted → defaults to
+  // ry * 2, so each boat fills the same footprint as its oval.
+  // svgAspect: 1706.88 / 651 ≈ 2.621 (viewBox of Payton's boat file).
   {
     slug: "vertigo-vault",
     label: "vertigo.vault",
@@ -105,6 +109,8 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "live",
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
   {
     slug: "lines-become-loops",
@@ -116,6 +122,8 @@ export const BOATS: readonly Boat[] = [
     rx: 150,
     ry: 65,
     status: "live",
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
   {
     slug: "depth-chart",
@@ -127,6 +135,7 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "coming-soon",
+    // no artwork — rendered as a corrected oval (coming-soon)
   },
   {
     slug: "read-the-room",
@@ -138,9 +147,8 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "live",
-    svgPair:   ["/harbour-preview/read-the-room-left.svg", "/harbour-preview/read-the-room-right.svg"],
-    svgHeight: 90,
-    svgAspect: 1706.88 / 651, // ≈ 2.621 — viewBox of Payton's boat SVGs
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
   {
     slug: "values-companion",
@@ -152,6 +160,8 @@ export const BOATS: readonly Boat[] = [
     rx: 145,
     ry: 60,
     status: "live",
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
   {
     slug: "cuts-catalogue",
@@ -163,6 +173,8 @@ export const BOATS: readonly Boat[] = [
     rx: 135,
     ry: 60,
     status: "live",
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
   {
     slug: "co-rubric-companion",
@@ -174,6 +186,8 @@ export const BOATS: readonly Boat[] = [
     rx: 125,
     ry: 60,
     status: "live",
+    svgHref:   "/harbour-preview/read-the-room-left.svg",
+    svgAspect: 1706.88 / 651,
   },
   {
     slug: "creaseworks",
