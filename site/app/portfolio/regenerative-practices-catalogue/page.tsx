@@ -12,13 +12,13 @@ import { CataloguePage } from "./catalogue-page";
 export const revalidate = 300;
 
 // Canonical moved to /harbour/regenerative-practices-catalogue ahead of the
-// 28 May PRME launch — the legacy /portfolio/... URL still 301s here via
+// 28 May PRME launch. The legacy /portfolio/... URL still 301s here via
 // next.config.ts redirects.
 const OG_IMAGE =
   "https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/harbour-tiles/regenerative-practices.png";
 
 export const metadata: Metadata = {
-  title: "regenerative practices catalogue — winded.vertigo",
+  title: "regenerative practices catalogue, winded.vertigo",
   description:
     "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
   alternates: {
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "winded.vertigo · harbour",
-    title: "regenerative practices catalogue — a living catalogue, by PRME faculty",
+    title: "regenerative practices catalogue: a living catalogue, by PRME faculty",
     description:
       "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
     url: "/harbour/regenerative-practices-catalogue",
@@ -35,25 +35,54 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "regenerative practices catalogue — a living catalogue, by PRME faculty",
+    title: "regenerative practices catalogue: a living catalogue, by PRME faculty",
     description:
       "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
     images: [OG_IMAGE],
   },
 };
 
-export default async function RegenerativeCataloguePage() {
+export default async function RegenerativeCataloguePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ v?: string }>;
+}) {
+  const params = await searchParams;
+  const isV2 = params.v === "2";
+
   const [practices, schema, homeSections] = await Promise.all([
     fetchRegenerativePractices(),
     fetchCatalogueSchema(),
     fetchSiteContent("home"),
   ]);
 
+  if (isV2) {
+    // v2: harbour-nav-widget (matches the rest of the harbour) +
+    // edge-to-edge olive ground. No SiteHeader, no SiteFooter.
+    return (
+      <>
+        <main id="main-content">
+          <CataloguePage practices={practices} schema={schema} version={2} />
+        </main>
+        <Script
+          src="/harbour-nav-widget.js"
+          data-app="regenerative-practices-catalogue"
+          strategy="afterInteractive"
+        />
+        <Script
+          src="/feedback-widget.js"
+          data-app-slug="regenerative-practices-catalogue"
+          strategy="afterInteractive"
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <SiteHeader />
       <main id="main-content">
-        <CataloguePage practices={practices} schema={schema} />
+        <CataloguePage practices={practices} schema={schema} version={1} />
       </main>
       <SiteFooter sections={homeSections} />
       <Script

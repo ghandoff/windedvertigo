@@ -2,18 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { RegenerativePractice, CatalogueSchema } from "@/lib/notion";
-import styles from "./catalogue.module.css";
+import stylesV1 from "./catalogue.module.css";
+import stylesV2 from "./catalogue.v2.module.css";
 
-// ── colour palettes for dimension tags ────────────────────
-// every bg+text pair is verified ≥ 4.5:1 contrast (WCAG 1.4.3 AA, normal text):
-//   cadet + champagne       9.8:1   AAA
-//   redwood + white         5.14:1  AA
-//   burnt sienna + white    6.01:1  AAA  ← brand --wv-sienna fails (3.33:1) so
-//                                          we use a deeper variant for tag fills
-//   champagne + cadet       9.8:1   AAA
-//   #3d4f6e + champagne     7.11:1  AAA
-//   #8a3b30 + white         7.66:1  AAA
-const DIM_PALETTES = [
+type Version = 1 | 2;
+
+// v1 — original brand palette (cadet/redwood/sienna/champagne).
+// every bg+text pair verified ≥ 4.5:1 AA.
+const DIM_PALETTES_V1 = [
   { bg: "var(--wv-cadet)", text: "var(--wv-champagne)" },
   { bg: "var(--wv-redwood)", text: "var(--wv-white)" },
   { bg: "#a04830", text: "var(--wv-white)" },
@@ -21,16 +17,42 @@ const DIM_PALETTES = [
   { bg: "#3d4f6e", text: "var(--wv-champagne)" },
   { bg: "#8a3b30", text: "var(--wv-white)" },
 ];
-
-const COVER_FALLBACKS = [
+const COVER_FALLBACKS_V1 = [
   "var(--wv-cadet)",
   "var(--wv-redwood)",
   "var(--wv-sienna)",
 ];
 
-function dimPalette(dim: string, allDims: string[]) {
+// v2 — palette #6 "rooted, growing" (olive + jade + cream). every
+// bg+text pair verified ≥ 4.5:1 AA on normal text, except jade-on-olive
+// which is restricted to small bold letter-spaced label chips only.
+const DIM_PALETTES_V2 = [
+  { bg: "#434824", text: "#ffebd2" },
+  { bg: "#2c7e5e", text: "#ffebd2" },
+  { bg: "#ffebd2", text: "#434824" },
+  { bg: "#5a6332", text: "#ffebd2" },
+  { bg: "#43b187", text: "#1c2014" },
+  { bg: "#3d6b34", text: "#ffebd2" },
+];
+const COVER_FALLBACKS_V2 = [
+  "#434824",
+  "#2c7e5e",
+  "#5a6332",
+];
+
+function pickStyles(version: Version) {
+  return version === 2 ? stylesV2 : stylesV1;
+}
+function pickPalettes(version: Version) {
+  return version === 2
+    ? { dims: DIM_PALETTES_V2, covers: COVER_FALLBACKS_V2 }
+    : { dims: DIM_PALETTES_V1, covers: COVER_FALLBACKS_V1 };
+}
+
+function dimPalette(dim: string, allDims: string[], version: Version) {
+  const { dims } = pickPalettes(version);
   const idx = allDims.indexOf(dim);
-  return DIM_PALETTES[(idx < 0 ? 0 : idx) % DIM_PALETTES.length];
+  return dims[(idx < 0 ? 0 : idx) % dims.length];
 }
 
 function toggleArr(arr: string[], val: string): string[] {
@@ -49,9 +71,11 @@ function renderSteps(text: string): string[] {
 export function CataloguePage({
   practices,
   schema,
+  version = 1,
 }: {
   practices: RegenerativePractice[];
   schema: CatalogueSchema;
+  version?: Version;
 }) {
   const [view, setView] = useState<"form" | "gallery">("form");
   const [submitting, setSubmitting] = useState(false);
@@ -133,6 +157,7 @@ export function CataloguePage({
         onSubmit={handleSubmit}
         submitting={submitting}
         error={formError}
+        version={version}
       />
     );
   }
@@ -157,6 +182,7 @@ export function CataloguePage({
       }}
       selectedPractice={selectedPractice}
       onSelectPractice={setSelectedPractice}
+      version={version}
     />
   );
 }
@@ -183,6 +209,7 @@ function FormView({
   onSubmit,
   submitting,
   error,
+  version,
 }: {
   schema: CatalogueSchema;
   formData: FormState;
@@ -190,7 +217,9 @@ function FormView({
   onSubmit: (e: React.FormEvent) => void;
   submitting: boolean;
   error: string | null;
+  version: Version;
 }) {
+  const styles = pickStyles(version);
   function set(field: keyof FormState, value: FormState[keyof FormState]) {
     onChange({ ...formData, [field]: value });
   }
@@ -239,7 +268,7 @@ function FormView({
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="tagline">
                 tagline
-                <span className={styles.optional}> — one sentence that captures the spirit of this practice</span>
+                <span className={styles.optional}>: one sentence that captures the spirit of this practice</span>
               </label>
               <input
                 id="tagline"
@@ -254,7 +283,7 @@ function FormView({
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="author">
                 your name
-                <span className={styles.optional}> — appears as practice author in the gallery</span>
+                <span className={styles.optional}>: appears as practice author in the gallery</span>
               </label>
               <input
                 id="author"
@@ -275,11 +304,11 @@ function FormView({
               <div className={styles.fieldGroup}>
                 <span className={styles.label}>
                   regenerative dimension <span className={styles.required}>*</span>
-                  <span className={styles.optional}> — select all that apply</span>
+                  <span className={styles.optional}>: select all that apply</span>
                 </span>
                 <div className={styles.checkboxGroup} role="group" aria-label="regenerative dimension">
                   {schema.dimensions.map((dim) => {
-                    const palette = dimPalette(dim, schema.dimensions);
+                    const palette = dimPalette(dim, schema.dimensions, version);
                     const checked = formData.dimensions.includes(dim);
                     return (
                       <label
@@ -338,7 +367,7 @@ function FormView({
               <div className={styles.fieldGroup}>
                 <span className={styles.label}>
                   format
-                  <span className={styles.optional}> — select all that apply</span>
+                  <span className={styles.optional}>: select all that apply</span>
                 </span>
                 <div className={styles.checkboxGroup} role="group" aria-label="format">
                   {schema.formats.map((f) => (
@@ -363,7 +392,7 @@ function FormView({
               <div className={styles.fieldGroup}>
                 <span className={styles.label}>
                   learning level
-                  <span className={styles.optional}> — select all that apply</span>
+                  <span className={styles.optional}>: select all that apply</span>
                 </span>
                 <div className={styles.checkboxGroup} role="group" aria-label="learning level">
                   {schema.levels.map((l) => (
@@ -392,7 +421,7 @@ function FormView({
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="objective">
                 learning objective
-                <span className={styles.optional}> — what will participants gain or experience?</span>
+                <span className={styles.optional}>: what will participants gain or experience?</span>
               </label>
               <textarea
                 id="objective"
@@ -407,7 +436,7 @@ function FormView({
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="instructions">
                 step-by-step instructions <span className={styles.required}>*</span>
-                <span className={styles.optional}> — number each step on a new line</span>
+                <span className={styles.optional}>: number each step on a new line</span>
               </label>
               <textarea
                 id="instructions"
@@ -423,7 +452,7 @@ function FormView({
             <div className={styles.fieldGroup}>
               <label className={styles.label} htmlFor="materials">
                 materials needed
-                <span className={styles.optional}> — leave blank if none required</span>
+                <span className={styles.optional}>: leave blank if none required</span>
               </label>
               <textarea
                 id="materials"
@@ -473,6 +502,7 @@ function GalleryView({
   onClearFilters,
   selectedPractice,
   onSelectPractice,
+  version,
 }: {
   practices: RegenerativePractice[];
   allPractices: RegenerativePractice[];
@@ -486,7 +516,9 @@ function GalleryView({
   onClearFilters: () => void;
   selectedPractice: RegenerativePractice | null;
   onSelectPractice: (p: RegenerativePractice | null) => void;
+  version: Version;
 }) {
+  const styles = pickStyles(version);
   const hasFilters =
     activeDimensions.length > 0 || activeFormats.length > 0 || !!activeDuration;
 
@@ -498,7 +530,7 @@ function GalleryView({
           <h1 className={styles.pageTitle}>the catalogue.</h1>
           <p className={styles.introText}>
             {allPractices.length > 0
-              ? `${allPractices.length} regenerative teaching ${allPractices.length === 1 ? "practice" : "practices"} contributed by PPCS faculty. your submission has been received — it will appear here once reviewed.`
+              ? `${allPractices.length} regenerative teaching ${allPractices.length === 1 ? "practice" : "practices"} contributed by PPCS faculty. your submission has been received. it will appear here once reviewed.`
               : "your submission has been received. practices will appear here once reviewed. check back soon."}
           </p>
         </div>
@@ -511,7 +543,7 @@ function GalleryView({
                 <span className={styles.filterGroupLabel}>dimension</span>
                 <div className={styles.filterToggleRow}>
                   {schema.dimensions.map((d) => {
-                    const palette = dimPalette(d, schema.dimensions);
+                    const palette = dimPalette(d, schema.dimensions, version);
                     const active = activeDimensions.includes(d);
                     return (
                       <button
@@ -593,7 +625,7 @@ function GalleryView({
           </div>
         ) : allPractices.length === 0 ? (
           <div className={styles.emptyState}>
-            <p>no practices yet — yours will be the first.</p>
+            <p>no practices yet. yours will be the first.</p>
             <p className={styles.emptySubtext}>
               this catalogue grows every time a PPCS participant completes session 5b.
             </p>
@@ -607,6 +639,7 @@ function GalleryView({
                 schema={schema}
                 index={index}
                 onClick={() => onSelectPractice(practice)}
+                version={version}
               />
             ))}
           </div>
@@ -619,6 +652,7 @@ function GalleryView({
           practice={selectedPractice}
           schema={schema}
           onClose={() => onSelectPractice(null)}
+          version={version}
         />
       )}
     </div>
@@ -632,13 +666,17 @@ function PracticeCard({
   schema,
   index,
   onClick,
+  version,
 }: {
   practice: RegenerativePractice;
   schema: CatalogueSchema;
   index: number;
   onClick: () => void;
+  version: Version;
 }) {
-  const fallback = COVER_FALLBACKS[index % COVER_FALLBACKS.length];
+  const styles = pickStyles(version);
+  const { covers } = pickPalettes(version);
+  const fallback = covers[index % covers.length];
 
   return (
     <article className={styles.card} onClick={onClick} role="button" tabIndex={0}
@@ -665,7 +703,7 @@ function PracticeCard({
         {practice.dimensions.length > 0 && (
           <div className={styles.cardTags}>
             {practice.dimensions.map((dim) => {
-              const palette = dimPalette(dim, schema.dimensions);
+              const palette = dimPalette(dim, schema.dimensions, version);
               return (
                 <span
                   key={dim}
@@ -704,11 +742,14 @@ function PracticeModal({
   practice,
   schema,
   onClose,
+  version,
 }: {
   practice: RegenerativePractice;
   schema: CatalogueSchema;
   onClose: () => void;
+  version: Version;
 }) {
+  const styles = pickStyles(version);
   const panelRef = useRef<HTMLDivElement>(null);
   const steps = renderSteps(practice.instructions);
 
@@ -761,7 +802,7 @@ function PracticeModal({
           {practice.dimensions.length > 0 && (
             <div className={styles.panelTags}>
               {practice.dimensions.map((dim) => {
-                const palette = dimPalette(dim, schema.dimensions);
+                const palette = dimPalette(dim, schema.dimensions, version);
                 return (
                   <span
                     key={dim}
