@@ -1007,12 +1007,29 @@ const CATALOGUE_PROPS = {
 
 export async function fetchCatalogueSchema(): Promise<CatalogueSchema> {
   try {
-    const db = await withRetry(
-      () => notion.databases.retrieve({ database_id: DB.cataloguePractices }),
-      "fetchCatalogueSchema",
-    );
+    // Notion API v5: properties moved from the database container to the
+    // data source. databases.retrieve() returns { data_sources: [...] }
+    // without a .properties field; dataSources.retrieve() is where the
+    // multi-select option lists live now.
+    const data_source_id = await getDataSourceId(DB.cataloguePractices);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const props = (db as any).properties ?? {};
+    let props: Record<string, any> = {};
+    if (data_source_id === NO_DATA_SOURCE) {
+      // Pre-v5 container — properties are on the database itself.
+      const db = await withRetry(
+        () => notion.databases.retrieve({ database_id: DB.cataloguePractices }),
+        "fetchCatalogueSchema:db",
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      props = (db as any).properties ?? {};
+    } else {
+      const ds = await withRetry(
+        () => notion.dataSources.retrieve({ data_source_id }),
+        "fetchCatalogueSchema:ds",
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      props = (ds as any).properties ?? {};
+    }
 
     function getOptions(propName: string): string[] {
       const prop = props[propName];

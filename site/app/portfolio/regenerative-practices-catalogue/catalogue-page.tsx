@@ -158,6 +158,10 @@ export function CataloguePage({
         submitting={submitting}
         error={formError}
         version={version}
+        onSkipToGallery={() => {
+          setView("gallery");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
       />
     );
   }
@@ -210,6 +214,7 @@ function FormView({
   submitting,
   error,
   version,
+  onSkipToGallery,
 }: {
   schema: CatalogueSchema;
   formData: FormState;
@@ -218,6 +223,7 @@ function FormView({
   submitting: boolean;
   error: string | null;
   version: Version;
+  onSkipToGallery: () => void;
 }) {
   const styles = pickStyles(version);
   function set(field: keyof FormState, value: FormState[keyof FormState]) {
@@ -479,6 +485,13 @@ function FormView({
               aria-busy={submitting}
             >
               {submitting ? "submitting…" : "submit and explore the catalogue →"}
+            </button>
+            <button
+              type="button"
+              className={styles.skipLink}
+              onClick={onSkipToGallery}
+            >
+              or browse the catalogue without submitting →
             </button>
           </div>
         </form>
