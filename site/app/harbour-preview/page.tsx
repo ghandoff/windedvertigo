@@ -44,17 +44,6 @@ export default function HarbourPreviewPage() {
     <>
       <HarbourHeader />
       <main id="main-content" className={styles.page}>
-        <div className={styles.previewBanner} role="status">
-          this is a preview — internal review only, not the live harbour.
-          live harbour stays at{" "}
-          <a
-            href="/harbour"
-            style={{ color: "inherit", textDecoration: "underline" }}
-          >
-            /harbour
-          </a>
-          .
-        </div>
         <HarbourMap />
       </main>
       <HarbourFooter />

@@ -1,27 +1,14 @@
 /* harbour-preview — scoped styles for the map page. */
 
 .page {
-  min-height: 100vh;
+  /* override the global "main" rule's padding/min-height — this page
+     has a fixed-height harbour scene; extra space would create a gap. */
+  padding: 0 !important;
+  min-height: unset;
   background-color: var(--wv-cadet, #273248);
   position: relative;
   display: flex;
   flex-direction: column;
-}
-
-.previewBanner {
-  position: sticky;
-  top: 60px;
-  z-index: 20;
-  background-color: #1e2738;
-  color: var(--wv-champagne, #ffebd2);
-  padding: 0.625rem 1.25rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  text-align: center;
-  border-top: 1px solid rgba(255, 235, 210, 0.12);
-  border-bottom: 1px solid rgba(255, 235, 210, 0.12);
 }
 
 /* ── harbour scene ───────────────────────────────────────────────────
