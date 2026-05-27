@@ -274,6 +274,30 @@
   outline-offset: 2px;
 }
 
+.skipLink {
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+  color: var(--rp-text-muted);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.skipLink:hover {
+  color: var(--rp-accent);
+}
+
+.skipLink:focus-visible {
+  outline: 3px solid var(--color-focus, #3b82f6);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* ── filter bar ────────────────────────────────────────────── */
 
 .filterBar {
