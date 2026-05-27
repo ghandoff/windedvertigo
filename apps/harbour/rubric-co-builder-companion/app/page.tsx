@@ -8,7 +8,7 @@ export default function LandingPage() {
     >
       <div className="max-w-xl text-center space-y-6">
         <p
-          className="text-xs tracking-widest uppercase"
+          className="text-xs tracking-widest"
           style={{ color: "var(--color-cadet)", opacity: 0.7 }}
         >
           co.rubric companion · free for the PRME community

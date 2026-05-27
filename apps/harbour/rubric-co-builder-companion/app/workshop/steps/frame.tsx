@@ -39,7 +39,7 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
     <div className="space-y-8">
       <header className="space-y-2">
         <p
-          className="text-xs tracking-widest uppercase"
+          className="text-xs tracking-widest"
           style={{ color: "var(--color-cadet)", opacity: 0.7 }}
         >
           step 1 of 5 · frame
@@ -132,7 +132,7 @@ export function StepFrame({ draft, onPatch, onNext }: Props) {
                 }}
               >
                 <p
-                  className="text-[10px] tracking-widest uppercase mb-1"
+                  className="text-[10px] tracking-widest mb-1"
                   style={{ color: "var(--color-redwood)" }}
                 >
                   context {ctx.number}

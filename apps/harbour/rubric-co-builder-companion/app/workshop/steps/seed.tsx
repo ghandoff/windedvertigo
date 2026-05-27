@@ -44,7 +44,7 @@ export function StepSeed({ draft, onPatch, onNext, onBack }: Props) {
     <div className="space-y-8">
       <header className="space-y-2">
         <p
-          className="text-xs tracking-widest uppercase"
+          className="text-xs tracking-widest"
           style={{ color: "var(--color-cadet)", opacity: 0.7 }}
         >
           step 2 of 5 · criteria
@@ -82,7 +82,7 @@ export function StepSeed({ draft, onPatch, onNext, onBack }: Props) {
               <label
                 className="flex items-center gap-2 text-xs cursor-pointer"
                 style={{ color: "var(--color-cadet)", opacity: 0.7 }}
-                title="A non-negotiable bar — the work has to clear this to count."
+                title="a non-negotiable bar: the work has to clear this to count."
               >
                 <input
                   type="checkbox"

@@ -50,7 +50,7 @@ export function StepScale({ draft, onPatch, onNext, onBack }: Props) {
     <div className="space-y-8">
       <header className="space-y-2">
         <p
-          className="text-xs tracking-widest uppercase"
+          className="text-xs tracking-widest"
           style={{ color: "var(--color-cadet)", opacity: 0.7 }}
         >
           step 3 of 5 · scale
@@ -60,7 +60,7 @@ export function StepScale({ draft, onPatch, onNext, onBack }: Props) {
         </h1>
         <p style={{ color: "var(--color-cadet)" }}>
           for each criterion, sketch what novice, emerging, proficient, and
-          advanced work look like. we&apos;ve filled in defaults — edit anything
+          advanced work look like. we&apos;ve filled in defaults. edit anything
           that doesn&apos;t fit your subject.
         </p>
       </header>
@@ -80,7 +80,7 @@ export function StepScale({ draft, onPatch, onNext, onBack }: Props) {
             className="text-xs italic"
             style={{ color: "var(--color-cadet)", opacity: 0.7 }}
           >
-            good looks like: {c.good_description || "—"}
+            good looks like: {c.good_description || "…"}
           </p>
           <div className="space-y-3">
             {SCALE_LEVELS.map((lvl) => {
@@ -91,7 +91,7 @@ export function StepScale({ draft, onPatch, onNext, onBack }: Props) {
               return (
                 <div key={lvl.level} className="flex gap-3 items-start">
                   <div
-                    className="w-24 shrink-0 text-xs uppercase tracking-widest pt-2"
+                    className="w-24 shrink-0 text-xs tracking-widest pt-2"
                     style={{ color: "var(--color-cadet)", opacity: 0.7 }}
                   >
                     {lvl.level} · {lvl.label}

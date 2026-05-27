@@ -148,7 +148,7 @@ export const AI_USE_LEVELS: Array<{
     level: 0,
     name: "no AI anywhere.",
     helper:
-      "nothing in this project touches an AI tool. research, drafting, feedback, polishing — all human.",
+      "nothing in this project touches an AI tool. research, drafting, feedback, polishing, all human.",
   },
   {
     level: 1,
@@ -187,7 +187,7 @@ export const DEFAULT_DESCRIPTORS: Record<ScaleLevel, string> = {
   1: "the thing is missing or so thin it doesn't land. a reader couldn't tell what the team meant to do.",
   2: "it's there, but uneven. pieces are strong, pieces are thin, the overall effect wobbles.",
   3: "the criterion is clearly met. a reasonable reader would call this solid.",
-  4: "the work raises the bar — the reader notices something they didn't expect to see.",
+  4: "the work raises the bar. the reader notices something they didn't expect to see.",
 };
 
 export const STEP_ORDER: DraftStep[] = ["frame", "seed", "scale", "pledge", "commit"];

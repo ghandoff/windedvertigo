@@ -149,7 +149,7 @@ function ProgressBar({ step }: { step: DraftStep }) {
             }}
           />
           <span
-            className="text-[10px] uppercase tracking-widest"
+            className="text-[10px] tracking-widest"
             style={{ opacity: idx === i ? 1 : 0.5 }}
           >
             {STEP_LABELS[s]}
