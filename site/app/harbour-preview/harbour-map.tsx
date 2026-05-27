@@ -85,7 +85,7 @@ export function HarbourMap() {
 
         // ── dimensions in CSS pixels ────────────────────────────────
         // BOAT_SCALE lets you resize the whole fleet in one place.
-        const BOAT_SCALE = 0.5;
+        const BOAT_SCALE = 0.25;
         const svgH = Math.round((boat.svgHeight ?? boat.ry * 2) * BOAT_SCALE);
         const svgW = (boat.svgHref || boat.svgPair)
           ? Math.round(svgH * (boat.svgAspect ?? 1))
