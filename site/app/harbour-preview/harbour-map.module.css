@@ -11,6 +11,20 @@
   flex-direction: column;
 }
 
+/* Variant for the public /harbour page, which uses the standard fixed
+   SiteHeader (not the preview's thin HarbourHeader). Keep horizontal
+   full-bleed but offset the top by the header clearance so the harbour
+   scene begins below the header. The 124px must match the global
+   `main { padding-top: 124px }` in styles/main.css — keep in sync. */
+.pageBelowHeader {
+  padding: 124px 0 0 0 !important;
+  min-height: unset;
+  background-color: var(--wv-cadet, #273248);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── harbour scene ───────────────────────────────────────────────────
    Fruit's exact CSS — fixed 1300px height, three background-image
    layers, water-blue fill. No SVG scaling; no responsive tricks.

@@ -7,19 +7,8 @@ import Link from "next/link";
 /**
  * Shared site header with logo, navigation, and mobile toggle.
  * Renders nothing on the home page (home has its own hero nav).
- *
- * `signInHref` (optional): when set, renders an extra "sign in" nav link.
- * Used by the harbour landing to point at the hub Worker's Pool A SSO
- * login (/harbour/login). Omitted everywhere else, so other pages are
- * unchanged.
  */
-export function SiteHeader({
-  isHome = false,
-  signInHref,
-}: {
-  isHome?: boolean;
-  signInHref?: string;
-}) {
+export function SiteHeader({ isHome = false }: { isHome?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -66,7 +55,6 @@ export function SiteHeader({
                   </svg>
                 </a>
               </span>
-              {signInHref && <Link href={signInHref}>sign in</Link>}
             </nav>
           </>
         )}

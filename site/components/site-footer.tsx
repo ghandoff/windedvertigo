@@ -43,7 +43,18 @@ const DEFAULT_SOCIAL = [
   { label: "email", href: "mailto:garrett@windedvertigo.com" },
 ];
 
-export function SiteFooter({ sections }: { sections?: SiteSection[] }) {
+export function SiteFooter({
+  sections,
+  signInHref,
+}: {
+  sections?: SiteSection[];
+  /**
+   * When set, renders a "sign in" link in the footer (used by the harbour
+   * landing to reach the hub's Pool A SSO at /harbour/login). Omitted
+   * elsewhere, so every other page's footer is unchanged.
+   */
+  signInHref?: string;
+}) {
   // Extract CMS overrides
   const copyrightSection = sections?.find(
     (s) => s.type === "footer" && s.section === "footer",
@@ -71,6 +82,11 @@ export function SiteFooter({ sections }: { sections?: SiteSection[] }) {
       <div className="wv-footer-inner">
         <p className="wv-footer-copyright">{copyright}</p>
         <div className="wv-footer-right">
+          {signInHref && (
+            <a href={signInHref} className="wv-footer-subscribe">
+              sign in
+            </a>
+          )}
           <a
             href="https://windedvertigo.substack.com/subscribe"
             target="_blank"
