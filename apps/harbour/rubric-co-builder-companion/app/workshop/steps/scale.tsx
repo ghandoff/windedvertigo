@@ -59,7 +59,7 @@ export function StepScale({ draft, onPatch, onNext, onBack }: Props) {
           what does each level look like?
         </h1>
         <p style={{ color: "var(--color-cadet)" }}>
-          for each criterion, sketch what novice, emerging, proficient, and
+          for each criterion, sketch what exploring, emerging, proficient, and
           advanced work look like. we&apos;ve filled in defaults. edit anything
           that doesn&apos;t fit your subject.
         </p>

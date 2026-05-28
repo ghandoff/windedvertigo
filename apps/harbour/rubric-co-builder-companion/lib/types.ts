@@ -177,7 +177,7 @@ export const AI_USE_LEVELS: Array<{
 ];
 
 export const SCALE_LEVELS: Array<{ level: ScaleLevel; label: string }> = [
-  { level: 1, label: "novice" },
+  { level: 1, label: "exploring" },
   { level: 2, label: "emerging" },
   { level: 3, label: "proficient" },
   { level: 4, label: "advanced" },

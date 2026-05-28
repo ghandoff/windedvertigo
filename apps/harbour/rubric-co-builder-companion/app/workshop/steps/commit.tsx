@@ -219,6 +219,31 @@ export function StepCommit({ draft, onBack, onReset }: Props) {
         </footer>
       </article>
 
+      {/* Teacher reflection prompts (maria, #harbour-feedback 2026-05-27).
+          On-screen only — the printed rubric stays the student-facing artefact. */}
+      <section
+        className="rounded-lg p-6 space-y-3 no-print"
+        style={{
+          border: "1px solid color-mix(in srgb, var(--color-cadet) 15%, transparent)",
+          backgroundColor: "color-mix(in srgb, var(--color-cadet) 4%, transparent)",
+        }}
+      >
+        <h2 className="text-lg font-bold" style={{ color: "var(--color-cadet)" }}>
+          after the session — reflect
+        </h2>
+        <p className="text-sm" style={{ color: "var(--color-cadet)", opacity: 0.75 }}>
+          once you&apos;ve run the rubric with your class, take a moment with these:
+        </p>
+        <ul
+          className="list-disc pl-5 space-y-1.5 text-sm"
+          style={{ color: "var(--color-cadet)" }}
+        >
+          <li>how well did the students engage?</li>
+          <li>did everyone contribute?</li>
+          <li>is there anything i can do to support everyone to contribute?</li>
+        </ul>
+      </section>
+
       <div className="flex flex-wrap items-center gap-3 no-print">
         <button type="button" onClick={onBack} className="btn-secondary text-sm">
           back
