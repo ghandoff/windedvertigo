@@ -69,7 +69,7 @@ em { font-style: italic; }
 .header .container { max-width: 100%; padding: 0 var(--edge-padding); }
 .header-inner { display: flex; justify-content: space-between; align-items: flex-start; }
 .logo { display: block; }
-.logo-img { width: 160px; height: auto; }
+.logo-img { width: 120px; height: auto; }
 
 /* ── wobble nudge ─────────────────────────────────────────────── */
 @keyframes wobble {
@@ -105,7 +105,7 @@ em { font-style: italic; }
 main.home { padding-top: 140px; }
 main.home > .container { flex: 1; display: flex; flex-direction: column; }
 
-main { flex: 1; padding: var(--space-lg) 0; padding-top: 124px; display: flex; flex-direction: column; }
+main { flex: 1; padding: var(--space-lg) 0; padding-top: 104px; display: flex; flex-direction: column; }
 
 /* ── hero ─────────────────────────────────────────────────────── */
 .hero { display: flex; flex-direction: column; justify-content: center; align-items: center; flex: 1; text-align: center; }
@@ -477,11 +477,11 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 124px; display: flex; f
 
 /* ── sit-still button (global animation kill switch) ──────────── */
 /* Upper-right of the main canvas, just below the fixed header.
-   main { padding-top: 124px } clears the header — match that
+   main { padding-top: 104px } clears the header — match that
    offset so the button sits flush with the content start.         */
 .sit-still-btn {
   position: fixed;
-  top: 132px;          /* header height ~118px + 14px gap */
+  top: 111px;          /* header height ~97px + 14px gap */
   right: var(--space-xl);
   bottom: auto;
   z-index: 91;
@@ -584,7 +584,8 @@ html[data-still] .phosphor-bloom-ring {
   .see-more-btn { display: block; margin: 0 auto var(--space-sm); }
   .services-grid { grid-template-columns: 1fr; }
   /* footer responsive now handled by shared .wv-footer classes in tokens */
-  .logo-img { width: 120px; }
+  /* logo size is now 120px globally (base .logo-img rule) — desktop matches
+     mobile; the only desktop/mobile header difference is the nav → hamburger. */
   .what-hero-title { font-size: 36px; }
   .what-hero-subtitle { font-size: 1.5rem; }
   .what-hero-body { font-size: 1rem; }
