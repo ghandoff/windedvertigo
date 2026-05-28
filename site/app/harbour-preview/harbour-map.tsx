@@ -33,11 +33,15 @@ const COLOURS = {
 } as const;
 
 interface CardState {
-  slug:    string;
-  label:   string;
-  tagline: string;
-  href:    string;
-  status:  "live" | "coming-soon";
+  slug:        string;
+  label:       string;
+  tagline:     string;
+  href:        string;
+  status:      "live" | "coming-soon";
+  badge?:      string;
+  modalName?:  string;
+  accent?:     string;
+  accentText?: string;
 }
 
 export function HarbourMap() {
@@ -47,11 +51,15 @@ export function HarbourMap() {
 
   const openCard = useCallback((boat: Boat) => {
     setCard({
-      slug:    boat.slug,
-      label:   boat.label,
-      tagline: boat.tagline,
-      href:    boat.href,
-      status:  boat.status,
+      slug:       boat.slug,
+      label:      boat.label,
+      tagline:    boat.tagline,
+      href:       boat.href,
+      status:     boat.status,
+      badge:      boat.badge,
+      modalName:  boat.modalName,
+      accent:     boat.accent,
+      accentText: boat.accentText,
     });
   }, []);
 
@@ -215,17 +223,36 @@ export function HarbourMap() {
           className={`${styles.boatCard} ${card.status === "coming-soon" ? styles.boatCardComing : ""}`}
         >
           <div className={styles.boatCardBody}>
-            <div className={styles.boatCardText}>
-              <p className={styles.boatCardName}>{card.label}</p>
-              <p className={styles.boatCardTagline}>{card.tagline}</p>
-            </div>
-            {card.status === "live" ? (
-              <a href={card.href} className={styles.boatCardLink}>
-                open app →
-              </a>
-            ) : (
-              <span className={styles.boatCardBadge}>coming soon</span>
+            {card.badge && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={card.badge}
+                alt=""
+                width={52}
+                height={52}
+                className={styles.boatCardBadgeIcon}
+                aria-hidden="true"
+              />
             )}
+            <div className={styles.boatCardText}>
+              <p className={styles.boatCardName}>{card.modalName ?? card.label}</p>
+              <p className={styles.boatCardTagline}>{card.tagline}</p>
+              {card.status === "live" ? (
+                <a
+                  href={card.href}
+                  className={styles.boatCardLink}
+                  style={
+                    card.accent
+                      ? { backgroundColor: card.accent, color: card.accentText }
+                      : undefined
+                  }
+                >
+                  open app →
+                </a>
+              ) : (
+                <span className={styles.boatCardBadge}>coming soon</span>
+              )}
+            </div>
           </div>
           <button
             className={styles.boatCardClose}

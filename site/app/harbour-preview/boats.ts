@@ -59,6 +59,17 @@ export interface Boat {
   svgPair?:   readonly [string, string];
   svgHeight?: number;
   svgAspect?: number;
+  /**
+   * Per-game modal identity (the card that opens when a boat is tapped).
+   * badge      — 52×52 badge SVG from /harbour-preview/ (use as designed, no recolor).
+   * modalName  — canonical period-separated name shown in the modal title.
+   * accent     — "open app →" button background (the game's primary brand colour).
+   * accentText — button label colour, chosen for contrast against `accent`.
+   */
+  badge?:      string;
+  modalName?:  string;
+  accent?:     string;
+  accentText?: string;
 }
 
 export interface Landmark {
@@ -111,6 +122,10 @@ export const BOATS: readonly Boat[] = [
     status: "live",
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
+    badge:      "/harbour-preview/vertigo-vault.svg",
+    modalName:  "vertigo.vault",
+    accent:     "#5872cb",
+    accentText: "#ffebd2",
   },
   {
     slug: "lines-become-loops",
@@ -124,12 +139,16 @@ export const BOATS: readonly Boat[] = [
     status: "live",
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
+    badge:      "/harbour-preview/lines-become-loops.svg",
+    modalName:  "lines.become.loops",
+    accent:     "#58cbb2",
+    accentText: "#273248",
   },
   {
     slug: "regenerative-practices-catalogue",
     label: "regenerative.practices.catalogue",
     href: "/harbour/regenerative-practices-catalogue",
-    tagline: "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
+    tagline: "a living catalogue of regenerative teaching practices.",
     cx: 440,
     cy: 300,
     rx: 130,
@@ -137,6 +156,10 @@ export const BOATS: readonly Boat[] = [
     status: "live",
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
+    badge:      "/harbour-preview/regenerative-library.svg",
+    modalName:  "regenerative.practices",
+    accent:     "#434824",
+    accentText: "#ffebd2",
   },
   {
     slug: "depth-chart",
@@ -165,6 +188,10 @@ export const BOATS: readonly Boat[] = [
     status: "live",
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
+    badge:      "/harbour-preview/read-the-room.svg",
+    modalName:  "read.the.room",
+    accent:     "#436db1",
+    accentText: "#ffebd2",
   },
   {
     slug: "values-companion",
@@ -178,6 +205,10 @@ export const BOATS: readonly Boat[] = [
     status: "live",
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
+    badge:      "/harbour-preview/values-auction.svg",
+    modalName:  "values.companion",
+    accent:     "#b15043",
+    accentText: "#ffebd2",
   },
   {
     slug: "cuts-catalogue",
@@ -191,6 +222,10 @@ export const BOATS: readonly Boat[] = [
     status: "live",
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
+    badge:      "/harbour-preview/cuts-catalogue.svg",
+    modalName:  "cuts.catalogue",
+    accent:     "#cb7858",
+    accentText: "#273248",
   },
   {
     slug: "co-rubric-companion",
@@ -204,6 +239,10 @@ export const BOATS: readonly Boat[] = [
     status: "live",
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
+    badge:      "/harbour-preview/co-rubric.svg",
+    modalName:  "co.rubric",
+    accent:     "#482d27",
+    accentText: "#ffebd2",
   },
   {
     slug: "creaseworks",
