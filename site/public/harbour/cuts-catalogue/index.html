@@ -22,11 +22,11 @@
       --redwood: #B15043;
       --sienna: #CB7858;
       --muted: #9A8577;
-      --t1: #D4A84C;
-      --t2: #CB7858;
-      --t3: #B15043;
-      --t4: #7E3A47;
-      --t5: #4A2540;
+      --t1: #58CBB2; /* retrieval — mint */
+      --t2: #436DB1; /* apply — cornflower */
+      --t3: #B15043; /* analyze — brick */
+      --t4: #434824; /* integrate — olive */
+      --t5: #482D27; /* transfer — cocoa */
       --sidebar-w: 280px;
       --header-h: 90px;
     }
@@ -131,7 +131,8 @@
       display: none;
       position: fixed;
       bottom: 24px;
-      right: 24px;
+      /* bottom-left so it never collides with the bottom-right feedback widget */
+      left: 24px;
       background: var(--cadet);
       color: var(--champagne);
       border: none;
@@ -140,7 +141,7 @@
       font-size: 13px;
       font-weight: 600;
       letter-spacing: 0.04em;
-      z-index: 130;
+      z-index: 160;
       box-shadow: 0 4px 16px rgba(39,50,72,0.3);
       gap: 6px;
       align-items: center;
@@ -194,6 +195,13 @@
 
     .chip-group { display: flex; flex-wrap: wrap; gap: 5px; }
 
+    .filter-hint {
+      font-size: 10px;
+      line-height: 1.4;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
     .chip {
       padding: 4px 9px;
       border-radius: 4px;
@@ -214,9 +222,9 @@
     .chip-t[data-value="3"] { border-color: var(--t3); color: var(--t3); }
     .chip-t[data-value="4"] { border-color: var(--t4); color: var(--t4); }
     .chip-t[data-value="5"] { border-color: var(--t5); color: var(--t5); }
-    .chip-t[data-value="1"].active { background: var(--t1); border-color: var(--t1); color: var(--champagne); }
-    .chip-t[data-value="2"].active { background: var(--t2); border-color: var(--t2); color: var(--champagne); }
-    .chip-t[data-value="3"].active { background: var(--t3); border-color: var(--t3); color: var(--champagne); }
+    .chip-t[data-value="1"].active { background: var(--t1); border-color: var(--t1); color: var(--cadet); }
+    .chip-t[data-value="2"].active { background: var(--t2); border-color: var(--t2); color: #FFFFFF; }
+    .chip-t[data-value="3"].active { background: var(--t3); border-color: var(--t3); color: #FFFFFF; }
     .chip-t[data-value="4"].active { background: var(--t4); border-color: var(--t4); color: var(--champagne); }
     .chip-t[data-value="5"].active { background: var(--t5); border-color: var(--t5); color: var(--champagne); }
 
@@ -364,44 +372,64 @@
       text-transform: lowercase;
       white-space: nowrap;
     }
+    .title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
     .time-chip {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
+      font-size: 10.5px;
+      font-weight: 500;
+      padding: 2px 9px;
       border-radius: 12px;
-      color: var(--champagne);
+      background: var(--champagne-light);
+      border: 1px solid rgba(39,50,72,0.18);
+      color: var(--cadet);
       white-space: nowrap;
       flex-shrink: 0;
     }
     .card-name {
-      font-size: 15px;
+      font-size: 19px;
       font-weight: 700;
       color: var(--cadet);
-      line-height: 1.3;
+      line-height: 1.25;
+      letter-spacing: -0.2px;
     }
     .badges {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       gap: 3px;
-      font-size: 11px;
-      color: var(--muted);
+      font-size: 9.5px;
+      letter-spacing: 0.4px;
+      color: rgba(39,50,72,0.55);
       row-gap: 2px;
     }
-    .bdot { color: var(--muted); opacity: 0.4; padding: 0 1px; }
-    .sdot { font-size: 8px; line-height: 1; }
-    .sdots { display: inline-flex; gap: 2px; align-items: center; }
-    .btag { color: var(--muted); }
-    .assess-yes { color: var(--cadet); font-weight: 700; }
-    .assess-no  { color: var(--muted); opacity: 0.5; }
+    .bdot { color: rgba(39,50,72,0.55); opacity: 0.5; padding: 0 1px; }
+    .btag { color: rgba(39,50,72,0.55); }
 
     .card-desc {
-      font-size: 12px;
-      color: var(--cadet-dark);
+      font-size: 14px;
+      color: var(--cadet);
       line-height: 1.5;
-      opacity: 0.85;
       margin-top: 2px;
     }
+
+    /* explicit expand affordance — clicking it bubbles to the card click handler */
+    .expand-pill {
+      align-self: flex-start;
+      margin-top: 8px;
+      padding: 5px 11px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(203,120,88,0.12);
+      color: var(--sienna);
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .card.expanded .expand-pill { background: rgba(203,120,88,0.2); }
 
     /* ── card expand ── */
     .card { cursor: pointer; }
@@ -530,7 +558,7 @@
 {
   "schema_version": "1.0",
   "generated": "2026-04-20",
-  "source": "PPCS Session 3A — Active Learning Strategies",
+  "source": "PPCS Session 3A, Active Learning Strategies",
   "filter_dimensions": {
     "tier": { "type": "enum", "values": [1,2,3,4,5], "labels": ["retrieval","apply","analyze","integrate","transfer"] },
     "time_min": { "type": "integer", "unit": "minutes", "range": [1,10] },
@@ -543,29 +571,29 @@
     "async": { "type": "enum", "values": ["sync-only","sync-preferred","async-ok"] }
   },
   "tiers": [
-    {"id":1,"name":"retrieval","color_hex":"#D4A84C","ask":"recall what you already know.","when":"the opening of the session."},
-    {"id":2,"name":"apply","color_hex":"#CB7858","ask":"use the concept on a familiar case.","when":"right after introducing a concept."},
+    {"id":1,"name":"retrieval","color_hex":"#58CBB2","ask":"recall what you already know.","when":"the opening of the session."},
+    {"id":2,"name":"apply","color_hex":"#436DB1","ask":"use the concept on a familiar case.","when":"right after introducing a concept."},
     {"id":3,"name":"analyze","color_hex":"#B15043","ask":"pick the concept apart.","when":"when a concept has been applied and now needs stress-testing."},
-    {"id":4,"name":"integrate","color_hex":"#7E3A47","ask":"combine with other concepts.","when":"toward the back half of the session."},
-    {"id":5,"name":"transfer","color_hex":"#4A2540","ask":"apply to something new.","when":"the session's close."}
+    {"id":4,"name":"integrate","color_hex":"#434824","ask":"combine with other concepts.","when":"toward the back half of the session."},
+    {"id":5,"name":"transfer","color_hex":"#482D27","ask":"apply to something new.","when":"the session's close."}
   ],
   "moves": [
     {"id":"quick-quiz","name":"quick quiz","tier":1,"description":"three recall questions from the last session, 60 seconds to answer on paper or a poll tool.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"poll","position":["opening"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"write-to-recall","name":"write-to-recall","tier":1,"description":"2-min silent write: \"list everything you remember about X from last week.\"","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"async-ok"},
-    {"id":"hand-raise-poll","name":"hand-raise poll","tier":1,"description":"\"who can define the term we closed on yesterday?\" — thumbs-up or hand.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening"],"stakes":"medium","assessable":false,"async":"sync-only"},
+    {"id":"hand-raise-poll","name":"hand-raise poll","tier":1,"description":"\"who can define the term we closed on yesterday?\", thumbs-up or hand.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening"],"stakes":"medium","assessable":false,"async":"sync-only"},
     {"id":"brain-dump","name":"brain dump","tier":1,"description":"timed free-write: every term, example, and diagram they remember on a topic.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening"],"stakes":"low","assessable":true,"async":"async-ok"},
     {"id":"key-term-call-and-response","name":"key-term call-and-response","tier":1,"description":"pose a concept; students call out the definition together.","time_min":1,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"medium","assessable":false,"async":"sync-only"},
-    {"id":"silent-retrieval","name":"silent retrieval","tier":1,"description":"no talking, no peeking, 90 seconds — then compare with a neighbour.","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"silent-retrieval","name":"silent retrieval","tier":1,"description":"no talking, no peeking, 90 seconds, then compare with a neighbour.","time_min":2,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"flash-card-swap","name":"flash-card swap","tier":1,"description":"each student writes one recall question, swaps with a neighbour, answers.","time_min":3,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"prior-knowledge-mcq","name":"prior-knowledge MCQ","tier":1,"description":"live poll with 4 options; cohort commits before you teach.","time_min":1,"class_size":["small","medium","large"],"prep":"light","tech":"poll","position":["opening"],"stakes":"low","assessable":true,"async":"async-ok"},
-    {"id":"retrieval-sketch","name":"retrieval sketch","tier":1,"description":"draw the framework from memory — arrows, boxes, labels.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
+    {"id":"retrieval-sketch","name":"retrieval sketch","tier":1,"description":"draw the framework from memory, arrows, boxes, labels.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"concept-recognition","name":"concept recognition","tier":1,"description":"show a mixed list; mark which terms appeared in the reading.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":true,"async":"async-ok"},
     {"id":"reverse-definition","name":"reverse definition","tier":1,"description":"show a definition; students name the concept it defines.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"date-and-definition","name":"date-and-definition","tier":1,"description":"pose the year or event; students name the concept it anchored.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
     {"id":"chain-recall","name":"chain recall","tier":1,"description":"student one names a concept; student two names a related one; continue.","time_min":3,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"medium","assessable":false,"async":"sync-only"},
     {"id":"pair-retrieve","name":"pair-retrieve","tier":1,"description":"60 sec with a partner; both list everything they remember.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
-    {"id":"open-book---closed-book","name":"open-book / closed-book","tier":1,"description":"first minute no notes; second minute with notes — compare what was missing.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"async-ok"},
-    {"id":"one-slide-back-recall","name":"one-slide-back recall","tier":1,"description":"\"what was the key finding three slides ago?\" — tests attention.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-only"},
+    {"id":"open-book---closed-book","name":"open-book / closed-book","tier":1,"description":"first minute no notes; second minute with notes, compare what was missing.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["opening","middle"],"stakes":"low","assessable":true,"async":"async-ok"},
+    {"id":"one-slide-back-recall","name":"one-slide-back recall","tier":1,"description":"\"what was the key finding three slides ago?\", tests attention.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-only"},
     {"id":"sticky-note-recall","name":"sticky-note recall","tier":1,"description":"each student writes one remembered concept on a sticky; post on the wall.","time_min":3,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["opening"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"missing-word-slide","name":"missing-word slide","tier":1,"description":"show prior content with key words removed; students fill in.","time_min":1,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"matchbox","name":"matchbox","tier":1,"description":"two columns on the board; match concept to example.","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["opening","middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
@@ -586,7 +614,7 @@
     {"id":"snap-judgment","name":"snap judgment","tier":2,"description":"15-second gut call on a scenario; defend in 30 more.","time_min":1,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"medium","assessable":false,"async":"sync-only"},
     {"id":"tag-the-mechanism","name":"tag the mechanism","tier":2,"description":"which mechanism from the reading is at play in this case?","time_min":2,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
     {"id":"quick-sketch-diagram","name":"quick-sketch diagram","tier":2,"description":"in 2 min, draw the process the concept describes.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":true,"async":"async-ok"},
-    {"id":"if-then-chain","name":"if-then chain","tier":2,"description":"\"if X changes, what happens to Y — and then to Z?\"","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"if-then-chain","name":"if-then chain","tier":2,"description":"\"if X changes, what happens to Y, and then to Z?\"","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"match-the-tool","name":"match-the-tool","tier":2,"description":"list five concepts and five cases; match them in pairs.","time_min":4,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"role-swap-application","name":"role-swap application","tier":2,"description":"student plays the consultant; applies the framework aloud.","time_min":4,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle"],"stakes":"high","assessable":false,"async":"sync-only"},
     {"id":"case-compare-pair","name":"case-compare pair","tier":2,"description":"two similar mini-cases; apply the same concept; compare outcomes.","time_min":5,"class_size":["small","medium"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
@@ -596,14 +624,14 @@
     {"id":"devils-advocate","name":"devil's advocate","tier":3,"description":"student argues against a concept they just accepted.","time_min":4,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle"],"stakes":"high","assessable":false,"async":"sync-only"},
     {"id":"assumption-hunt","name":"assumption hunt","tier":3,"description":"list the three assumptions behind the framework; which is weakest?","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"counterexample-search","name":"counterexample search","tier":3,"description":"find a case where the concept fails; defend why.","time_min":4,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"medium","assessable":true,"async":"async-ok"},
-    {"id":"boundary-case","name":"boundary case","tier":3,"description":"\"where does this stop working?\" — push the concept to its edge.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"boundary-case","name":"boundary case","tier":3,"description":"\"where does this stop working?\", push the concept to its edge.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"source-critique","name":"source critique","tier":3,"description":"read a claim; evaluate the evidence behind it.","time_min":5,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"async-ok"},
     {"id":"bias-detection","name":"bias detection","tier":3,"description":"find the implicit bias in a case or a dataset.","time_min":4,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"high","assessable":true,"async":"sync-preferred"},
     {"id":"compare-and-contrast","name":"compare-and-contrast","tier":3,"description":"two frameworks side by side; where do they agree, disagree, overlap?","time_min":5,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
     {"id":"strongest-weakest","name":"strongest-weakest","tier":3,"description":"rank the sub-arguments in a paper from most to least persuasive.","time_min":4,"class_size":["small","medium","large"],"prep":"heavy","tech":"none","position":["middle"],"stakes":"low","assessable":true,"async":"async-ok"},
     {"id":"dissect-the-disagreement","name":"dissect the disagreement","tier":3,"description":"why do two experts disagree? what's the crux?","time_min":5,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
     {"id":"stakeholder-split","name":"stakeholder split","tier":3,"description":"same decision, three stakeholders, three separate analyses.","time_min":6,"class_size":["small","medium"],"prep":"heavy","tech":"none","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
-    {"id":"what-if-inversion","name":"what-if inversion","tier":3,"description":"\"what if the opposite were true?\" — analyze the counterfactual.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"what-if-inversion","name":"what-if inversion","tier":3,"description":"\"what if the opposite were true?\", analyze the counterfactual.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"evidence-weighting","name":"evidence weighting","tier":3,"description":"rank five pieces of evidence by rigor; defend the ranking.","time_min":4,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
     {"id":"mechanism-breakdown","name":"mechanism breakdown","tier":3,"description":"break the cause-effect chain into its discrete steps.","time_min":4,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":true,"async":"sync-preferred"},
     {"id":"hidden-variable","name":"hidden variable","tier":3,"description":"what's missing from this model that would change its predictions?","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle"],"stakes":"low","assessable":false,"async":"sync-preferred"},
@@ -613,7 +641,7 @@
     {"id":"peer-teach-in-pairs","name":"peer-teach in pairs","tier":4,"description":"2 min each, teach a partner using two concepts from different weeks.","time_min":5,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
     {"id":"concept-map","name":"concept map","tier":4,"description":"5-min sketch: central concept with arrows to three+ related ideas.","time_min":6,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
     {"id":"two-concept-synthesis","name":"two-concept synthesis","tier":4,"description":"paragraph using two concepts from different weeks of the course.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
-    {"id":"case-with-constraint","name":"case-with-constraint","tier":4,"description":"\"solve this using concepts from weeks 3 and 6\" — forced integration.","time_min":8,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
+    {"id":"case-with-constraint","name":"case-with-constraint","tier":4,"description":"\"solve this using concepts from weeks 3 and 6\", forced integration.","time_min":8,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
     {"id":"bridge-building","name":"bridge-building","tier":4,"description":"explicitly connect today's concept to one from last month.","time_min":4,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["middle","closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"framework-mash-up","name":"framework mash-up","tier":4,"description":"apply two frameworks simultaneously to one case.","time_min":7,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["middle","closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
     {"id":"timeline-weave","name":"timeline weave","tier":4,"description":"place three concepts on a timeline; show their interactions.","time_min":6,"class_size":["small","medium","large"],"prep":"light","tech":"shared-board","position":["middle","closing"],"stakes":"low","assessable":true,"async":"async-ok"},
@@ -637,17 +665,17 @@
     {"id":"era-transfer","name":"era transfer","tier":5,"description":"apply to a business from a different historical era; what changes?","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"personal-transfer","name":"personal transfer","tier":5,"description":"apply to your own organisation or future role.","time_min":4,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
     {"id":"real-time-current-event","name":"real-time current event","tier":5,"description":"apply to something from today's news in 90 seconds.","time_min":3,"class_size":["small","medium","large"],"prep":"light","tech":"projector","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
-    {"id":"role-rotation-transfer","name":"role-rotation transfer","tier":5,"description":"apply as consultant, then regulator, then employee — three takes.","time_min":8,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["closing"],"stakes":"high","assessable":false,"async":"sync-only"},
+    {"id":"role-rotation-transfer","name":"role-rotation transfer","tier":5,"description":"apply as consultant, then regulator, then employee, three takes.","time_min":8,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["closing"],"stakes":"high","assessable":false,"async":"sync-only"},
     {"id":"micro-strategy-memo","name":"micro-strategy memo","tier":5,"description":"one-page memo to a real CEO applying today's concept.","time_min":10,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
     {"id":"venture-design","name":"venture design","tier":5,"description":"in 5 min, sketch a venture that would use this framework.","time_min":6,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
     {"id":"policy-design","name":"policy design","tier":5,"description":"design a policy that addresses the issue the concept names.","time_min":8,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":true,"async":"async-ok"},
     {"id":"cross-cultural-transfer","name":"cross-cultural transfer","tier":5,"description":"apply in a different cultural context; what bends, what breaks?","time_min":6,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"medium","assessable":false,"async":"sync-preferred"},
-    {"id":"scale-transfer","name":"scale transfer","tier":5,"description":"apply to a much larger — or much smaller — company.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"scale-transfer","name":"scale transfer","tier":5,"description":"apply to a much larger, or much smaller, company.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"real-org-transfer","name":"real-org transfer","tier":5,"description":"take the concept to a real problem in your own organisation.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
     {"id":"predict-the-future","name":"predict-the-future","tier":5,"description":"use the framework to predict how an industry will change in a decade.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"artefact-design","name":"artefact design","tier":5,"description":"design a tool, template, or checklist another faculty member could use.","time_min":8,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":true,"async":"async-ok"},
     {"id":"teachback-to-lay-audience","name":"teachback to lay audience","tier":5,"description":"present the concept to someone without a business background.","time_min":5,"class_size":["small","medium"],"prep":"zero","tech":"none","position":["closing"],"stakes":"high","assessable":false,"async":"sync-only"},
-    {"id":"cross-disciplinary-transfer","name":"cross-disciplinary transfer","tier":5,"description":"apply the concept to a non-business domain — medicine, education, law.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
+    {"id":"cross-disciplinary-transfer","name":"cross-disciplinary transfer","tier":5,"description":"apply the concept to a non-business domain, medicine, education, law.","time_min":5,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"},
     {"id":"novel-data-transfer","name":"novel-data transfer","tier":5,"description":"apply to an unfamiliar dataset; what does the framework surface?","time_min":8,"class_size":["small","medium","large"],"prep":"heavy","tech":"projector","position":["closing"],"stakes":"medium","assessable":true,"async":"sync-preferred"},
     {"id":"commitment-design","name":"commitment design","tier":5,"description":"commit to applying the concept in the next seven days; tell a partner.","time_min":3,"class_size":["small","medium","large"],"prep":"zero","tech":"none","position":["closing"],"stakes":"low","assessable":false,"async":"sync-preferred"}
   ]
@@ -715,6 +743,7 @@
         <button class="chip" data-filter="classSize" data-value="medium" aria-pressed="false">medium 30–100</button>
         <button class="chip" data-filter="classSize" data-value="large" aria-pressed="false">large 100+</button>
       </div>
+      <p class="filter-hint">most moves scale to any class size, so these only hide the few that don't.</p>
     </div>
 
     <div class="filter-group">
@@ -803,24 +832,24 @@
   // ── examples ───────────────────────────────────────────────────────────────
   var EXAMPLES = {
     "quick-quiz": [
-      "pose three short questions about last week's Porter's Five Forces lecture — students respond individually on paper.",
+      "pose three short questions about last week's Porter's Five Forces lecture, students respond individually on paper.",
       "open a finance session with a Mentimeter quiz testing recall of DCF components before introducing new content."
     ],
     "write-to-recall": [
       "ask students to list everything they remember about stakeholder theory before introducing corporate governance.",
-      "open a strategy session with: 'you have two minutes — write everything you recall about the resource-based view.'"
+      "open a strategy session with: 'you have two minutes, write everything you recall about the resource-based view.'"
     ],
     "hand-raise-poll": [
-      "'who can define moral hazard in one sentence?' — have three students attempt before moving to new content.",
+      "'who can define moral hazard in one sentence?', have three students attempt before moving to new content.",
       "before a pricing module, ask 'who can name the four pricing strategies from the reading?' and cold-call a raised hand."
     ],
     "brain-dump": [
-      "'write every concept, person, and framework you associate with supply chain resilience — three minutes.'",
+      "'write every concept, person, and framework you associate with supply chain resilience, three minutes.'",
       "before a sustainability session, ask for a full free-write on what students know about ESG reporting."
     ],
     "key-term-call-and-response": [
-      "'competitive advantage!' — class responds: 'a sustainable edge that allows a firm to outperform rivals.'",
-      "'sunk cost!' — class responds: 'a cost already incurred that cannot be recovered.'"
+      "'competitive advantage!', class responds: 'a sustainable edge that allows a firm to outperform rivals.'",
+      "'sunk cost!', class responds: 'a cost already incurred that cannot be recovered.'"
     ],
     "silent-retrieval": [
       "90 seconds of silent note-making on everything students remember about agency theory, then compare lists with a neighbour.",
@@ -831,11 +860,11 @@
       "each student writes a definition question about price elasticity; swap and answer; then compare responses."
     ],
     "prior-knowledge-mcq": [
-      "'which of these is NOT a characteristic of a perfectly competitive market?' — students commit before the concept is taught.",
-      "'which statement best describes path dependency?' — commit via poll before hearing the explanation."
+      "'which of these is NOT a characteristic of a perfectly competitive market?', students commit before the concept is taught.",
+      "'which statement best describes path dependency?', commit via poll before hearing the explanation."
     ],
     "retrieval-sketch": [
-      "'draw the BCG matrix from memory — axes, quadrants, and the strategic logic of each cell.'",
+      "'draw the BCG matrix from memory, axes, quadrants, and the strategic logic of each cell.'",
       "students sketch the value chain framework with all primary and support activities labelled."
     ],
     "concept-recognition": [
@@ -843,40 +872,40 @@
       "display 20 strategy concepts; mark only those that belong to Porter's generic strategies."
     ],
     "reverse-definition": [
-      "'a situation where one party has more information than the other in a transaction' — students call out: 'information asymmetry.'",
-      "'the tendency to over-weight the first piece of information encountered' — students name: 'anchoring bias.'"
+      "'a situation where one party has more information than the other in a transaction', students call out: 'information asymmetry.'",
+      "'the tendency to over-weight the first piece of information encountered', students name: 'anchoring bias.'"
     ],
     "date-and-definition": [
-      "'2008' — students name the concept anchored to the global financial crisis case: 'systemic risk.'",
-      "'1962' — students recall the concept from the Chandler reading: 'structure follows strategy.'"
+      "'2008', students name the concept anchored to the global financial crisis case: 'systemic risk.'",
+      "'1962', students recall the concept from the Chandler reading: 'structure follows strategy.'"
     ],
     "chain-recall": [
       "student A: 'agency theory.' student B: 'moral hazard.' student C: 'adverse selection.' continue until the chain breaks.",
       "start with 'competitive advantage' and chain through related concepts: Porter, value chain, sustainability, dynamic capabilities."
     ],
     "pair-retrieve": [
-      "'60 seconds with your neighbour — list every concept from the corporate finance module you can both recall.'",
+      "'60 seconds with your neighbour, list every concept from the corporate finance module you can both recall.'",
       "before a leadership session, pairs list every leadership theory they remember from the programme so far."
     ],
     "open-book---closed-book": [
-      "students write recall notes on transaction cost economics for 90 seconds — then open readings and note what was missing.",
+      "students write recall notes on transaction cost economics for 90 seconds, then open readings and note what was missing.",
       "closed write on agency theory; open notes; discuss: which gaps surprised you?"
     ],
     "one-slide-back-recall": [
       "'what was the main critique of the BCG matrix on the slide before this one?'",
-      "'three slides ago we saw a case — what was the company, and what was the strategic challenge?'"
+      "'three slides ago we saw a case, what was the company, and what was the strategic challenge?'"
     ],
     "sticky-note-recall": [
-      "each student writes one concept from last week's reading on a sticky note and posts it on the wall — scan for patterns.",
+      "each student writes one concept from last week's reading on a sticky note and posts it on the wall, scan for patterns.",
       "before a negotiation session, everyone posts one remembered tactic; group them by theme."
     ],
     "missing-word-slide": [
-      "display 'the _____ framework distinguishes between price takers and price makers' — students fill in the blank.",
+      "display 'the _____ framework distinguishes between price takers and price makers', students fill in the blank.",
       "show a partially completed SWOT matrix with cells blanked out; students recall what belongs in each."
     ],
     "matchbox": [
-      "left column: 'economies of scale, scope, and network effects' — right column: 'volume, variety, users.' match each.",
-      "left: transaction cost types; right: real-world examples — students draw the connecting lines."
+      "left column: 'economies of scale, scope, and network effects', right column: 'volume, variety, users.' match each.",
+      "left: transaction cost types; right: real-world examples, students draw the connecting lines."
     ],
     "retrieval-ticket": [
       "students must name one concept from the pre-reading before taking their seat for the strategy session.",
@@ -887,27 +916,27 @@
       "after the stakeholder salience model: 'which stakeholders are most salient in this case? 1 min think, 2 min pair, share.'"
     ],
     "live-mcq-poll": [
-      "'which market entry mode best fits this case: greenfield, acquisition, or JV?' — students commit before you reveal the analysis.",
-      "after explaining the BCG matrix, show a product portfolio: 'where does this product fit?' — live poll before discussion."
+      "'which market entry mode best fits this case: greenfield, acquisition, or JV?', students commit before you reveal the analysis.",
+      "after explaining the BCG matrix, show a product portfolio: 'where does this product fit?', live poll before discussion."
     ],
     "worked-example-pause": [
       "mid-way through calculating WACC on the board, pause: 'what is the next step? write it before I continue.'",
       "freeze a value chain analysis at the inbound logistics stage: 'what competitive advantage could this firm build here?'"
     ],
     "one-minute-problem": [
-      "'calculate the net present value of this cash flow at 8% discount rate — 60 seconds, silent work.'",
-      "'a product sells 1,000 units per month at £50 with £30 variable cost — what is the contribution margin?'"
+      "'calculate the net present value of this cash flow at 8% discount rate, 60 seconds, silent work.'",
+      "'a product sells 1,000 units per month at £50 with £30 variable cost, what is the contribution margin?'"
     ],
     "mini-case-application": [
-      "three-paragraph case about a retail chain entering a new market — apply Porter's Five Forces in pairs.",
-      "short case on a family firm's succession dilemma — apply the stewardship theory framework with your partner."
+      "three-paragraph case about a retail chain entering a new market, apply Porter's Five Forces in pairs.",
+      "short case on a family firm's succession dilemma, apply the stewardship theory framework with your partner."
     ],
     "reverse-engineering": [
-      "show a company's decision to vertically integrate: 'which theory predicted this — transaction cost, resource dependency, or agency?'",
+      "show a company's decision to vertically integrate: 'which theory predicted this, transaction cost, resource dependency, or agency?'",
       "show a startup's pricing strategy: 'which pricing framework is at work here?'"
     ],
     "name-the-frame": [
-      "'a firm is diversifying into an unrelated industry to reduce risk' — which framework best explains this move?",
+      "'a firm is diversifying into an unrelated industry to reduce risk', which framework best explains this move?",
       "show a negotiation breakdown: 'is this a distributive or integrative bargaining failure?'"
     ],
     "guided-then-solo": [
@@ -919,16 +948,16 @@
       "present a partially correct value chain with support activities misclassified: 'identify and correct the mistake.'"
     ],
     "apply-and-defend": [
-      "'apply agency theory to the relationship between shareholders and the board in this case — defend your choice in one sentence.'",
-      "'use the resource-based view to explain this firm's competitive position — then defend why it fits.'"
+      "'apply agency theory to the relationship between shareholders and the board in this case, defend your choice in one sentence.'",
+      "'use the resource-based view to explain this firm's competitive position, then defend why it fits.'"
     ],
     "three-framework-fit": [
-      "show a monopoly pricing case: 'which fits better — industrial organisation, transaction cost, or resource-based view?'",
+      "show a monopoly pricing case: 'which fits better, industrial organisation, transaction cost, or resource-based view?'",
       "'which of these three theories of the firm best explains why this merger happened?'"
     ],
     "decision-scramble": [
-      "five steps of a due diligence process are shuffled — reorder into the correct sequence.",
-      "the stages of a market entry strategy are scrambled — reconstruct the logical order."
+      "five steps of a due diligence process are shuffled, reorder into the correct sequence.",
+      "the stages of a market entry strategy are scrambled, reconstruct the logical order."
     ],
     "worked-example-pair": [
       "student A explains steps 1–3 of a VRIN analysis; student B explains steps 4–5 and the strategic implications.",
@@ -939,64 +968,64 @@
       "'15-second instinct: is this a blue ocean or a red ocean move?' then justify."
     ],
     "tag-the-mechanism": [
-      "'which mechanism from the reading — network effects, switching costs, or economies of scale — is operating in this case?'",
+      "'which mechanism from the reading, network effects, switching costs, or economies of scale, is operating in this case?'",
       "'tag the resource-based view mechanism in this firm's moat: rareness, inimitability, or non-substitutability?'"
     ],
     "quick-sketch-diagram": [
       "'in 2 minutes, draw the adoption S-curve and mark where this company sits on it.'",
-      "'sketch the supply and demand curves for this market — label equilibrium and show the effect of the proposed policy.'"
+      "'sketch the supply and demand curves for this market, label equilibrium and show the effect of the proposed policy.'"
     ],
     "if-then-chain": [
-      "'if labour costs rise by 30%, what happens to the firm's sourcing strategy — and then to its competitive position?'",
-      "'if the regulator removes this entry barrier, what happens to margins — and then to the incumbent's strategy?'"
+      "'if labour costs rise by 30%, what happens to the firm's sourcing strategy, and then to its competitive position?'",
+      "'if the regulator removes this entry barrier, what happens to margins, and then to the incumbent's strategy?'"
     ],
     "match-the-tool": [
-      "five strategy frameworks and five case situations — match each framework to the situation it best addresses.",
-      "five negotiation tactics and five real-world deal scenarios — pair each tactic to its matching scenario."
+      "five strategy frameworks and five case situations, match each framework to the situation it best addresses.",
+      "five negotiation tactics and five real-world deal scenarios, pair each tactic to its matching scenario."
     ],
     "role-swap-application": [
       "student takes the role of a McKinsey consultant and applies the 7-S framework aloud to the case company.",
-      "'you are the CFO — apply the capital structure framework to justify this financing decision to the board.'"
+      "'you are the CFO, apply the capital structure framework to justify this financing decision to the board.'"
     ],
     "case-compare-pair": [
-      "two retail cases with different competitive dynamics — apply Porter's Five Forces to both and compare the conclusions.",
-      "two M&A case summaries — apply due diligence criteria to each; what accounts for the different outcomes?"
+      "two retail cases with different competitive dynamics, apply Porter's Five Forces to both and compare the conclusions.",
+      "two M&A case summaries, apply due diligence criteria to each; what accounts for the different outcomes?"
     ],
     "minute-paper": [
       "'what is the weakest assumption in the efficient market hypothesis argument we just heard?'",
-      "'write the one flaw in the stakeholder theory claim that most concerns you — 2 minutes, collect at the door.'"
+      "'write the one flaw in the stakeholder theory claim that most concerns you, 2 minutes, collect at the door.'"
     ],
     "pros-and-cons-card": [
-      "one side: advantages of the matrix structure; other side: disadvantages — 1 minute each, fold and pass to a neighbour.",
-      "pros and cons of offshoring production — fold and pass; compare both sides simultaneously."
+      "one side: advantages of the matrix structure; other side: disadvantages, 1 minute each, fold and pass to a neighbour.",
+      "pros and cons of offshoring production, fold and pass; compare both sides simultaneously."
     ],
     "predict-and-compare": [
       "before showing a firm's actual market share data: 'predict the outcome using the framework, then compare.'",
-      "'predict which theory the author will use before turning to the conclusion — then check.'"
+      "'predict which theory the author will use before turning to the conclusion, then check.'"
     ],
     "devils-advocate": [
       "a student who just defended Porter's Five Forces as universally applicable must now argue it is fundamentally limited.",
-      "'you just supported market liberalisation — now argue the strongest case against it.'"
+      "'you just supported market liberalisation, now argue the strongest case against it.'"
     ],
     "assumption-hunt": [
-      "'list the three assumptions underlying the agency theory argument — which one is most likely to break down in practice?'",
+      "'list the three assumptions underlying the agency theory argument, which one is most likely to break down in practice?'",
       "'what must be true for the BCG matrix to be useful? identify the weakest assumption.'"
     ],
     "counterexample-search": [
-      "'find one real company that achieved sustained competitive advantage without a unique resource base — why does it break the theory?'",
-      "'identify a case where price competition did not lead to a race to the bottom — what conditions prevented it?'"
+      "'find one real company that achieved sustained competitive advantage without a unique resource base, why does it break the theory?'",
+      "'identify a case where price competition did not lead to a race to the bottom, what conditions prevented it?'"
     ],
     "boundary-case": [
       "'at what point does the transaction cost argument break down? what market conditions make hierarchy more expensive than markets?'",
       "'where does the resource-based view stop explaining competitive advantage? identify the boundary.'"
     ],
     "source-critique": [
-      "'read this market research claim — what evidence supports it, what is missing, and what alternative interpretations exist?'",
+      "'read this market research claim, what evidence supports it, what is missing, and what alternative interpretations exist?'",
       "'evaluate the validity of this case study: what limitations should a strategist acknowledge before acting on it?'"
     ],
     "bias-detection": [
       "'what survivorship bias is present in this success story, and how does it affect the strategic lesson?'",
-      "'this dataset only covers listed firms — what selection bias does that introduce into the analysis?'"
+      "'this dataset only covers listed firms, what selection bias does that introduce into the analysis?'"
     ],
     "compare-and-contrast": [
       "'compare transaction cost economics and agency theory: where do they agree, where do they diverge, and where does one outperform the other?'",
@@ -1007,59 +1036,59 @@
       "'which of the author's four claims is most robustly supported by evidence? which least?'"
     ],
     "dissect-the-disagreement": [
-      "'Porter and Mintzberg disagree on the nature of strategy — what is the crux of their disagreement?'",
+      "'Porter and Mintzberg disagree on the nature of strategy, what is the crux of their disagreement?'",
       "'Friedman vs. Freeman: where exactly does the shareholder primacy argument break with stakeholder theory?'"
     ],
     "stakeholder-split": [
       "student A analyses the merger from the perspective of equity holders; student B from employees; student C from regulators.",
-      "'three stakeholders, one case: the pension reform debate — what does each group prioritise and why?'"
+      "'three stakeholders, one case: the pension reform debate, what does each group prioritise and why?'"
     ],
     "what-if-inversion": [
-      "'what if competitive advantage were not sustainable — how would Porter's framework change?'",
-      "'what if all information were perfectly symmetric — how would capital markets behave differently?'"
+      "'what if competitive advantage were not sustainable, how would Porter's framework change?'",
+      "'what if all information were perfectly symmetric, how would capital markets behave differently?'"
     ],
     "evidence-weighting": [
       "'rank these five pieces of evidence for the diversification-profitability relationship by methodological rigour, and defend the ranking.'",
-      "'which two of these six data sources would you weight most heavily in advising this CEO — and why?'"
+      "'which two of these six data sources would you weight most heavily in advising this CEO, and why?'"
     ],
     "mechanism-breakdown": [
       "'walk through the exact causal steps between interest rate rises and a reduction in consumer spending.'",
-      "'map the mechanism from a firm's R&D investment to its eventual market-share gain — every discrete step.'"
+      "'map the mechanism from a firm's R&D investment to its eventual market-share gain, every discrete step.'"
     ],
     "hidden-variable": [
       "'what variable, absent from this model, might explain why firms in this industry consistently outperform the prediction?'",
       "'which omitted factor most undermines the BCG matrix's prescriptive power?'"
     ],
     "outlier-spotlight": [
-      "'one data point defies the trend in this scatter plot — which company is it, and what structural factor explains its deviation?'",
-      "'this firm outperforms its peer group despite weak resources — what hidden variable breaks the pattern?'"
+      "'one data point defies the trend in this scatter plot, which company is it, and what structural factor explains its deviation?'",
+      "'this firm outperforms its peer group despite weak resources, what hidden variable breaks the pattern?'"
     ],
     "frame-swap-analysis": [
-      "'analyse this acquisition through both the resource-based view and transaction cost theory — which gives the better explanation?'",
-      "'apply both institutional theory and resource dependence to this alliance — compare their insights.'"
+      "'analyse this acquisition through both the resource-based view and transaction cost theory, which gives the better explanation?'",
+      "'apply both institutional theory and resource dependence to this alliance, compare their insights.'"
     ],
     "meta-analysis-card": [
       "'compare how Barney (1991) and Teece (1997) treat the question of sustainable competitive advantage: same phenomenon, different lens.'",
-      "'both readings address innovation strategy — where do they agree, where do they conflict?'"
+      "'both readings address innovation strategy, where do they agree, where do they conflict?'"
     ],
     "peer-teach-in-pairs": [
       "student A teaches principal-agent theory using the board-CEO relationship; student B teaches transaction cost theory using the make-or-buy decision.",
       "'two minutes each: teach your partner one concept from week 3 and one from week 7, and show how they relate.'"
     ],
     "concept-map": [
-      "central concept: competitive advantage — draw arrows to resource-based view, five forces, dynamic capabilities, value chain, and VRIN.",
-      "central: stakeholder theory — link to corporate governance, agency theory, CSR, and the business case for sustainability."
+      "central concept: competitive advantage, draw arrows to resource-based view, five forces, dynamic capabilities, value chain, and VRIN.",
+      "central: stakeholder theory, link to corporate governance, agency theory, CSR, and the business case for sustainability."
     ],
     "two-concept-synthesis": [
       "write a paragraph using both transaction cost economics and resource dependency theory to explain a firm's vertical integration decision.",
       "synthesise dynamic capabilities and organisational learning theory in a single paragraph applied to a technology firm."
     ],
     "case-with-constraint": [
-      "'analyse this turnaround case using only concepts from weeks 3 (agency theory) and 6 (dynamic capabilities) — no other frameworks.'",
+      "'analyse this turnaround case using only concepts from weeks 3 (agency theory) and 6 (dynamic capabilities), no other frameworks.'",
       "'your analysis of this market entry must integrate both Porter's Five Forces and the institutional environment frameworks.'"
     ],
     "bridge-building": [
-      "'connect today's session on innovation management to the ambidexterity concept from month two — how are they related?'",
+      "'connect today's session on innovation management to the ambidexterity concept from month two, how are they related?'",
       "'draw an explicit link between the stakeholder salience model from last month and the corporate political strategy framework from today.'"
     ],
     "framework-mash-up": [
@@ -1067,20 +1096,20 @@
       "'use Porter's Five Forces and the dynamic capabilities framework together to analyse this industry at a moment of disruption.'"
     ],
     "timeline-weave": [
-      "place transaction cost economics (1937), agency theory (1976), and resource-based view (1984) on a timeline — show how each responded to the limitations of its predecessor.",
+      "place transaction cost economics (1937), agency theory (1976), and resource-based view (1984) on a timeline, show how each responded to the limitations of its predecessor.",
       "map three concepts from the course on a 20-year timeline of a case company, showing when each became relevant."
     ],
     "story-integration": [
-      "tell a two-minute narrative of a firm's growth using agency theory, resource-based view, and institutional theory — the story must require all three.",
+      "tell a two-minute narrative of a firm's growth using agency theory, resource-based view, and institutional theory, the story must require all three.",
       "'write a short story in which a new CEO must navigate information asymmetry, dynamic capabilities, and stakeholder legitimacy simultaneously.'"
     ],
     "counterintuitive-integration": [
-      "'how does behavioural economics — seemingly about individual irrationality — connect to corporate governance theory?'",
-      "'link prospect theory (individual psychology) to capital structure decisions (corporate finance) — what is the connecting thread?'"
+      "'how does behavioural economics, seemingly about individual irrationality, connect to corporate governance theory?'",
+      "'link prospect theory (individual psychology) to capital structure decisions (corporate finance), what is the connecting thread?'"
     ],
     "spider-diagram": [
-      "central concept: organisational resilience — draw arms to dynamic capabilities, ambidexterity, stakeholder theory, resource dependency, and institutional theory.",
-      "map 'value creation' to five related concepts from different parts of the course — label each arm with the nature of the relationship."
+      "central concept: organisational resilience, draw arms to dynamic capabilities, ambidexterity, stakeholder theory, resource dependency, and institutional theory.",
+      "map 'value creation' to five related concepts from different parts of the course, label each arm with the nature of the relationship."
     ],
     "sequence-build": [
       "'arrange these five concepts into a coherent argument for why firms diversify: agency theory, information asymmetry, transaction cost, resource dependency, economies of scope.'",
@@ -1088,10 +1117,10 @@
     ],
     "elevator-pitch": [
       "'in 60 seconds, explain to a non-MBA audience why sustained competitive advantage is hard to maintain, using at least three concepts from the course.'",
-      "'pitch the core argument of value-based strategy to a sceptical CFO — use at least two frameworks but speak no jargon.'"
+      "'pitch the core argument of value-based strategy to a sceptical CFO, use at least two frameworks but speak no jargon.'"
     ],
     "question-sequence": [
-      "write three exam questions that each require combining two or more concepts — Q1 must integrate agency theory and corporate governance.",
+      "write three exam questions that each require combining two or more concepts, Q1 must integrate agency theory and corporate governance.",
       "'write three questions that force a student to connect dynamic capabilities to at least one other framework in each answer.'"
     ],
     "reflective-seed": [
@@ -1099,7 +1128,7 @@
       "draft the first paragraph of a reflection paper that integrates personal leadership experience with distributed leadership theory and stakeholder theory."
     ],
     "cross-course-bridge": [
-      "'connect this session's discussion of institutional theory to a concept from your economics or sociology courses — where do they meet?'",
+      "'connect this session's discussion of institutional theory to a concept from your economics or sociology courses, where do they meet?'",
       "'draw an explicit link between Porter's value chain from this course and the lean operations concepts from your operations management programme.'"
     ],
     "multi-stakeholder-synthesis": [
@@ -1107,48 +1136,48 @@
       "'synthesise the shareholder, community, and supply chain perspectives into a single position on this firm's offshore outsourcing decision.'"
     ],
     "systems-diagram": [
-      "'draw feedback loops between competitive rivalry, margin pressure, and innovation investment — label reinforcing and balancing loops.'",
-      "map the reinforcing feedback between network effects, user growth, and data accumulation — then add the balancing loop that limits platform dominance."
+      "'draw feedback loops between competitive rivalry, margin pressure, and innovation investment, label reinforcing and balancing loops.'",
+      "map the reinforcing feedback between network effects, user growth, and data accumulation, then add the balancing loop that limits platform dominance."
     ],
     "strategic-memo": [
       "'half-page memo to the board: recommend a market entry mode using agency theory, transaction cost, and resource-based view as your three lenses.'",
       "'write a memo advising a CEO on organisational restructuring that explicitly integrates concepts from weeks 4, 7, and 9.'"
     ],
     "contradiction-resolution": [
-      "'agency theory says managers are self-interested; stewardship theory says they are trustworthy — reconcile these into one nuanced position.'",
-      "'economic rationality assumes full information; behavioural economics denies it — integrate both into one view of strategic decision-making.'"
+      "'agency theory says managers are self-interested; stewardship theory says they are trustworthy, reconcile these into one nuanced position.'",
+      "'economic rationality assumes full information; behavioural economics denies it, integrate both into one view of strategic decision-making.'"
     ],
     "classic-to-current-bridge": [
       "'how does Chandler's structure-follows-strategy argument apply to platform businesses like Uber or Airbnb?'",
-      "'apply Weber's bureaucracy theory to the governance challenges of a modern multinational — what holds, what needs revision?'"
+      "'apply Weber's bureaucracy theory to the governance challenges of a modern multinational, what holds, what needs revision?'"
     ],
     "exit-ticket": [
-      "'apply today's dynamic capabilities concept to one company you personally follow — one sentence, hand it in as you leave.'",
+      "'apply today's dynamic capabilities concept to one company you personally follow, one sentence, hand it in as you leave.'",
       "'name one organisation in your own network where today's stakeholder salience model would change how they operate.'"
     ],
     "case-flip": [
-      "present a cold case from a sector not discussed in the course: 'apply the full value chain framework — no setup, no hints.'",
-      "'here is a case from a non-profit context you have not seen — apply Porter's Five Forces from scratch.'"
+      "present a cold case from a sector not discussed in the course: 'apply the full value chain framework, no setup, no hints.'",
+      "'here is a case from a non-profit context you have not seen, apply Porter's Five Forces from scratch.'"
     ],
     "design-in-novel-context": [
-      "'design a governance structure for a decentralised autonomous organisation using the principal-agent framework — a context we have never discussed.'",
-      "'propose a pricing architecture for a healthcare startup using value-based pricing principles — a new application domain.'"
+      "'design a governance structure for a decentralised autonomous organisation using the principal-agent framework, a context we have never discussed.'",
+      "'propose a pricing architecture for a healthcare startup using value-based pricing principles, a new application domain.'"
     ],
     "industry-transfer": [
-      "'take the dynamic capabilities framework we applied to tech firms — now apply it to a traditional newspaper publisher.'",
+      "'take the dynamic capabilities framework we applied to tech firms, now apply it to a traditional newspaper publisher.'",
       "'transfer the BCG matrix logic from consumer products to a university's portfolio of degree programmes.'"
     ],
     "era-transfer": [
-      "'apply Porter's Five Forces to the British textile industry in 1820 — what changes, what holds?'",
+      "'apply Porter's Five Forces to the British textile industry in 1820, what changes, what holds?'",
       "'how would agency theory apply to the owner-manager relationships of a Victorian railway company?'"
     ],
     "personal-transfer": [
-      "'apply today's stakeholder theory framework to your own organisation or most recent employer — who are the salient stakeholders?'",
-      "'use the dynamic capabilities lens to assess your own team's ability to adapt — what is strong, what needs development?'"
+      "'apply today's stakeholder theory framework to your own organisation or most recent employer, who are the salient stakeholders?'",
+      "'use the dynamic capabilities lens to assess your own team's ability to adapt, what is strong, what needs development?'"
     ],
     "real-time-current-event": [
-      "'this morning's news reports a major merger — apply Porter's Five Forces to the combined entity in 90 seconds.'",
-      "'a central bank just raised rates — trace the strategic implications for a leveraged buyout using today's capital structure framework.'"
+      "'this morning's news reports a major merger, apply Porter's Five Forces to the combined entity in 90 seconds.'",
+      "'a central bank just raised rates, trace the strategic implications for a leveraged buyout using today's capital structure framework.'"
     ],
     "role-rotation-transfer": [
       "apply dynamic capabilities to the same case as the incumbent CEO, then as an activist investor, then as a front-line manager.",
@@ -1160,23 +1189,23 @@
     ],
     "venture-design": [
       "'in 5 minutes, sketch a venture that would use the platform network effects framework we discussed today as its core logic.'",
-      "'design a micro-consulting firm whose business model is built explicitly on the resource-based view — sketch the key activities.'"
+      "'design a micro-consulting firm whose business model is built explicitly on the resource-based view, sketch the key activities.'"
     ],
     "policy-design": [
-      "'design a competition policy that addresses the platform monopoly problem the framework identifies — what would it require?'",
-      "'draft a corporate governance regulation that closes the principal-agent gap we analysed — what mechanisms would you mandate?'"
+      "'design a competition policy that addresses the platform monopoly problem the framework identifies, what would it require?'",
+      "'draft a corporate governance regulation that closes the principal-agent gap we analysed, what mechanisms would you mandate?'"
     ],
     "cross-cultural-transfer": [
-      "'apply the stakeholder theory framework to a Japanese keiretsu — what bends, what breaks in a collective ownership context?'",
-      "'transfer the individualistic agency theory assumptions to a German co-determination context — how does the framework need to flex?'"
+      "'apply the stakeholder theory framework to a Japanese keiretsu, what bends, what breaks in a collective ownership context?'",
+      "'transfer the individualistic agency theory assumptions to a German co-determination context, how does the framework need to flex?'"
     ],
     "scale-transfer": [
-      "'apply the dynamic capabilities framework to a 15-person consultancy — what changes compared to our multinational case?'",
-      "'transfer the BCG matrix logic to a portfolio of three products in a micro-enterprise — does it still hold?'"
+      "'apply the dynamic capabilities framework to a 15-person consultancy, what changes compared to our multinational case?'",
+      "'transfer the BCG matrix logic to a portfolio of three products in a micro-enterprise, does it still hold?'"
     ],
     "real-org-transfer": [
-      "'take today's framework and apply it to a real strategic challenge in your organisation — what action does it suggest?'",
-      "'identify one decision your own team faces that this session's analytical tools could improve — outline the application.'"
+      "'take today's framework and apply it to a real strategic challenge in your organisation, what action does it suggest?'",
+      "'identify one decision your own team faces that this session's analytical tools could improve, outline the application.'"
     ],
     "predict-the-future": [
       "'using the industry life cycle model and five forces, predict how the ride-hailing industry will evolve over the next decade.'",
@@ -1187,19 +1216,19 @@
       "'create a facilitation checklist for running a stakeholder mapping workshop based on today's salient stakeholder model.'"
     ],
     "teachback-to-lay-audience": [
-      "present the efficient market hypothesis to a family member without a finance background — 5 minutes, no jargon.",
-      "'explain the principal-agent problem to someone who runs a small business — make it immediately relevant to their context.'"
+      "present the efficient market hypothesis to a family member without a finance background, 5 minutes, no jargon.",
+      "'explain the principal-agent problem to someone who runs a small business, make it immediately relevant to their context.'"
     ],
     "cross-disciplinary-transfer": [
-      "'apply agency theory to the relationship between a surgeon and a hospital — how does the non-business context change the framework?'",
-      "'transfer transaction cost economics to the question of whether a school should outsource its IT support — what does the framework recommend?'"
+      "'apply agency theory to the relationship between a surgeon and a hospital, how does the non-business context change the framework?'",
+      "'transfer transaction cost economics to the question of whether a school should outsource its IT support, what does the framework recommend?'"
     ],
     "novel-data-transfer": [
-      "'here is a dataset of financial ratios from an industry you have not studied — apply the performance frontier concept to identify which firms are above the efficiency frontier.'",
-      "'use the competitive dynamics framework to interpret this unfamiliar market share data — what competitive moves does it suggest?'"
+      "'here is a dataset of financial ratios from an industry you have not studied, apply the performance frontier concept to identify which firms are above the efficiency frontier.'",
+      "'use the competitive dynamics framework to interpret this unfamiliar market share data, what competitive moves does it suggest?'"
     ],
     "commitment-design": [
-      "'commit to applying today's stakeholder theory in one real conversation or meeting in the next seven days — tell your partner what you will do and when.'",
+      "'commit to applying today's stakeholder theory in one real conversation or meeting in the next seven days, tell your partner what you will do and when.'",
       "'pair with a neighbour, commit to one specific action where you will use today's concept, and agree to check in next week.'"
     ]
   };
@@ -1298,22 +1327,24 @@
     return 'close';
   }
 
-  var PREP = { zero: '—', light: '✱', heavy: '✱✱✱' };
+  var PREP = { zero: 'no prep', light: 'light prep', heavy: 'heavy prep' };
   var TECH = { none: 'no tech', poll: 'poll', projector: 'projector', 'shared-board': 'board' };
-  var ASYNC = { 'sync-only': 'sync-only', 'sync-preferred': 'sync-pref', 'async-ok': 'async-ok' };
-  var STAKES_C = { low: '#22C55E', medium: '#F59E0B', high: '#EF4444' };
+  var ASYNC = { 'sync-only': 'sync only', 'sync-preferred': 'sync preferred', 'async-ok': 'async ok' };
   var SIZES = ['small', 'medium', 'large'];
 
   function card(m) {
     var tier = tierMap[m.tier];
     var tc = tier.color_hex;
     var szLabel = SIZES.filter(function(s){return m.class_size.indexOf(s)>-1;}).join(', ');
-    var dots = SIZES.map(function(s){
-      var f = m.class_size.indexOf(s) > -1;
-      return '<span class="sdot' + (f ? '" style="color:' + tc : ' btag') + '" aria-hidden="true" title="' + s + '">●</span>';
-    }).join('');
-    var prepTxt = PREP[m.prep];
-    var stakesC = STAKES_C[m.stakes];
+    var meta = [
+      szLabel + ' class',
+      PREP[m.prep],
+      TECH[m.tech],
+      posLabel(m.position),
+      m.stakes + ' stakes',
+      (m.assessable ? 'assessable' : 'not assessable'),
+      ASYNC[m.async]
+    ].join(' · ');
     var aLabel = 'class size: ' + szLabel + '; prep: ' + m.prep + '; tech: ' + m.tech + '; position: ' + m.position.join(', ') + '; stakes: ' + m.stakes + '; assessable: ' + (m.assessable ? 'yes' : 'no') + '; async: ' + m.async;
     var examples = EXAMPLES[m.id] || [];
     var expandHtml = '<div class="card-expand" aria-hidden="true">'
@@ -1324,31 +1355,13 @@
     return '<article class="card" role="listitem" tabindex="0" aria-expanded="false" aria-label="' + m.name + ', tier ' + m.tier + ' ' + tier.name + ', ' + m.time_min + ' min. press enter to expand.">'
       + '<div class="card-bar" style="background:' + tc + '" aria-hidden="true"></div>'
       + '<div class="card-body">'
-        + '<div class="tier-row">'
-          + '<span class="tier-lbl" style="color:' + tc + '">tier ' + m.tier + ' · ' + tier.name + '</span>'
-          + '<div class="tier-row-right">'
-            + '<span class="time-chip" style="background:' + tc + '">' + m.time_min + ' min</span>'
-            + '<span class="expand-icon" aria-hidden="true">▾</span>'
-          + '</div>'
-        + '</div>'
-        + '<h2 class="card-name">' + m.name + '</h2>'
-        + '<div class="badges" aria-label="' + aLabel + '">'
-          + '<span class="sdots" aria-hidden="true">' + dots + '</span>'
-          + '<span class="bdot" aria-hidden="true">·</span>'
-          + '<span aria-hidden="true" style="color:' + tc + ';font-weight:600">' + prepTxt + '</span>'
-          + '<span class="bdot" aria-hidden="true">·</span>'
-          + '<span class="btag">' + TECH[m.tech] + '</span>'
-          + '<span class="bdot" aria-hidden="true">·</span>'
-          + '<span class="btag">' + posLabel(m.position) + '</span>'
-          + '<span class="bdot" aria-hidden="true">·</span>'
-          + '<span class="sdot" style="color:' + stakesC + '" aria-hidden="true">●</span>'
-          + '<span class="btag">' + m.stakes + '</span>'
-          + '<span class="bdot" aria-hidden="true">·</span>'
-          + '<span class="' + (m.assessable ? 'assess-yes' : 'assess-no') + '" aria-hidden="true">' + (m.assessable ? '✓' : '—') + '</span>'
-          + '<span class="bdot" aria-hidden="true">·</span>'
-          + '<span class="btag">' + ASYNC[m.async] + '</span>'
+        + '<div class="title-row">'
+          + '<h2 class="card-name">' + m.name + '</h2>'
+          + '<span class="time-chip">' + m.time_min + ' min</span>'
         + '</div>'
         + '<p class="card-desc">' + m.description + '</p>'
+        + '<div class="badges" aria-label="' + aLabel + '">' + meta + '</div>'
+        + '<button class="expand-pill" type="button" tabindex="-1" aria-hidden="true">see ask, when, examples &darr;</button>'
         + expandHtml
       + '</div>'
     + '</article>';
