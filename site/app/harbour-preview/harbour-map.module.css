@@ -191,6 +191,7 @@
   width: 52px;
   height: 52px;
   display: block;
+  object-fit: contain;
 }
 
 .boatCardText {

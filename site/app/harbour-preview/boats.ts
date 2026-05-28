@@ -109,10 +109,9 @@ export interface Pier {
  * column) so they feel like a fleet, not a scattered grid.
  */
 export const BOATS: readonly Boat[] = [
-  // Placeholder boat SVG — all six live boats share this image until
-  // Payton delivers per-app artwork. svgHeight omitted → defaults to
-  // ry * 2, so each boat fills the same footprint as its oval.
-  // svgAspect: 1706.88 / 651 ≈ 2.621 (viewBox of Payton's boat file).
+  // Per-app boat SVGs from Payton — all portrait (taller than wide).
+  // svgHeight: 240 → 60px display at BOAT_SCALE 0.25.
+  // svgAspect is width / height of each SVG's viewBox.
   {
     slug: "vertigo-vault",
     label: "vertigo.vault",
@@ -123,8 +122,9 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "live",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/vertigo-vault.svg",
+    svgHeight: 240,
+    svgAspect: 255.79 / 368.4,
     badge:      "/harbour-preview/vertigo-vault.svg",
     badgeSize:  44,
     modalName:  "vertigo.vault",
@@ -141,8 +141,9 @@ export const BOATS: readonly Boat[] = [
     rx: 150,
     ry: 65,
     status: "live",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/lines-become-loops.svg",
+    svgHeight: 240,
+    svgAspect: 289.13 / 367.66,
     badge:      "/harbour-preview/lines-become-loops.svg",
     modalName:  "lines.become.loops",
     accent:     "#58cbb2",
@@ -158,8 +159,9 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "live",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/regenerative-library.svg",
+    svgHeight: 240,
+    svgAspect: 289.13 / 367.66,
     badge:      "/harbour-preview/regenerative-library.svg",
     modalName:  "regenerative.practices",
     accent:     "#434824",
@@ -175,10 +177,9 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "coming-soon",
-    // Static boat image — same SVG as live boats, rendered without bob
-    // animation and at reduced opacity (via .boatComing .boatImg CSS).
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/depth-chart.svg",
+    svgHeight: 240,
+    svgAspect: 245.79 / 377.97,
   },
   {
     slug: "read-the-room",
@@ -190,8 +191,9 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "live",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/read-the-room.svg",
+    svgHeight: 240,
+    svgAspect: 289.32 / 367.87,
     badge:      "/harbour-preview/read-the-room.svg",
     modalName:  "read.the.room",
     accent:     "#436db1",
@@ -207,8 +209,9 @@ export const BOATS: readonly Boat[] = [
     rx: 145,
     ry: 60,
     status: "live",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/values-auction.svg",
+    svgHeight: 240,
+    svgAspect: 317.47 / 372.09,
     badge:      "/harbour-preview/values-auction.svg",
     modalName:  "values.companion",
     accent:     "#b15043",
@@ -224,8 +227,9 @@ export const BOATS: readonly Boat[] = [
     rx: 135,
     ry: 60,
     status: "live",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/cuts-catalogue.svg",
+    svgHeight: 240,
+    svgAspect: 289.13 / 367.66,
     badge:      "/harbour-preview/cuts-catalogue.svg",
     modalName:  "cuts.catalogue",
     accent:     "#cb7858",
@@ -241,8 +245,9 @@ export const BOATS: readonly Boat[] = [
     rx: 125,
     ry: 60,
     status: "live",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/co-rubric.svg",
+    svgHeight: 240,
+    svgAspect: 289.13 / 367.66,
     badge:      "/harbour-preview/co-rubric.svg",
     modalName:  "co.rubric",
     accent:     "#482d27",
@@ -258,8 +263,9 @@ export const BOATS: readonly Boat[] = [
     rx: 130,
     ry: 60,
     status: "coming-soon",
-    svgHref:   "/harbour-preview/read-the-room-left.svg",
-    svgAspect: 1706.88 / 651,
+    svgHref:   "/harbour-preview/crease-works.svg",
+    svgHeight: 240,
+    svgAspect: 254.57 / 368.4,
   },
 ];
 
