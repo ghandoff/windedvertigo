@@ -107,6 +107,11 @@ export default function RootLayout({
           data-app-slug="co-rubric-companion"
           strategy="afterInteractive"
         />
+        <Script
+          src="/harbour-nav-widget.js"
+          data-app="co-rubric-companion"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
