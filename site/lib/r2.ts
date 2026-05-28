@@ -77,6 +77,9 @@ export function getPublicUrl(key: string): string {
   if (publicUrl) {
     return `${publicUrl.replace(/\/$/, "")}/${key}`;
   }
-  // no proxy fallback for the static site — R2_PUBLIC_URL is required
-  return `https://pub-c685a810f5794314a106e0f249c740c9.r2.dev/${key}`;
+  // no proxy fallback for the static site — R2_PUBLIC_URL is required.
+  // This hardcoded base is only a last resort; it points at the current
+  // garrett-account creaseworks-evidence bucket (the old anotheroption
+  // base pub-c685a810… was decommissioned on 2026-04-25).
+  return `https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/${key}`;
 }
