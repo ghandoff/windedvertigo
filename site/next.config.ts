@@ -525,16 +525,15 @@ const nextConfig: NextConfig = {
     ],
 
       fallback: [
-        {
-          source: "/harbour",
-          destination:
-            "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
-        },
-        {
-          source: "/harbour/",
-          destination:
-            "https://wv-harbour-harbour.windedvertigo.workers.dev/harbour",
-        },
+        // NOTE: bare `/harbour` and `/harbour/` are intentionally NOT here.
+        // The harbour landing is now served locally by app/harbour/page.tsx
+        // (the boat map) — a filesystem route, which resolves before this
+        // fallback. The old hub landing remains deployed as a backup at
+        // wv-harbour-harbour.windedvertigo.workers.dev/harbour.
+        //
+        // The `:path*` rule below still routes the hub Worker's subpaths
+        // (/harbour/login, /harbour/account, etc.) plus any /harbour/* that
+        // no beforeFiles rule or local public file already claimed.
         {
           source: "/harbour/:path*",
           destination:
