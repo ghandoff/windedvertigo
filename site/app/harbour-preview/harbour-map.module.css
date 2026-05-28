@@ -135,10 +135,11 @@
 
 .tapHint {
   position: absolute;
-  /* Near the top of the scene (~200px below the header bottom), where
-     it's actually seen — .mapWrapper begins just below the fixed header.
-     Was bottom-anchored, where the nudge was easy to miss. */
-  top: 200px;
+  /* Just below the header (~10px). .mapWrapper begins at the
+     .pageBelowHeader 104px offset, ~7px under the ~97px fixed header,
+     so top:3px sits ~10px below the header bottom. Was bottom-anchored,
+     where the nudge was easy to miss. */
+  top: 3px;
   bottom: auto;
   left: 50%;
   transform: translateX(-50%);

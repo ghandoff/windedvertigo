@@ -1,0 +1,220 @@
+[
+  {
+    "key": "vertigo-vault",
+    "label": "vertigo.vault",
+    "href": "/harbour/vertigo-vault",
+    "tagline": "learning activities",
+    "accent": "#43b187",
+    "pier": "launch"
+  },
+  {
+    "key": "lines-become-loops",
+    "label": "lines become loops",
+    "href": "/harbour/lines-become-loops",
+    "tagline": "systems thinking simulator",
+    "accent": "#6ee7b7",
+    "pier": "launch"
+  },
+  {
+    "key": "read-the-room",
+    "label": "read the room",
+    "href": "/harbour/read-the-room",
+    "tagline": "a quiet game of interpretation",
+    "accent": "#c084fc",
+    "pier": "launch"
+  },
+  {
+    "key": "values-companion",
+    "label": "values.companion",
+    "href": "/harbour/values-companion",
+    "tagline": "live values game",
+    "accent": "#fbbf24",
+    "pier": "launch"
+  },
+  {
+    "key": "cuts-catalogue",
+    "label": "cuts.catalogue",
+    "href": "/harbour/cuts-catalogue",
+    "tagline": "editorial pacing tool",
+    "accent": "#fb923c",
+    "pier": "launch"
+  },
+  {
+    "key": "co-rubric-companion",
+    "label": "co.rubric",
+    "href": "/harbour/co-rubric-companion",
+    "tagline": "rubric co-design",
+    "accent": "#93c5fd",
+    "pier": "launch"
+  },
+  {
+    "key": "regenerative-practices-catalogue",
+    "label": "regenerative.practices",
+    "href": "/harbour/regenerative-practices-catalogue",
+    "tagline": "open practice library",
+    "accent": "#a8c97c",
+    "pier": "launch"
+  },
+  {
+    "key": "depth-chart",
+    "label": "depth.chart",
+    "href": "/harbour/depth-chart",
+    "tagline": "assessment generator",
+    "accent": "#7dd3fc",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "creaseworks",
+    "label": "creaseworks",
+    "href": "/harbour/creaseworks",
+    "tagline": "creative playdates",
+    "accent": "#cb7858",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "paper-trail",
+    "label": "paper.trail",
+    "href": "/harbour/paper-trail",
+    "tagline": "physical-digital bridge",
+    "accent": "#ffebd2",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "deep-deck",
+    "label": "deep.deck",
+    "href": "/harbour/deep-deck",
+    "tagline": "conversation cards",
+    "accent": "#fcd34d",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "raft-house",
+    "label": "raft.house",
+    "href": "/harbour/raft-house",
+    "tagline": "group learning",
+    "accent": "#58cbb2",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "tidal-pool",
+    "label": "tidal.pool",
+    "href": "/harbour/tidal-pool",
+    "tagline": "systems thinking sandbox",
+    "accent": "#d2fdff",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "mirror-log",
+    "label": "mirror.log",
+    "href": "/harbour/mirror-log",
+    "tagline": "reflection journal",
+    "accent": "#d5d2ff",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "orbit-lab",
+    "label": "orbit.lab",
+    "href": "/harbour/orbit-lab",
+    "tagline": "orbital mechanics",
+    "accent": "#93c5fd",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "proof-garden",
+    "label": "proof.garden",
+    "href": "/harbour/proof-garden",
+    "tagline": "mathematical proof",
+    "accent": "#22c55e",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "bias-lens",
+    "label": "bias.lens",
+    "href": "/harbour/bias-lens",
+    "tagline": "cognitive bias",
+    "accent": "#f59e0b",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "scale-shift",
+    "label": "scale.shift",
+    "href": "/harbour/scale-shift",
+    "tagline": "powers of ten",
+    "accent": "#c4b5fd",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "pattern-weave",
+    "label": "pattern.weave",
+    "href": "/harbour/pattern-weave",
+    "tagline": "gestalt perception",
+    "accent": "#fda4af",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "market-mind",
+    "label": "market.mind",
+    "href": "/harbour/market-mind",
+    "tagline": "opportunity cost",
+    "accent": "#e09878",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "rhythm-lab",
+    "label": "rhythm.lab",
+    "href": "/harbour/rhythm-lab",
+    "tagline": "subdivision & groove",
+    "accent": "#ddd6fe",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "code-weave",
+    "label": "code.weave",
+    "href": "/harbour/code-weave",
+    "tagline": "recursion & abstraction",
+    "accent": "#a5f3fc",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "time-prism",
+    "label": "time.prism",
+    "href": "/harbour/time-prism",
+    "tagline": "historical empathy",
+    "accent": "#fde68a",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "liminal-pass",
+    "label": "liminal.pass",
+    "href": "/harbour/liminal-pass",
+    "tagline": "threshold concepts",
+    "accent": "#fca5a5",
+    "pier": "repairs",
+    "comingSoon": true
+  },
+  {
+    "key": "emerge-box",
+    "label": "emerge.box",
+    "href": "/harbour/emerge-box",
+    "tagline": "cellular automata",
+    "accent": "#86efac",
+    "pier": "repairs",
+    "comingSoon": true
+  }
+]
