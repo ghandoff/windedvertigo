@@ -135,7 +135,10 @@ export function HarbourNav({
   const repairs = HARBOUR_APPS.filter((a) => a.pier === "repairs");
 
   const basePath = `/harbour/${currentApp}`;
-  const resolvedSignIn = signInPath ?? `${basePath}/login`;
+  // Sign-in always points at the shared hub login (Pool A SSO), not a
+  // per-app /harbour/<app>/login path (those 404). Matches the /harbour
+  // footer "sign in" target.
+  const resolvedSignIn = signInPath ?? "/harbour/login";
   const resolvedSignOut = signOutPath ?? `${basePath}/api/auth/signout`;
 
   // Open/close the native <dialog> in sync with React state.
