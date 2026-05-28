@@ -65,11 +65,11 @@ em { font-style: italic; }
 .content-narrow { max-width: var(--container-width); }
 
 /* ── header ───────────────────────────────────────────────────── */
-.header { padding: var(--space-lg) 0; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--wv-cadet); border-bottom: 1px solid rgba(255, 235, 210, 0.08); }
+.header { padding: var(--space-md) 0; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: var(--wv-cadet); border-bottom: 1px solid rgba(255, 235, 210, 0.08); }
 .header .container { max-width: 100%; padding: 0 var(--edge-padding); }
 .header-inner { display: flex; justify-content: space-between; align-items: flex-start; }
 .logo { display: block; }
-.logo-img { width: 200px; height: auto; }
+.logo-img { width: 160px; height: auto; }
 
 /* ── wobble nudge ─────────────────────────────────────────────── */
 @keyframes wobble {
@@ -105,7 +105,7 @@ em { font-style: italic; }
 main.home { padding-top: 140px; }
 main.home > .container { flex: 1; display: flex; flex-direction: column; }
 
-main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; flex-direction: column; }
+main { flex: 1; padding: var(--space-lg) 0; padding-top: 124px; display: flex; flex-direction: column; }
 
 /* ── hero ─────────────────────────────────────────────────────── */
 .hero { display: flex; flex-direction: column; justify-content: center; align-items: center; flex: 1; text-align: center; }
@@ -477,11 +477,11 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 160px; display: flex; f
 
 /* ── sit-still button (global animation kill switch) ──────────── */
 /* Upper-right of the main canvas, just below the fixed header.
-   main { padding-top: 160px } clears the header — match that
+   main { padding-top: 124px } clears the header — match that
    offset so the button sits flush with the content start.         */
 .sit-still-btn {
   position: fixed;
-  top: 168px;          /* header height ~154px + 14px gap */
+  top: 132px;          /* header height ~118px + 14px gap */
   right: var(--space-xl);
   bottom: auto;
   z-index: 91;
@@ -584,7 +584,7 @@ html[data-still] .phosphor-bloom-ring {
   .see-more-btn { display: block; margin: 0 auto var(--space-sm); }
   .services-grid { grid-template-columns: 1fr; }
   /* footer responsive now handled by shared .wv-footer classes in tokens */
-  .logo-img { width: 150px; }
+  .logo-img { width: 120px; }
   .what-hero-title { font-size: 36px; }
   .what-hero-subtitle { font-size: 1.5rem; }
   .what-hero-body { font-size: 1rem; }

@@ -54,11 +54,11 @@ export const metadata: Metadata = {
 export default function HarbourPage() {
   return (
     <>
-      <SiteHeader signInHref="/harbour/login" />
-      <main id="main-content" className={styles.page}>
+      <SiteHeader />
+      <main id="main-content" className={styles.pageBelowHeader}>
         <HarbourMap />
       </main>
-      <SiteFooter />
+      <SiteFooter signInHref="/harbour/login" />
     </>
   );
 }
