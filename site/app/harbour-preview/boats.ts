@@ -130,7 +130,7 @@ export const BOATS: readonly Boat[] = [
     label: "regenerative.practices.catalogue",
     href: "/harbour/regenerative-practices-catalogue",
     tagline: "a living catalogue of regenerative teaching practices, designed by faculty in the PPCS programme.",
-    cx: 540,
+    cx: 440,
     cy: 300,
     rx: 130,
     ry: 60,
