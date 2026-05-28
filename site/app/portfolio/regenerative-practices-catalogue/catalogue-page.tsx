@@ -71,12 +71,23 @@ function renderSteps(text: string): string[] {
 export function CataloguePage({
   practices,
   schema,
-  version = 1,
 }: {
   practices: RegenerativePractice[];
   schema: CatalogueSchema;
-  version?: Version;
 }) {
+  // Palette version. Default v2 (olive/jade/cream) — the launched identity.
+  // Detected client-side so the server render stays static + edge-cacheable
+  // (reading searchParams on the server would force per-request rendering and
+  // lose the CF edge cache). ?v=1 is a preview / rollback-comparison hatch:
+  // the page paints v2 first, then swaps to v1 on mount if the flag is set.
+  // A true rollback = change this default to 1 and redeploy.
+  const [version, setVersion] = useState<Version>(2);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("v") === "1") {
+      setVersion(1);
+    }
+  }, []);
+
   const [view, setView] = useState<"form" | "gallery">("form");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);

@@ -41,18 +41,23 @@ export const metadata: Metadata = {
 
 // This page is a harbour app (lives under /harbour/...) and uses the
 // shared harbour-nav-widget that every other harbour app loads, not the
-// site-wide SiteHeader/SiteFooter. The visual-identity flag (?v=1) only
-// swaps the page palette; the navbar is the same for both versions.
-// v2 (olive + jade + cream) is the default; v1 (cadet + redwood +
-// champagne) remains reachable via ?v=1 as a rollback escape hatch.
-export default async function RegenerativeCataloguePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ v?: string }>;
-}) {
-  const params = await searchParams;
-  const version = params.v === "1" ? 1 : 2;
-
+// site-wide SiteHeader/SiteFooter.
+//
+// IMPORTANT: this component reads NO searchParams and no per-request state,
+// so Next.js statically generates it and honours `revalidate = 300`. That
+// lets OpenNext emit `Cache-Control: s-maxage=300, stale-while-revalidate`,
+// which CF's edge caches — repeat requests are served from the edge without
+// invoking the Worker at all. Do NOT add a `searchParams` (or `cookies()`,
+// `headers()`) dependency here: any of them flips the page back to
+// per-request dynamic rendering and the edge cache is lost.
+//
+// The visual-identity flag (?v=1) only swaps the page palette and is handled
+// CLIENT-SIDE inside CataloguePage (see its useEffect) so it doesn't force
+// dynamic rendering. v2 (olive + jade + cream) is the default; v1 (cadet +
+// redwood + champagne) remains reachable via ?v=1 as a preview / rollback
+// comparison. A true rollback = flip CataloguePage's default version and
+// redeploy.
+export default async function RegenerativeCataloguePage() {
   const [practices, schema] = await Promise.all([
     fetchRegenerativePractices(),
     fetchCatalogueSchema(),
@@ -61,7 +66,7 @@ export default async function RegenerativeCataloguePage({
   return (
     <>
       <main id="main-content">
-        <CataloguePage practices={practices} schema={schema} version={version} />
+        <CataloguePage practices={practices} schema={schema} />
       </main>
       <Script
         src="/harbour-nav-widget.js"
