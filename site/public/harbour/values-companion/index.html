@@ -378,6 +378,7 @@
     .tour-step-count { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 4px; }
     .tour-headline { font-size: 16px; font-weight: 700; color: var(--fg); margin-bottom: 6px; line-height: 1.25; }
     .tour-body-text { font-size: 13px; color: var(--fg-muted); line-height: 1.6; margin-bottom: 14px; }
+    .tour-body-text.tour-body-steps { white-space: pre-line; color: var(--fg); }
     .tour-actions { display: flex; gap: 8px; align-items: center; }
     #tour-next { font-family: inherit; font-size: 13px; font-weight: 700; padding: 7px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer; transition: opacity 120ms; }
     #tour-next:hover { opacity: 0.85; }
@@ -1154,7 +1155,7 @@ document.addEventListener('click', e => {
 });
 
 /* ══════════════════════════════════════════
-   PART 2: GUIDED TOUR (12 steps)
+   PART 2: GUIDED TOUR (13 steps)
 ══════════════════════════════════════════ */
 const TOUR_STEPS = [
   {
@@ -1233,6 +1234,14 @@ const TOUR_STEPS = [
     body: 'flip between tabs as you go. click "take the tour" any time to revisit this guide.',
     position: 'bottom',
   },
+  {
+    // final step: no spotlight — centred popover with how-to-run-a-session guidance
+    target: null,
+    headline: 'ready to run a session?',
+    body: '1.  split your group into teams.\n2.  assign each team a company.\n3.  give them ten minutes to decide which values they want to bid on.\n4.  switch to the auction tab and start the clock.',
+    bodySteps: true,
+    nextLabel: 'finish',
+  },
 ];
 
 let tourStep     = 0;
@@ -1294,12 +1303,17 @@ function showStep(i) {
   const step = TOUR_STEPS[i];
   if (step.onShow) step.onShow();
 
-  const targetEl = document.querySelector(step.target);
+  const targetEl = step.target ? document.querySelector(step.target) : null;
+  const isLast   = (i === TOUR_STEPS.length - 1);
 
   tourStepCount.textContent = (i + 1) + ' of ' + TOUR_STEPS.length;
   tourHeadline.textContent  = step.headline;
   tourBodyText.textContent  = step.body;
-  tourNext.textContent      = (i === TOUR_STEPS.length - 1) ? 'done ✓' : 'next →';
+  // a step can opt into a numbered, line-broken layout (e.g. the run-a-session step)
+  tourBodyText.classList.toggle('tour-body-steps', !!step.bodySteps);
+  tourNext.textContent      = step.nextLabel || (isLast ? 'done ✓' : 'next →');
+  // final step is the only place skip is unnecessary — it IS the end
+  tourSkip.style.display    = isLast ? 'none' : '';
 
   if (targetEl) {
     targetEl.classList.add('tour-spotlight');
