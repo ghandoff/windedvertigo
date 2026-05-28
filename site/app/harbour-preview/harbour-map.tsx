@@ -39,6 +39,7 @@ interface CardState {
   href:        string;
   status:      "live" | "coming-soon";
   badge?:      string;
+  badgeSize?:  number;
   modalName?:  string;
   accent?:     string;
   accentText?: string;
@@ -57,6 +58,7 @@ export function HarbourMap() {
       href:       boat.href,
       status:     boat.status,
       badge:      boat.badge,
+      badgeSize:  boat.badgeSize,
       modalName:  boat.modalName,
       accent:     boat.accent,
       accentText: boat.accentText,
@@ -228,8 +230,8 @@ export function HarbourMap() {
               <img
                 src={card.badge}
                 alt=""
-                width={52}
-                height={52}
+                width={card.badgeSize ?? 52}
+                height={card.badgeSize ?? 52}
                 className={styles.boatCardBadgeIcon}
                 aria-hidden="true"
               />

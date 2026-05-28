@@ -61,12 +61,15 @@ export interface Boat {
   svgAspect?: number;
   /**
    * Per-game modal identity (the card that opens when a boat is tapped).
-   * badge      — 52×52 badge SVG from /harbour-preview/ (use as designed, no recolor).
+   * badge      — badge SVG from /harbour-preview/ rendered at badgeSize × badgeSize px.
+   * badgeSize  — icon render size in px (default: 52). Override to visually harmonise
+   *              icons whose content fills a different proportion of the viewBox.
    * modalName  — canonical period-separated name shown in the modal title.
    * accent     — "open app →" button background (the game's primary brand colour).
    * accentText — button label colour, chosen for contrast against `accent`.
    */
   badge?:      string;
+  badgeSize?:  number;
   modalName?:  string;
   accent?:     string;
   accentText?: string;
@@ -123,8 +126,9 @@ export const BOATS: readonly Boat[] = [
     svgHref:   "/harbour-preview/read-the-room-left.svg",
     svgAspect: 1706.88 / 651,
     badge:      "/harbour-preview/vertigo-vault.svg",
+    badgeSize:  44,
     modalName:  "vertigo.vault",
-    accent:     "#5872cb",
+    accent:     "#cb7858",
     accentText: "#ffebd2",
   },
   {
@@ -225,7 +229,7 @@ export const BOATS: readonly Boat[] = [
     badge:      "/harbour-preview/cuts-catalogue.svg",
     modalName:  "cuts.catalogue",
     accent:     "#cb7858",
-    accentText: "#273248",
+    accentText: "#ffebd2",
   },
   {
     slug: "co-rubric-companion",
