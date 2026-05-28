@@ -22,6 +22,7 @@
   --champagne: #FFEBD2;
   --muted: #6B7589;
   --rule: #EAD9BD;
+  --baseline: #9DB4D6;
   --soft-card: #fff;
   --on-dark-muted: #B5BBC9;
   --on-dark: #FFEBD2;
@@ -1667,10 +1668,10 @@ body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-le
 <header class="page-header" role="banner">
   <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
   <nav class="scenario-picker" aria-label="switch scenario">
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
-    <a class="scenario-tab active" aria-current="page" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab active" aria-current="page" href="/harbour/lines-become-loops/lakeshore-simulator">lakeshore college</a>
   </nav>
 </header>
 <!-- teacher's guide link moved to facilitator dashboard -->
@@ -1726,7 +1727,7 @@ body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-le
           </div>
           <canvas id="chart-decisions" aria-label="emissions trajectories chart"></canvas>
           <div class="chart-legend" id="legend-decisions">
-            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline</span>
+            <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--baseline);"></span> baseline</span>
             <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--champagne);"></span> net-zero target</span>
             <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
             <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--soft-card);"></span> combined (recharter)</span>
@@ -1742,7 +1743,7 @@ body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-le
           <div class="secondary-chart-wrap">
             <canvas id="chart-secondary" aria-label="political-capital trajectories chart"></canvas>
             <div class="chart-legend" id="legend-secondary">
-              <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--rule);"></span> baseline (1.0)</span>
+              <span class="chart-legend-item"><span class="chart-legend-swatch dashed" style="color:var(--baseline);"></span> baseline (1.0)</span>
               <span class="chart-legend-item"><span class="chart-legend-swatch" style="color:var(--sienna);"></span> intervention</span>
             </div>
           </div>
@@ -1864,7 +1865,7 @@ body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-le
   </div>
   <div class="handoff-links">
     <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
-    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+    <a class="btn" href="/harbour/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
   </div>
   <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
 </div>
@@ -2082,6 +2083,9 @@ const COLORS = {
   chartTick: _v2 ? 'rgba(255,255,255,0.5)' : '#B5BBC9',
   chartGrid: _v2 ? 'rgba(255,255,255,0.06)' : 'rgba(255,235,210,0.08)',
   glow:      _v2 ? 'rgba(210,253,255,0.4)' : 'rgba(255,235,210,0.4)',
+  // baseline reference line — cool steel-blue so it never collides with the
+  // cream net-zero target line (feedback #4) and stays legible (feedback #6).
+  baseline:  _v2 ? '#C9CDD6' : '#9DB4D6',
 };
 
 // ────────────────────────────────────────────
@@ -2293,7 +2297,7 @@ function makeSecondaryBaselineDataset() {
   return {
     label: 'baseline',
     data: YEARS.map(y => ({ x: y, y: SECONDARY.baseline })),
-    borderColor: COLORS.rule,
+    borderColor: COLORS.baseline,
     borderWidth: 1.5,
     borderDash: [6, 4],
     pointRadius: 0,
@@ -2347,11 +2351,13 @@ function makeNetZeroDataset() {
 }
 
 function makeBaselineDataset(opacity = 1.0) {
+  const a = Math.max(opacity, 0.85);
   return {
     label: 'baseline',
     data: YEARS.map((y, i) => ({ x: y, y: baseline[i] })),
-    borderColor: opacity < 1 ? `rgba(234, 217, 189, ${opacity})` : COLORS.rule,
-    borderWidth: opacity < 1 ? 1 : 2,
+    borderColor: COLORS.baseline + (a < 1 ? Math.round(a * 255).toString(16).padStart(2, '0') : ''),
+    borderWidth: 2,
+    borderDash: [6, 4],
     pointRadius: 0,
     order: 9,
   };

@@ -1614,10 +1614,10 @@ body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-le
 <header class="page-header" role="banner">
   <a class="wordmark" href="/" aria-label="winded.vertigo"><picture><source srcset="/images/logo.webp" type="image/webp"><img src="/images/logo.png" alt="winded.vertigo" width="160" height="85" loading="eager" decoding="async"></picture></a>
   <nav class="scenario-picker" id="scenario-picker" aria-label="switch scenario">
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=churn">saas churn</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=burnout">team burnout</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/simulator?s=sleep">sleep debt</a>
-    <a class="scenario-tab" href="/portfolio/assets/lines-become-loops/lakeshore-simulator">lakeshore college</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=churn">saas churn</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=burnout">team burnout</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/simulator?s=sleep">sleep debt</a>
+    <a class="scenario-tab" href="/harbour/lines-become-loops/lakeshore-simulator">lakeshore college</a>
   </nav>
 </header>
 <!-- teacher's guide link moved to facilitator dashboard -->
@@ -1816,7 +1816,7 @@ body.theme-v2 input[type=range]::-webkit-slider-thumb { background: var(--lbl-le
   </div>
   <div class="handoff-links">
     <button class="btn" id="btn-restart" aria-label="run it again">run it again</button>
-    <a class="btn" href="/portfolio/assets/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
+    <a class="btn" href="/harbour/lines-become-loops/" aria-label="back to all scenarios" style="text-decoration:none;">all scenarios</a>
   </div>
   <div class="handoff-footer">ppcs 2026 · session 1A · w.v × prme · simulator v1.0</div>
 </div>
@@ -2497,7 +2497,7 @@ const logger = new SessionLogger();
 logger.log('scenario_started', { scenario: scenarioSlug });
 
 if (!scenario) {
-  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/portfolio/assets/lines-become-loops/" style="color:#CB7858;">back to all scenarios</a></div></div>';
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#273248;text-align:center;padding:24px;"><div><h2>scenario not found.</h2><p style="color:#6B7589;margin:16px 0;">the scenario "' + (scenarioSlug || '') + '" doesn\'t exist yet.</p><a href="/harbour/lines-become-loops/" style="color:#CB7858;">back to all scenarios</a></div></div>';
   throw new Error('unknown scenario: ' + scenarioSlug);
 }
 
@@ -2825,6 +2825,9 @@ const COLORS = {
   chartTick: _v2 ? 'rgba(255,255,255,0.5)' : '#B5BBC9',
   chartGrid: _v2 ? 'rgba(255,255,255,0.06)' : 'rgba(255,235,210,0.08)',
   glow:      _v2 ? 'rgba(210,253,255,0.4)' : 'rgba(255,235,210,0.4)',
+  // baseline ("without intervention") — a clear, cool reference line that
+  // reads as distinct from the warm intervention trajectories (feedback #6).
+  baseline:  _v2 ? '#C9CDD6' : '#9DB4D6',
 };
 
 let chartBaseline = null;
@@ -2905,12 +2908,14 @@ function makeChartOptions(yLabel) {
 }
 
 function makeBaselineDataset(alpha) {
+  // keep the baseline legible even when dimmed behind active trajectories
+  const a = Math.max(alpha == null ? 1 : alpha, 0.85);
   return {
     label: 'baseline',
     data: YEARS.map((y, i) => ({ x: y, y: baseline[i] })),
-    borderColor: COLORS.muted + (alpha < 1 ? Math.round(alpha * 255).toString(16).padStart(2, '0') : ''),
-    borderWidth: 1.5,
-    borderDash: [6, 3],
+    borderColor: COLORS.baseline + (a < 1 ? Math.round(a * 255).toString(16).padStart(2, '0') : ''),
+    borderWidth: 2,
+    borderDash: [6, 4],
     pointRadius: 0,
     order: 10,
   };
