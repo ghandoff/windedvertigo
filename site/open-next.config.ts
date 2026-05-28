@@ -1,15 +1,21 @@
 // open-next.config.ts — OpenNext for Cloudflare configuration
 // https://opennext.js.org/cloudflare
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
-import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache";
+import kvIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/kv-incremental-cache";
 
-// Using static-assets cache for now. kvIncrementalCache requires wrangler to
-// be logged in during the build step (it pre-populates the KV namespace), which
-// is not compatible with the current local deploy workflow.
+// Use KV for ISR so `revalidate: N` pages actually get cached at runtime.
+// The previous staticAssetsIncrementalCache was read-only (cache populated
+// at build time only), so any page that went stale re-rendered from scratch
+// on every request — under concurrency that meant N parallel Notion calls
+// per page, queued behind Notion's 3 req/sec rate limit. A 50-burst against
+// /harbour/regenerative-practices-catalogue measured p95 ~1.9s; expect that
+// to drop to within a small multiple of the sequential ~370ms TTFB after
+// this change.
 //
-// TODO: switch to kvIncrementalCache once `wrangler login` is run locally, or
-// a CLOUDFLARE_API_TOKEN env var is wired into the deploy script.
-// KV namespace already created: wv-site-next-cache (NEXT_INC_CACHE_KV binding).
+// Binding: NEXT_INC_CACHE_KV (declared in wrangler.jsonc).
+// Namespace: wv-site-next-cache (id 0d2ae2b7b83c4b5997ffc0305e6eda21).
+// Auth for build-time populate: CLOUDFLARE_API_TOKEN in env (same auth the
+// deploy step uses), no `wrangler login` interactive flow required.
 export default defineCloudflareConfig({
-  incrementalCache: staticAssetsIncrementalCache,
+  incrementalCache: kvIncrementalCache,
 });
