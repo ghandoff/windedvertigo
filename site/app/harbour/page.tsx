@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { HarbourMap } from "../harbour-preview/harbour-map";
+import { HarbourGreeting } from "./harbour-greeting";
 import styles from "../harbour-preview/harbour-map.module.css";
 
 /**
@@ -57,6 +58,9 @@ export default function HarbourPage() {
       <SiteHeader />
       <main id="main-content" className={styles.pageBelowHeader}>
         <HarbourMap />
+        {/* Signed-in overlay: greeting + "yours" tags on owned boats.
+         * Hydrates client-side so the static scene stays edge-cached. */}
+        <HarbourGreeting />
       </main>
       <SiteFooter signInHref="/harbour/login" />
     </>
