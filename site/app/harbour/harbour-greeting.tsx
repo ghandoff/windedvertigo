@@ -72,7 +72,9 @@ export function HarbourGreeting() {
       aria-live="polite"
       style={{
         position: "absolute",
-        top: 34,
+        // Clear the fixed SiteHeader (~104px) so the pill isn't occluded;
+        // sits just below it, near the "tap any boat" hint.
+        top: 116,
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 40,
