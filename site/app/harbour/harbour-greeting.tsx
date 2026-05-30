@@ -22,6 +22,8 @@ interface Me {
   name?: string | null;
   isStaff?: boolean;
   ownedApps?: string[];
+  /** boats recommended from the member's profile (roles/intent), non-owned */
+  recommendedApps?: string[];
 }
 
 export function HarbourGreeting() {
@@ -45,21 +47,36 @@ export function HarbourGreeting() {
   useEffect(() => {
     if (!me?.signedIn) return;
     const owned = new Set(me.ownedApps ?? []);
+    const recommended = new Set(me.recommendedApps ?? []);
     const boats = document.querySelectorAll<HTMLElement>("[data-boat]");
     boats.forEach((el) => {
       if (el.dataset.harbourMarked) return; // idempotent
       const slug = el.dataset.boat ?? "";
-      if (!(me.isStaff || owned.has(slug))) return;
+      const isYours = me.isStaff || owned.has(slug);
+      const isForYou = !isYours && recommended.has(slug);
+      if (!isYours && !isForYou) return;
       el.dataset.harbourMarked = "1";
-      const tag = document.createElement("span");
-      tag.textContent = "⚓ yours";
-      tag.setAttribute("aria-label", "you have access to this");
-      tag.style.cssText =
+      const base =
         "position:absolute;top:-6px;left:50%;transform:translateX(-50%);" +
         "z-index:30;white-space:nowrap;font-size:10px;font-weight:700;" +
         "padding:2px 7px;border-radius:9999px;letter-spacing:0.04em;" +
-        "background:var(--wv-champagne,#ffebd2);color:var(--wv-cadet,#273248);" +
         "box-shadow:0 1px 4px rgba(0,0,0,.35);pointer-events:none;";
+      const tag = document.createElement("span");
+      if (isYours) {
+        tag.textContent = "⚓ yours";
+        tag.setAttribute("aria-label", "you have access to this");
+        tag.style.cssText =
+          base +
+          "background:var(--wv-champagne,#ffebd2);color:var(--wv-cadet,#273248);";
+      } else {
+        // recommended-for-you: distinct, lighter (outline) treatment.
+        tag.textContent = "✦ for you";
+        tag.setAttribute("aria-label", "recommended for you");
+        tag.style.cssText =
+          base +
+          "background:rgba(255,235,210,0.14);color:var(--wv-champagne,#ffebd2);" +
+          "border:1px solid rgba(255,235,210,0.5);";
+      }
       if (getComputedStyle(el).position === "static") el.style.position = "relative";
       el.appendChild(tag);
     });
