@@ -18,6 +18,7 @@ import {
   LineChart,
   MessagesSquare,
   FileText,
+  Anchor,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -68,6 +69,7 @@ export const NAV_SECTIONS: NavSection[] = [
 ];
 
 export const BOTTOM_ITEMS: NavItem[] = [
+  { label: "harbour", href: "/harbour", icon: Anchor },
   { label: "ai hub", href: "/ai-hub", icon: Sparkles },
   { label: "docent", href: "/docent", icon: Compass },
 ];
