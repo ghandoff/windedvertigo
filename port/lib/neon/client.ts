@@ -49,27 +49,40 @@ function getConn(): ReturnType<typeof neon> {
   return _conn;
 }
 
+/**
+ * Normalise the result from a neon() call into { rows, rowCount }.
+ *
+ * @neondatabase/serverless v1.x changed the call convention:
+ *   - Tagged template  sql`SELECT ${x}`      → rows[]  (unchanged)
+ *   - .query() method  sql.query("…", [x])   → rows[]  (unchanged)
+ *   - Direct call      sql("…", [x])         → REMOVED in v1.x
+ *
+ * Both supported forms return a plain rows array, so we normalise here.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toResult(raw: any): QueryResult {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rows: any[] = Array.isArray(raw) ? raw : (raw?.rows ?? []);
+  return { rows, rowCount: typeof raw?.rowCount === "number" ? raw.rowCount : rows.length };
+}
+
 function sqlTagged(
   strings: TemplateStringsArray,
   ...values: unknown[]
 ): Promise<QueryResult> {
-  const text = strings.reduce(
-    (acc, str, i) => acc + str + (i < values.length ? `$${i + 1}` : ""),
-    "",
-  );
-  // The neon() function accepts (query: string, params: unknown[]) at runtime
-  // even though its TypeScript overload only exposes the tagged-template form.
+  // Call neon() as a proper tagged template — supported in all versions.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (getConn() as any)(text, values).then((rows: any[]) => ({ rows, rowCount: rows.length }));
+  return (getConn()(strings, ...values) as Promise<any>).then(toResult);
 }
 
 sqlTagged.query = async (
   text: string,
   params?: unknown[],
 ): Promise<QueryResult> => {
+  // Use .query() method — v1.x removed the direct-function-call form.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rows = (await (getConn() as any)(text, params ?? [])) as any[];
-  return { rows, rowCount: rows.length };
+  const raw = await (getConn() as any).query(text, params ?? []);
+  return toResult(raw);
 };
 
 export const harbourSql = sqlTagged as SqlClient;

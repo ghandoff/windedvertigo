@@ -70,8 +70,10 @@ export interface HarbourAnalytics {
   funnel: FunnelStep[];
   knots: KnotsEconomy;
   depthChart: DepthChartUsage;
-  /** If true, POSTGRES_URL was absent — all values are zeroed. */
+  /** If true, POSTGRES_URL was absent or the query failed — all values are zeroed. */
   unavailable?: boolean;
+  /** Specific error message shown in the UI banner. */
+  error?: string;
 }
 
 const EMPTY: HarbourAnalytics = {
@@ -106,29 +108,39 @@ const EMPTY: HarbourAnalytics = {
 export async function getHarbourAnalytics(
   app?: string,
 ): Promise<HarbourAnalytics> {
-  if (!isNeonConfigured()) return EMPTY;
+  if (!isNeonConfigured()) {
+    return { ...EMPTY, error: "POSTGRES_URL is not set in the CF Worker environment" };
+  }
 
-  // Build conditional fragment for app filter (used in purchases + packs_catalogue)
+  // ── Schema facts (confirmed 2026-05-30) ──────────────────────────────────
+  // entitlements.pack_cache_id → packs_cache.id (NOT packs_catalogue!)
+  // packs_catalogue.pack_cache_id → packs_cache.id (one catalogue row per cache row)
+  // packs_catalogue has: id, pack_cache_id, price_cents, app, product_type, ...
+  // packs_cache has: id, title, slug, status, ...
+  // To get app + title for an entitlement: join packs_cache then packs_catalogue.
+  // ─────────────────────────────────────────────────────────────────────────
+
   const appParam: unknown[] = app ? [app] : [];
-  const appWhere = app ? "AND p.app = $1" : "";
-  const packAppWhere = app ? "AND pc.app = $1" : "";
+  // pcat = packs_catalogue (has .app); pc = packs_cache (has .title)
+  const appWhere     = app ? "AND p.app = $1"        : "";
+  const packAppWhere = app ? "AND pcat.app = $1"     : "";
 
   try {
     // ── 1. Summary (single round-trip via subqueries) ─────────────────────────
     const summaryResult = await harbourSql.query(
       `SELECT
-        (SELECT COUNT(*)::int FROM users)                                           AS total_users,
+        (SELECT COUNT(*)::int FROM users)                                            AS total_users,
         (SELECT COUNT(*)::int FROM users
          WHERE last_active_at >= DATE_TRUNC('month', CURRENT_DATE)
-            OR created_at      >= DATE_TRUNC('month', CURRENT_DATE))               AS active_this_month,
-        (SELECT COUNT(*)::int   FROM purchases p WHERE p.status = 'completed' ${appWhere})     AS total_purchases,
+            OR created_at      >= DATE_TRUNC('month', CURRENT_DATE))                AS active_this_month,
+        (SELECT COUNT(*)::int   FROM purchases p WHERE p.status = 'completed' ${appWhere})      AS total_purchases,
         (SELECT COALESCE(SUM(p.amount_cents), 0)::bigint
-         FROM purchases p WHERE p.status = 'completed' ${appWhere})                AS total_revenue_cents,
+         FROM purchases p WHERE p.status = 'completed' ${appWhere})                 AS total_revenue_cents,
         (SELECT COUNT(*)::int FROM entitlements e
-         JOIN packs_catalogue pc ON pc.id = e.pack_cache_id
+         JOIN packs_catalogue pcat ON pcat.pack_cache_id = e.pack_cache_id
          WHERE e.revoked_at IS NULL
            AND (e.expires_at IS NULL OR e.expires_at > NOW())
-           ${packAppWhere})                                                         AS active_entitlements`,
+           ${packAppWhere})                                                          AS active_entitlements`,
       appParam,
     );
     const s = summaryResult.rows[0] ?? {};
@@ -148,19 +160,20 @@ export async function getHarbourAnalytics(
       FROM monthly
     `);
 
-    // ── 3. Pack adoption ──────────────────────────────────────────────────────
+    // ── 3. Pack adoption (join: entitlements → packs_cache → packs_catalogue) ─
     const adoptionResult = await harbourSql.query(
       `SELECT
-        pc.app                                                              AS app,
-        pc.title                                                            AS pack_title,
-        COUNT(*)::int                                                       AS entitlement_count,
-        COUNT(e.purchase_id)::int                                          AS purchase_count
+        pcat.app                                                             AS app,
+        pc.title                                                             AS pack_title,
+        COUNT(*)::int                                                        AS entitlement_count,
+        COUNT(e.purchase_id)::int                                            AS purchase_count
       FROM entitlements e
-      JOIN packs_catalogue pc ON pc.id = e.pack_cache_id
+      JOIN packs_cache pc       ON pc.id   = e.pack_cache_id
+      JOIN packs_catalogue pcat ON pcat.pack_cache_id = pc.id
       WHERE e.revoked_at IS NULL
         AND (e.expires_at IS NULL OR e.expires_at > NOW())
         ${packAppWhere}
-      GROUP BY pc.app, pc.title
+      GROUP BY pcat.app, pc.title
       ORDER BY entitlement_count DESC
       LIMIT 20`,
       appParam,
@@ -169,15 +182,15 @@ export async function getHarbourAnalytics(
     // ── 4. Conversion funnel ─────────────────────────────────────────────────
     const funnelResult = await harbourSql.query(
       `SELECT
-        (SELECT COUNT(*)::int FROM users)                                   AS signed_up,
+        (SELECT COUNT(*)::int FROM users)                                    AS signed_up,
         (SELECT COUNT(DISTINCT COALESCE(p.user_id, p.purchaser_id))::int
-         FROM purchases p WHERE p.status = 'completed' ${appWhere})        AS first_purchase,
-        (SELECT COUNT(DISTINCT COALESCE(e.user_id, e.org_id::text)::text)::int
+         FROM purchases p WHERE p.status = 'completed' ${appWhere})         AS first_purchase,
+        (SELECT COUNT(DISTINCT COALESCE(e.user_id::text, e.org_id::text))::int
          FROM entitlements e
-         JOIN packs_catalogue pc ON pc.id = e.pack_cache_id
+         JOIN packs_catalogue pcat ON pcat.pack_cache_id = e.pack_cache_id
          WHERE e.revoked_at IS NULL
            AND (e.expires_at IS NULL OR e.expires_at > NOW())
-           ${packAppWhere})                                                 AS active_entitlement`,
+           ${packAppWhere})                                                  AS active_entitlement`,
       appParam,
     );
     const f = funnelResult.rows[0] ?? {};
@@ -250,7 +263,8 @@ export async function getHarbourAnalytics(
       },
     };
   } catch (err) {
-    console.error("[harbour-analytics] query failed:", err);
-    return EMPTY;
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[harbour-analytics] query failed:", msg);
+    return { ...EMPTY, error: `neon query failed: ${msg}` };
   }
 }
