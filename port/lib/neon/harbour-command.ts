@@ -47,11 +47,17 @@ export interface CommandMetrics {
   northStars: NorthStars;
   ratios: ActivityRatios;
   fleet: AppFleetRow[];
+  /** Active (not revoked, not expired) code count. */
+  activeCampaignCodes: number;
+  /** Redemptions in the past 7 days across all campaigns. */
+  codeRedemptionsThisWeek: number;
   unavailable?: boolean;
   error?: string;
 }
 
 const EMPTY_COMMAND: CommandMetrics = {
+  activeCampaignCodes: 0,
+  codeRedemptionsThisWeek: 0,
   unavailable: true,
   error: undefined,
   northStars: {
@@ -79,7 +85,7 @@ export async function getCommandMetrics(): Promise<CommandMetrics> {
   }
 
   try {
-    const [summaryResult, fleetEntitlements, fleetPurchases] = await Promise.all([
+    const [summaryResult, fleetEntitlements, fleetPurchases, codeResult] = await Promise.all([
       // North Stars + activity ratios (single round-trip)
       harbourSql.query(`
         SELECT
@@ -125,6 +131,15 @@ export async function getCommandMetrics(): Promise<CommandMetrics> {
         WHERE status = 'completed'
         GROUP BY app
         ORDER BY rev_this_month_cents DESC
+      `),
+
+      // Access code summary
+      harbourSql.query(`
+        SELECT
+          (SELECT COUNT(*)::int FROM access_codes
+           WHERE revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())) AS active_codes,
+          (SELECT COUNT(*)::int FROM access_code_redemptions
+           WHERE redeemed_at >= NOW() - INTERVAL '7 days') AS redeemed_this_week
       `),
     ]);
 
@@ -177,6 +192,8 @@ export async function getCommandMetrics(): Promise<CommandMetrics> {
         wamRatio: mam > 0 ? (s.wam ?? 0) / mam : 0,
       },
       fleet,
+      activeCampaignCodes:      codeResult.rows[0]?.active_codes         ?? 0,
+      codeRedemptionsThisWeek:  codeResult.rows[0]?.redeemed_this_week   ?? 0,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

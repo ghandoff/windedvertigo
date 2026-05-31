@@ -69,18 +69,53 @@ export interface PlayerRow {
   lastActive: string | null;
 }
 
+// ── access code analytics ──────────────────────────────────────────────────
+
+export interface CampaignCodeStats {
+  campaign: string;
+  totalCodes: number;
+  activeCodes: number;           // not expired or revoked
+  totalRedemptions: number;
+  redemptionsThisWeek: number;
+  /** 0–1: fraction of redeeming users with last_active_at > redeemed_at */
+  activationRate: number;
+}
+
+export interface CodeRedemptionDay {
+  date: string;      // YYYY-MM-DD
+  campaign: string;
+  count: number;
+}
+
+export interface AccessCodeMetrics {
+  byCampaign: CampaignCodeStats[];
+  dailyRedemptions30d: CodeRedemptionDay[];
+  totalRedemptionsAllTime: number;
+  totalActiveCodes: number;
+}
+
+// ── combined metrics ──────────────────────────────────────────────────────
+
 export interface ObservatoryMetrics {
   userStateBuckets: UserStateBuckets;
   knotsActivity30d: KnotsDay[];
   packFunnel: PackFunnel;
   revenueCohorts: RevenueCohortRow[];
   playerLeaderboard: PlayerRow[];
+  accessCodes: AccessCodeMetrics;
   unavailable?: boolean;
   error?: string;
 }
 
 const EMPTY_BUCKETS: UserStateBuckets = {
   new: 0, current: 0, atRiskWau: 0, atRiskMau: 0, dormant: 0, neverActive: 0, total: 0,
+};
+
+const EMPTY_ACCESS_CODES: AccessCodeMetrics = {
+  byCampaign: [],
+  dailyRedemptions30d: [],
+  totalRedemptionsAllTime: 0,
+  totalActiveCodes: 0,
 };
 
 const EMPTY_OBSERVATORY: ObservatoryMetrics = {
@@ -90,6 +125,7 @@ const EMPTY_OBSERVATORY: ObservatoryMetrics = {
   packFunnel: { totalUsers: 0, withEntitlement: 0, withPaidEntitlement: 0, activePostPurchase: 0 },
   revenueCohorts: [],
   playerLeaderboard: [],
+  accessCodes: EMPTY_ACCESS_CODES,
 };
 
 // ── main query ────────────────────────────────────────────────────────────────
@@ -104,7 +140,8 @@ export async function getObservatoryMetrics(app?: string): Promise<ObservatoryMe
   const packAppWhere         = app ? "AND pcat.app = $1" : "";
 
   try {
-    const [bucketsResult, knotsResult, funnelResult, cohortResult, leaderboardResult] =
+    const [bucketsResult, knotsResult, funnelResult, cohortResult, leaderboardResult,
+           codeStatsResult, codeDailyResult, codeTotalsResult] =
       await Promise.all([
 
         // ── 1. User state buckets ───────────────────────────────────────────
@@ -231,6 +268,52 @@ export async function getObservatoryMetrics(app?: string): Promise<ObservatoryMe
           ORDER BY knots_total DESC
           LIMIT 20
         `),
+
+        // ── 6. Access code campaign stats ───────────────────────────────────
+        harbourSql.query(`
+          SELECT
+            ac.campaign,
+            COUNT(DISTINCT ac.id)::int                                               AS total_codes,
+            COUNT(DISTINCT ac.id) FILTER (
+              WHERE ac.revoked_at IS NULL
+                AND (ac.expires_at IS NULL OR ac.expires_at > NOW())
+            )::int                                                                   AS active_codes,
+            COUNT(DISTINCT acr.id)::int                                              AS total_redemptions,
+            COUNT(DISTINCT acr.id) FILTER (
+              WHERE acr.redeemed_at >= NOW() - INTERVAL '7 days'
+            )::int                                                                   AS redemptions_this_week,
+            COALESCE(
+              COUNT(DISTINCT acr.user_id) FILTER (WHERE u.last_active_at > acr.redeemed_at)
+              ::float / NULLIF(COUNT(DISTINCT acr.user_id), 0),
+              0
+            )                                                                        AS activation_rate
+          FROM access_codes ac
+          LEFT JOIN access_code_redemptions acr ON acr.code_id = ac.id
+          LEFT JOIN users u ON u.id = acr.user_id
+          GROUP BY ac.campaign
+          ORDER BY total_redemptions DESC
+        `),
+
+        // ── 7. Daily redemptions — last 30 days ─────────────────────────────
+        harbourSql.query(`
+          SELECT
+            DATE_TRUNC('day', acr.redeemed_at)::date::text AS day,
+            ac.campaign,
+            COUNT(*)::int AS count
+          FROM access_code_redemptions acr
+          JOIN access_codes ac ON ac.id = acr.code_id
+          WHERE acr.redeemed_at >= NOW() - INTERVAL '30 days'
+          GROUP BY day, ac.campaign
+          ORDER BY day ASC
+        `),
+
+        // ── 8. Overall access code totals ───────────────────────────────────
+        harbourSql.query(`
+          SELECT
+            (SELECT COUNT(*)::int FROM access_code_redemptions)                    AS total_redemptions,
+            (SELECT COUNT(*)::int FROM access_codes
+             WHERE revoked_at IS NULL AND (expires_at IS NULL OR expires_at > NOW())) AS active_codes
+        `),
       ]);
 
     const b = bucketsResult.rows[0] ?? {};
@@ -277,6 +360,23 @@ export async function getObservatoryMetrics(app?: string): Promise<ObservatoryMe
         knotsTotal:  r.knots_total  ?? 0,
         lastActive:  r.last_active  ?? null,
       })),
+      accessCodes: {
+        byCampaign: codeStatsResult.rows.map((r) => ({
+          campaign:              r.campaign,
+          totalCodes:            r.total_codes            ?? 0,
+          activeCodes:           r.active_codes           ?? 0,
+          totalRedemptions:      r.total_redemptions      ?? 0,
+          redemptionsThisWeek:   r.redemptions_this_week  ?? 0,
+          activationRate:        Number(r.activation_rate ?? 0),
+        })),
+        dailyRedemptions30d: codeDailyResult.rows.map((r) => ({
+          date:     r.day,
+          campaign: r.campaign,
+          count:    r.count ?? 0,
+        })),
+        totalRedemptionsAllTime: codeTotalsResult.rows[0]?.total_redemptions ?? 0,
+        totalActiveCodes:        codeTotalsResult.rows[0]?.active_codes ?? 0,
+      },
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

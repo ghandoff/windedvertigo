@@ -111,7 +111,7 @@ export function CommandTab({ metrics }: { metrics: CommandMetrics }) {
         note="past 7 days vs prior 7 days"
         hint="Harbour tracks two health signals side-by-side: revenue (are people buying packs?) and player activity (are people actually playing games?). Both matter — a platform can have revenue but no engagement, or engagement but no monetisation."
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             label="revenue"
             hint="Total from completed pack purchases in the past 7 days. This is the 'Transaction' health signal — are users finding enough value to pay for premium content?"
@@ -126,6 +126,13 @@ export function CommandTab({ metrics }: { metrics: CommandMetrics }) {
             value={ns.weeklyActiveUsers.toLocaleString()}
             delta={ns.weeklyActiveUsersDelta}
             description="active in any harbour game"
+          />
+          <MetricCard
+            label="codes redeemed"
+            hint="Number of access code redemptions in the past 7 days across all campaigns. A spike here often follows a workshop or event where codes were distributed."
+            value={metrics.codeRedemptionsThisWeek.toLocaleString()}
+            delta={0}
+            description={`${metrics.activeCampaignCodes} active campaign code${metrics.activeCampaignCodes !== 1 ? "s" : ""}`}
           />
         </div>
       </Section>
