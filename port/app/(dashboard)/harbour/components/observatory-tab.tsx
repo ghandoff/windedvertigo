@@ -13,6 +13,7 @@ import { FunnelChart }      from "./funnel-chart";
 import { RevenueCohort }    from "./revenue-cohort";
 import { PlayerLeaderboard } from "./player-leaderboard";
 import { HintIcon }         from "./hint-icon";
+import { CampaignCodes }    from "./campaign-codes";
 import type { HarbourAnalytics } from "@/lib/neon/harbour-analytics";
 import type { ObservatoryMetrics } from "@/lib/neon/harbour-observatory";
 
@@ -50,7 +51,7 @@ export function ObservatoryTab({ analytics, observatory, app }: Props) {
   const { userGrowth, depthChart, knots } = analytics;
   const {
     userStateBuckets, knotsActivity30d, packFunnel,
-    revenueCohorts, playerLeaderboard,
+    revenueCohorts, playerLeaderboard, accessCodes,
   } = observatory;
 
   // Pack funnel steps in plain English
@@ -181,7 +182,15 @@ export function ObservatoryTab({ analytics, observatory, app }: Props) {
         </Section>
       )}
 
-      {/* ── 8. Phase 2 ─────────────────────────────────────────── */}
+      {/* ── 8. Access code campaigns ────────────────────────────── */}
+      <Section
+        title="who's using your access codes?"
+        hint="Tracks redemption of campaign codes (like PRME2026). Shows per-campaign counts, daily redemption activity, and whether users who redeemed a code actually came back — the activation rate."
+      >
+        <CampaignCodes metrics={accessCodes} />
+      </Section>
+
+      {/* ── 9. Phase 2 ─────────────────────────────────────────── */}
       <Section
         title="per-game retention analytics"
         note="coming in phase 2"
