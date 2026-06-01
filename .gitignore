@@ -18,6 +18,7 @@ node_modules/
 # Specific .brain/ files (TASKS.md, memory/handoff/*) are force-tracked via `git add -f`
 # as collision-surface infrastructure — see .brain/memory/handoff/README.md.
 CLAUDE.md
+!docs/cmo/CLAUDE.md
 .brain/
 
 # Nested git repos — Phase A.2 dissolved port/ nested-clone 2026-05-01
