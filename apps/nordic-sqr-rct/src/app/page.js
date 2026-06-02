@@ -72,9 +72,10 @@ function LandingContent() {
   const [magicSubmitting, setMagicSubmitting] = useState(false);
   const [magicError, setMagicError] = useState('');
 
-  // Login mode — nordic tab defaults to password; reviewer tab defaults to magic link (Wave 7.3.1)
+  // Login mode — defaults to magic link for all audiences post-CF migration.
+  // Password auth remains accessible via the "use a password instead" toggle.
   // 'magic' | 'password'
-  const [loginMode, setLoginMode] = useState('password');
+  const [loginMode, setLoginMode] = useState('magic');
 
   // Audience tab — defaults to 'nordic' since the primary users of this
   // platform are Nordic team members. External reviewers are a secondary
@@ -93,8 +94,8 @@ function LandingContent() {
   // Reset mode and state when audience tab changes.
   const handleAudienceChange = (key) => {
     setAudience(key);
-    // Nordic team always uses password; reviewer tab defaults to magic link.
-    setLoginMode(key === 'nordic' ? 'password' : 'magic');
+    // Both audiences use magic link by default post-CF migration.
+    setLoginMode('magic');
     setError('');
     setMagicError('');
     setMagicSent(false);
