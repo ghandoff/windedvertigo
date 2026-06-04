@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" width="420" height="120">
+  <!-- Aarhus University wordmark — simplified official-style mark -->
+  <!-- AU seal mark (left) -->
+  <g transform="translate(0,10)">
+    <!-- Outer ring -->
+    <circle cx="50" cy="50" r="48" fill="none" stroke="#1a1a1a" stroke-width="3.5"/>
+    <!-- Inner ring -->
+    <circle cx="50" cy="50" r="38" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+    <!-- AU letters -->
+    <text x="50" y="58" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" text-anchor="middle" fill="#1a1a1a" letter-spacing="2">AU</text>
+    <!-- Star/ornament top -->
+    <text x="50" y="22" font-family="Georgia, serif" font-size="9" text-anchor="middle" fill="#1a1a1a">✦</text>
+    <!-- Star/ornament bottom -->
+    <text x="50" y="94" font-family="Georgia, serif" font-size="9" text-anchor="middle" fill="#1a1a1a">✦</text>
+  </g>
+  <!-- University name text (right) -->
+  <g transform="translate(112, 10)">
+    <text x="0" y="38" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-weight="700" fill="#1a1a1a" letter-spacing="-0.5">Aarhus</text>
+    <text x="0" y="72" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-weight="700" fill="#1a1a1a" letter-spacing="-0.5">University</text>
+    <!-- Thin rule beneath -->
+    <line x1="0" y1="80" x2="294" y2="80" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="0" y="97" font-family="Georgia, 'Times New Roman', serif" font-size="13" fill="#1a1a1a" letter-spacing="1.5" font-style="italic">Aarhus, Denmark · Est. 1928</text>
+  </g>
+</svg>
