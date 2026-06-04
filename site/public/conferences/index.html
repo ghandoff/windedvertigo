@@ -356,16 +356,42 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
 @media(max-width:1024px){
   .hero{grid-template-columns:1fr;gap:48px;}
   .hero-visual{height:380px;}
-  .stat-grid,.principles,.who-grid,.tier-grid,.half-life-grid,.team-grid{grid-template-columns:1fr 1fr;}
+  .principles,.who-grid,.tier-grid,.half-life-grid,.team-grid{grid-template-columns:1fr 1fr;}
   .rambøll-stats{grid-template-columns:1fr 1fr;gap:24px;}
   .proof-card{grid-template-columns:1fr;}
+}
+/* stats — offset stack on small screens (desktop 3-across untouched) */
+@media(max-width:900px){
+  .stat-shapes{grid-template-columns:1fr;gap:30px;align-items:start;}
+  .stat-shape{width:min(400px,90%);}
+  .stat-shape.shape-square{justify-self:start;transform:rotate(-2deg);aspect-ratio:auto;padding:40px 28px;}
+  .stat-shape.shape-circle-jade{justify-self:end;transform:rotate(2deg);padding:48px 36px;}
+  .stat-shape.shape-square-cadet{justify-self:start;transform:rotate(2deg);aspect-ratio:auto;padding:40px 28px;}
+  .stat-shape-num{font-size:clamp(48px,13vw,72px);letter-spacing:-2.5px;}
+  .stat-shape-action{font-size:16px;}
+  .stat-shape-label{font-size:12px;}
 }
 @media(max-width:680px){
   .section,.section-narrow,.evidence,.anti-content,.who,.what-we-do,.half-life,.ai-moment,.proof,.team-section,.final-cta{padding:80px 24px;}
   nav{padding:20px 24px;}
   .nav-links{display:none;}
-  .stat-grid,.principles,.who-grid,.tier-grid,.half-life-grid,.team-grid,.team-cards,.proof-photos,.footer-inner{grid-template-columns:1fr;}
+  .principles,.who-grid,.tier-grid,.half-life-grid,.team-grid,.team-cards,.proof-photos,.footer-inner{grid-template-columns:1fr;}
   .rambøll-stats{grid-template-columns:1fr 1fr;}
+  /* hero lockup — simplified side-by-side row, floating shapes pushed to the edges */
+  .hero-visual{height:230px;}
+  .hero-lockup{position:static;display:flex;align-items:center;justify-content:center;gap:20px;height:100%;}
+  .hero-lockup-wv,.hero-lockup-pp{position:static;width:104px;height:104px;}
+  .hero-lockup-x{position:static;transform:none;width:38px;height:38px;font-size:17px;flex-shrink:0;}
+  .fs-1{width:40px;height:40px;top:0;left:2%;}
+  .fs-2{top:6%;right:6%;}
+  .fs-3{width:34px;height:34px;top:auto;bottom:4%;right:3%;}
+  .fs-4{width:34px;height:34px;bottom:0;right:auto;left:6%;}
+  /* collaborators — static wrapped logo grid instead of marquee (iOS-safe) */
+  .wordmarks-track{animation:none;width:auto;flex-wrap:wrap;justify-content:center;gap:28px 40px;padding:0 28px;}
+  .wordmark[aria-hidden="true"]{display:none;}
+  .wordmark{height:38px;}
+  .wordmark img{max-width:150px;}
+  .wordmarks-rail::before,.wordmarks-rail::after{display:none;}
 }
 </style>
 </head>
@@ -854,6 +880,56 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
       });
     }, { threshold: 0.25, rootMargin: '0px 0px -30px 0px' });
     popTargets.forEach(function(el){ popObserver.observe(el); });
+  })();
+</script>
+<script>
+  // confetti burst on first open — brand shapes + colours; once per visit; respects reduced motion
+  (function(){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    try { if (sessionStorage.getItem('wvppConfetti')) return; sessionStorage.setItem('wvppConfetti','1'); } catch(e){}
+    var colors = ['#ea5621','#f4a289','#d6c02d','#43b187','#d5d2ff','#5872cb'];
+    var c = document.createElement('canvas');
+    c.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9999;';
+    document.body.appendChild(c);
+    var ctx = c.getContext('2d'), W, H, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    function size(){ W = window.innerWidth; H = window.innerHeight; c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    size();
+    var P = [], N = Math.min(110, Math.max(60, Math.floor(W / 8)));
+    for (var i = 0; i < N; i++){
+      var a = (-Math.PI / 2) + (Math.random() - 0.5) * Math.PI * 1.1, s = 7 + Math.random() * 13;
+      P.push({ x: W / 2, y: H * 0.38, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 3, sz: 6 + Math.random() * 9,
+        r: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.3,
+        col: colors[i % colors.length], circle: Math.random() < 0.45, life: 1 });
+    }
+    var t0 = null;
+    function tick(t){
+      if (!t0) t0 = t;
+      var done = true;
+      ctx.clearRect(0, 0, W, H);
+      for (var i = 0; i < P.length; i++){
+        var p = P[i];
+        p.vy += 0.14; p.vx *= 0.975; p.vy *= 0.975; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        p.life -= 0.005;
+        if (p.life <= 0 || p.y > H + 30) continue;
+        done = false;
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 1.4));
+        ctx.fillStyle = p.col;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        if (p.circle){ ctx.beginPath(); ctx.arc(0, 0, p.sz / 2, 0, Math.PI * 2); ctx.fill(); }
+        else { var z = p.sz, rad = z * 0.3;
+          ctx.beginPath();
+          ctx.moveTo(-z/2 + rad, -z/2);
+          ctx.arcTo(z/2, -z/2, z/2, z/2, rad); ctx.arcTo(z/2, z/2, -z/2, z/2, rad);
+          ctx.arcTo(-z/2, z/2, -z/2, -z/2, rad); ctx.arcTo(-z/2, -z/2, z/2, -z/2, rad);
+          ctx.closePath(); ctx.fill(); }
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+      if (!done && t - t0 < 6500) requestAnimationFrame(tick);
+      else c.remove();
+    }
+    window.addEventListener('resize', size);
+    requestAnimationFrame(tick);
   })();
 </script>
 </body>
