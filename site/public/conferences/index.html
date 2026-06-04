@@ -356,16 +356,42 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
 @media(max-width:1024px){
   .hero{grid-template-columns:1fr;gap:48px;}
   .hero-visual{height:380px;}
-  .stat-grid,.principles,.who-grid,.tier-grid,.half-life-grid,.team-grid{grid-template-columns:1fr 1fr;}
+  .principles,.who-grid,.tier-grid,.half-life-grid,.team-grid{grid-template-columns:1fr 1fr;}
   .rambøll-stats{grid-template-columns:1fr 1fr;gap:24px;}
   .proof-card{grid-template-columns:1fr;}
+}
+/* stats — offset stack on small screens (desktop 3-across untouched) */
+@media(max-width:900px){
+  .stat-shapes{grid-template-columns:1fr;gap:30px;align-items:start;}
+  .stat-shape{width:min(400px,90%);}
+  .stat-shape.shape-square{justify-self:start;transform:rotate(-2deg);aspect-ratio:auto;padding:40px 28px;}
+  .stat-shape.shape-circle-jade{justify-self:end;transform:rotate(2deg);padding:48px 36px;}
+  .stat-shape.shape-square-cadet{justify-self:start;transform:rotate(2deg);aspect-ratio:auto;padding:40px 28px;}
+  .stat-shape-num{font-size:clamp(48px,13vw,72px);letter-spacing:-2.5px;}
+  .stat-shape-action{font-size:16px;}
+  .stat-shape-label{font-size:12px;}
 }
 @media(max-width:680px){
   .section,.section-narrow,.evidence,.anti-content,.who,.what-we-do,.half-life,.ai-moment,.proof,.team-section,.final-cta{padding:80px 24px;}
   nav{padding:20px 24px;}
   .nav-links{display:none;}
-  .stat-grid,.principles,.who-grid,.tier-grid,.half-life-grid,.team-grid,.team-cards,.proof-photos,.footer-inner{grid-template-columns:1fr;}
+  .principles,.who-grid,.tier-grid,.half-life-grid,.team-grid,.team-cards,.proof-photos,.footer-inner{grid-template-columns:1fr;}
   .rambøll-stats{grid-template-columns:1fr 1fr;}
+  /* hero lockup — simplified side-by-side row, floating shapes pushed to the edges */
+  .hero-visual{height:230px;}
+  .hero-lockup{position:static;display:flex;align-items:center;justify-content:center;gap:20px;height:100%;}
+  .hero-lockup-wv,.hero-lockup-pp{position:static;width:104px;height:104px;}
+  .hero-lockup-x{position:static;transform:none;width:38px;height:38px;font-size:17px;flex-shrink:0;}
+  .fs-1{width:40px;height:40px;top:0;left:2%;}
+  .fs-2{top:6%;right:6%;}
+  .fs-3{width:34px;height:34px;top:auto;bottom:4%;right:3%;}
+  .fs-4{width:34px;height:34px;bottom:0;right:auto;left:6%;}
+  /* collaborators — static wrapped logo grid instead of marquee (iOS-safe) */
+  .wordmarks-track{animation:none;width:auto;flex-wrap:wrap;justify-content:center;gap:28px 40px;padding:0 28px;}
+  .wordmark[aria-hidden="true"]{display:none;}
+  .wordmark{height:38px;}
+  .wordmark img{max-width:150px;}
+  .wordmarks-rail::before,.wordmarks-rail::after{display:none;}
 }
 </style>
 </head>
@@ -616,9 +642,8 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
   <div class="orgs-label">collaborators</div>
   <div class="wordmarks-rail">
     <div class="wordmarks-track">
-      <!-- Pass 1 — all 13 logos -->
+      <!-- Pass 1 — all 12 logos from payton's curated set -->
       <div class="wordmark" title="Academy of Management"><img src="images/wordmarks/aom.png" alt="Academy of Management"></div>
-      <div class="wordmark" title="Aarhus University"><img src="images/wordmarks/aarhus-university.svg" alt="Aarhus University"></div>
       <div class="wordmark" title="Care for Education"><img src="images/wordmarks/care-for-education.png" alt="Care for Education"></div>
       <div class="wordmark" title="University of Copenhagen"><img src="images/wordmarks/copenhagen-university.png" alt="University of Copenhagen"></div>
       <div class="wordmark" title="Hummel"><img src="images/wordmarks/hummel.svg" alt="Hummel"></div>
@@ -632,7 +657,6 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
       <div class="wordmark" title="World Summit Awards"><img src="images/wordmarks/world-summit-awards.png" alt="World Summit Awards"></div>
       <!-- Pass 2 — invisible duplicate set for seamless loop -->
       <div class="wordmark" aria-hidden="true"><img src="images/wordmarks/aom.png" alt=""></div>
-      <div class="wordmark" aria-hidden="true"><img src="images/wordmarks/aarhus-university.svg" alt=""></div>
       <div class="wordmark" aria-hidden="true"><img src="images/wordmarks/care-for-education.png" alt=""></div>
       <div class="wordmark" aria-hidden="true"><img src="images/wordmarks/copenhagen-university.png" alt=""></div>
       <div class="wordmark" aria-hidden="true"><img src="images/wordmarks/hummel.svg" alt=""></div>
@@ -818,43 +842,4 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     if (!('IntersectionObserver' in window)) return;
     const popTargets = document.querySelectorAll('.stat-shape, .stamp');
-    if (popTargets.length === 0) return;
-    document.documentElement.classList.add('js-animations');
-    const allStats = Array.from(document.querySelectorAll('.stat-shape'));
-    function animateCount(el){
-      const finalText = el.textContent.trim();
-      const nums = finalText.match(/\d+/g);
-      if (!nums) return;
-      const suffix = finalText.includes('%') ? '%' : (finalText.includes('×') ? '×' : '');
-      const target = parseInt(nums[nums.length - 1], 10);
-      const duration = 1100;
-      const start = performance.now();
-      function tick(now){
-        const t = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);
-        el.textContent = Math.round(eased * target) + suffix;
-        if (t < 1) requestAnimationFrame(tick);
-        else el.textContent = finalText;
-      }
-      requestAnimationFrame(tick);
-    }
-    const popObserver = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        if (entry.isIntersecting){
-          entry.target.classList.add('popped');
-          const num = entry.target.querySelector('.stat-shape-num');
-          if (num && !num.dataset.counted){
-            num.dataset.counted = '1';
-            const statIdx = allStats.indexOf(entry.target);
-            const delay = 300 + (statIdx * 130);
-            setTimeout(function(){ animateCount(num); }, delay);
-          }
-          popObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.25, rootMargin: '0px 0px -30px 0px' });
-    popTargets.forEach(function(el){ popObserver.observe(el); });
-  })();
-</script>
-</body>
-</html>
+    if (popT
