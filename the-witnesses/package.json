@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --port 3020",
     "build": "next build",
+    "build:cf": "next build && npx @opennextjs/cloudflare build --skipNextBuild",
     "start": "next start",
     "lint": "eslint"
   },
@@ -17,6 +18,7 @@
     "replicate": "^1.0.1"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.1",
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22",
     "@types/react": "^19",
