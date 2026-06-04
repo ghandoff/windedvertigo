@@ -2,12 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import Replicate from 'replicate';
 import { LOCKED_STYLE, SEED_SUBJECT, NEGATIVE_PROMPT } from '@/lib/image-gen';
 
-const replicate = new Replicate({
+const isDemoMode = !process.env.REPLICATE_API_TOKEN;
+
+const replicate = isDemoMode ? null : new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
 });
 
 export async function POST(request: NextRequest) {
   try {
+    // Demo mode: return null so the canvas fallback renders
+    if (isDemoMode || !replicate) {
+      return NextResponse.json({ imageUrl: null });
+    }
+
     const { seedPhrase, imageSeed } = await request.json();
 
     const prompt = `${LOCKED_STYLE}\n\n${SEED_SUBJECT}\n\nContext note: the maker describes their creation as: "${seedPhrase}"`;
@@ -23,7 +30,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // output is an array of URLs or a URL
     const imageUrl = Array.isArray(output) ? output[0] : output;
 
     if (!imageUrl) {

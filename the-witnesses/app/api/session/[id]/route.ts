@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase';
 import type { Visit } from '@/lib/session';
+import { isDemoMode, demoPatch } from '@/lib/demo-store';
 
 export async function PATCH(
   request: NextRequest,
@@ -9,6 +10,15 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
+
+    if (isDemoMode) {
+      if ('seedPhrase' in body) demoPatch(id, { seed_phrase: body.seedPhrase });
+      if ('seedImageUrl' in body) demoPatch(id, { seed_image_url: body.seedImageUrl });
+      if ('seedName' in body) demoPatch(id, { seed_name: body.seedName });
+      if ('visit' in body) demoPatch(id, { visit: body.visit });
+      return NextResponse.json({ ok: true });
+    }
+
     const supabase = createServerClient();
 
     if ('seedPhrase' in body) {

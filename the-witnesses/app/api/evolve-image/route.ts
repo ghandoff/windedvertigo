@@ -3,7 +3,9 @@ import Replicate from 'replicate';
 import { getEvolutionPrompt, NEGATIVE_PROMPT } from '@/lib/image-gen';
 import type { CharacterKey } from '@/lib/session';
 
-const replicate = new Replicate({
+const isDemoMode = !process.env.REPLICATE_API_TOKEN;
+
+const replicate = isDemoMode ? null : new Replicate({
   auth: process.env.REPLICATE_API_TOKEN!,
 });
 
@@ -20,6 +22,11 @@ export async function POST(request: NextRequest) {
     const { character, objectChoice, erasedElement, imageSeed } = body;
     prevImageUrl = body.prevImageUrl;
 
+    // Demo mode: return prevImageUrl unchanged (canvas fallback handles display)
+    if (isDemoMode || !replicate) {
+      return NextResponse.json({ imageUrl: prevImageUrl || null });
+    }
+
     // Builder returns prevImageUrl immediately (no API call)
     if (character === 'builder') {
       return NextResponse.json({ imageUrl: prevImageUrl });
@@ -30,7 +37,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ imageUrl: prevImageUrl });
     }
 
-    // Use flux-dev img2img
     const output = await replicate.run('black-forest-labs/flux-dev', {
       input: {
         prompt,

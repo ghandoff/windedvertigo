@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase';
 import { generateVisitOrder } from '@/lib/visitOrder';
+import { isDemoMode, demoCreate } from '@/lib/demo-store';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const recipientName: string | undefined = body.recipientName;
+
+    if (isDemoMode) {
+      const result = demoCreate(recipientName);
+      return NextResponse.json(result);
+    }
 
     const imageSeed = Math.floor(Math.random() * 2147483647);
     const visitOrder = generateVisitOrder();
