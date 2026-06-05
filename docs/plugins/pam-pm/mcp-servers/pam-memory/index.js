@@ -84,6 +84,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           who: { type: "string", description: "Person making the commitment (e.g. 'garrett')" },
           what: { type: "string", description: "What they committed to" },
+          start_date: { type: "string", description: "Start date in YYYY-MM-DD format (optional — enables a Gantt bar span on the timeline)" },
           due_date: { type: "string", description: "Due date in YYYY-MM-DD format (optional)" },
           source: { type: "string", description: "Where it was committed (e.g. 'whirlpool', 'cowork', 'slack')" },
           depends_on: {
@@ -109,6 +110,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           },
           blocker: { type: "string", description: "Description of what's blocking it (if status is 'blocked')" },
           completed_at: { type: "string", description: "Completion timestamp in ISO format (if marking done)" },
+          start_date: { type: "string", description: "Start date in YYYY-MM-DD format (optional)" },
+          due_date: { type: "string", description: "Due date in YYYY-MM-DD format (optional)" },
         },
         required: ["id"],
       },
@@ -157,6 +160,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         body: JSON.stringify({
           who: args.who,
           what: args.what,
+          start_date: args.start_date || undefined,
           due_date: args.due_date || undefined,
           source: args.source || undefined,
           depends_on: args.depends_on || undefined,
@@ -171,6 +175,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (args.status) update.status = args.status;
       if (args.blocker) update.blocker = args.blocker;
       if (args.completed_at) update.completed_at = args.completed_at;
+      if (args.start_date) update.start_date = args.start_date;
+      if (args.due_date) update.due_date = args.due_date;
 
       const data = await apiFetch(`/api/pam/commitments?id=${encodeURIComponent(args.id)}`, {
         method: "PATCH",

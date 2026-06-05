@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     const result = await insertPamCommitment({
       who: body.who,
       what: body.what,
+      start_date: body.start_date ?? undefined,
       due_date: body.due_date ?? undefined,
       source: body.source ?? undefined,
       depends_on: body.depends_on ?? undefined,
@@ -59,7 +60,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return error("request body is required");
 
-  const allowed = ["status", "blocker", "completed_at", "what", "due_date"];
+  const allowed = ["status", "blocker", "completed_at", "what", "start_date", "due_date"];
   const update: Record<string, string> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) update[key] = body[key];

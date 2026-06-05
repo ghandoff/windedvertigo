@@ -4,12 +4,14 @@ import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
 import { getPamCommitments, getPamMemory, getPamDecisions } from "@/lib/supabase/pam";
 import { CommitmentsBoard } from "./components/commitments-board";
+import { CommitmentsTimeline } from "./components/commitments-timeline";
 import { AddCommitmentDialog } from "./components/add-commitment-dialog";
 
 export const dynamic = "force-dynamic";
 
 const TABS: readonly TabDef[] = [
   { key: "commitments", label: "commitments" },
+  { key: "timeline", label: "timeline" },
   { key: "memory", label: "memory" },
   { key: "log", label: "log" },
 ];
@@ -70,6 +72,7 @@ export default async function PamPage({
           <CommitmentsBoard commitments={commitments} />
         </div>
       )}
+      {activeTab === "timeline" && <CommitmentsTimeline commitments={commitments} />}
       {activeTab === "memory" && <AgentMemoryPanel entries={memory} />}
       {activeTab === "log" && <AgentLogTab decisions={decisions} agentName="PaM" />}
     </div>

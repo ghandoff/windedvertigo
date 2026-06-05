@@ -30,6 +30,7 @@ export function AddCommitmentDialog() {
   const [open, setOpen] = useState(false);
   const [who, setWho] = useState("garrett");
   const [what, setWhat] = useState("");
+  const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [source, setSource] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export function AddCommitmentDialog() {
       const res = await addCommitmentAction({
         who,
         what: what.trim(),
+        start_date: startDate || undefined,
         due_date: dueDate || undefined,
         source: source.trim() || undefined,
       });
@@ -53,6 +55,7 @@ export function AddCommitmentDialog() {
         return;
       }
       setWhat("");
+      setStartDate("");
       setDueDate("");
       setSource("");
       setOpen(false);
@@ -95,14 +98,25 @@ export function AddCommitmentDialog() {
               placeholder="e.g. draft the WTG proposal"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="due">due date (optional)</Label>
-            <Input
-              id="due"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="start">start date (optional)</Label>
+              <Input
+                id="start"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="due">due date (optional)</Label>
+              <Input
+                id="due"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="source">source (optional)</Label>

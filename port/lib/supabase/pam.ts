@@ -24,6 +24,7 @@ export interface PamCommitment {
   created_at: string;
   who: string;
   what: string;
+  start_date: string | null;
   due_date: string | null;
   source: string | null;
   depends_on: string[] | null;
@@ -130,6 +131,7 @@ export async function getPamCommitments(opts: {
 export async function insertPamCommitment(data: {
   who: string;
   what: string;
+  start_date?: string;
   due_date?: string;
   source?: string;
   depends_on?: string[];
@@ -139,6 +141,7 @@ export async function insertPamCommitment(data: {
     .insert({
       who: data.who,
       what: data.what,
+      start_date: data.start_date ?? null,
       due_date: data.due_date ?? null,
       source: data.source ?? null,
       depends_on: data.depends_on ?? null,
@@ -159,6 +162,7 @@ export async function updatePamCommitment(
     blocker?: string;
     completed_at?: string;
     what?: string;
+    start_date?: string;
     due_date?: string;
   },
 ): Promise<PamCommitment> {
