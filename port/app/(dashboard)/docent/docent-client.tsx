@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { STEPS } from './steps';
 import type { Platform, StepContent } from './types';
+import { DocentStepper } from './components/docent-stepper';
 import { PageHeader } from '@/app/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -143,6 +144,12 @@ export default function DocentClient() {
   const goNext = useCallback(() => setCurrentIndex((i) => Math.min(i + 1, STEPS.length - 1)), []);
   const goPrev = useCallback(() => setCurrentIndex((i) => Math.max(i - 1, 0)), []);
 
+  // jump straight to any step (the grouped stepper) — free navigation for skip/revisit
+  const goToStep = useCallback((stepId: string) => {
+    const idx = STEPS.findIndex((s) => s.id === stepId);
+    if (idx >= 0) setCurrentIndex(idx);
+  }, []);
+
   const resetAll = useCallback(() => {
     if (!window.confirm('reset all progress and start over? this clears your platform choice and completed steps for this browser.')) return;
     setPlatform(null);
@@ -170,24 +177,22 @@ export default function DocentClient() {
         </Button>
       </PageHeader>
 
-      {/* progress bar (only on content steps) */}
-      {!currentStep.meta && (
-        <div className="mb-6">
-          <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-widest text-muted-foreground">
+      {/* grouped, clickable stepper — jump to or revisit any section */}
+      <div className="mb-6">
+        <DocentStepper
+          currentId={currentStep.id}
+          completedIds={completedIds}
+          onJump={goToStep}
+        />
+        {!currentStep.meta && (
+          <div className="flex items-center justify-between text-[11px] uppercase tracking-widest text-muted-foreground">
             <span>
               step {contentStepPosition} of {contentStepCount}
             </span>
             {platform && <span>{platform === 'mac' ? 'mac' : 'windows'}</span>}
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full bg-accent transition-all duration-500 motion-reduce:transition-none"
-              style={{ width: `${(contentStepPosition / contentStepCount) * 100}%` }}
-              aria-hidden="true"
-            />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* step content card */}
       <Card className="mb-6">

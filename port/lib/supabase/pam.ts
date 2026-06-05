@@ -164,6 +164,7 @@ export async function updatePamCommitment(
     what?: string;
     start_date?: string;
     due_date?: string;
+    depends_on?: string[];
   },
 ): Promise<PamCommitment> {
   const { data: row, error } = await supabase

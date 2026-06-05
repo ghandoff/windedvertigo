@@ -50,4 +50,13 @@ export type Step = {
   platforms?: Partial<Record<Platform, StepContent>>;
   /** If true, the step is skipped in the navigation count (used for welcome/platform-pick/celebration) */
   meta?: boolean;
+  /** Which section (phase) this step belongs to — drives the grouped clickable stepper. Meta steps omit it. */
+  section?: string;
 };
+
+/** Ordered sections for the docent stepper. Content steps map to these via Step.section. */
+export const DOCENT_SECTIONS: { key: string; label: string }[] = [
+  { key: 'set-up', label: 'set up' },
+  { key: 'connect', label: 'connect' },
+  { key: 'how-we-work', label: 'how we work' },
+];

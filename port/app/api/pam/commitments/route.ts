@@ -60,15 +60,15 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return error("request body is required");
 
-  const allowed = ["status", "blocker", "completed_at", "what", "start_date", "due_date"];
-  const update: Record<string, string> = {};
+  const allowed = ["status", "blocker", "completed_at", "what", "start_date", "due_date", "depends_on"];
+  const update: Record<string, unknown> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) update[key] = body[key];
   }
   if (Object.keys(update).length === 0) return error("no valid fields to update");
 
   try {
-    const result = await updatePamCommitment(id, update);
+    const result = await updatePamCommitment(id, update as Parameters<typeof updatePamCommitment>[1]);
     return json(result);
   } catch (err) {
     console.error("[api/pam/commitments] PATCH failed:", err);

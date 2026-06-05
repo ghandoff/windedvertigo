@@ -69,6 +69,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'accounts',
+    section: 'set-up',
     title: 'file your papers with each part of the harbour.',
     subtitle: 'a few sign-ups. the only part of the voyage your pilot can\'t handle for you.',
     shared: {
@@ -129,6 +130,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'open-claude',
+    section: 'set-up',
     title: 'your pilot comes aboard.',
     subtitle: 'open claude. from now on, the pilot steers — you just describe where you want to go.',
     shared: {
@@ -181,6 +183,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'install-clis',
+    section: 'set-up',
     title: 'hand the pilot their instruments.',
     subtitle: "three tools the pilot uses to steer through specific parts of the harbour. engineers only.",
     shared: {
@@ -220,6 +223,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'signin',
+    section: 'set-up',
     title: 'clear the port authority.',
     subtitle: 'the pilot\'s credentials get checked once per service, then carried forward.',
     shared: {
@@ -253,6 +257,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'mcp',
+    section: 'set-up',
     title: 'issue the pilot\'s access passes.',
     subtitle: "MCP plugins let claude read and act in github, notion, slack — no local clone needed.",
     shared: {
@@ -305,6 +310,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'clone-link',
+    section: 'connect',
     title: 'tow a vessel from the shipyard.',
     subtitle: "engineers: clone a repo locally. cloud-first: read the note and skip ahead.",
     shared: {
@@ -355,6 +361,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'verify',
+    section: 'connect',
     title: 'a tour of the harbour.',
     subtitle: 'your pilot visits each building. if they can reach them, every pass works.',
     shared: {
@@ -397,6 +404,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'daily-workflow',
+    section: 'how-we-work',
     title: 'find your sea legs.',
     subtitle: "the daily loop, the words that trigger it, and what to do when the PR pings your phone.",
     shared: {
@@ -507,6 +515,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'agents',
+    section: 'how-we-work',
     title: 'meet your agents.',
     subtitle: 'winded.vertigo has three AI teammates with long memories: Mo, PaM, and cARL.',
     shared: {

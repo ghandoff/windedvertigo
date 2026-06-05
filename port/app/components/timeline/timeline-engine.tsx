@@ -41,15 +41,18 @@ function InteractiveBar({
   scale,
   onClick,
   onHover,
+  linkable,
 }: {
   bar: TimelineBar;
   scale: TimelineScale;
   onClick?: (id: string) => void;
   onHover: (id: string | null) => void;
+  linkable: boolean;
 }) {
   const move = useDraggable({ id: `move:${bar.id}` });
   const startH = useDraggable({ id: `start:${bar.id}` });
   const endH = useDraggable({ id: `end:${bar.id}` });
+  const linkH = useDraggable({ id: `link:${bar.id}` });
 
   const x = xForDate(scale, bar.start!);
   const w = Math.max(scale.dayWidthPx, xForDate(scale, bar.end!) - x);
@@ -67,7 +70,7 @@ function InteractiveBar({
 
   return (
     <div
-      className="absolute"
+      className="group absolute"
       style={{ left, top: (ROW_H - BAR_H) / 2, width, height: BAR_H }}
       onMouseEnter={() => onHover(bar.id)}
       onMouseLeave={() => onHover(null)}
@@ -99,6 +102,18 @@ function InteractiveBar({
         {...endH.attributes}
         className="absolute right-0 top-0 h-full w-2 rounded-r-full cursor-ew-resize opacity-0 hover:opacity-100 bg-foreground/20"
       />
+
+      {/* link nub — drag onto another bar to create a dependency */}
+      {linkable && (
+        <span
+          ref={linkH.setNodeRef}
+          {...linkH.listeners}
+          {...linkH.attributes}
+          className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-[#5872cb] ring-2 ring-card opacity-0 group-hover:opacity-100 cursor-crosshair z-20"
+          style={{ right: -10 }}
+          title="drag onto another bar to link it as a dependent"
+        />
+      )}
 
       {/* live date tooltip while dragging */}
       {dragging && (
@@ -149,6 +164,10 @@ export interface TimelineEngineProps {
   onReschedule?: (id: string, start: string, end: string) => void;
   onResize?: (id: string, start: string, end: string) => void;
   onBarClick?: (id: string) => void;
+  /** create a finish-to-start link: successor depends on predecessor */
+  onLinkCreate?: (predecessorId: string, successorId: string) => void;
+  /** remove a link */
+  onLinkDelete?: (predecessorId: string, successorId: string) => void;
 }
 
 export function TimelineEngine({
@@ -160,10 +179,13 @@ export function TimelineEngine({
   onReschedule,
   onResize,
   onBarClick,
+  onLinkCreate,
+  onLinkDelete,
 }: TimelineEngineProps) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [depsOn, setDepsOn] = useState(showDependencies);
+  const [linkDrag, setLinkDrag] = useState<{ sourceId: string; dx: number; dy: number } | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -228,10 +250,42 @@ export function TimelineEngine({
     });
   }, []);
 
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const raw = String(event.active.id);
+    const [kind, id] = raw.split(":");
+    if (kind === "link") setLinkDrag({ sourceId: id, dx: 0, dy: 0 });
+    else setHoveredId(id);
+  }, []);
+
+  const handleDragMove = useCallback((event: DragMoveEvent) => {
+    if (String(event.active.id).startsWith("link:")) {
+      setLinkDrag((prev) => (prev ? { ...prev, dx: event.delta.x, dy: event.delta.y } : prev));
+    }
+  }, []);
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const raw = String(event.active.id);
       const [kind, id] = raw.split(":");
+
+      // link drag: hit-test the drop point against the bar rects
+      if (kind === "link") {
+        const src = rects.get(id);
+        setLinkDrag(null);
+        if (!src || !onLinkCreate) return;
+        const dropX = src.x + src.w + event.delta.x;
+        const dropY = src.y + src.h / 2 + event.delta.y;
+        const pad = (ROW_H - BAR_H) / 2; // forgive the gaps between bars
+        for (const [bid, r] of rects) {
+          if (bid === id) continue;
+          if (dropX >= r.x && dropX <= r.x + r.w && dropY >= r.y - pad && dropY <= r.y + r.h + pad) {
+            onLinkCreate(id, bid); // id = predecessor (source), bid = successor (target)
+            return;
+          }
+        }
+        return;
+      }
+
       const bar = bars.find((b) => b.id === id);
       if (!bar || !bar.start || !bar.end) return;
       const days = daysFromPx(scale, event.delta.x);
@@ -249,13 +303,14 @@ export function TimelineEngine({
         onResize?.(id, bar.start, newEnd);
       }
     },
-    [bars, scale, onReschedule, onResize],
+    [bars, scale, rects, onReschedule, onResize, onLinkCreate],
   );
 
   const months = useMemo(() => monthSegments(scale), [scale]);
   const ticks = useMemo(() => (zoom === "week" ? weekTicks(scale) : []), [scale, zoom]);
   const todayX = useMemo(() => xForDate(scale, todayStr()), [scale]);
-  const interactive = Boolean(onReschedule || onResize);
+  const interactive = Boolean(onReschedule || onResize || onLinkCreate);
+  const linkable = Boolean(onLinkCreate);
 
   return (
     <div className="space-y-3">
@@ -333,8 +388,8 @@ export function TimelineEngine({
               <DndContext
                 sensors={sensors}
                 modifiers={[createTimelineAxisModifier(scale.dayWidthPx)]}
-                onDragStart={(e: DragStartEvent) => setHoveredId(String(e.active.id).split(":")[1])}
-                onDragMove={(_e: DragMoveEvent) => {}}
+                onDragStart={handleDragStart}
+                onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
               >
                 <div className="relative" style={{ height: bodyHeight }}>
@@ -370,6 +425,8 @@ export function TimelineEngine({
                     height={bodyHeight}
                     hoveredId={hoveredId}
                     showAll={depsOn}
+                    linkDrag={linkDrag}
+                    onLinkDelete={onLinkDelete}
                   />
 
                   {/* lane bands + bars */}
@@ -386,7 +443,7 @@ export function TimelineEngine({
                             {!b.start ? (
                               <Diamond bar={b} scale={scale} />
                             ) : interactive && b.interactive !== false ? (
-                              <InteractiveBar bar={b} scale={scale} onClick={onBarClick} onHover={setHoveredId} />
+                              <InteractiveBar bar={b} scale={scale} onClick={onBarClick} onHover={setHoveredId} linkable={linkable} />
                             ) : (
                               <StaticBar bar={b} scale={scale} onClick={onBarClick} />
                             )}
