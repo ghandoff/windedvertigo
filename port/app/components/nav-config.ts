@@ -19,6 +19,8 @@ import {
   MessagesSquare,
   FileText,
   Anchor,
+  ListChecks,
+  BookOpen,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -45,6 +47,8 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "strategy", href: "/strategy", icon: LineChart },
       { label: "council", href: "/council", icon: MessagesSquare },
+      { label: "pam", href: "/pam", icon: ListChecks },
+      { label: "carl", href: "/carl", icon: BookOpen },
       { label: "designs", href: "/designs", icon: FileText },
       { label: "projects", href: "/projects", icon: FolderKanban },
       { label: "time", href: "/work/time", icon: Clock },
