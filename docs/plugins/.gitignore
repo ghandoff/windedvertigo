@@ -1,2 +1,4 @@
-dist/
+# the built .plugin files ARE committed so teammates can install without a build
+# toolchain. rebuild them with ./build.sh after changing any plugin's source.
+# node_modules stay out of git (they're bundled inside the .plugin zips instead).
 */mcp-servers/*/node_modules/
