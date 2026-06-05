@@ -1,14 +1,15 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DraggableKanban, type KanbanColumn } from "@/app/components/draggable-kanban";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarDays, Link2, AlertTriangle } from "lucide-react";
+import { CalendarDays, Link2, AlertTriangle, Pencil } from "lucide-react";
 import type { PamCommitment } from "@/lib/supabase/pam";
 import { formatDate } from "@/lib/format";
 import { updateCommitmentStatusAction } from "../actions";
+import { EditCommitmentDialog } from "./edit-commitment-dialog";
 
 // Columns map 1:1 to the pam_commitments status enum.
 const STATUS_COLUMNS: KanbanColumn[] = [
@@ -28,7 +29,7 @@ function daysUntil(dateStr: string | null): number | null {
   return Math.ceil((due - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
-function CommitmentCard({ item }: { item: BoardItem }) {
+function CommitmentCard({ item, onEdit }: { item: BoardItem; onEdit: () => void }) {
   const active = item.status !== "done" && item.status !== "parked";
   const dleft = daysUntil(item.due_date);
   const overdue = active && dleft !== null && dleft < 0;
@@ -47,6 +48,19 @@ function CommitmentCard({ item }: { item: BoardItem }) {
           {item.source && (
             <span className="text-[10px] text-muted-foreground">via {item.source}</span>
           )}
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="ml-auto text-muted-foreground/50 hover:text-foreground transition-colors"
+            title="edit / reassign"
+            aria-label="edit commitment"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
         </div>
 
         <p className="text-sm font-medium leading-tight">{item.what}</p>
@@ -84,6 +98,8 @@ function CommitmentCard({ item }: { item: BoardItem }) {
 
 export function CommitmentsBoard({ commitments }: { commitments: PamCommitment[] }) {
   const router = useRouter();
+  const [editing, setEditing] = useState<PamCommitment | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const items: BoardItem[] = commitments.map((c) => ({ ...c, kanbanStatus: c.status }));
 
@@ -96,7 +112,18 @@ export function CommitmentsBoard({ commitments }: { commitments: PamCommitment[]
     [router],
   );
 
-  const renderCard = useCallback((item: BoardItem) => <CommitmentCard item={item} />, []);
+  const renderCard = useCallback(
+    (item: BoardItem) => (
+      <CommitmentCard
+        item={item}
+        onEdit={() => {
+          setEditing(item);
+          setEditOpen(true);
+        }}
+      />
+    ),
+    [],
+  );
 
   if (items.length === 0) {
     return (
@@ -110,11 +137,14 @@ export function CommitmentsBoard({ commitments }: { commitments: PamCommitment[]
   }
 
   return (
-    <DraggableKanban
-      columns={STATUS_COLUMNS}
-      items={items}
-      renderCard={renderCard}
-      onStatusChange={handleStatusChange}
-    />
+    <>
+      <DraggableKanban
+        columns={STATUS_COLUMNS}
+        items={items}
+        renderCard={renderCard}
+        onStatusChange={handleStatusChange}
+      />
+      <EditCommitmentDialog commitment={editing} open={editOpen} onOpenChange={setEditOpen} />
+    </>
   );
 }

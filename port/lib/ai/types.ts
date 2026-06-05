@@ -42,6 +42,10 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // Haiku: per-conference fit-scoring + structured extraction. Discovery
   // pipeline runs many of these per cron, so cost-sensitive choice.
   "conference-triage": "claude-haiku-4-5-20251001",
+  // Haiku: cARL's scheduled curriculum study — cheap, runs a few topics/week.
+  "carl-study": "claude-haiku-4-5-20251001",
+  // Sonnet: cARL's on-demand deep research — infrequent, depth matters.
+  "carl-research": "claude-sonnet-4-6",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -60,7 +64,9 @@ export type AiFeature =
   | "task-generation"
   | "meeting-actions"
   | "weekly-digest"
-  | "conference-triage";
+  | "conference-triage"
+  | "carl-study"
+  | "carl-research";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -77,6 +83,8 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "meeting-actions": "Meeting Action Items",
   "weekly-digest": "Weekly Status Digest",
   "conference-triage": "Conference Triage",
+  "carl-study": "cARL Scheduled Study",
+  "carl-research": "cARL Deep Research",
 };
 
 // ── token usage tracking ─────────────────────────────────

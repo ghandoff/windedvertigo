@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { json, error, param } from "@/lib/api-helpers";
 import { getCarlFindings, insertCarlFinding } from "@/lib/supabase/carl";
+import { createBibliographyEntry } from "@/lib/notion/bibliography";
 
 function verifyAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -42,6 +43,21 @@ export async function POST(req: NextRequest) {
       tags: body.tags ?? [],
       connected_to: body.connected_to ?? undefined,
     });
+
+    // auto-file the cited source into the canonical w.v Annotated Bibliography
+    // (de-duped, never throws). Applies to both cowork- and cron-logged findings.
+    const citation = body.citation || body.source;
+    if (citation) {
+      await createBibliographyEntry({
+        fullCitation: citation,
+        abstract: body.summary,
+        notes: body.relevance ?? undefined,
+        keywords: Array.isArray(body.tags) ? body.tags.join(", ") : undefined,
+        topic: body.domain,
+        sourceType: "cARL finding",
+      });
+    }
+
     return json(result, 201);
   } catch (err) {
     console.error("[api/carl/findings] POST failed:", err);

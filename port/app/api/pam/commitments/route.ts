@@ -60,7 +60,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return error("request body is required");
 
-  const allowed = ["status", "blocker", "completed_at", "what", "start_date", "due_date", "depends_on"];
+  const allowed = ["who", "status", "blocker", "completed_at", "what", "start_date", "due_date", "depends_on"];
   const update: Record<string, unknown> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) update[key] = body[key];
