@@ -1,0 +1,6 @@
+{
+  "pam-memory": {
+    "command": "node",
+    "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-servers/pam-memory/index.js"]
+  }
+}

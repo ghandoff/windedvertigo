@@ -69,6 +69,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'accounts',
+    section: 'set-up',
     title: 'file your papers with each part of the harbour.',
     subtitle: 'a few sign-ups. the only part of the voyage your pilot can\'t handle for you.',
     shared: {
@@ -129,6 +130,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'open-claude',
+    section: 'set-up',
     title: 'your pilot comes aboard.',
     subtitle: 'open claude. from now on, the pilot steers — you just describe where you want to go.',
     shared: {
@@ -181,6 +183,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'install-clis',
+    section: 'set-up',
     title: 'hand the pilot their instruments.',
     subtitle: "three tools the pilot uses to steer through specific parts of the harbour. engineers only.",
     shared: {
@@ -220,6 +223,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'signin',
+    section: 'set-up',
     title: 'clear the port authority.',
     subtitle: 'the pilot\'s credentials get checked once per service, then carried forward.',
     shared: {
@@ -253,6 +257,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'mcp',
+    section: 'set-up',
     title: 'issue the pilot\'s access passes.',
     subtitle: "MCP plugins let claude read and act in github, notion, slack — no local clone needed.",
     shared: {
@@ -305,6 +310,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'clone-link',
+    section: 'connect',
     title: 'tow a vessel from the shipyard.',
     subtitle: "engineers: clone a repo locally. cloud-first: read the note and skip ahead.",
     shared: {
@@ -355,6 +361,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'verify',
+    section: 'connect',
     title: 'a tour of the harbour.',
     subtitle: 'your pilot visits each building. if they can reach them, every pass works.',
     shared: {
@@ -397,6 +404,7 @@ export const STEPS: Step[] = [
   // ────────────────────────────────────────────────────────────────
   {
     id: 'daily-workflow',
+    section: 'how-we-work',
     title: 'find your sea legs.',
     subtitle: "the daily loop, the words that trigger it, and what to do when the PR pings your phone.",
     shared: {
@@ -503,7 +511,86 @@ export const STEPS: Step[] = [
     },
   },
   // ────────────────────────────────────────────────────────────────
-  // 10. celebration
+  // 10. meet the agents (Mo, PaM, cARL)
+  // ────────────────────────────────────────────────────────────────
+  {
+    id: 'agents',
+    section: 'how-we-work',
+    title: 'meet your agents.',
+    subtitle: 'winded.vertigo has three AI teammates with long memories: Mo, PaM, and cARL.',
+    shared: {
+      intro:
+        "the collective runs three persistent AI agents. unlike a fresh claude conversation, they remember decisions across sessions — because they read and write a shared memory api on the port. you talk to them in cowork (via plugins) or in claude code (by cd-ing into their brain folder).",
+      body: [
+        { kind: 'heading', text: 'the three agents' },
+        {
+          kind: 'paragraph',
+          text: "**Mo** — chief marketing officer. strategy, brand, pipeline, campaigns. brain lives in `docs/cmo/`; dashboard at `/strategy` (see the \"Mo's log\" tab).",
+        },
+        {
+          kind: 'paragraph',
+          text: "**PaM** — project + momentum manager. tracks who committed to what, dependencies, and follow-ups. brain in `docs/pam/`; dashboard at `/pam` — a commitments board and an interactive timeline.",
+        },
+        {
+          kind: 'paragraph',
+          text: "**cARL** — cyber agent of research + learning. the living library of evidence, threshold concepts, and pedagogy. brain in `docs/carl/`; dashboard at `/carl`.",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "all three share one memory api on port.windedvertigo.com. their decisions are transparent — anything they log shows up on the dashboards, so the whole collective can see what was decided.",
+        },
+        { kind: 'heading', text: 'one-time setup: your agent token' },
+        {
+          kind: 'paragraph',
+          text: "the plugins talk to the memory api using a shared token called `WV_AGENT_TOKEN`. **ask garrett for the value** (it isn't written down in the repo on purpose), then add it to your shell so every session can read it.",
+        },
+        {
+          kind: 'commands',
+          commands: [
+            {
+              label: 'mac / linux — add to your shell, then reload it',
+              command: "echo 'export WV_AGENT_TOKEN=\"paste-the-token-from-garrett-here\"' >> ~/.zshrc && source ~/.zshrc",
+              note: "replace the placeholder with the real token. if you use bash, swap ~/.zshrc for ~/.bashrc.",
+            },
+            {
+              label: 'windows (powershell) — sets it for new terminals',
+              command: 'setx WV_AGENT_TOKEN "paste-the-token-from-garrett-here"',
+              note: "open a new terminal afterwards so the variable is picked up.",
+            },
+          ],
+        },
+        { kind: 'heading', text: 'install the cowork plugins' },
+        {
+          kind: 'paragraph',
+          text: "the three plugins live in the repo at `docs/plugins/dist/` — `mo-cmo.plugin`, `pam-pm.plugin`, and `carl-research.plugin`. in cowork, open plugins → install from file → pick the `.plugin` you want, then start a session. the agent loads its memory automatically.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "prefer claude code? you don't need the plugins at all — just `cd docs/cmo` (or `docs/pam`, `docs/carl`) and start talking, or say \"i want to talk to PaM\" from anywhere in the monorepo.",
+        },
+        { kind: 'heading', text: 'say hello' },
+        {
+          kind: 'claudePrompt',
+          label: 'paste into a cowork session with the pam-pm plugin installed',
+          prompt:
+            "hi PaM — what's on my plate this week, and is anything blocked or waiting on someone else? if you don't have any commitments logged for me yet, say so and ask me what i'm working on.",
+        },
+        {
+          kind: 'callout',
+          tone: 'success',
+          text: "if PaM answers with your commitments (or asks what you're working on), the token, plugin, and memory api are all wired correctly. the same pattern works for Mo (\"what's our pipeline looking like?\") and cARL (\"what does the research say about threshold concepts?\").",
+        },
+      ],
+      doneLooksLike:
+        "your WV_AGENT_TOKEN is in your shell, at least one agent plugin is installed in cowork, and you've had a first exchange where the agent clearly remembered (or asked to learn) your context.",
+      helpPrompt:
+        "i'm setting up the winded.vertigo agents (Mo / PaM / cARL). i added WV_AGENT_TOKEN and installed the [which one] plugin, but [describe what happened — the agent says the token isn't set, the plugin won't install, the briefing is empty]. walk me through fixing it.",
+    },
+  },
+  // ────────────────────────────────────────────────────────────────
+  // 11. celebration
   // ────────────────────────────────────────────────────────────────
   {
     id: 'done',

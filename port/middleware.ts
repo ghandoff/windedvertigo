@@ -20,8 +20,10 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/agent/slack") ||
     // MCP endpoint — uses its own bearer auth (PORT_MCP_TOKEN).
     pathname.startsWith("/api/mcp/") ||
-    // CMO memory API — uses its own bearer auth (CMO_API_TOKEN).
+    // Agent memory APIs (Mo, PaM, cARL) — use their own bearer auth (CMO_API_TOKEN).
     pathname.startsWith("/api/cmo/") ||
+    pathname.startsWith("/api/pam/") ||
+    pathname.startsWith("/api/carl/") ||
     // Inngest webhook — Inngest cloud POSTs here to deliver events.
     // Required on Vercel during G.2.4 canary (fallback path for inngest.send()).
     // Remove after G.2.5 DNS cutover + inngest route deletion.

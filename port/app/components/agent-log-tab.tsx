@@ -3,11 +3,23 @@
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import type { CmoDecision } from "@/lib/supabase/cmo";
+
+// Shared decision-log tab for agent dashboard pages (PaM, cARL).
+// Generalised from the strategy page's mo-log-tab — Mo keeps its own copy.
+
+export interface AgentDecision {
+  id: string;
+  created_at: string;
+  who: string;
+  session_type: string;
+  summary: string;
+  decisions: string[];
+  tags: string[];
+}
 
 const WHO_OPTIONS = ["all", "garrett", "maria", "payton", "jamie", "lamis"];
 
-function DecisionCard({ d }: { d: CmoDecision }) {
+function DecisionCard({ d }: { d: AgentDecision }) {
   const date = new Date(d.created_at).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -47,7 +59,13 @@ function DecisionCard({ d }: { d: CmoDecision }) {
   );
 }
 
-export function MoLogTab({ decisions }: { decisions: CmoDecision[] }) {
+export function AgentLogTab({
+  decisions,
+  agentName,
+}: {
+  decisions: AgentDecision[];
+  agentName: string;
+}) {
   const [whoFilter, setWhoFilter] = useState<string>("all");
   const [tagFilter, setTagFilter] = useState<string>("");
 
@@ -94,7 +112,7 @@ export function MoLogTab({ decisions }: { decisions: CmoDecision[] }) {
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground text-sm">
           {decisions.length === 0
-            ? "no conversations recorded yet. Mo will write here after each session."
+            ? `no conversations recorded yet. ${agentName} will log here during each session.`
             : "no conversations match the current filter."}
         </div>
       ) : (
@@ -106,7 +124,7 @@ export function MoLogTab({ decisions }: { decisions: CmoDecision[] }) {
       )}
 
       <p className="text-[10px] text-muted-foreground pt-2">
-        {filtered.length} of {decisions.length} conversations · logged by Mo during each session
+        {filtered.length} of {decisions.length} conversations · logged by {agentName} during each session
       </p>
     </div>
   );
