@@ -1,0 +1,10 @@
+{
+  "name": "pam-memory-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for PaM's persistent memory — project manager agent for winded.vertigo",
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}

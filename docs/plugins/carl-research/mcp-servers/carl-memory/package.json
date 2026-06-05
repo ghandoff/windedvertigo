@@ -1,0 +1,10 @@
+{
+  "name": "carl-memory-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for cARL's persistent memory — research agent for winded.vertigo",
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
