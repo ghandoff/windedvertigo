@@ -13,7 +13,7 @@
  */
 
 import { NextRequest } from "next/server";
-import { json, error } from "@/lib/api-helpers";
+import { json, error, param } from "@/lib/api-helpers";
 import { callClaude, parseJsonResponse } from "@/lib/ai/client";
 import { insertCarlFinding } from "@/lib/supabase/carl";
 import { getCurriculum, updateCurriculumTopic } from "@/lib/supabase/carl-curriculum";
@@ -22,10 +22,12 @@ import { createBibliographyEntry } from "@/lib/notion/bibliography";
 // how many topics to study per run — keep modest (cheap + within worker time)
 const TOPICS_PER_RUN = 3;
 
-function verifyCronAuth(req: NextRequest): boolean {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader) return false;
-  return authHeader.replace("Bearer ", "") === process.env.CRON_SECRET;
+// authorised by the scheduler (CRON_SECRET) OR an admin/agent (CMO_API_TOKEN),
+// so a study run can be triggered on demand to watch the curriculum fill in.
+function verifyAuth(req: NextRequest): boolean {
+  const token = req.headers.get("authorization")?.replace("Bearer ", "");
+  if (!token) return false;
+  return token === process.env.CRON_SECRET || token === process.env.CMO_API_TOKEN;
 }
 
 const SYSTEM = `you are cARL, winded.vertigo's research librarian and scholar. winded.vertigo is a regenerative-education collective that builds learning apps (the "harbour" apps), facilitation designs, and grant proposals.
@@ -42,13 +44,15 @@ return ONLY json, no prose, in this exact shape:
 }`;
 
 export async function GET(req: NextRequest) {
-  if (!verifyCronAuth(req)) return error("unauthorized", 401);
+  if (!verifyAuth(req)) return error("unauthorized", 401);
 
   try {
+    // scheduled runs do TOPICS_PER_RUN; a manual trigger can pass ?count=N (capped)
+    const count = Math.min(Math.max(Number(param(req, "count")) || TOPICS_PER_RUN, 1), 12);
     const planned = await getCurriculum({ status: "planned" });
     const batch = planned
       .sort((a, b) => a.priority - b.priority || a.sort_order - b.sort_order)
-      .slice(0, TOPICS_PER_RUN);
+      .slice(0, count);
 
     if (batch.length === 0) {
       return json({ studied: 0, note: "curriculum fully covered — nothing planned" });
