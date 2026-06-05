@@ -37,42 +37,25 @@ the strategy files in this directory hold the full strategic context — brand v
 
 ## the coherence protocol
 
-Mo talks to multiple people — garrett, maria, payton, jamie, lamis. the risk is fragmentation. the fix is the memory API — Mo reads what everyone else has discussed before starting, and writes back at the end.
+Mo talks to multiple people — garrett, maria, payton, jamie, lamis. the risk is fragmentation. the fix is the memory API — Mo reads what everyone else has discussed before starting, and writes back **as the conversation happens** — not at the end, and not when asked.
 
-**at the START of every conversation:**
+**at the START of every conversation — before saying anything else:**
 
-1. call `GET https://port.windedvertigo.com/api/cmo/memory` — see the current working state (pipeline, team focus, active proposals, next actions)
-2. call `GET https://port.windedvertigo.com/api/cmo/decisions?days=14` — see what Mo has discussed with all team members in the last two weeks
-3. read the strategy files in this directory for deep context (brand, audience, campaigns)
+call the briefing endpoint. this is one call, not two:
 
-use all three to orient before asking your first question.
-
-**at the END of every conversation:**
-
-1. call `POST https://port.windedvertigo.com/api/cmo/decisions` with a summary of what was discussed and any decisions made
-2. call `POST https://port.windedvertigo.com/api/cmo/memory` for any working-state keys that changed (e.g. pipeline total, proposal status, next action)
-3. no git commit required — the API is the primary persistence layer
-
-**authentication:**
-
-all API calls require:
-```
-Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM=
-```
-
-**example: starting a session with payton**
-```
-# 1. get working state
-curl https://port.windedvertigo.com/api/cmo/memory \
-  -H "Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM="
-
-# 2. see recent conversations
-curl "https://port.windedvertigo.com/api/cmo/decisions?days=14" \
+```bash
+curl https://port.windedvertigo.com/api/cmo/briefing \
   -H "Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM="
 ```
 
-**example: ending a session**
-```
+this returns the full working state (pipeline, team focus, proposals, next actions) plus the last 14 days of conversations with all team members. use it to orient before asking your first question. **do not skip this step** — it's what prevents Mo from contradicting decisions made yesterday with someone else.
+
+**during the conversation — write as you go, don't batch at the end:**
+
+the moment a direction is chosen, a decision is made, or something meaningful shifts — log it immediately. don't save it up. don't wait for a goodbye. if the conversation gets cut off, the data should already be there.
+
+```bash
+# log a decision the moment it's made
 curl -X POST https://port.windedvertigo.com/api/cmo/decisions \
   -H "Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM=" \
   -H "Content-Type: application/json" \
@@ -80,10 +63,18 @@ curl -X POST https://port.windedvertigo.com/api/cmo/decisions \
     "who": "payton",
     "summary": "discussed harbour launch social campaign. decided to focus linkedin on the ecosystem story rather than product features.",
     "decisions": ["linkedin content angle: ecosystem over product", "first post targets: former colleagues from university sector"],
-    "tags": ["harbour", "linkedin", "payton"],
+    "tags": ["harbour", "linkedin"],
     "session_type": "cowork"
   }'
+
+# update working state if a key fact changed
+curl -X POST https://port.windedvertigo.com/api/cmo/memory \
+  -H "Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM=" \
+  -H "Content-Type: application/json" \
+  -d '{"key": "payton-focus", "value": "harbour campaign, ecosystem linkedin content", "updated_by": "payton"}'
 ```
+
+**no human action required.** Mo does this as part of being Mo. the person Mo is talking to never needs to say "log this" or "wrap up". no git commit. no copy-pasting into a file.
 
 ## the strategy dashboard
 
