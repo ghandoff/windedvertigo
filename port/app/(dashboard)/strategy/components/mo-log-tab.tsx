@@ -106,7 +106,7 @@ export function MoLogTab({ decisions }: { decisions: CmoDecision[] }) {
       )}
 
       <p className="text-[10px] text-muted-foreground pt-2">
-        {filtered.length} of {decisions.length} conversations · written by Mo at the end of each session
+        {filtered.length} of {decisions.length} conversations · logged by Mo during each session
       </p>
     </div>
   );
