@@ -190,6 +190,11 @@ const CRON_TABLE: CronEntry[] = [
   // Bluesky). Restored in Phase 17 after the three null stubs were wired up
   // with real API calls. Meta stays stub (pending PAGE_ACCESS_TOKEN approval).
   { path: "/api/cron/sync-social-stats", hours: [4] },
+
+  // Weekly Mon 13:00 UTC — cARL advances its curriculum a few topics at a time,
+  // logging findings + filing citations to the annotated bibliography. Cheap
+  // (Haiku); cost tracked under "carl-study" on /ai-hub.
+  { path: "/api/cron/carl-study", hours: [13], weekdays: [1] },
 ];
 
 // sweep-stuck-proposals runs every 5 minutes — handled by the */5 trigger,

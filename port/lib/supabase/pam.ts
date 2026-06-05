@@ -158,6 +158,7 @@ export async function insertPamCommitment(data: {
 export async function updatePamCommitment(
   id: string,
   data: {
+    who?: string;
     status?: string;
     blocker?: string;
     completed_at?: string;

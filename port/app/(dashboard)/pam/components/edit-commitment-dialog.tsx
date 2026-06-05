@@ -23,6 +23,7 @@ import type { PamCommitment } from "@/lib/supabase/pam";
 import { updateCommitmentAction } from "../actions";
 
 const STATUSES = ["not-started", "in-progress", "blocked", "done", "parked"];
+const PEOPLE = ["garrett", "maria", "payton", "jamie", "lamis"];
 
 export function EditCommitmentDialog({
   commitment,
@@ -34,6 +35,7 @@ export function EditCommitmentDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const [who, setWho] = useState("garrett");
   const [what, setWhat] = useState("");
   const [status, setStatus] = useState("not-started");
   const [startDate, setStartDate] = useState("");
@@ -43,6 +45,7 @@ export function EditCommitmentDialog({
 
   useEffect(() => {
     if (commitment) {
+      setWho(commitment.who);
       setWhat(commitment.what);
       setStatus(commitment.status);
       setStartDate(commitment.start_date ?? "");
@@ -57,6 +60,7 @@ export function EditCommitmentDialog({
     if (!what.trim()) return setError("what is required");
     startTransition(async () => {
       const res = await updateCommitmentAction(commitment.id, {
+        who,
         what: what.trim(),
         status,
         start_date: startDate || undefined,
@@ -78,6 +82,19 @@ export function EditCommitmentDialog({
           <DialogTitle>edit commitment{commitment ? ` · ${commitment.who}` : ""}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-who">who</Label>
+            <Select value={who} onValueChange={(v) => setWho(v ?? "garrett")}>
+              <SelectTrigger id="edit-who">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PEOPLE.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="edit-what">what</Label>
             <Input id="edit-what" value={what} onChange={(e) => setWhat(e.target.value)} />

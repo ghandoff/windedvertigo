@@ -111,6 +111,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: [],
       },
     },
+    {
+      name: "carl_curriculum",
+      description: "Read cARL's target curriculum — the marketing + lifelong-learning syllabus cARL is working toward, with each topic's coverage status (planned / in-progress / covered). Use it to see what's covered, what the blind spots are (planned-but-uncovered topics), and what to research next when a teammate asks for a deep session.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          status: { type: "string", description: "Filter by status: planned | in-progress | covered (optional)" },
+          domain: { type: "string", description: "Filter by domain (optional)" },
+        },
+        required: [],
+      },
+    },
   ],
 }));
 
@@ -180,6 +192,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         `**${f.domain} — ${f.title}**\n${f.summary}${f.relevance ? `\n_relevance: ${f.relevance}_` : ""}`
       ).join("\n\n");
       return { content: [{ type: "text", text: summary }] };
+    }
+
+    if (name === "carl_curriculum") {
+      const params = new URLSearchParams();
+      if (args.status) params.set("status", args.status);
+      if (args.domain) params.set("domain", args.domain);
+      const qs = params.toString();
+      const topics = await apiFetch(`/api/carl/curriculum${qs ? `?${qs}` : ""}`);
+      if (!topics.length) {
+        return { content: [{ type: "text", text: "no curriculum topics match that query" }] };
+      }
+      // group by domain with coverage marks
+      const byDomain = {};
+      for (const t of topics) (byDomain[t.domain] ??= []).push(t);
+      const mark = { covered: "✓", "in-progress": "◐", planned: "○" };
+      const lines = Object.entries(byDomain).map(([domain, ts]) => {
+        const rows = ts.map((t) => `  ${mark[t.status] || "○"} ${t.topic}${t.key_works?.length ? ` — ${t.key_works.join("; ")}` : ""}`).join("\n");
+        const covered = ts.filter((t) => t.status === "covered").length;
+        return `**${domain}** (${covered}/${ts.length})\n${rows}`;
+      });
+      return { content: [{ type: "text", text: lines.join("\n\n") }] };
     }
 
     return { content: [{ type: "text", text: `unknown tool: ${name}` }], isError: true };

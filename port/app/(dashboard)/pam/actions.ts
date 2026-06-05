@@ -73,6 +73,7 @@ export async function rescheduleCommitmentAction(
 export async function updateCommitmentAction(
   id: string,
   fields: {
+    who?: string;
     what?: string;
     status?: string;
     start_date?: string;
