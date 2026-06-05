@@ -82,6 +82,8 @@
   //   BOOKING_SIGNING_KEY (same value as the site — used to mint cancel tokens)
   //   BOOKING_ADMIN_TOKEN (same value as the site — needed only for /bookings/connect re-auth links)
   //   SITE_ORIGIN (optional — defaults to https://windedvertigo.com)
+  // CMO memory API (Mo's persistent state — see docs/cmo/CLAUDE.md):
+  //   CMO_API_TOKEN (set via `wrangler secret put CMO_API_TOKEN`)
 
   // ── OpenNext config ───────────────────────────────────────────────────────
   // open-next.config.ts must be created at port/open-next.config.ts (G.2.1)

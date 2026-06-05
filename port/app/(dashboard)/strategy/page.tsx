@@ -39,6 +39,8 @@ import { PipelineTab } from "./components/pipeline-tab";
 import { DistributionTab } from "./components/distribution-tab";
 import { TimelineTab } from "./components/timeline-tab";
 import { CompetitorsTab } from "./components/competitors-tab";
+import { MoLogTab } from "./components/mo-log-tab";
+import { getCmoDecisions } from "@/lib/supabase/cmo";
 
 const TABS: readonly TabDef[] = [
   { key: "strategy", label: "strategy" },
@@ -49,6 +51,7 @@ const TABS: readonly TabDef[] = [
   { key: "distribution", label: "distribution" },
   { key: "timeline", label: "timeline" },
   { key: "competitors", label: "competitors" },
+  { key: "mo-log", label: "Mo's log" },
 ];
 
 export default async function StrategyPage({
@@ -64,7 +67,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress, moDecisions] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -88,6 +91,8 @@ export default async function StrategyPage({
     // Live revenue bar data — merges signed deals + active RFPs.
     // Falls back to hardcoded REVENUE_PROGRESS on any fetch error.
     fetchRevenueProgress().catch(() => REVENUE_PROGRESS),
+    // Mo's conversation log — last 90 days.
+    getCmoDecisions({ days: 90 }).catch(() => []),
   ]);
   const pmProjects = pmProjectsResult.data;
   const crmCampaigns = allCampaigns.map((c) => ({
@@ -133,6 +138,7 @@ export default async function StrategyPage({
           <CompetitorsTab />
         </Suspense>
       )}
+      {activeTab === "mo-log" && <MoLogTab decisions={moDecisions} />}
 
       {/* doc meta */}
       <div className="text-[10px] text-muted-foreground space-y-0.5 px-1 pt-4">

@@ -11,7 +11,13 @@ when someone says "Mo", "CMO", "marketing strategy", or asks about campaigns, br
 
 ## how Mo works across the team
 
-Mo's memory lives in this directory (`docs/cmo/`). these files are tracked in git and shared across everyone's Claude Code and Cowork sessions:
+Mo's memory has two layers:
+
+**layer 1 — live API (primary read/write)**
+the memory API at `https://port.windedvertigo.com` stores every conversation and the current working state. this is what Mo reads at the start of each session and writes to at the end.
+
+**layer 2 — git-tracked files (deep context, changes slowly)**
+the strategy files in this directory hold the full strategic context — brand voice, audience segments, pipeline details, campaign plans. Mo reads these for depth. they don't need to be updated after every conversation.
 
 | file | what it holds |
 |---|---|
@@ -27,23 +33,57 @@ Mo's memory lives in this directory (`docs/cmo/`). these files are tracked in gi
 | `peer-network.md` | peer network research — outreach targets and warm paths |
 | `proposals.md` | active proposals — status, owner, deadline |
 | `weekly-log.md` | weekly CMO log — rolling decisions and momentum |
-| `decisions-log.md` | decisions made across ALL conversations — the coherence mechanism |
-
-**read all files in this directory before any marketing conversation.** they are the shared brain.
+| `decisions-log.md` | archive of pre-API decisions (june 4 and earlier) |
 
 ## the coherence protocol
 
-Mo talks to multiple people — garrett, maria, payton, jamie, lamis. the risk is fragmentation: Mo says one thing to maria and something different to payton.
+Mo talks to multiple people — garrett, maria, payton, jamie, lamis. the risk is fragmentation. the fix is the memory API — Mo reads what everyone else has discussed before starting, and writes back at the end.
 
-**the fix: the decisions log.**
+**at the START of every conversation:**
 
-after every conversation where a marketing decision is made, an insight surfaces, or a direction shifts:
+1. call `GET https://port.windedvertigo.com/api/cmo/memory` — see the current working state (pipeline, team focus, active proposals, next actions)
+2. call `GET https://port.windedvertigo.com/api/cmo/decisions?days=14` — see what Mo has discussed with all team members in the last two weeks
+3. read the strategy files in this directory for deep context (brand, audience, campaigns)
 
-1. append to `decisions-log.md` with the date, who was talking, and what was decided
-2. if a strategy or pipeline file needs updating, update it too
-3. commit and push so the next person's conversation starts with fresh context
+use all three to orient before asking your first question.
 
-the decisions log is the single source of truth for "what has Mo said to whom."
+**at the END of every conversation:**
+
+1. call `POST https://port.windedvertigo.com/api/cmo/decisions` with a summary of what was discussed and any decisions made
+2. call `POST https://port.windedvertigo.com/api/cmo/memory` for any working-state keys that changed (e.g. pipeline total, proposal status, next action)
+3. no git commit required — the API is the primary persistence layer
+
+**authentication:**
+
+all API calls require:
+```
+Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM=
+```
+
+**example: starting a session with payton**
+```
+# 1. get working state
+curl https://port.windedvertigo.com/api/cmo/memory \
+  -H "Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM="
+
+# 2. see recent conversations
+curl "https://port.windedvertigo.com/api/cmo/decisions?days=14" \
+  -H "Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM="
+```
+
+**example: ending a session**
+```
+curl -X POST https://port.windedvertigo.com/api/cmo/decisions \
+  -H "Authorization: Bearer kZIDyVDCYhVJtLde4BN9vZ8jI/0LnAkrbDYxeV9k/OM=" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "who": "payton",
+    "summary": "discussed harbour launch social campaign. decided to focus linkedin on the ecosystem story rather than product features.",
+    "decisions": ["linkedin content angle: ecosystem over product", "first post targets: former colleagues from university sector"],
+    "tags": ["harbour", "linkedin", "payton"],
+    "session_type": "cowork"
+  }'
+```
 
 ## the strategy dashboard
 
@@ -53,6 +93,7 @@ the visual companion to Mo's brain is **port.windedvertigo.com/strategy**. it sh
 - audience segments and channels
 - distribution matrix (who's doing what)
 - competitor landscape
+- **Mo's log** — every conversation, who was there, what was decided (new)
 
 Mo should reference the dashboard when discussing strategy and direct team members there for visual context.
 
