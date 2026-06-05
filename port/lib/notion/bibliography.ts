@@ -1,8 +1,10 @@
 /**
  * Annotated Bibliography data layer.
  *
- * Fetches citation records from the shared bibliography database.
- * Used by the proposal generator to surface relevant academic citations.
+ * As of the Notion→Supabase migration, the canonical store is Supabase
+ * (lib/supabase/bibliography). The Notion read below is retained only for the
+ * one-time backfill (queryBibliographyFromNotion). New citations are written to
+ * Supabase; the Notion database is kept untouched as a historical archive.
  */
 
 import {
@@ -17,6 +19,7 @@ import {
 
 import { notion, PORT_DB, BIBLIOGRAPHY_PROPS } from "./client";
 import type { BibliographyEntry } from "./types";
+import { getBibliography, insertBibliographyRow } from "@/lib/supabase/bibliography";
 
 const P = BIBLIOGRAPHY_PROPS;
 
@@ -37,27 +40,31 @@ function mapPageToEntry(page: PageObjectResponse): BibliographyEntry {
   };
 }
 
-/**
- * Fetch all bibliography entries (up to 200).
- * Returns them sorted by year descending so newer sources appear first.
- */
-export async function queryBibliography(): Promise<BibliographyEntry[]> {
+/** One-time backfill source: read ALL entries straight from the Notion database. */
+export async function queryBibliographyFromNotion(): Promise<BibliographyEntry[]> {
   const result = await queryDatabase(notion, {
     database_id: PORT_DB.bibliography,
     sorts: [{ property: P.year, direction: "descending" }],
-    page_size: 200,
-    label: "queryBibliography",
+    page_size: 100,
+    fetchAll: true,
+    label: "queryBibliographyFromNotion",
   });
-
   return result.pages.map(mapPageToEntry);
 }
 
-function trim2000(s: string): string {
-  return s.length > 1900 ? s.slice(0, 1900) + "…" : s;
-}
-
-function normCitation(s: string): string {
-  return s.toLowerCase().replace(/\s+/g, " ").trim();
+/**
+ * Canonical bibliography read — now Supabase-backed. Falls back to Notion only
+ * if Supabase is empty (e.g. before the backfill has run), so there's never a
+ * citation gap during the migration.
+ */
+export async function queryBibliography(): Promise<BibliographyEntry[]> {
+  try {
+    const rows = await getBibliography();
+    if (rows.length > 0) return rows;
+  } catch (err) {
+    console.warn("[bibliography] supabase read failed, falling back to notion:", err);
+  }
+  return queryBibliographyFromNotion();
 }
 
 export interface NewBibliographyEntry {
@@ -65,51 +72,28 @@ export interface NewBibliographyEntry {
   abstract?: string;
   keywords?: string;
   notes?: string;
-  topic?: string; // freeform; Notion auto-creates the select option
+  topic?: string;
   sourceType?: string;
   year?: number;
   doi?: string;
 }
 
 /**
- * Create a new entry in the canonical Annotated Bibliography — de-duped by
- * full-citation match. Used to auto-file cARL's cited sources (and any other
- * citation the collective logs). Returns whether a row was created. Never
- * throws — a Notion hiccup should not block the finding write that triggered it.
+ * File a citation into the canonical (Supabase) Annotated Bibliography —
+ * de-duped. Used to auto-file cARL's cited sources. Never throws — a hiccup
+ * should not block the finding write that triggered it.
  */
 export async function createBibliographyEntry(
   entry: NewBibliographyEntry,
 ): Promise<{ created: boolean; reason?: string }> {
-  const citation = entry.fullCitation?.trim();
-  if (!citation) return { created: false, reason: "no citation" };
-
-  try {
-    // de-dupe: skip if an entry with the same full citation already exists
-    const existing = await queryBibliography();
-    const key = normCitation(citation);
-    if (existing.some((e) => normCitation(e.fullCitation) === key)) {
-      return { created: false, reason: "duplicate" };
-    }
-
-    const props: Record<string, unknown> = {
-      [P.fullCitation]: { title: [{ text: { content: trim2000(citation) } }] },
-    };
-    if (entry.abstract) props[P.abstract] = { rich_text: [{ text: { content: trim2000(entry.abstract) } }] };
-    if (entry.keywords) props[P.keywords] = { rich_text: [{ text: { content: trim2000(entry.keywords) } }] };
-    if (entry.notes) props[P.notes] = { rich_text: [{ text: { content: trim2000(entry.notes) } }] };
-    if (entry.topic) props[P.topic] = { select: { name: entry.topic.slice(0, 100) } };
-    if (entry.sourceType) props[P.sourceType] = { select: { name: entry.sourceType.slice(0, 100) } };
-    if (entry.year) props[P.year] = { number: entry.year };
-    if (entry.doi) props[P.doi] = { url: entry.doi };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (notion as any).pages.create({
-      parent: { data_source_id: PORT_DB.bibliography },
-      properties: props,
-    });
-    return { created: true };
-  } catch (err) {
-    console.warn("[bibliography] createBibliographyEntry failed:", err);
-    return { created: false, reason: "error" };
-  }
+  return insertBibliographyRow({
+    fullCitation: entry.fullCitation,
+    abstract: entry.abstract,
+    keywords: entry.keywords,
+    notes: entry.notes,
+    topic: entry.topic,
+    sourceType: entry.sourceType,
+    year: entry.year ?? null,
+    doi: entry.doi ?? null,
+  });
 }
