@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { ScholarHit, ProviderStat } from "@/lib/bibliography/scholar/types";
-import { searchScholarlyAction, addFromSearchAction } from "../actions";
+import { searchScholarlyAction, addFromSearchAction, retrievePdfAction } from "../actions";
 import { AssetPicker } from "./asset-picker";
 
 // Federated scholarly discovery — one query fanned across Crossref, OpenAlex,
@@ -64,6 +64,8 @@ export function DiscoverDialog({ allAssets }: { allAssets: string[] }) {
       if (res.ok) {
         setStatus((s) => ({ ...s, [hit.id]: "added" }));
         router.refresh();
+        // best-effort: grab the open-access PDF in the background (don't block the UI)
+        if (res.id) void retrievePdfAction(res.id).then(() => router.refresh()).catch(() => {});
       } else if (res.reason === "duplicate") {
         setStatus((s) => ({ ...s, [hit.id]: "exists" }));
       } else {

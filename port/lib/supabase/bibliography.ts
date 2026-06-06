@@ -55,6 +55,8 @@ export interface BibliographyRow {
   scholarLink: string | null;
   citationCount: number | null;
   usedIn: string[];
+  pdfUrl: string | null;
+  pdfSource: string | null;
   createdAt: string;
 }
 
@@ -74,8 +76,17 @@ function mapFullRow(r: any): BibliographyRow {
     scholarLink: r.scholar_link ?? null,
     citationCount: r.citation_count ?? null,
     usedIn: r.used_in ?? [],
+    pdfUrl: r.pdf_url ?? null,
+    pdfSource: r.pdf_source ?? null,
     createdAt: r.created_at,
   };
+}
+
+/** Fetch a single row by id (for the PDF serve route + retrieval action). */
+export async function getBibliographyRowById(id: string): Promise<BibliographyRow | null> {
+  const { data, error } = await supabase.from("bibliography").select("*").eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data ? mapFullRow(data) : null;
 }
 
 export async function getBibliographyRows(): Promise<BibliographyRow[]> {
@@ -100,7 +111,10 @@ export async function updateBibliographyRow(
     year?: number | null;
     doi?: string | null;
     publisherLink?: string | null;
+    scholarLink?: string | null;
     usedIn?: string[];
+    pdfUrl?: string | null;
+    pdfSource?: string | null;
   },
 ): Promise<BibliographyRow> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -117,7 +131,10 @@ export async function updateBibliographyRow(
   if (fields.year !== undefined) patch.year = fields.year;
   if (fields.doi !== undefined) patch.doi = fields.doi;
   if (fields.publisherLink !== undefined) patch.publisher_link = fields.publisherLink;
+  if (fields.scholarLink !== undefined) patch.scholar_link = fields.scholarLink;
   if (fields.usedIn !== undefined) patch.used_in = fields.usedIn;
+  if (fields.pdfUrl !== undefined) patch.pdf_url = fields.pdfUrl;
+  if (fields.pdfSource !== undefined) patch.pdf_source = fields.pdfSource;
 
   const { data, error } = await supabase
     .from("bibliography")
@@ -164,31 +181,35 @@ export interface NewBibliographyRow {
  */
 export async function insertBibliographyRow(
   entry: NewBibliographyRow,
-): Promise<{ created: boolean; reason?: string }> {
+): Promise<{ created: boolean; reason?: string; id?: string }> {
   const citation = entry.fullCitation?.trim();
   if (!citation) return { created: false, reason: "no citation" };
 
-  const { error } = await supabase.from("bibliography").insert({
-    full_citation: citation,
-    citation_key: normCitation(citation),
-    abstract: entry.abstract ?? null,
-    keywords: entry.keywords ?? null,
-    notes: entry.notes ?? null,
-    topic: entry.topic ?? null,
-    source_type: entry.sourceType ?? null,
-    year: entry.year ?? null,
-    doi: entry.doi ?? null,
-    publisher_link: entry.publisherLink ?? null,
-    scholar_link: entry.scholarLink ?? null,
-    citation_count: entry.citationCount ?? null,
-    notion_page_id: entry.notionPageId ?? null,
-    used_in: entry.usedIn ?? [],
-  });
+  const { data, error } = await supabase
+    .from("bibliography")
+    .insert({
+      full_citation: citation,
+      citation_key: normCitation(citation),
+      abstract: entry.abstract ?? null,
+      keywords: entry.keywords ?? null,
+      notes: entry.notes ?? null,
+      topic: entry.topic ?? null,
+      source_type: entry.sourceType ?? null,
+      year: entry.year ?? null,
+      doi: entry.doi ?? null,
+      publisher_link: entry.publisherLink ?? null,
+      scholar_link: entry.scholarLink ?? null,
+      citation_count: entry.citationCount ?? null,
+      notion_page_id: entry.notionPageId ?? null,
+      used_in: entry.usedIn ?? [],
+    })
+    .select("id")
+    .single();
 
   if (error) {
     if (error.code === "23505") return { created: false, reason: "duplicate" };
     console.warn("[bibliography] insert failed:", error.message);
     return { created: false, reason: "error" };
   }
-  return { created: true };
+  return { created: true, id: data?.id };
 }

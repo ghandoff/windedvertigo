@@ -27,6 +27,11 @@ declare global {
     RFP_DOCUMENT_QUEUE: QueueSender<RfpDocumentUploadedJob>;
     PORT_ASSETS: {
       put(key: string, body: unknown, options?: unknown): Promise<void>;
+      get(key: string): Promise<{
+        body: ReadableStream;
+        httpMetadata?: { contentType?: string };
+        size?: number;
+      } | null>;
     };
     /**
      * CF Browser Rendering binding.
