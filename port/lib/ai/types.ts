@@ -46,6 +46,8 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   "carl-study": "claude-haiku-4-5-20251001",
   // Sonnet: cARL's on-demand deep research — infrequent, depth matters.
   "carl-research": "claude-sonnet-4-6",
+  // Haiku: parse a document's reference list into structured citations.
+  "bibliography-import": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -66,7 +68,8 @@ export type AiFeature =
   | "weekly-digest"
   | "conference-triage"
   | "carl-study"
-  | "carl-research";
+  | "carl-research"
+  | "bibliography-import";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -85,6 +88,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "conference-triage": "Conference Triage",
   "carl-study": "cARL Scheduled Study",
   "carl-research": "cARL Deep Research",
+  "bibliography-import": "Bibliography Import",
 };
 
 // ── token usage tracking ─────────────────────────────────

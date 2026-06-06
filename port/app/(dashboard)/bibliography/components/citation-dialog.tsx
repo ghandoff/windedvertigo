@@ -17,16 +17,19 @@ import {
 } from "@/components/ui/dialog";
 import type { BibliographyRow } from "@/lib/supabase/bibliography";
 import { addCitationAction, updateCitationAction } from "../actions";
+import { AssetPicker } from "./asset-picker";
 
 // Add (trigger + own state) or edit (controlled, `existing` provided) a citation.
 export function CitationDialog({
   existing,
   open: cOpen,
   onOpenChange,
+  allAssets = [],
 }: {
   existing?: BibliographyRow;
   open?: boolean;
   onOpenChange?: (o: boolean) => void;
+  allAssets?: string[];
 }) {
   const router = useRouter();
   const isEdit = existing !== undefined;
@@ -40,7 +43,7 @@ export function CitationDialog({
   const [year, setYear] = useState("");
   const [doi, setDoi] = useState("");
   const [abstract, setAbstract] = useState("");
-  const [usedIn, setUsedIn] = useState("");
+  const [usedIn, setUsedIn] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -52,6 +55,7 @@ export function CitationDialog({
       setYear(existing.year ? String(existing.year) : "");
       setDoi(existing.doi ?? "");
       setAbstract(existing.abstract ?? "");
+      setUsedIn(existing.usedIn ?? []);
       setError(null);
     }
   }, [existing]);
@@ -69,6 +73,7 @@ export function CitationDialog({
             year: yearNum,
             doi: doi.trim() || null,
             abstract: abstract.trim() || null,
+            usedIn,
           })
         : await addCitationAction({
             fullCitation,
@@ -77,7 +82,7 @@ export function CitationDialog({
             year: yearNum,
             doi,
             abstract,
-            usedIn: usedIn.split(",").map((s) => s.trim()).filter(Boolean),
+            usedIn,
           });
       if (res.error) return setError(res.error);
       if (!existing) {
@@ -87,7 +92,7 @@ export function CitationDialog({
         setYear("");
         setDoi("");
         setAbstract("");
-        setUsedIn("");
+        setUsedIn([]);
       }
       setOpen(false);
       router.refresh();
@@ -128,12 +133,10 @@ export function CitationDialog({
         <Label htmlFor="bib-abstract">abstract / annotation</Label>
         <Textarea id="bib-abstract" value={abstract} onChange={(e) => setAbstract(e.target.value)} rows={3} />
       </div>
-      {!isEdit && (
-        <div className="space-y-1.5">
-          <Label htmlFor="bib-usedin">used in (comma-separated assets)</Label>
-          <Input id="bib-usedin" value={usedIn} onChange={(e) => setUsedIn(e.target.value)} placeholder="certificate series, PPCS report" />
-        </div>
-      )}
+      <div className="space-y-1.5">
+        <Label>used in (assets)</Label>
+        <AssetPicker value={usedIn} allAssets={allAssets} onChange={setUsedIn} />
+      </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );

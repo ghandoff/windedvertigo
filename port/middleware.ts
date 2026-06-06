@@ -24,6 +24,8 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/cmo/") ||
     pathname.startsWith("/api/pam/") ||
     pathname.startsWith("/api/carl/") ||
+    // Citation import — route enforces CMO_API_TOKEN for assistant-run backfills.
+    pathname.startsWith("/api/bibliography/") ||
     // cARL study cron — its route enforces CRON_SECRET or CMO_API_TOKEN, so it can
     // also be triggered on demand by an admin/agent (not just the scheduler).
     pathname === "/api/cron/carl-study" ||
