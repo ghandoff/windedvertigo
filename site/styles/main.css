@@ -1290,15 +1290,14 @@ html[data-still] .phosphor-bloom-ring {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--wv-champagne);
-  opacity: 0.6;
-  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+  color: #ffffff;
+  transition: color 0.2s ease, box-shadow 0.2s ease;
   padding: 10px;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
 }
 .a11y-trigger:hover,
 .a11y-trigger--open {
-  opacity: 1;
+  color: var(--wv-champagne);
   box-shadow: 2px 0 18px rgba(0, 0, 0, 0.4);
 }
 .a11y-trigger:focus-visible {
