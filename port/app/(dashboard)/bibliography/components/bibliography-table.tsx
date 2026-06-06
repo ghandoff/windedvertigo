@@ -2,15 +2,14 @@
 
 import { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Trash2, ExternalLink } from "lucide-react";
+import { Pencil, Trash2, ExternalLink, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { BibliographyRow } from "@/lib/supabase/bibliography";
 import { UsedInEditor } from "./used-in-editor";
 import { CitationDialog } from "./citation-dialog";
-import { ImportDialog } from "./import-dialog";
-import { DiscoverDialog } from "./discover-dialog";
+import { AddCitationsDialog } from "./add-citations-dialog";
 import { CitationDetail } from "./citation-detail";
 import { deleteCitationAction } from "../actions";
 
@@ -55,27 +54,30 @@ export function BibliographyTable({
 
   return (
     <div className="space-y-4">
-      {/* toolbar */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <CitationDialog allAssets={assets} />
-        <ImportDialog allAssets={assets} />
-        <DiscoverDialog allAssets={assets} />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="search citations…"
-          className="h-8 w-56 text-xs"
-        />
-        <select
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          className="h-8 text-xs border border-border rounded px-2 bg-background text-muted-foreground"
-        >
-          <option value="all">all topics</option>
-          {topics.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
+      {/* toolbar — left: browse the library · right: add to the library */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <Search className="h-3.5 w-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="filter the library…"
+              className="h-8 w-60 text-xs pl-7"
+            />
+          </div>
+          <select
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            className="h-8 text-xs border border-border rounded px-2 bg-background text-muted-foreground"
+          >
+            <option value="all">all topics</option>
+            {topics.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+        <AddCitationsDialog allAssets={assets} />
       </div>
 
       {/* asset (used-in) filter chips */}
