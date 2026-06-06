@@ -43,14 +43,27 @@ export interface NavSection {
 
 export const NAV_SECTIONS: NavSection[] = [
   {
-    title: "delivery",
+    // the three AI agents (Mo · PaM · cARL)
+    title: "agents",
     defaultOpen: true,
     items: [
       { label: "strategy", href: "/strategy", icon: LineChart },
-      { label: "council", href: "/council", icon: MessagesSquare },
       { label: "pam", href: "/pam", icon: ListChecks },
       { label: "carl", href: "/carl", icon: BookOpen },
+    ],
+  },
+  {
+    // shared inputs the collective + agents draw on
+    title: "knowledge",
+    items: [
+      { label: "council", href: "/council", icon: MessagesSquare },
       { label: "bibliography", href: "/bibliography", icon: Library },
+    ],
+  },
+  {
+    // production + execution
+    title: "delivery",
+    items: [
       { label: "designs", href: "/designs", icon: FileText },
       { label: "projects", href: "/projects", icon: FolderKanban },
       { label: "time", href: "/work/time", icon: Clock },
