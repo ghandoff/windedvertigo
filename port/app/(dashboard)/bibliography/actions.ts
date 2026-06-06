@@ -21,7 +21,7 @@ import {
   type ImportPlan,
   type InTextPlan,
 } from "@/lib/bibliography/import";
-import { fetchByDoi, type CrossrefMeta } from "@/lib/bibliography/crossref";
+import { fetchByDoi, metaToHit, type CrossrefMeta } from "@/lib/bibliography/crossref";
 import { searchScholar } from "@/lib/bibliography/scholar";
 import type { ScholarHit, ProviderStat } from "@/lib/bibliography/scholar/types";
 
@@ -187,13 +187,22 @@ export async function fetchDoiMetadataAction(
   }
 }
 
-/** Federated scholarly search across all providers (discovery). No write. */
+/**
+ * Smart find: if the input contains a DOI, resolve the exact paper (Crossref);
+ * otherwise run the federated search across all providers. No write.
+ */
 export async function searchScholarlyAction(
   query: string,
-): Promise<{ hits?: ScholarHit[]; providers?: ProviderStat[]; error?: string }> {
+): Promise<{ hits?: ScholarHit[]; providers?: ProviderStat[]; exact?: boolean; error?: string }> {
   await requireSession();
   try {
     if (!query?.trim()) return { error: "enter a search query" };
+    const doi = query.match(/10\.\d{4,9}\/[^\s"<>]+/);
+    if (doi) {
+      const meta = await fetchByDoi(doi[0]);
+      if (meta) return { hits: [metaToHit(meta)], providers: [{ id: "crossref", count: 1 }], exact: true };
+      // DOI didn't resolve — fall through to a free-text search of the raw input
+    }
     const { hits, providers } = await searchScholar(query);
     return { hits, providers };
   } catch (err) {

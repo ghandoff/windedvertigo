@@ -7,8 +7,32 @@
  * hit last session was inbound to our own zone only).
  */
 
+import type { ScholarHit } from "./scholar/types";
+
 const UA = "port-bibliography/1.0 (mailto:garrett@windedvertigo.com)";
 const BASE = "https://api.crossref.org/works";
+
+/** Map a Crossref DOI lookup into the canonical ScholarHit shape (for the
+ *  unified discover results + addFromSearchAction). */
+export function metaToHit(m: CrossrefMeta): ScholarHit {
+  return {
+    id: `crossref:${m.doi || m.title.slice(0, 40)}`,
+    source: "crossref",
+    sources: ["crossref"],
+    title: m.title,
+    authors: m.authors ? [m.authors] : [],
+    year: m.year,
+    venue: m.venue,
+    doi: m.doi || null,
+    pmid: null,
+    abstract: m.abstract,
+    sourceType: m.sourceType,
+    citationCount: m.citationCount,
+    openAccessPdf: null,
+    url: m.doiUrl || null,
+    fullCitation: m.fullCitation,
+  };
+}
 
 export interface CrossrefMeta {
   fullCitation: string; // formatted APA-ish string ready for the citation field
