@@ -6,7 +6,10 @@ import {
   insertBibliographyRow,
   updateBibliographyRow,
   deleteBibliographyRow,
+  getBibliographyRowById,
 } from "@/lib/supabase/bibliography";
+import { retrievePdf } from "@/lib/bibliography/scholar/pdf-retrieval";
+import { uploadAsset } from "@/lib/r2/upload";
 import {
   parseReferences,
   planImport,
@@ -202,7 +205,7 @@ export async function searchScholarlyAction(
 export async function addFromSearchAction(
   hit: ScholarHit,
   usedIn: string[] = [],
-): Promise<{ ok?: true; error?: string; reason?: string }> {
+): Promise<{ ok?: true; error?: string; reason?: string; id?: string }> {
   await requireSession();
   try {
     const fullCitation = hit?.fullCitation?.trim();
@@ -219,6 +222,8 @@ export async function addFromSearchAction(
       sourceType: hit.sourceType ?? undefined,
       abstract: hit.abstract ?? undefined,
       publisherLink: doiUrl,
+      // stash the OA PDF link so PDF retrieval has a first, reliable tier
+      scholarLink: hit.openAccessPdf ?? null,
       citationCount: hit.citationCount ?? null,
       usedIn,
     });
@@ -226,7 +231,35 @@ export async function addFromSearchAction(
       return { error: res.reason === "duplicate" ? "already in the library" : "couldn't add it", reason: res.reason };
     }
     revalidatePath("/bibliography");
-    return { ok: true };
+    return { ok: true, id: res.id };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Retrieve an open-access PDF for a citation and store it in R2. Best-effort:
+ * runs the waterfall over the row's OA link + DOI, and on a hit uploads to
+ * `bibliography-pdfs/<id>.pdf` and sets pdf_url (the serve path) + pdf_source.
+ */
+export async function retrievePdfAction(
+  id: string,
+): Promise<{ ok?: true; source?: string; error?: string }> {
+  await requireSession();
+  try {
+    const row = await getBibliographyRowById(id);
+    if (!row) return { error: "citation not found" };
+    if (row.pdfUrl) return { ok: true, source: row.pdfSource ?? "stored" };
+    const arxivId = row.scholarLink?.includes("arxiv.org")
+      ? row.scholarLink.match(/(\d{4}\.\d{4,5})(v\d+)?/)?.[0] ?? null
+      : null;
+    const found = await retrievePdf({ doi: row.doi, oaUrl: row.scholarLink, arxivId });
+    if (!found) return { error: "no open-access PDF found" };
+    const key = `bibliography-pdfs/${id}.pdf`;
+    await uploadAsset(Buffer.from(found.bytes), key, "application/pdf");
+    await updateBibliographyRow(id, { pdfUrl: `/api/bibliography/${id}/pdf`, pdfSource: found.source });
+    revalidatePath("/bibliography");
+    return { ok: true, source: found.source };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
