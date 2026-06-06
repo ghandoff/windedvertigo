@@ -14,6 +14,7 @@ import {
   parseInTextCitations,
   planInText,
   applyInText,
+  findSimilar,
   type ImportPlan,
   type InTextPlan,
 } from "@/lib/bibliography/import";
@@ -38,6 +39,8 @@ export async function addCitationAction(input: {
   await requireSession();
   try {
     if (!input.fullCitation?.trim()) return { error: "a full citation is required" };
+    const similar = await findSimilar(input.fullCitation);
+    if (similar) return { error: "a matching citation is already in the bibliography" };
     const res = await insertBibliographyRow({
       fullCitation: input.fullCitation.trim(),
       topic: input.topic?.trim() || undefined,
@@ -201,6 +204,10 @@ export async function addFromSearchAction(
   await requireSession();
   try {
     if (!meta?.fullCitation?.trim()) return { error: "nothing to add" };
+    // fuzzy guard — Crossref formatting differs from our stored APA, so the exact
+    // citation_key dedupe would miss same-work duplicates.
+    const similar = await findSimilar(meta.fullCitation);
+    if (similar) return { error: "already in the library", reason: "duplicate" };
     const res = await insertBibliographyRow({
       fullCitation: meta.fullCitation,
       year: meta.year ?? null,

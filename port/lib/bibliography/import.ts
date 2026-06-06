@@ -136,6 +136,30 @@ export async function applyImport(plan: ImportPlan): Promise<{ tagged: number; i
   return { tagged, inserted };
 }
 
+// Dedup key for single-adds (DOI auto-fill / discovery), where a Crossref
+// citation differs from our stored APA in author-initial style, title case, and a
+// trailing DOI. Drop standalone initials, keep surname+year+title-start, ignore the
+// tail — so "Edmondson, A. C. (1999). Psychological Safety…" matches
+// "Edmondson, A. (1999). Psychological safety…".
+function dedupeKey(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/\b[a-z]\b/g, " ") // drop single-letter initials
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 60); // surname + year + title-start
+}
+
+/** Fuzzy-find an existing row that's the same work as `fullCitation`. */
+export async function findSimilar(
+  fullCitation: string,
+): Promise<{ id: string; fullCitation: string } | null> {
+  const key = dedupeKey(fullCitation);
+  if (key.length < 12) return null;
+  const rows = await getBibliographyRows();
+  const hit = rows.find((r) => dedupeKey(r.fullCitation) === key);
+  return hit ? { id: hit.id, fullCitation: hit.fullCitation } : null;
+}
+
 // ── in-text citations ────────────────────────────────────
 // For documents with NO reference list — extract inline cites and tag the
 // bibliography rows they point to. Tag-only: unmatched cites are listed, never
