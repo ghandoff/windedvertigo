@@ -39,6 +39,101 @@ export async function getBibliography(): Promise<BibliographyEntry[]> {
   return (data ?? []).map(mapRow);
 }
 
+// ── richer row shape for the /bibliography page (incl. used_in, source_type) ──
+
+export interface BibliographyRow {
+  id: string;
+  fullCitation: string;
+  abstract: string | null;
+  keywords: string | null;
+  notes: string | null;
+  topic: string | null;
+  sourceType: string | null;
+  year: number | null;
+  doi: string | null;
+  publisherLink: string | null;
+  scholarLink: string | null;
+  citationCount: number | null;
+  usedIn: string[];
+  createdAt: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapFullRow(r: any): BibliographyRow {
+  return {
+    id: r.id,
+    fullCitation: r.full_citation ?? "",
+    abstract: r.abstract ?? null,
+    keywords: r.keywords ?? null,
+    notes: r.notes ?? null,
+    topic: r.topic ?? null,
+    sourceType: r.source_type ?? null,
+    year: r.year ?? null,
+    doi: r.doi ?? null,
+    publisherLink: r.publisher_link ?? null,
+    scholarLink: r.scholar_link ?? null,
+    citationCount: r.citation_count ?? null,
+    usedIn: r.used_in ?? [],
+    createdAt: r.created_at,
+  };
+}
+
+export async function getBibliographyRows(): Promise<BibliographyRow[]> {
+  const { data, error } = await supabase
+    .from("bibliography")
+    .select("*")
+    .order("year", { ascending: false, nullsFirst: false })
+    .limit(2000);
+  if (error) throw error;
+  return (data ?? []).map(mapFullRow);
+}
+
+export async function updateBibliographyRow(
+  id: string,
+  fields: {
+    fullCitation?: string;
+    abstract?: string | null;
+    keywords?: string | null;
+    notes?: string | null;
+    topic?: string | null;
+    sourceType?: string | null;
+    year?: number | null;
+    doi?: string | null;
+    publisherLink?: string | null;
+    usedIn?: string[];
+  },
+): Promise<BibliographyRow> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const patch: Record<string, any> = { updated_at: new Date().toISOString() };
+  if (fields.fullCitation !== undefined) {
+    patch.full_citation = fields.fullCitation;
+    patch.citation_key = normCitation(fields.fullCitation);
+  }
+  if (fields.abstract !== undefined) patch.abstract = fields.abstract;
+  if (fields.keywords !== undefined) patch.keywords = fields.keywords;
+  if (fields.notes !== undefined) patch.notes = fields.notes;
+  if (fields.topic !== undefined) patch.topic = fields.topic;
+  if (fields.sourceType !== undefined) patch.source_type = fields.sourceType;
+  if (fields.year !== undefined) patch.year = fields.year;
+  if (fields.doi !== undefined) patch.doi = fields.doi;
+  if (fields.publisherLink !== undefined) patch.publisher_link = fields.publisherLink;
+  if (fields.usedIn !== undefined) patch.used_in = fields.usedIn;
+
+  const { data, error } = await supabase
+    .from("bibliography")
+    .update(patch)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return mapFullRow(data);
+}
+
+export async function deleteBibliographyRow(id: string): Promise<void> {
+  const { error } = await supabase.from("bibliography").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function countBibliography(): Promise<number> {
   const { count, error } = await supabase
     .from("bibliography")
@@ -60,6 +155,7 @@ export interface NewBibliographyRow {
   scholarLink?: string | null;
   citationCount?: number | null;
   notionPageId?: string | null;
+  usedIn?: string[];
 }
 
 /**
@@ -86,6 +182,7 @@ export async function insertBibliographyRow(
     scholar_link: entry.scholarLink ?? null,
     citation_count: entry.citationCount ?? null,
     notion_page_id: entry.notionPageId ?? null,
+    used_in: entry.usedIn ?? [],
   });
 
   if (error) {
