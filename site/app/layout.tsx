@@ -4,7 +4,8 @@ import Script from "next/script";
 import { TrackPageView } from "@/components/track-page-view";
 import { HelloBeacon } from "@/components/hello-beacon";
 import { AnimationProvider } from "@/lib/animation-context";
-import { SitStillButton } from "@/components/sit-still-button";
+import { AccessibilityProvider } from "@/lib/accessibility-context";
+import { AccessibilityWidget } from "@/components/accessibility-widget";
 import "./globals.css";
 
 const inter = Inter({
@@ -88,13 +89,15 @@ export default function RootLayout({
       </head>
       <body>
         <AnimationProvider>
-          <a href="#main-content" className="skip-link">
-            skip to main content
-          </a>
-          {children}
-          <HelloBeacon />
-          <SitStillButton />
-          <TrackPageView />
+          <AccessibilityProvider>
+            <a href="#main-content" className="skip-link">
+              skip to main content
+            </a>
+            {children}
+            <HelloBeacon />
+            <AccessibilityWidget />
+            <TrackPageView />
+          </AccessibilityProvider>
         </AnimationProvider>
       </body>
     </html>
