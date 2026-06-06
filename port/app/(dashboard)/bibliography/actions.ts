@@ -11,8 +11,14 @@ import {
   parseReferences,
   planImport,
   applyImport,
+  parseInTextCitations,
+  planInText,
+  applyInText,
+  findSimilar,
   type ImportPlan,
+  type InTextPlan,
 } from "@/lib/bibliography/import";
+import { fetchByDoi, searchWorks, type CrossrefMeta } from "@/lib/bibliography/crossref";
 
 async function requireSession() {
   const session = await auth();
@@ -33,6 +39,8 @@ export async function addCitationAction(input: {
   await requireSession();
   try {
     if (!input.fullCitation?.trim()) return { error: "a full citation is required" };
+    const similar = await findSimilar(input.fullCitation);
+    if (similar) return { error: "a matching citation is already in the bibliography" };
     const res = await insertBibliographyRow({
       fullCitation: input.fullCitation.trim(),
       topic: input.topic?.trim() || undefined,
@@ -110,6 +118,41 @@ export async function parseImportAction(
   }
 }
 
+/**
+ * Parse a document's IN-TEXT citations + plan which library rows they tag.
+ * Never writes — returns the review plan (matched / already-tagged / unresolved).
+ */
+export async function parseInTextAction(
+  text: string,
+  asset: string,
+): Promise<{ plan?: InTextPlan; error?: string }> {
+  await requireSession();
+  try {
+    if (!text?.trim()) return { error: "paste the text first" };
+    if (!asset?.trim()) return { error: "choose or name an asset to tag" };
+    const parsed = await parseInTextCitations(text);
+    if (parsed.length === 0) return { error: "no in-text citations found in that text" };
+    const plan = await planInText(parsed, asset.trim());
+    return { plan };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Apply a reviewed in-text plan: tag matched rows. Inserts nothing. */
+export async function applyInTextAction(
+  plan: InTextPlan,
+): Promise<{ tagged?: number; error?: string }> {
+  await requireSession();
+  try {
+    const res = await applyInText(plan);
+    revalidatePath("/bibliography");
+    return res;
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Apply a reviewed import plan: tag matched rows + insert new citations. */
 export async function applyImportAction(
   plan: ImportPlan,
@@ -119,6 +162,67 @@ export async function applyImportAction(
     const res = await applyImport(plan);
     revalidatePath("/bibliography");
     return res;
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Look up Crossref metadata for a DOI (auto-fill the add/edit form). No write. */
+export async function fetchDoiMetadataAction(
+  doi: string,
+): Promise<{ meta?: CrossrefMeta; error?: string }> {
+  await requireSession();
+  try {
+    if (!doi?.trim()) return { error: "enter a DOI first" };
+    const meta = await fetchByDoi(doi);
+    if (!meta) return { error: "no Crossref record for that DOI" };
+    return { meta };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Free-text scholarly search via Crossref (discovery). No write. */
+export async function searchScholarlyAction(
+  query: string,
+): Promise<{ results?: CrossrefMeta[]; error?: string }> {
+  await requireSession();
+  try {
+    if (!query?.trim()) return { error: "enter a search query" };
+    const results = await searchWorks(query, 10);
+    return { results };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Add a Crossref search result to the bibliography (dedupes on citation_key). */
+export async function addFromSearchAction(
+  meta: CrossrefMeta,
+  usedIn: string[] = [],
+): Promise<{ ok?: true; error?: string; reason?: string }> {
+  await requireSession();
+  try {
+    if (!meta?.fullCitation?.trim()) return { error: "nothing to add" };
+    // fuzzy guard — Crossref formatting differs from our stored APA, so the exact
+    // citation_key dedupe would miss same-work duplicates.
+    const similar = await findSimilar(meta.fullCitation);
+    if (similar) return { error: "already in the library", reason: "duplicate" };
+    const res = await insertBibliographyRow({
+      fullCitation: meta.fullCitation,
+      year: meta.year ?? null,
+      doi: meta.doiUrl || null,
+      sourceType: meta.sourceType ?? undefined,
+      abstract: meta.abstract ?? undefined,
+      publisherLink: meta.doiUrl || null,
+      citationCount: meta.citationCount ?? null,
+      usedIn,
+    });
+    if (!res.created) {
+      return { error: res.reason === "duplicate" ? "already in the library" : "couldn't add it", reason: res.reason };
+    }
+    revalidatePath("/bibliography");
+    return { ok: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

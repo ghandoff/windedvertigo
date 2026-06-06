@@ -7,7 +7,14 @@
 
 import { NextRequest } from "next/server";
 import { json, error } from "@/lib/api-helpers";
-import { parseReferences, planImport, applyImport } from "@/lib/bibliography/import";
+import {
+  parseReferences,
+  planImport,
+  applyImport,
+  parseInTextCitations,
+  planInText,
+  applyInText,
+} from "@/lib/bibliography/import";
 
 function verifyAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -18,11 +25,44 @@ export async function POST(req: NextRequest) {
   if (!verifyAuth(req)) return error("unauthorized", 401);
 
   try {
-    const body = (await req.json()) as { text?: string; asset?: string; apply?: boolean };
+    const body = (await req.json()) as {
+      text?: string;
+      asset?: string;
+      apply?: boolean;
+      mode?: "references" | "in-text";
+    };
     const text = body.text?.trim();
     const asset = body.asset?.trim();
     if (!text) return error("text is required", 400);
     if (!asset) return error("asset is required", 400);
+
+    // in-text mode: tag the rows inline cites point to; never insert.
+    if (body.mode === "in-text") {
+      const parsed = await parseInTextCitations(text);
+      const plan = await planInText(parsed, asset);
+      if (!body.apply) {
+        return json({
+          applied: false,
+          mode: "in-text",
+          asset,
+          parsed: parsed.length,
+          matched: plan.matched.length,
+          already_tagged: plan.alreadyTagged.length,
+          unresolved: plan.unresolved.length,
+          plan,
+        });
+      }
+      const res = await applyInText(plan);
+      return json({
+        applied: true,
+        mode: "in-text",
+        asset,
+        parsed: parsed.length,
+        tagged: res.tagged,
+        already_tagged: plan.alreadyTagged.length,
+        unresolved: plan.unresolved.length,
+      });
+    }
 
     const parsed = await parseReferences(text);
     const plan = await planImport(parsed, asset);
@@ -30,6 +70,7 @@ export async function POST(req: NextRequest) {
     if (!body.apply) {
       return json({
         applied: false,
+        mode: "references",
         asset,
         parsed: parsed.length,
         matched: plan.matched.length,
@@ -42,6 +83,7 @@ export async function POST(req: NextRequest) {
     const res = await applyImport(plan);
     return json({
       applied: true,
+      mode: "references",
       asset,
       parsed: parsed.length,
       tagged: res.tagged,
