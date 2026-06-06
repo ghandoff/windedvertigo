@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "site-static",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "python3 -m http.server 3010 --directory /Users/garrettjaeger/Projects/windedvertigo/site/public"],
+      "port": 3010
     }
   ]
 }
