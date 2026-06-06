@@ -10,6 +10,8 @@ import type { BibliographyRow } from "@/lib/supabase/bibliography";
 import { UsedInEditor } from "./used-in-editor";
 import { CitationDialog } from "./citation-dialog";
 import { ImportDialog } from "./import-dialog";
+import { DiscoverDialog } from "./discover-dialog";
+import { CitationDetail } from "./citation-detail";
 import { deleteCitationAction } from "../actions";
 
 export function BibliographyTable({
@@ -27,6 +29,8 @@ export function BibliographyTable({
   const [topic, setTopic] = useState<string>("all");
   const [editing, setEditing] = useState<BibliographyRow | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [detailRow, setDetailRow] = useState<BibliographyRow | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [, startTransition] = useTransition();
 
   const q = search.trim().toLowerCase();
@@ -55,6 +59,7 @@ export function BibliographyTable({
       <div className="flex items-center gap-3 flex-wrap">
         <CitationDialog allAssets={assets} />
         <ImportDialog allAssets={assets} />
+        <DiscoverDialog allAssets={assets} />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -97,7 +102,14 @@ export function BibliographyTable({
           <Card key={r.id} className="hover:shadow-sm transition-shadow">
             <CardContent className="py-3 space-y-2">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm leading-snug">{r.fullCitation}</p>
+                <button
+                  type="button"
+                  onClick={() => { setDetailRow(r); setDetailOpen(true); }}
+                  className="text-sm leading-snug text-left hover:underline decoration-dotted underline-offset-2"
+                  title="view details"
+                >
+                  {r.fullCitation}
+                </button>
                 <div className="flex items-center gap-1 shrink-0">
                   {r.doi && (
                     <a href={r.doi} target="_blank" rel="noreferrer" className="text-muted-foreground/60 hover:text-foreground" title="open source">
@@ -129,6 +141,12 @@ export function BibliographyTable({
       </div>
 
       <CitationDialog existing={editing ?? undefined} open={editOpen} onOpenChange={setEditOpen} allAssets={assets} />
+      <CitationDetail
+        row={detailRow}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onEdit={(r) => { setEditing(r); setEditOpen(true); }}
+      />
     </div>
   );
 }

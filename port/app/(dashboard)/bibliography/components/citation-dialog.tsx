@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { BibliographyRow } from "@/lib/supabase/bibliography";
-import { addCitationAction, updateCitationAction } from "../actions";
+import { addCitationAction, updateCitationAction, fetchDoiMetadataAction } from "../actions";
 import { AssetPicker } from "./asset-picker";
 
 // Add (trigger + own state) or edit (controlled, `existing` provided) a citation.
@@ -46,6 +46,28 @@ export function CitationDialog({
   const [usedIn, setUsedIn] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [fetching, setFetching] = useState(false);
+  const [doiNote, setDoiNote] = useState<string | null>(null);
+
+  async function fetchFromDoi() {
+    if (!doi.trim() || fetching) return;
+    setDoiNote(null);
+    setError(null);
+    setFetching(true);
+    const res = await fetchDoiMetadataAction(doi);
+    setFetching(false);
+    if (res.error || !res.meta) {
+      setDoiNote(res.error ?? "no record found");
+      return;
+    }
+    const m = res.meta;
+    setFullCitation(m.fullCitation);
+    if (m.year != null) setYear(String(m.year));
+    if (m.sourceType) setSourceType(m.sourceType);
+    if (m.abstract) setAbstract(m.abstract);
+    if (m.doiUrl) setDoi(m.doiUrl);
+    setDoiNote("filled from Crossref — review, then save.");
+  }
 
   useEffect(() => {
     if (existing) {
@@ -126,7 +148,14 @@ export function CitationDialog({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="bib-doi">DOI / link</Label>
-          <Input id="bib-doi" value={doi} onChange={(e) => setDoi(e.target.value)} placeholder="https://doi.org/…" />
+          <div className="flex gap-1.5">
+            <Input id="bib-doi" value={doi} onChange={(e) => { setDoi(e.target.value); setDoiNote(null); }} placeholder="10.1080/… or https://doi.org/…" />
+            <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1" onClick={fetchFromDoi} disabled={fetching || !doi.trim()} title="auto-fill from Crossref">
+              {fetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              fetch
+            </Button>
+          </div>
+          {doiNote && <p className="text-[11px] text-muted-foreground">{doiNote}</p>}
         </div>
       </div>
       <div className="space-y-1.5">
