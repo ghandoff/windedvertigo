@@ -37,7 +37,7 @@ export async function search({ query, limit = 8, signal }: ProviderSearchArgs): 
     headers: { "User-Agent": POLITE_UA, Accept: "application/json" },
   });
   if (!res.ok) {
-    if (res.status === 429) return [];
+    if (res.status === 429) throw new Error("rate-limited");
     throw new Error(`Crossref ${res.status}`);
   }
   const json = (await res.json()) as { message?: { items?: CrossrefWork[] } };

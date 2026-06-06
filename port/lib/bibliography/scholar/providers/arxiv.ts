@@ -14,7 +14,7 @@ export async function search({ query, limit = 8, signal }: ProviderSearchArgs): 
   });
   const res = await fetch(`${ENDPOINT}?${params}`, { signal, headers: { "User-Agent": POLITE_UA } });
   if (!res.ok) {
-    if (res.status === 429) return [];
+    if (res.status === 429) throw new Error("rate-limited");
     throw new Error(`arXiv ${res.status}`);
   }
   const xml = await res.text();

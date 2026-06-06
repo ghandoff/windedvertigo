@@ -1,7 +1,7 @@
 /** OpenAlex search provider — ~250M works, all disciplines, incl. preprints + OA links. */
 
 import type { ProviderSearchArgs, ScholarHit } from "../types";
-import { CONTACT_EMAIL, authorName, cleanText, mapType, normalizeDoi, reconstructAbstract } from "../format";
+import { CONTACT_EMAIL, POLITE_UA, authorName, cleanText, mapType, normalizeDoi, reconstructAbstract } from "../format";
 
 const BASE = "https://api.openalex.org/works";
 
@@ -28,9 +28,12 @@ export async function search({ query, limit = 8, signal }: ProviderSearchArgs): 
     per_page: String(Math.min(Math.max(limit, 1), 25)),
     mailto: CONTACT_EMAIL,
   });
-  const res = await fetch(`${BASE}?${params}`, { signal, headers: { Accept: "application/json" } });
+  const res = await fetch(`${BASE}?${params}`, {
+    signal,
+    headers: { Accept: "application/json", "User-Agent": POLITE_UA },
+  });
   if (!res.ok) {
-    if (res.status === 429) return [];
+    if (res.status === 429) throw new Error("rate-limited");
     throw new Error(`OpenAlex ${res.status}`);
   }
   const json = (await res.json()) as { results?: OpenAlexWork[] };

@@ -110,10 +110,10 @@ export function DiscoverDialog({ allAssets }: { allAssets: string[] }) {
             <AssetPicker value={assets} allAssets={allAssets} onChange={setAssets} />
           </div>
 
-          {/* provider stats */}
+          {/* provider stats — count, or ⚠ when a source was rate-limited/errored */}
           {providers.length > 0 && (
             <p className="text-[10px] text-muted-foreground">
-              {providers.map((p) => `${p.id} ${p.error ? "—" : p.count}`).join(" · ")}
+              {providers.map((p) => `${p.id} ${p.error === "rate-limited" ? "⚠ limited" : p.error ? "⚠" : p.count}`).join(" · ")}
             </p>
           )}
 

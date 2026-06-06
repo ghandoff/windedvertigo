@@ -33,7 +33,7 @@ export async function search({ query, limit = 8, signal }: ProviderSearchArgs): 
     body: JSON.stringify({ q, limit: Math.min(Math.max(limit, 1), 20) }),
   });
   if (!res.ok) {
-    if (res.status === 429) return [];
+    if (res.status === 429) throw new Error("rate-limited");
     throw new Error(`CORE ${res.status}`);
   }
   const json = (await res.json()) as { results?: CoreWork[] };

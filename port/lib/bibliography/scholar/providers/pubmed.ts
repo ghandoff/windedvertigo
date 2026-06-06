@@ -36,7 +36,7 @@ export async function search({ query, limit = 8, signal }: ProviderSearchArgs): 
   es.searchParams.set("retmode", "json");
   const sr = await fetch(es.toString(), { signal });
   if (!sr.ok) {
-    if (sr.status === 429) return [];
+    if (sr.status === 429) throw new Error("rate-limited");
     throw new Error(`PubMed esearch ${sr.status}`);
   }
   const ids: string[] = (await sr.json())?.esearchresult?.idlist ?? [];
@@ -49,7 +49,7 @@ export async function search({ query, limit = 8, signal }: ProviderSearchArgs): 
   sum.searchParams.set("retmode", "json");
   const mr = await fetch(sum.toString(), { signal });
   if (!mr.ok) {
-    if (mr.status === 429) return [];
+    if (mr.status === 429) throw new Error("rate-limited");
     throw new Error(`PubMed esummary ${mr.status}`);
   }
   const result = (await mr.json())?.result ?? {};

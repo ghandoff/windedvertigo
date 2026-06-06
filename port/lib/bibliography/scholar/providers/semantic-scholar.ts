@@ -33,7 +33,7 @@ export async function search({ query, limit = 8, signal }: ProviderSearchArgs): 
 
   const res = await fetch(u.toString(), { headers, signal });
   if (!res.ok) {
-    if (res.status === 429) return []; // rate-limited — degrade, let the others ship
+    if (res.status === 429) throw new Error("rate-limited"); // isolated; the others still ship
     throw new Error(`Semantic Scholar ${res.status}`);
   }
   const json = (await res.json()) as { data?: S2Paper[] };
