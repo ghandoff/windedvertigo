@@ -7,6 +7,12 @@ import {
   updateBibliographyRow,
   deleteBibliographyRow,
 } from "@/lib/supabase/bibliography";
+import {
+  parseReferences,
+  planImport,
+  applyImport,
+  type ImportPlan,
+} from "@/lib/bibliography/import";
 
 async function requireSession() {
   const session = await auth();
@@ -70,6 +76,7 @@ export async function updateCitationAction(
     doi?: string | null;
     abstract?: string | null;
     notes?: string | null;
+    usedIn?: string[];
   },
 ): Promise<{ ok?: true; error?: string }> {
   await requireSession();
@@ -77,6 +84,41 @@ export async function updateCitationAction(
     await updateBibliographyRow(id, fields);
     revalidatePath("/bibliography");
     return { ok: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Parse a pasted reference list + plan how it maps onto the bibliography.
+ * Never writes — returns the review plan (matched / new / already-tagged).
+ */
+export async function parseImportAction(
+  text: string,
+  asset: string,
+): Promise<{ plan?: ImportPlan; error?: string }> {
+  await requireSession();
+  try {
+    if (!text?.trim()) return { error: "paste a reference list first" };
+    if (!asset?.trim()) return { error: "choose or name an asset to tag" };
+    const parsed = await parseReferences(text);
+    if (parsed.length === 0) return { error: "no citations found in that text" };
+    const plan = await planImport(parsed, asset.trim());
+    return { plan };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Apply a reviewed import plan: tag matched rows + insert new citations. */
+export async function applyImportAction(
+  plan: ImportPlan,
+): Promise<{ tagged?: number; inserted?: number; error?: string }> {
+  await requireSession();
+  try {
+    const res = await applyImport(plan);
+    revalidatePath("/bibliography");
+    return res;
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }

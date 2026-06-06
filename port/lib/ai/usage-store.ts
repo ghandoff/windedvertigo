@@ -74,7 +74,7 @@ export async function getUsageSummary(
     "org-enrichment", "rfp-triage", "proposal-generation",
     "rfp-document-extraction", "rfp-question-parse", "citation-matching",
     "task-generation", "meeting-actions", "weekly-digest", "conference-triage",
-    "carl-study", "carl-research",
+    "carl-study", "carl-research", "bibliography-import",
   ];
 
   const byFeature = {} as UsageSummary["byFeature"];
@@ -196,6 +196,7 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "conference-triage":      summary.byFeature["conference-triage"]?.costUsd      ?? 0,
     "carl-study":             summary.byFeature["carl-study"]?.costUsd             ?? 0,
     "carl-research":          summary.byFeature["carl-research"]?.costUsd          ?? 0,
+    "bibliography-import":    summary.byFeature["bibliography-import"]?.costUsd     ?? 0,
   };
 
   // Estimate Notion API calls: ~3 per AI request (fetch context)

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import type { BibliographyRow } from "@/lib/supabase/bibliography";
 import { UsedInEditor } from "./used-in-editor";
 import { CitationDialog } from "./citation-dialog";
+import { ImportDialog } from "./import-dialog";
 import { deleteCitationAction } from "../actions";
 
 export function BibliographyTable({
@@ -50,15 +51,10 @@ export function BibliographyTable({
 
   return (
     <div className="space-y-4">
-      <datalist id="bib-assets">
-        {assets.map((a) => (
-          <option key={a} value={a} />
-        ))}
-      </datalist>
-
       {/* toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
-        <CitationDialog />
+        <CitationDialog allAssets={assets} />
+        <ImportDialog allAssets={assets} />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -122,7 +118,7 @@ export function BibliographyTable({
                 {r.year && <span className="text-[10px] text-muted-foreground tabular-nums">{r.year}</span>}
                 <span className="text-[10px] text-muted-foreground mx-1">·</span>
                 <span className="text-[10px] text-muted-foreground">used in:</span>
-                <UsedInEditor id={r.id} usedIn={r.usedIn ?? []} />
+                <UsedInEditor id={r.id} usedIn={r.usedIn ?? []} allAssets={assets} />
               </div>
             </CardContent>
           </Card>
@@ -132,7 +128,7 @@ export function BibliographyTable({
         )}
       </div>
 
-      <CitationDialog existing={editing ?? undefined} open={editOpen} onOpenChange={setEditOpen} />
+      <CitationDialog existing={editing ?? undefined} open={editOpen} onOpenChange={setEditOpen} allAssets={assets} />
     </div>
   );
 }
