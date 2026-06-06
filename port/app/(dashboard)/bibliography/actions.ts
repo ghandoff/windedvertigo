@@ -18,7 +18,9 @@ import {
   type ImportPlan,
   type InTextPlan,
 } from "@/lib/bibliography/import";
-import { fetchByDoi, searchWorks, type CrossrefMeta } from "@/lib/bibliography/crossref";
+import { fetchByDoi, type CrossrefMeta } from "@/lib/bibliography/crossref";
+import { searchScholar } from "@/lib/bibliography/scholar";
+import type { ScholarHit, ProviderStat } from "@/lib/bibliography/scholar/types";
 
 async function requireSession() {
   const session = await auth();
@@ -182,40 +184,42 @@ export async function fetchDoiMetadataAction(
   }
 }
 
-/** Free-text scholarly search via Crossref (discovery). No write. */
+/** Federated scholarly search across all providers (discovery). No write. */
 export async function searchScholarlyAction(
   query: string,
-): Promise<{ results?: CrossrefMeta[]; error?: string }> {
+): Promise<{ hits?: ScholarHit[]; providers?: ProviderStat[]; error?: string }> {
   await requireSession();
   try {
     if (!query?.trim()) return { error: "enter a search query" };
-    const results = await searchWorks(query, 10);
-    return { results };
+    const { hits, providers } = await searchScholar(query);
+    return { hits, providers };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
 }
 
-/** Add a Crossref search result to the bibliography (dedupes on citation_key). */
+/** Add a federated search result to the bibliography (dedupes on citation_key). */
 export async function addFromSearchAction(
-  meta: CrossrefMeta,
+  hit: ScholarHit,
   usedIn: string[] = [],
 ): Promise<{ ok?: true; error?: string; reason?: string }> {
   await requireSession();
   try {
-    if (!meta?.fullCitation?.trim()) return { error: "nothing to add" };
-    // fuzzy guard — Crossref formatting differs from our stored APA, so the exact
+    const fullCitation = hit?.fullCitation?.trim();
+    if (!fullCitation) return { error: "nothing to add" };
+    // fuzzy guard — provider formatting differs from our stored APA, so the exact
     // citation_key dedupe would miss same-work duplicates.
-    const similar = await findSimilar(meta.fullCitation);
+    const similar = await findSimilar(fullCitation);
     if (similar) return { error: "already in the library", reason: "duplicate" };
+    const doiUrl = hit.doi ? `https://doi.org/${hit.doi}` : hit.url || null;
     const res = await insertBibliographyRow({
-      fullCitation: meta.fullCitation,
-      year: meta.year ?? null,
-      doi: meta.doiUrl || null,
-      sourceType: meta.sourceType ?? undefined,
-      abstract: meta.abstract ?? undefined,
-      publisherLink: meta.doiUrl || null,
-      citationCount: meta.citationCount ?? null,
+      fullCitation,
+      year: hit.year ?? null,
+      doi: doiUrl,
+      sourceType: hit.sourceType ?? undefined,
+      abstract: hit.abstract ?? undefined,
+      publisherLink: doiUrl,
+      citationCount: hit.citationCount ?? null,
       usedIn,
     });
     if (!res.created) {
