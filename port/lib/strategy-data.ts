@@ -1343,6 +1343,100 @@ export function deriveRevenueTiers(
   };
 }
 
+// ── deal update entry points (no UI yet — document the pattern) ────────────
+//
+// Three ways a deal record gets updated in Supabase:
+//
+// 1. Verbal / conversation stage
+//    → direct entry via the Supabase dashboard, or a future admin route in port.
+//    → set revenue_tier, origin_type, estimated value.
+//
+// 2. Contract signed
+//    → update stage → 'won', set contracted_amount, set revenue_tier = 'signed'.
+//    → insert a deal_events row: event_type 'contract_signed',
+//      new_value { contracted_amount, effective_date }.
+//
+// 3. Payment received
+//    → update received_amount to match the QBO invoice paid amount.
+//    → insert a deal_events row: event_type 'payment_received',
+//      new_value { received_amount, payment_date, invoice_ref }.
+//
+// The deal_events table gives a full audit trail for the CMO dashboard.
+// Future: wire a PATCH /api/deals/[id]/events route that records these
+// programmatically as the CMO updates status via the strategy page.
+
+// ── live revenue summary (Task 4) ──────────────────────────────────────────
+
+/** Aggregated revenue summary from Supabase — origin-type and tier breakdown.
+ * Distinct from RevenueProgressInput (which drives the hero bar) — this is
+ * the CMO-level summary: how much is contracted vs received, and where did
+ * the pipeline come from. */
+export interface RevenueProgress {
+  /** Sum of contracted_amount across all revenue-pipeline deals. */
+  totalContracted: number;
+  /** Sum of received_amount (cash already in) across all revenue-pipeline deals. */
+  totalReceived: number;
+  /** Contracted amount broken down by sourcing channel. */
+  byOriginType: {
+    rfp: number;
+    warm_outreach: number;
+    legacy: number;
+    product: number;
+  };
+  /** Contracted amount broken down by revenue tier (signed / advanced / negotiation / open). */
+  byRevenueTier: Record<string, number>;
+}
+
+/**
+ * Fetch live revenue aggregates from Supabase.
+ *
+ * Queries all revenue-pipeline deals (revenue_tier IS NOT NULL, stage != 'lost')
+ * and returns the totals and breakdowns the CMO needs.
+ *
+ * Falls back gracefully — the caller should wrap with `.catch(() => fallback)`.
+ */
+export async function getRevenueProgress(): Promise<RevenueProgress> {
+  // Dynamic import keeps this module importable in non-server contexts at
+  // build time (the Proxy throws only on first method call, not on import).
+  const { supabase } = await import("@/lib/supabase/client");
+
+  const { data, error } = await supabase
+    .from("deals")
+    .select("contracted_amount, received_amount, origin_type, revenue_tier")
+    .not("revenue_tier", "is", null)
+    .neq("stage", "lost");
+
+  if (error) throw new Error(`[strategy-data] getRevenueProgress: ${error.message}`);
+
+  const rows = (data ?? []) as Array<{
+    contracted_amount: number | null;
+    received_amount: number | null;
+    origin_type: string | null;
+    revenue_tier: string | null;
+  }>;
+
+  const byOriginType = { rfp: 0, warm_outreach: 0, legacy: 0, product: 0 };
+  const byRevenueTier: Record<string, number> = {};
+  let totalContracted = 0;
+  let totalReceived = 0;
+
+  for (const row of rows) {
+    const contracted = row.contracted_amount ?? 0;
+    const received = row.received_amount ?? 0;
+    if (row.contracted_amount !== null) totalContracted += contracted;
+    if (received > 0) totalReceived += received;
+
+    if (row.origin_type && row.origin_type in byOriginType) {
+      byOriginType[row.origin_type as keyof typeof byOriginType] += contracted;
+    }
+
+    const tier = row.revenue_tier ?? "unset";
+    byRevenueTier[tier] = (byRevenueTier[tier] ?? 0) + contracted;
+  }
+
+  return { totalContracted, totalReceived, byOriginType, byRevenueTier };
+}
+
 /**
  * Match a strategic campaign against existing CRM campaigns.
  * Returns an array of CRM campaigns whose name fuzzy-matches any keyword.

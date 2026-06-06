@@ -27,7 +27,7 @@ import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { getStrategyTimelines } from "@/lib/supabase/strategy-timelines";
 import { getStrategyDistribution } from "@/lib/supabase/strategy-distribution";
 import { fetchRevenueProgress } from "@/lib/marketing/revenue-progress";
-import { CAMPAIGN_TIMELINES, DISTRIBUTION, REVENUE_PROGRESS } from "@/lib/strategy-data";
+import { CAMPAIGN_TIMELINES, DISTRIBUTION, REVENUE_PROGRESS, getRevenueProgress } from "@/lib/strategy-data";
 import { StrategyHero } from "./components/strategy-hero";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
 import { DocentWelcomeBanner } from "@/app/components/docent-welcome-banner";
@@ -67,7 +67,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress, moDecisions] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress, moDecisions, revenueSummary] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -93,6 +93,9 @@ export default async function StrategyPage({
     fetchRevenueProgress().catch(() => REVENUE_PROGRESS),
     // Mo's conversation log — last 90 days.
     getCmoDecisions({ days: 90 }).catch(() => []),
+    // Aggregated revenue summary (origin_type + tier breakdown) for the pipeline tab.
+    // Feeds data from the phase-3 origin_type column; gracefully returns null on error.
+    getRevenueProgress().catch(() => null),
   ]);
   const pmProjects = pmProjectsResult.data;
   const crmCampaigns = allCampaigns.map((c) => ({
@@ -127,7 +130,7 @@ export default async function StrategyPage({
       {activeTab === "channels" && <ChannelsTab />}
       {activeTab === "audience" && <AudienceTab />}
       {activeTab === "pipeline" && (
-        <PipelineTab stats={stats} pipelineProgress={pipelineProgress} rfpAnalytics={rfpAnalytics} livePipeline={livePipeline} />
+        <PipelineTab stats={stats} pipelineProgress={pipelineProgress} rfpAnalytics={rfpAnalytics} livePipeline={livePipeline} revenueSummary={revenueSummary} />
       )}
       {activeTab === "distribution" && (
         <DistributionTab memberFilter={memberFilter} items={liveDistribution} pmProjects={pmProjects} />

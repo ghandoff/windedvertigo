@@ -25,6 +25,7 @@ import {
   fmt,
   pct,
   probabilityClass,
+  type RevenueProgress,
 } from "@/lib/strategy-data";
 import { PipelineFunnel, type PipelineProgressOverrides } from "./pipeline-funnel";
 import { ClickableKpiCard } from "./kpi-source-modal";
@@ -69,9 +70,19 @@ export interface PipelineTabProps {
   rfpAnalytics?: RfpAnalytics | null;
   /** Live active pipeline rows from RFP Lighthouse. Empty array = use static fallback. */
   livePipeline?: LivePipelineRow[];
+  /** Aggregated revenue summary (origin_type + tier breakdown) from Supabase.
+   *  Null if the phase-3 migration hasn't run yet or the fetch failed. */
+  revenueSummary?: RevenueProgress | null;
 }
 
-export function PipelineTab({ stats, pipelineProgress, rfpAnalytics, livePipeline }: PipelineTabProps) {
+const ORIGIN_LABELS: Record<string, string> = {
+  rfp: "rfp / procurement",
+  warm_outreach: "warm outreach",
+  legacy: "legacy client",
+  product: "product",
+};
+
+export function PipelineTab({ stats, pipelineProgress, rfpAnalytics, livePipeline, revenueSummary }: PipelineTabProps) {
   const subscribersTarget = 2000;
   const followersTarget = 5000;
   const campaignActivityTarget = 100;
@@ -141,6 +152,41 @@ export function PipelineTab({ stats, pipelineProgress, rfpAnalytics, livePipelin
       <div className="flex justify-end">
         <SyncNowButton lastSyncedAt={stats?.generatedAt ?? null} />
       </div>
+
+      {/* revenue origin-type breakdown (live from Supabase phase-3) */}
+      {revenueSummary && revenueSummary.totalContracted > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-[#273248]">revenue by origin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3 mb-3">
+              <div className="text-sm">
+                <span className="text-muted-foreground">contracted </span>
+                <span className="font-semibold text-[#273248]">${fmt(revenueSummary.totalContracted)}</span>
+              </div>
+              <div className="text-sm">
+                <span className="text-muted-foreground">received </span>
+                <span className="font-semibold text-[#43b187]">${fmt(revenueSummary.totalReceived)}</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(revenueSummary.byOriginType)
+                .filter(([, v]) => v > 0)
+                .sort(([, a], [, b]) => b - a)
+                .map(([key, val]) => (
+                  <span
+                    key={key}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[#273248]/20 bg-[#273248]/5 px-3 py-1 text-xs text-[#273248]"
+                  >
+                    <span className="font-medium">{ORIGIN_LABELS[key] ?? key}</span>
+                    <span className="text-muted-foreground">${fmt(val)}</span>
+                  </span>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* funnel */}
       <Card>

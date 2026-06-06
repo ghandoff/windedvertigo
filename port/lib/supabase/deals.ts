@@ -22,6 +22,8 @@ interface DealRow {
   revenue_tier: string | null;
   received_amount: number | null;
   contracted_amount: number | null;
+  // Sourcing taxonomy (added 2026-06-07 phase-3 migration)
+  origin_type: string | null;
 }
 
 function mapRowToDeal(row: DealRow): Deal {
@@ -50,7 +52,7 @@ function mapRowToDeal(row: DealRow): Deal {
 }
 
 const SELECT_COLS =
-  "notion_page_id, deal, stage, value, org_ids, rfp_ids, notes, loss_reason, revenue_tier, received_amount, contracted_amount";
+  "notion_page_id, deal, stage, value, org_ids, rfp_ids, notes, loss_reason, revenue_tier, received_amount, contracted_amount, origin_type";
 
 export async function getDealsFromSupabase(
   stage?: DealStage,
