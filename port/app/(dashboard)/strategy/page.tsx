@@ -41,6 +41,7 @@ import { TimelineTab } from "./components/timeline-tab";
 import { CompetitorsTab } from "./components/competitors-tab";
 import { MoLogTab } from "./components/mo-log-tab";
 import { getCmoDecisions } from "@/lib/supabase/cmo";
+import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
 
 const TABS: readonly TabDef[] = [
   { key: "strategy", label: "strategy" },
@@ -105,6 +106,7 @@ export default async function StrategyPage({
   }));
 
   return (
+    <AgentPageWithChat agentId="mo">
     <div className="space-y-6">
       <PageHeader
         title="strategy"
@@ -150,5 +152,6 @@ export default async function StrategyPage({
         <p>data source: .brain/memory/marketing/ · live KPIs from supabase + social-stats</p>
       </div>
     </div>
+    </AgentPageWithChat>
   );
 }

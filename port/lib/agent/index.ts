@@ -44,7 +44,7 @@ const DAILY_BUDGET_USD = parseFloat(process.env.WV_CLAW_DAILY_BUDGET_USD ?? "5")
 const HIGH_COST_TURN_THRESHOLD_USD = 0.10;
 
 const MAX_AGENT_TURNS = 5;
-const AGENT_TIMEOUT_MS = 20_000;
+const AGENT_TIMEOUT_MS = 30_000;
 const MODEL_ID: ModelId = "claude-sonnet-4-6";
 
 // `new Anthropic()` reads ANTHROPIC_API_KEY + ANTHROPIC_BASE_URL env vars,

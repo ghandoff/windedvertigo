@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { json, error, param } from "@/lib/api-helpers";
-import { getCurriculum, updateCurriculumTopic } from "@/lib/supabase/carl-curriculum";
+import { getCurriculum, updateCurriculumTopic, insertCarlCurriculumTopic } from "@/lib/supabase/carl-curriculum";
 
 function verifyAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -19,6 +19,31 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error("[api/carl/curriculum] GET failed:", err);
     return error("failed to load curriculum", 500);
+  }
+}
+
+export async function POST(req: NextRequest) {
+  if (!verifyAuth(req)) return error("unauthorized", 401);
+
+  const body = await req.json().catch(() => null);
+  if (!body) return error("request body is required");
+
+  const { domain, topic, key_works, priority, notes } = body;
+  if (!domain || typeof domain !== "string") return error("domain is required");
+  if (!topic || typeof topic !== "string") return error("topic is required");
+
+  try {
+    const result = await insertCarlCurriculumTopic({
+      domain: domain.trim().toLowerCase(),
+      topic: topic.trim(),
+      key_works: Array.isArray(key_works) ? key_works : [],
+      priority: typeof priority === "number" ? priority : 2,
+      notes: typeof notes === "string" ? notes : undefined,
+    });
+    return json(result, 201);
+  } catch (err) {
+    console.error("[api/carl/curriculum] POST failed:", err);
+    return error("failed to create curriculum topic", 500);
   }
 }
 

@@ -6,6 +6,13 @@
  * Reads SSE from /api/chat and appends text chunks to the current
  * assistant message in real time. Tool calls happen server-side and
  * are invisible to the user; only the final text response streams in.
+ *
+ * Thread persistence: threadId is stored in localStorage keyed by agent
+ * (wv-chat-thread-{agentId}). On mount, existing history is loaded from
+ * /api/chat via GET so conversations survive tab switches and page reloads.
+ *
+ * compact mode: hides the agent-switcher header (used when embedded in
+ * a dashboard where the agent is fixed to the page).
  */
 
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -26,45 +33,94 @@ const AGENT_META: Record<
   mo: {
     label: "Mo",
     role: "chief marketing officer",
-    colour: "bg-[oklch(0.26_0.04_250)]", // cadet
+    colour: "bg-[oklch(0.26_0.04_250)]",
   },
   pam: {
     label: "PaM",
     role: "project & momentum manager",
-    colour: "bg-[oklch(0.50_0.12_30)]", // sienna-ish
+    colour: "bg-[oklch(0.50_0.12_30)]",
   },
   carl: {
     label: "cARL",
     role: "research & learning",
-    colour: "bg-[oklch(0.40_0.10_200)]", // teal-ish
+    colour: "bg-[oklch(0.40_0.10_200)]",
   },
 };
 
-function generateThreadId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+function storageKey(agentId: string) {
+  return `wv-chat-thread-${agentId}`;
+}
+
+function loadOrCreateThreadId(agentId: string): string {
+  if (typeof window === "undefined") return `${Date.now()}-init`;
+  const stored = localStorage.getItem(storageKey(agentId));
+  if (stored) return stored;
+  const fresh = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  localStorage.setItem(storageKey(agentId), fresh);
+  return fresh;
 }
 
 interface AgentChatProps {
   initialAgent: Exclude<AgentId, "port">;
   userName: string;
+  /** When true, hides the agent-switcher header row. Use when embedded in a
+   *  dashboard where the agent is fixed by the page context. */
+  compact?: boolean;
+  className?: string;
 }
 
-export function AgentChat({ initialAgent, userName }: AgentChatProps) {
+export function AgentChat({
+  initialAgent,
+  userName,
+  compact = false,
+  className = "",
+}: AgentChatProps) {
   const [agent, setAgent] = useState<Exclude<AgentId, "port">>(initialAgent);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const threadIdRef = useRef<string>(generateThreadId());
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Stable per-agent threadId, persisted in localStorage.
+  const [threadId, setThreadId] = useState<string>("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Reset thread when switching agents so context doesn't bleed.
+  // Initialise threadId from localStorage after mount (avoids SSR mismatch).
+  useEffect(() => {
+    setThreadId(loadOrCreateThreadId(agent));
+  }, [agent]);
+
+  // Load conversation history whenever threadId resolves or agent switches.
+  useEffect(() => {
+    if (!threadId) return;
+    let cancelled = false;
+    setIsLoadingHistory(true);
+    fetch(`/api/chat?agent=${agent}&threadId=${encodeURIComponent(threadId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return;
+        if (data?.messages?.length) {
+          setMessages(
+            (data.messages as { role: MessageRole; content: string }[]).map(
+              (m) => ({ role: m.role, content: m.content }),
+            ),
+          );
+        }
+      })
+      .catch(() => {/* fail-open */})
+      .finally(() => {
+        if (!cancelled) setIsLoadingHistory(false);
+      });
+    return () => { cancelled = true; };
+  }, [threadId, agent]);
+
+  // Reset state when switching agents.
   const switchAgent = useCallback((next: Exclude<AgentId, "port">) => {
     if (abortRef.current) abortRef.current.abort();
     setAgent(next);
     setMessages([]);
-    threadIdRef.current = generateThreadId();
     setInput("");
   }, []);
 
@@ -75,13 +131,11 @@ export function AgentChat({ initialAgent, userName }: AgentChatProps) {
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
-    if (!text || isLoading) return;
+    if (!text || isLoading || !threadId) return;
 
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setIsLoading(true);
-
-    // Add a streaming placeholder for the assistant reply.
     setMessages((prev) => [
       ...prev,
       { role: "assistant", content: "", streaming: true },
@@ -93,11 +147,7 @@ export function AgentChat({ initialAgent, userName }: AgentChatProps) {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agent,
-          message: text,
-          threadId: threadIdRef.current,
-        }),
+        body: JSON.stringify({ agent, message: text, threadId }),
         signal: abortRef.current.signal,
       });
 
@@ -129,18 +179,14 @@ export function AgentChat({ initialAgent, userName }: AgentChatProps) {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
+        for (const line of chunk.split("\n")) {
           if (!line.startsWith("data: ")) continue;
           const data = line.slice(6).trim();
           if (data === "[DONE]") break;
-
           try {
             const parsed = JSON.parse(data) as { text?: string };
             if (parsed.text) {
               accumulated += parsed.text;
-              // Update the streaming message in place.
               setMessages((prev) => {
                 const next = [...prev];
                 const last = next[next.length - 1];
@@ -160,13 +206,10 @@ export function AgentChat({ initialAgent, userName }: AgentChatProps) {
         }
       }
 
-      // Mark streaming done.
       setMessages((prev) => {
         const next = [...prev];
         const last = next[next.length - 1];
-        if (last?.streaming) {
-          next[next.length - 1] = { ...last, streaming: false };
-        }
+        if (last?.streaming) next[next.length - 1] = { ...last, streaming: false };
         return next;
       });
     } catch (err) {
@@ -187,7 +230,7 @@ export function AgentChat({ initialAgent, userName }: AgentChatProps) {
       setIsLoading(false);
       inputRef.current?.focus();
     }
-  }, [input, isLoading, agent]);
+  }, [input, isLoading, agent, threadId]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -202,32 +245,44 @@ export function AgentChat({ initialAgent, userName }: AgentChatProps) {
   const meta = AGENT_META[agent];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)]">
-      {/* Agent selector header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-border">
-        <div className="flex gap-1.5">
-          {(["mo", "pam", "carl"] as const).map((a) => (
-            <button
-              key={a}
-              onClick={() => switchAgent(a)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                agent === a
-                  ? `${AGENT_META[a].colour} text-[oklch(0.95_0.03_80)]`
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              {AGENT_META[a].label}
-            </button>
-          ))}
+    <div
+      className={`flex flex-col ${
+        compact ? "h-full" : "h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)]"
+      } ${className}`}
+    >
+      {/* Agent selector — hidden in compact/embedded mode */}
+      {!compact && (
+        <div className="flex items-center gap-3 pb-4 border-b border-border">
+          <div className="flex gap-1.5">
+            {(["mo", "pam", "carl"] as const).map((a) => (
+              <button
+                key={a}
+                onClick={() => switchAgent(a)}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  agent === a
+                    ? `${AGENT_META[a].colour} text-[oklch(0.95_0.03_80)]`
+                    : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {AGENT_META[a].label}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto text-xs text-muted-foreground hidden sm:block">
+            {meta.role}
+          </div>
         </div>
-        <div className="ml-auto text-xs text-muted-foreground hidden sm:block">
-          {meta.role}
-        </div>
-      </div>
+      )}
 
       {/* Message list */}
       <div className="flex-1 overflow-y-auto py-4 space-y-4 min-h-0">
-        {messages.length === 0 && (
+        {isLoadingHistory && (
+          <div className="flex justify-center py-8">
+            <ThinkingDots />
+          </div>
+        )}
+
+        {!isLoadingHistory && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div
               className={`w-12 h-12 rounded-full ${meta.colour} flex items-center justify-center text-[oklch(0.95_0.03_80)] text-lg font-semibold mb-3`}
@@ -281,10 +336,7 @@ export function AgentChat({ initialAgent, userName }: AgentChatProps) {
             rows={1}
             disabled={isLoading}
             className="flex-1 resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-60 min-h-[48px] max-h-40 overflow-y-auto"
-            style={{
-              height: "auto",
-              minHeight: "48px",
-            }}
+            style={{ height: "auto", minHeight: "48px" }}
             onInput={(e) => {
               const el = e.currentTarget;
               el.style.height = "auto";

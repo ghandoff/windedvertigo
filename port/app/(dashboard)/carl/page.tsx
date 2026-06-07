@@ -2,6 +2,7 @@ import { PageHeader } from "@/app/components/page-header";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
+import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
 import { getCarlFindings, getCarlMemory, getCarlDecisions } from "@/lib/supabase/carl";
 import { getCurriculum } from "@/lib/supabase/carl-curriculum";
 import { getUsageSummary } from "@/lib/ai/usage-store";
@@ -56,47 +57,49 @@ export default async function CarlPage({
   const coveredTopics = curriculum.filter((c) => c.status === "covered").length;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="cARL"
-        description="cyber agent of research + learning · the living library"
-      />
+    <AgentPageWithChat agentId="carl">
+      <div className="space-y-6">
+        <PageHeader
+          title="cARL"
+          description="cyber agent of research + learning · the living library"
+        />
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-lg border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground mb-1">findings</p>
-          <p className="text-xl font-semibold tabular-nums">{findings.length}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground mb-1">research lines</p>
-          <p className="text-xl font-semibold tabular-nums">{intendedDomains.length}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground mb-1">curriculum covered</p>
-          <p className="text-xl font-semibold tabular-nums">{coveredTopics}/{curriculum.length}</p>
-        </div>
-      </div>
-
-      <p className="text-[11px] text-muted-foreground -mt-2 px-1">
-        cARL&apos;s learning this month: {carlRuns} study {carlRuns === 1 ? "run" : "runs"} · ${carlCost.toFixed(2)} in tokens ·{" "}
-        <a href="/ai-hub" className="underline underline-offset-2 hover:text-foreground">full economics on the ai hub</a>
-      </p>
-
-      <UrlTabs tabs={TABS} activeTab={activeTab} />
-
-      {activeTab === "research-lines" && (
-        <ResearchLines findings={findings} curriculum={curriculum} intendedDomains={intendedDomains} />
-      )}
-      {activeTab === "findings" && (
-        <div className="space-y-4">
-          <div className="flex justify-end">
-            <AddFindingDialog />
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-lg border border-border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-1">findings</p>
+            <p className="text-xl font-semibold tabular-nums">{findings.length}</p>
           </div>
-          <FindingsLibrary findings={findings} />
+          <div className="rounded-lg border border-border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-1">research lines</p>
+            <p className="text-xl font-semibold tabular-nums">{intendedDomains.length}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-1">curriculum covered</p>
+            <p className="text-xl font-semibold tabular-nums">{coveredTopics}/{curriculum.length}</p>
+          </div>
         </div>
-      )}
-      {activeTab === "memory" && <AgentMemoryPanel entries={memory} />}
-      {activeTab === "log" && <AgentLogTab decisions={decisions} agentName="cARL" />}
-    </div>
+
+        <p className="text-[11px] text-muted-foreground -mt-2 px-1">
+          cARL&apos;s learning this month: {carlRuns} study {carlRuns === 1 ? "run" : "runs"} · ${carlCost.toFixed(2)} in tokens ·{" "}
+          <a href="/ai-hub" className="underline underline-offset-2 hover:text-foreground">full economics on the ai hub</a>
+        </p>
+
+        <UrlTabs tabs={TABS} activeTab={activeTab} />
+
+        {activeTab === "research-lines" && (
+          <ResearchLines findings={findings} curriculum={curriculum} intendedDomains={intendedDomains} />
+        )}
+        {activeTab === "findings" && (
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <AddFindingDialog />
+            </div>
+            <FindingsLibrary findings={findings} />
+          </div>
+        )}
+        {activeTab === "memory" && <AgentMemoryPanel entries={memory} />}
+        {activeTab === "log" && <AgentLogTab decisions={decisions} agentName="cARL" />}
+      </div>
+    </AgentPageWithChat>
   );
 }
