@@ -22,6 +22,7 @@ import {
   ListChecks,
   BookOpen,
   Library,
+  MessageCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -50,6 +51,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "strategy", href: "/strategy", icon: LineChart },
       { label: "pam", href: "/pam", icon: ListChecks },
       { label: "carl", href: "/carl", icon: BookOpen },
+      { label: "chat", href: "/chat/mo", icon: MessageCircle },
     ],
   },
   {
