@@ -60,7 +60,11 @@ export function AgentPageWithChat({ agentId, children }: AgentPageWithChatProps)
       {/* ── Responsive split layout ─────────────────────────────── */}
       <div className="md:grid md:grid-cols-[1fr_380px] md:gap-6 md:items-start">
         {/* Dashboard content — hidden on mobile when in chat view */}
-        <div className={activeView === "chat" ? "hidden md:block" : ""}>
+        {/* min-w-0: overrides CSS Grid's default min-width:auto so the 1fr cell */}
+        {/* respects its assigned fraction rather than expanding to content width. */}
+        {/* Without this, DraggableKanban's 1152px minimum forces the cell wider  */}
+        {/* than the viewport, causing cards to bleed behind the sidebar.          */}
+        <div className={`min-w-0 ${activeView === "chat" ? "hidden md:block" : ""}`}>
           {children}
         </div>
 
