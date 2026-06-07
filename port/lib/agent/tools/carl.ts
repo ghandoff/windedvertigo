@@ -143,6 +143,41 @@ export const CARL_TOOLS = [
       properties: {},
     },
   },
+  {
+    name: "carl_add_curriculum_topic",
+    description:
+      "Queue a new research topic into the curriculum with status 'planned'. Use when the user asks cARL to study something new, or when a conversation surfaces a gap that should be investigated. The daily study cron will pick it up and synthesise findings automatically.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        domain: {
+          type: "string",
+          description:
+            "Research domain slug (e.g. 'threshold-concepts', 'play-based-learning', 'UDL', 'cultural-responsiveness', 'AI-in-education'). Use existing domain slugs when possible so the topic appears under the right research line.",
+        },
+        topic: {
+          type: "string",
+          description:
+            "Clear, specific topic title (e.g. 'Threshold concepts in creative practice education', 'Game-based formative assessment'). Should be precise enough that the study cron can research it directly.",
+        },
+        key_works: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Suggested papers, authors, or frameworks to consult when studying this topic (optional but helpful for the study cron).",
+        },
+        priority: {
+          type: "number",
+          description: "Priority: 1 = high, 2 = medium (default), 3 = low.",
+        },
+        notes: {
+          type: "string",
+          description: "Context note — why this topic was added, what question it addresses.",
+        },
+      },
+      required: ["domain", "topic"],
+    },
+  },
 ] as const;
 
 export type CarlToolName = (typeof CARL_TOOLS)[number]["name"];

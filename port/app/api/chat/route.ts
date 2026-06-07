@@ -15,7 +15,7 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@/lib/auth";
-import { error } from "@/lib/api-helpers";
+import { error, json } from "@/lib/api-helpers";
 import type { AgentId } from "@/lib/agent/agent-router";
 import {
   fetchAgentBriefing,
@@ -32,6 +32,28 @@ import {
 import { getRecentSpendByUser } from "@/lib/supabase/agent-actions";
 import { auditTurn } from "@/lib/agent/audit";
 import { MODEL_PRICING, type ModelId } from "@/lib/ai/types";
+
+/**
+ * GET /api/chat?agent=mo&threadId=xxx
+ *
+ * Load existing conversation history for a thread. Used by the AgentChat
+ * component on mount to restore conversations after tab switches.
+ */
+export async function GET(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.email) return error("not authenticated", 401);
+
+  const userEmail = session.user.email;
+  const agent = req.nextUrl.searchParams.get("agent");
+  const threadId = req.nextUrl.searchParams.get("threadId");
+
+  if (!agent || !VALID_AGENTS.has(agent)) return error("agent required", 400);
+  if (!threadId) return error("threadId required", 400);
+
+  const chatThreadKey = `web:${agent}:${userEmail}:${threadId}`;
+  const messages = await getRecentMessages(chatThreadKey, { limit: 20, withinMinutes: 480 });
+  return json({ messages: messages.map((m) => ({ role: m.role, content: m.content })) });
+}
 
 const MAX_AGENT_TURNS = 5;
 const DAILY_BUDGET_USD = parseFloat(

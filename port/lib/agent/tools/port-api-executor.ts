@@ -207,6 +207,16 @@ export async function executeAgentApiTool(request: {
         content = await portGet("/api/carl/curriculum");
         break;
 
+      case "carl_add_curriculum_topic":
+        content = await portPost("/api/carl/curriculum", {
+          domain: String(input.domain ?? ""),
+          topic: String(input.topic ?? ""),
+          key_works: Array.isArray(input.key_works) ? input.key_works : [],
+          priority: typeof input.priority === "number" ? input.priority : 2,
+          notes: input.notes ?? undefined,
+        });
+        break;
+
       default:
         return {
           tool_use_id,
