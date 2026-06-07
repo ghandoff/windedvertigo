@@ -28,6 +28,12 @@ import {
   appendMessage,
 } from "@/lib/supabase/agent-thread-messages";
 import { getRecentSpendByUser } from "@/lib/supabase/agent-actions";
+import { detectAgent } from "./agent-router";
+import { fetchAgentBriefing, buildAgentSystemPrompt } from "./agent-prompts";
+import { MO_TOOLS, MO_TOOL_NAMES } from "./tools/mo";
+import { PAM_TOOLS, PAM_TOOL_NAMES } from "./tools/pam";
+import { CARL_TOOLS, CARL_TOOL_NAMES } from "./tools/carl";
+import { executeAgentApiTool } from "./tools/port-api-executor";
 
 // Per-user daily spend cap. Configurable via env. Default $5/user/day:
 // generous enough that legitimate usage never trips it, low enough that
@@ -149,42 +155,67 @@ export async function runAgentTurn(payload: SlackEventPayload): Promise<void> {
     return;
   }
 
-  // Step 3: run bounded agentic loop
-  const allowedDefs = AGENT_TOOLS.filter((t) =>
-    scope.allowedTools.includes(t.name as AgentToolName),
-  );
+  // Step 3: detect which agent is being addressed, then build tools + prompt.
+  const agentId = detectAgent(ev.text);
 
-  const systemPrompt =
-    `You are the Winded Vertigo port agent — the operational copilot for the w.v collective. ` +
-    `You are helping ${scope.displayName} (${scope.authEmail}) via Slack.\n\n` +
-    `Data model:\n` +
-    `- organizations: clients, partners, and prospects (getOrganization, queryContacts)\n` +
-    `- contacts: people at organizations (queryContacts)\n` +
-    `- deals: revenue pipeline — identified→pitched→proposal→won/lost (queryDeals, updateDeal)\n` +
-    `- campaigns: outreach sequences with steps (queryCampaigns, updateCampaignStatus, createCampaign)\n` +
-    `- projects: active and upcoming client engagements (queryProjects)\n` +
-    `- RFPs: procurement opportunities — radar→pursuing→submitted→won/lost (queryRfpOpportunities)\n` +
-    `- activities: meeting/call/email log against orgs and contacts (queryActivities, logActivity)\n` +
-    `- work items: tasks and subtasks (queryWorkItems)\n` +
-    `- timesheets: time entries with billable tracking (queryTimesheets, logTimeEntry)\n` +
-    `- events: conferences and external events (queryEvents)\n` +
-    `- members: active w.v collective team (queryMembers)\n` +
-    `- meetings: Council meetings + AI summaries (queryMeetings)\n` +
-    `- meeting actions: action items extracted from meetings, filterable by owner + status (getMeetingActions)\n` +
-    `- marketing strategy: Q2-Q3 2026 strategy command centre — positioning, audience, channels, pipeline, distribution, timeline. Use readStrategyDoc(section) to read any section. CMO is Claude (AI role); sponsor is Garrett. Live at port.windedvertigo.com/strategy.\n\n` +
-    `Read tools (query*/get*) return data immediately. ` +
-    `Write tools (log*, create*, update*) stage an action for confirmation — ` +
-    `describe the pending change to ${scope.displayName} and ask them to reply "confirm" before executing. ` +
-    `Call confirmAction only after explicit affirmation. ` +
-    `Only call ONE write tool per turn. Never invent IDs — look them up first.\n\n` +
-    `Style: concise, grounded in tool output. Use display names not IDs. ` +
-    `Summarize lists > 5 items rather than enumerating all. ` +
-    `You have ${allowedDefs.length} tools available.`;
+  // Namespace thread key by agent so Mo / PaM / cARL conversations stay
+  // separate even when the user sends messages in the same DM channel.
+  const rawThreadKey = ev.thread_ts ?? ev.channel ?? `solo:${ev.user}`;
+  const threadKey =
+    agentId === "port" ? rawThreadKey : `${agentId}:${rawThreadKey}`;
 
-  // W0.2: load conversation memory for this thread (Slack thread_ts if
-  // present, else channel id). Prepended before the current user message
-  // so multi-turn DMs feel continuous instead of stateless.
-  const threadKey = ev.thread_ts ?? ev.channel ?? `solo:${ev.user}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let activeTools: any[];
+  let systemPrompt: string;
+
+  if (agentId === "port") {
+    // Generic port agent — existing behaviour, unchanged.
+    const allowedDefs = AGENT_TOOLS.filter((t) =>
+      scope.allowedTools.includes(t.name as AgentToolName),
+    );
+    activeTools = allowedDefs;
+    systemPrompt =
+      `You are the Winded Vertigo port agent — the operational copilot for the w.v collective. ` +
+      `You are helping ${scope.displayName} (${scope.authEmail}) via Slack.\n\n` +
+      `Data model:\n` +
+      `- organizations: clients, partners, and prospects (getOrganization, queryContacts)\n` +
+      `- contacts: people at organizations (queryContacts)\n` +
+      `- deals: revenue pipeline — identified→pitched→proposal→won/lost (queryDeals, updateDeal)\n` +
+      `- campaigns: outreach sequences with steps (queryCampaigns, updateCampaignStatus, createCampaign)\n` +
+      `- projects: active and upcoming client engagements (queryProjects)\n` +
+      `- RFPs: procurement opportunities — radar→pursuing→submitted→won/lost (queryRfpOpportunities)\n` +
+      `- activities: meeting/call/email log against orgs and contacts (queryActivities, logActivity)\n` +
+      `- work items: tasks and subtasks (queryWorkItems)\n` +
+      `- timesheets: time entries with billable tracking (queryTimesheets, logTimeEntry)\n` +
+      `- events: conferences and external events (queryEvents)\n` +
+      `- members: active w.v collective team (queryMembers)\n` +
+      `- meetings: Council meetings + AI summaries (queryMeetings)\n` +
+      `- meeting actions: action items extracted from meetings, filterable by owner + status (getMeetingActions)\n` +
+      `- marketing strategy: Q2-Q3 2026 strategy command centre — positioning, audience, channels, pipeline, distribution, timeline. Use readStrategyDoc(section) to read any section. CMO is Claude (AI role); sponsor is Garrett. Live at port.windedvertigo.com/strategy.\n\n` +
+      `Read tools (query*/get*) return data immediately. ` +
+      `Write tools (log*, create*, update*) stage an action for confirmation — ` +
+      `describe the pending change to ${scope.displayName} and ask them to reply "confirm" before executing. ` +
+      `Call confirmAction only after explicit affirmation. ` +
+      `Only call ONE write tool per turn. Never invent IDs — look them up first.\n\n` +
+      `Style: concise, grounded in tool output. Use display names not IDs. ` +
+      `Summarize lists > 5 items rather than enumerating all. ` +
+      `You have ${allowedDefs.length} tools available.`;
+  } else {
+    // Named agent (Mo, PaM, cARL) — fetch briefing + build specialised prompt.
+    const agentToolMap = { mo: MO_TOOLS, pam: PAM_TOOLS, carl: CARL_TOOLS };
+    activeTools = [...agentToolMap[agentId]];
+    const briefing = await fetchAgentBriefing(agentId);
+    systemPrompt = buildAgentSystemPrompt(
+      agentId,
+      briefing,
+      scope.displayName,
+      scope.authEmail,
+      "slack",
+    );
+    console.log(
+      `[agent] routing to ${agentId} eventId=${eventId} user=${scope.authEmail}`,
+    );
+  }
   const history = await getRecentMessages(threadKey, { limit: 10, withinMinutes: 60 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -212,22 +243,17 @@ export async function runAgentTurn(payload: SlackEventPayload): Promise<void> {
       }
       turn++;
 
-      // W0.3: prompt caching. Marking the system prompt + the last tool
-      // definition with `cache_control: ephemeral` tells Anthropic to cache
-      // everything up to those markers. First write of the cache costs
-      // ~1.25× base; subsequent reads (within 5-min TTL) cost ~0.1× base.
-      // Pays off the moment W0.2 thread memory triggers a second turn in
-      // the same conversation.
+      // W0.3: prompt caching — mark system prompt + last tool with ephemeral.
       const cachedTools =
-        allowedDefs.length > 0
+        activeTools.length > 0
           ? [
-              ...allowedDefs.slice(0, -1),
+              ...activeTools.slice(0, -1),
               {
-                ...allowedDefs[allowedDefs.length - 1],
+                ...activeTools[activeTools.length - 1],
                 cache_control: { type: "ephemeral" as const },
               },
             ]
-          : allowedDefs;
+          : activeTools;
 
       const response = await anthropic.messages.create({
         model: MODEL_ID,
@@ -281,14 +307,30 @@ export async function runAgentTurn(payload: SlackEventPayload): Promise<void> {
           const b = block as any;
           if (b.type !== "tool_use") continue;
           toolsCalledNames.push(String(b.name));
-          const result = await executeTool(
-            {
-              tool_use_id: b.id,
-              name: b.name,
-              input: (b.input ?? {}) as Record<string, unknown>,
-            },
-            scope,
-          );
+
+          // Route to the correct executor: named agents use the port API
+          // executor; the generic port agent uses the Notion/existing executor.
+          const isAgentTool =
+            agentId !== "port" &&
+            (MO_TOOL_NAMES.has(b.name) ||
+              PAM_TOOL_NAMES.has(b.name) ||
+              CARL_TOOL_NAMES.has(b.name));
+
+          const result = isAgentTool
+            ? await executeAgentApiTool({
+                tool_use_id: b.id,
+                name: b.name,
+                input: (b.input ?? {}) as Record<string, unknown>,
+              })
+            : await executeTool(
+                {
+                  tool_use_id: b.id,
+                  name: b.name,
+                  input: (b.input ?? {}) as Record<string, unknown>,
+                },
+                scope,
+              );
+
           toolResults.push({
             type: "tool_result",
             tool_use_id: result.tool_use_id,
@@ -346,7 +388,7 @@ export async function runAgentTurn(payload: SlackEventPayload): Promise<void> {
   // Surface outlier-cost turns immediately so runaways are visible in `wrangler tail`.
   if (costUsd > HIGH_COST_TURN_THRESHOLD_USD) {
     console.warn(
-      `[agent] high cost turn eventId=${eventId} user=${scope.authEmail} cost=$${costUsd.toFixed(4)} tokens=${totalInputTokens}in/${totalOutputTokens}out turns=${turn} tools=${toolsCalledNames.join(",")}`,
+      `[agent] high cost turn eventId=${eventId} agent=${agentId} user=${scope.authEmail} cost=$${costUsd.toFixed(4)} tokens=${totalInputTokens}in/${totalOutputTokens}out turns=${turn} tools=${toolsCalledNames.join(",")}`,
     );
   }
   auditTurn({
