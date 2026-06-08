@@ -86,6 +86,28 @@ export interface NewBibliographyEntry {
 export async function createBibliographyEntry(
   entry: NewBibliographyEntry,
 ): Promise<{ created: boolean; reason?: string }> {
+  // Best-effort structured enrichment: cARL findings usually carry a DOI, so
+  // pull clean authors + venue from Crossref to power the author sort + journal
+  // facet. Failures here never block the insert — the row files either way.
+  let authors: string[] | null = null;
+  let firstAuthor: string | null = null;
+  let journal: string | null = null;
+  if (entry.doi) {
+    try {
+      const { fetchByDoi } = await import("@/lib/bibliography/crossref");
+      const meta = await fetchByDoi(entry.doi);
+      if (meta) {
+        // Crossref returns authors as one formatted string ("Siwatu, K. O., Page, K.").
+        // Keep the full string for display; derive the leading surname for A–Z sort.
+        const authorStr = meta.authors?.trim() || "";
+        authors = authorStr ? [authorStr] : null;
+        firstAuthor = authorStr ? authorStr.split(/[,\s]/)[0] || null : null;
+        journal = meta.venue ?? null;
+      }
+    } catch {
+      /* enrichment is best-effort */
+    }
+  }
   return insertBibliographyRow({
     fullCitation: entry.fullCitation,
     abstract: entry.abstract,
@@ -95,5 +117,8 @@ export async function createBibliographyEntry(
     sourceType: entry.sourceType,
     year: entry.year ?? null,
     doi: entry.doi ?? null,
+    authors,
+    firstAuthor,
+    journal,
   });
 }

@@ -57,6 +57,12 @@ export interface BibliographyRow {
   usedIn: string[];
   pdfUrl: string | null;
   pdfSource: string | null;
+  /** Ordered author list (ScholarHit.authors). Null/empty for legacy rows. */
+  authors: string[];
+  /** Denormalised leading author for A–Z sort. */
+  firstAuthor: string | null;
+  /** Publication venue / journal title (ScholarHit.venue). */
+  journal: string | null;
   createdAt: string;
 }
 
@@ -78,6 +84,9 @@ function mapFullRow(r: any): BibliographyRow {
     usedIn: r.used_in ?? [],
     pdfUrl: r.pdf_url ?? null,
     pdfSource: r.pdf_source ?? null,
+    authors: r.authors ?? [],
+    firstAuthor: r.first_author ?? null,
+    journal: r.journal ?? null,
     createdAt: r.created_at,
   };
 }
@@ -115,6 +124,9 @@ export async function updateBibliographyRow(
     usedIn?: string[];
     pdfUrl?: string | null;
     pdfSource?: string | null;
+    authors?: string[] | null;
+    firstAuthor?: string | null;
+    journal?: string | null;
   },
 ): Promise<BibliographyRow> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,6 +147,9 @@ export async function updateBibliographyRow(
   if (fields.usedIn !== undefined) patch.used_in = fields.usedIn;
   if (fields.pdfUrl !== undefined) patch.pdf_url = fields.pdfUrl;
   if (fields.pdfSource !== undefined) patch.pdf_source = fields.pdfSource;
+  if (fields.authors !== undefined) patch.authors = fields.authors;
+  if (fields.firstAuthor !== undefined) patch.first_author = fields.firstAuthor;
+  if (fields.journal !== undefined) patch.journal = fields.journal;
 
   const { data, error } = await supabase
     .from("bibliography")
@@ -173,6 +188,9 @@ export interface NewBibliographyRow {
   citationCount?: number | null;
   notionPageId?: string | null;
   usedIn?: string[];
+  authors?: string[] | null;
+  firstAuthor?: string | null;
+  journal?: string | null;
 }
 
 /**
@@ -202,6 +220,9 @@ export async function insertBibliographyRow(
       citation_count: entry.citationCount ?? null,
       notion_page_id: entry.notionPageId ?? null,
       used_in: entry.usedIn ?? [],
+      authors: entry.authors ?? null,
+      first_author: entry.firstAuthor ?? null,
+      journal: entry.journal ?? null,
     })
     .select("id")
     .single();

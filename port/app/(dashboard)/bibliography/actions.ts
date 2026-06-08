@@ -235,6 +235,10 @@ export async function addFromSearchAction(
       scholarLink: hit.openAccessPdf ?? null,
       citationCount: hit.citationCount ?? null,
       usedIn,
+      // structured fields — power the author sort + journal facet
+      authors: hit.authors?.length ? hit.authors : null,
+      firstAuthor: hit.authors?.[0] ?? null,
+      journal: hit.venue ?? null,
     });
     if (!res.created) {
       return { error: res.reason === "duplicate" ? "already in the library" : "couldn't add it", reason: res.reason };
