@@ -19,7 +19,7 @@
   --champagne-light:#fdf3e4;
   --teal-light:#3bbdac;
   --wv-color:#A0522D;
-  --lb-color:#2A9D8F;
+  --lb-color:#378eff;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
 }
 html{height:100%;font-size:16px}
@@ -57,6 +57,8 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .btn-secondary:hover{background:#ead6b0}
 .btn-teal{background:var(--teal);color:var(--white)}
 .btn-teal:hover{background:var(--teal-light)}
+.btn-lb{background:var(--lb-color);color:var(--white)}
+.btn-lb:hover{background:rgba(55,142,255,0.82)}
 .btn-sienna{background:var(--sienna);color:var(--white)}
 .btn-sienna:hover{background:#bf6437}
 .btn-sm{padding:8px 14px;font-size:13px}
@@ -91,7 +93,7 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .polaroid-author{font-size:11px;font-weight:600;letter-spacing:0.06em;color:rgba(43,74,95,0.5);text-transform:lowercase}
 .polaroid-org-tag{display:inline-block;margin-top:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.06em}
 .polaroid-org-tag.wv,.polaroid-org-tag.org-a{background:rgba(160,82,45,0.1);color:var(--wv-color)}
-.polaroid-org-tag.lb,.polaroid-org-tag.org-b{background:rgba(42,157,143,0.1);color:var(--lb-color)}
+.polaroid-org-tag.lb,.polaroid-org-tag.org-b{background:rgba(55,142,255,0.1);color:var(--lb-color)}
 .polaroid-org-tag.guest{background:rgba(43,74,95,0.1);color:var(--navy)}
 .polaroid.mine{outline:2.5px solid var(--sienna);outline-offset:3px}
 .showtell-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
@@ -123,12 +125,12 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .overlap-col.right{background:rgba(42,157,143,0.07);margin-left:16px}
 .overlap-col-header{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:lowercase;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(43,74,95,0.12)}
 .overlap-col.left .overlap-col-header{color:var(--sienna)}
-.overlap-col.right .overlap-col-header{color:var(--teal)}
+.overlap-col.right .overlap-col-header{color:var(--lb-color)}
 .overlap-items{display:flex;flex-direction:column;gap:8px;min-height:200px}
 .overlap-item{background:var(--white);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--navy);border:1px solid rgba(43,74,95,0.1);display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;transition:all 0.2s;animation:fadeSlideIn 0.3s ease;position:relative}
 .overlap-item:hover{border-color:var(--sienna);box-shadow:0 2px 8px rgba(43,74,95,0.08)}
 .overlap-item.selected-left{border-color:var(--sienna);background:rgba(160,82,45,0.05)}
-.overlap-item.selected-right{border-color:var(--teal);background:rgba(42,157,143,0.05)}
+.overlap-item.selected-right{border-color:var(--lb-color);background:rgba(55,142,255,0.05)}
 .overlap-item.connected{border-color:var(--teal);background:rgba(42,157,143,0.05)}
 .upvote-btn{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;background:rgba(43,74,95,0.06);border:none;font-family:var(--font);font-size:12px;color:rgba(43,74,95,0.6);cursor:pointer;transition:all 0.15s;flex-shrink:0}
 .upvote-btn:hover{background:rgba(160,82,45,0.1);color:var(--sienna)}
@@ -143,7 +145,7 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .commitment-col{background:var(--white);border-radius:16px;padding:24px;border:1px solid rgba(43,74,95,0.08)}
 .commitment-col-header{font-size:13px;font-weight:600;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(43,74,95,0.1)}
 .commitment-col.wv-side .commitment-col-header{color:var(--sienna)}
-.commitment-col.lb-side .commitment-col-header{color:var(--teal)}
+.commitment-col.lb-side .commitment-col-header{color:var(--lb-color)}
 .commitment-card{background:var(--off-white);border-radius:10px;padding:14px;margin-bottom:12px;border:1px solid rgba(43,74,95,0.08);animation:fadeSlideIn 0.4s ease}
 .commitment-card.locked{border-color:var(--teal);background:rgba(42,157,143,0.05)}
 .commitment-what{font-size:14px;font-weight:500;color:var(--navy);margin-bottom:6px}
@@ -724,7 +726,7 @@ function renderPhase2(el,rs){
     ${state.isFacilitator?`<div style="margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font-size:13px;color:rgba(43,74,95,0.5)">presenting now:</span>
       <button class="btn btn-sm ${presenting===aC?'btn-sienna':'btn-secondary'}" id="set-presenting-${esc(aC)}">${esc(getOrg('a').name)}</button>
-      <button class="btn btn-sm ${presenting===bC?'btn-teal':'btn-secondary'}" id="set-presenting-${esc(bC)}">${esc(getOrg('b').name)}</button>
+      <button class="btn btn-sm ${presenting===bC?'btn-lb':'btn-secondary'}" id="set-presenting-${esc(bC)}">${esc(getOrg('b').name)}</button>
     </div>`:''}
     <div class="showtell-layout">
       <div class="presenting-panel ${presenting===aC?'presenting-active':''}">
@@ -735,7 +737,7 @@ function renderPhase2(el,rs){
       </div>
       <div class="presenting-panel ${presenting===bC?'presenting-active':''}">
         <div class="presenting-label">${presenting===bC?'▶ presenting':'listening'}</div>
-        <div class="presenting-org" style="color:var(--teal)">${esc(getOrg('b').name)}</div>
+        <div class="presenting-org" style="color:var(--lb-color)">${esc(getOrg('b').name)}</div>
         ${myOrg!==bC&&presenting===bC?`<div style="font-size:12px;color:rgba(43,74,95,0.4);margin-bottom:12px">drop a spark while ${esc(getOrg('b').name)} presents:</div>${mkSparkBtns(aC)}`:''}
         <div class="sparks-list">${sparks.filter(r=>r.content.target===aC).map(mkSparkChip).join('')}</div>
       </div>
@@ -967,7 +969,7 @@ function renderPhase5(el,rs){
           <input id="commit-what-${esc(bC)}" placeholder="what will you do?" maxlength="200">
           <select id="commit-who-${esc(bC)}"><option value="">who's responsible?</option>${mkOpts(bParts)}</select>
           <input type="date" id="commit-when-${esc(bC)}">
-          <button class="btn btn-teal" id="commit-btn-${esc(bC)}">lock it in</button>
+          <button class="btn btn-lb" id="commit-btn-${esc(bC)}">lock it in</button>
         </div>
       </div>
     </div>
