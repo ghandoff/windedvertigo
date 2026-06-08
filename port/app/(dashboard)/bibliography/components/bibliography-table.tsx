@@ -327,14 +327,15 @@ export function BibliographyTable({
                         {/* author */}
                         <TableCell className="py-2 text-xs text-muted-foreground truncate" title={authorDisplay(r)}>{authorDisplay(r)}</TableCell>
                         {/* title / citation */}
-                        <TableCell className="py-2">
+                        <TableCell className="py-2 overflow-hidden">
                           <button
                             type="button"
                             onClick={() => toggleExpand(r.id)}
-                            className="text-left text-sm leading-snug hover:underline decoration-dotted underline-offset-2 flex items-start gap-1"
+                            title={cleanTitle(r)}
+                            className="w-full min-w-0 text-left text-sm leading-snug hover:underline decoration-dotted underline-offset-2 flex items-start gap-1"
                           >
                             <ChevronRight className={`h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/50 transition-transform ${isOpen ? "rotate-90" : ""}`} />
-                            <span className="line-clamp-2">{cleanTitle(r)}</span>
+                            <span className="min-w-0 line-clamp-2 break-words">{cleanTitle(r)}</span>
                           </button>
                         </TableCell>
                         {/* journal */}
