@@ -216,7 +216,7 @@ const OVERLAP_SEEDS={
   left:['marketing support — linkedin, substack, thought leadership content','digital workshop tools — interactive check-ins, post-engagement measurement','conference technology — simulators, harbour tools for live events','design + social media — visual identity, campaign execution'],
   right:['facilitation methodology — the lightbulb way, community of practice design','network access — cmu (john baylash), civics (fernanda rain), lego ecosystem','research/mel collaboration — belonging + inclusion frameworks for evaluation','the "show don\'t tell" lens — applied to w.v\'s own workshop design']
 };
-const THREAD_LINES=['two organisations, distinct approaches, a shared horizon.','what happens when facilitation meets community?','when design thinking meets the lightbulb way?','when winded.vertigo meets lightbulb learning lab?','','today we find out.'];
+const THREAD_LINES=['two organisations, distinct approaches, a shared horizon.','what happens when facilitation meets community?','when showing creases meets the lightbulb way?','when winded.vertigo meets lightbulb learning lab?','','today we find out.'];
 
 let sb=null;
 let state={session:null,participant:null,isFacilitator:false,participants:[],responses:{},selectedLeft:null,selectedRight:null,myVotes:new Set(),phaseSubmitted:{},orgA:null,orgB:null};
@@ -261,7 +261,7 @@ function renderQR(canvasId,url){
   QRCode.toCanvas(canvas,url,{width:200,margin:2,color:{dark:'#2B4A5F',light:'#FAFAF7'}},err=>{if(err)console.warn('QR error',err);});
 }
 function getThreadLines(){
-  return['two organisations, distinct approaches, a shared horizon.','what happens when facilitation meets community?',`when design thinking meets the ${esc(getOrg('b').name.split(' ')[0])} way?`,`when ${esc(getOrg('a').name)} meets ${esc(getOrg('b').name)}?`,'','today we find out.'];
+  return['two organisations, distinct approaches, a shared horizon.','what happens when facilitation meets community?',`when showing creases meets the ${esc(getOrg('b').name.split(' ')[0])} way?`,`when ${esc(getOrg('a').name)} meets ${esc(getOrg('b').name)}?`,'','today we find out.'];
 }
 
 // ── init ─────────────────────────────────────────────────────────────────────
