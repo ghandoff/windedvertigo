@@ -34,6 +34,8 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .wordmark .dot{color:var(--sienna)}
 .app-title{font-size:18px;font-weight:600;color:var(--navy)}
 .session-meta{text-align:right}
+.org-logos{display:flex;gap:10px;align-items:center}
+.org-logo{height:24px;width:auto;max-width:80px;object-fit:contain;opacity:0.82;border-radius:2px}
 .session-label{font-size:11px;color:rgba(43,74,95,0.5);text-transform:lowercase;letter-spacing:0.08em}
 .room-badge{font-size:13px;font-weight:700;letter-spacing:0.15em;color:var(--sienna);font-variant-numeric:tabular-nums}
 .phase-progress{height:3px;background:rgba(43,74,95,0.08);position:relative;overflow:hidden}
@@ -92,8 +94,8 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .polaroid-text{font-size:14px;color:var(--navy);line-height:1.5;margin-bottom:16px;min-height:48px}
 .polaroid-author{font-size:11px;font-weight:600;letter-spacing:0.06em;color:rgba(43,74,95,0.5);text-transform:lowercase}
 .polaroid-org-tag{display:inline-block;margin-top:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.06em}
-.polaroid-org-tag.wv,.polaroid-org-tag.org-a{background:rgba(160,82,45,0.1);color:var(--wv-color)}
-.polaroid-org-tag.lb,.polaroid-org-tag.org-b{background:rgba(55,142,255,0.1);color:var(--lb-color)}
+.polaroid-org-tag.wv,.polaroid-org-tag.org-a{background:color-mix(in srgb,var(--wv-color) 10%,transparent);color:var(--wv-color)}
+.polaroid-org-tag.lb,.polaroid-org-tag.org-b{background:color-mix(in srgb,var(--lb-color) 10%,transparent);color:var(--lb-color)}
 .polaroid-org-tag.guest{background:rgba(43,74,95,0.1);color:var(--navy)}
 .polaroid.mine{outline:2.5px solid var(--sienna);outline-offset:3px}
 .showtell-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
@@ -129,8 +131,8 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .overlap-items{display:flex;flex-direction:column;gap:8px;min-height:200px}
 .overlap-item{background:var(--white);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--navy);border:1px solid rgba(43,74,95,0.1);display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;transition:all 0.2s;animation:fadeSlideIn 0.3s ease;position:relative}
 .overlap-item:hover{border-color:var(--sienna);box-shadow:0 2px 8px rgba(43,74,95,0.08)}
-.overlap-item.selected-left{border-color:var(--sienna);background:rgba(160,82,45,0.05)}
-.overlap-item.selected-right{border-color:var(--lb-color);background:rgba(55,142,255,0.05)}
+.overlap-item.selected-left{border-color:var(--wv-color);background:color-mix(in srgb,var(--wv-color) 5%,transparent)}
+.overlap-item.selected-right{border-color:var(--lb-color);background:color-mix(in srgb,var(--lb-color) 5%,transparent)}
 .overlap-item.connected{border-color:var(--teal);background:rgba(42,157,143,0.05)}
 .upvote-btn{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;background:rgba(43,74,95,0.06);border:none;font-family:var(--font);font-size:12px;color:rgba(43,74,95,0.6);cursor:pointer;transition:all 0.15s;flex-shrink:0}
 .upvote-btn:hover{background:rgba(160,82,45,0.1);color:var(--sienna)}
@@ -224,11 +226,12 @@ let sb=null;
 let state={session:null,participant:null,isFacilitator:false,participants:[],responses:{},selectedLeft:null,selectedRight:null,myVotes:new Set(),phaseSubmitted:{},orgA:null,orgB:null};
 
 const DEFAULT_ORGS={
-  a:{code:'wv',name:'winded.vertigo'},
-  b:{code:'lb',name:'lightbulb learning lab'}
+  a:{code:'wv',name:'winded.vertigo',color:'#A0522D',logo:null},
+  b:{code:'lb',name:'lightbulb learning lab',color:'#378eff',logo:null}
 };
 function getOrg(which){return(which==='a'?state.orgA:state.orgB)||DEFAULT_ORGS[which];}
-function setOrgState(){const cfg=state.session?.config;state.orgA=cfg?.orgA||DEFAULT_ORGS.a;state.orgB=cfg?.orgB||DEFAULT_ORGS.b;}
+function setOrgState(){const cfg=state.session?.config;state.orgA=cfg?.orgA||DEFAULT_ORGS.a;state.orgB=cfg?.orgB||DEFAULT_ORGS.b;applyOrgColors();}
+function applyOrgColors(){const r=document.documentElement;r.style.setProperty('--wv-color',state.orgA?.color||DEFAULT_ORGS.a.color);r.style.setProperty('--lb-color',state.orgB?.color||DEFAULT_ORGS.b.color);}
 
 // ── safe HTML helpers ────────────────────────────────────────────────────────
 // All user content passes through esc() before being placed in HTML
@@ -343,11 +346,23 @@ function renderLanding(prefilledRoom){
             <div class="form-row" style="margin-bottom:0"><label class="form-label">short code</label>
               <input class="text-input" id="create-org-a-code" placeholder="wv" value="wv" maxlength="8" style="font-size:14px"></div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;margin-bottom:16px">
+          <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;margin-bottom:12px">
             <div class="form-row" style="margin-bottom:0"><label class="form-label">organisation B name</label>
               <input class="text-input" id="create-org-b-name" placeholder="lightbulb learning lab" value="lightbulb learning lab" style="font-size:14px"></div>
             <div class="form-row" style="margin-bottom:0"><label class="form-label">short code</label>
               <input class="text-input" id="create-org-b-code" placeholder="lb" value="lb" maxlength="8" style="font-size:14px"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">org A brand colour</label>
+              <input type="color" id="create-org-a-color" value="#A0522D" style="width:100%;height:36px;padding:2px 4px;border:1.5px solid rgba(43,74,95,0.15);border-radius:8px;cursor:pointer;background:var(--white)"></div>
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">org B brand colour</label>
+              <input type="color" id="create-org-b-color" value="#378eff" style="width:100%;height:36px;padding:2px 4px;border:1.5px solid rgba(43,74,95,0.15);border-radius:8px;cursor:pointer;background:var(--white)"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">org A logo url (optional)</label>
+              <input class="text-input" id="create-org-a-logo" type="url" placeholder="https://…" style="font-size:12px"></div>
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">org B logo url (optional)</label>
+              <input class="text-input" id="create-org-b-logo" type="url" placeholder="https://…" style="font-size:12px"></div>
           </div>
           <div class="form-row"><label class="form-label">overlap seeds — left column (one per line, blank for defaults)</label>
             <textarea class="text-input" id="create-seeds-left" rows="4" placeholder="one item per line…" style="font-size:12px;resize:vertical"></textarea></div>
@@ -399,7 +414,11 @@ async function handleCreate(){
   const seedsRightRaw=(document.getElementById('create-seeds-right')?.value?.trim());
   const seedsLeft=seedsLeftRaw?seedsLeftRaw.split('\n').map(s=>s.trim()).filter(Boolean):OVERLAP_SEEDS.left;
   const seedsRight=seedsRightRaw?seedsRightRaw.split('\n').map(s=>s.trim()).filter(Boolean):OVERLAP_SEEDS.right;
-  const config={orgA:{code:orgACode,name:orgAName},orgB:{code:orgBCode,name:orgBName},seedsLeft,seedsRight};
+  const orgAColor=(document.getElementById('create-org-a-color')?.value)||DEFAULT_ORGS.a.color;
+  const orgBColor=(document.getElementById('create-org-b-color')?.value)||DEFAULT_ORGS.b.color;
+  const orgALogo=(document.getElementById('create-org-a-logo')?.value?.trim())||null;
+  const orgBLogo=(document.getElementById('create-org-b-logo')?.value?.trim())||null;
+  const config={orgA:{code:orgACode,name:orgAName,color:orgAColor,logo:orgALogo},orgB:{code:orgBCode,name:orgBName,color:orgBColor,logo:orgBLogo},seedsLeft,seedsRight};
   const roomCode=generateRoomCode();
   const{data:session,error}=await sb.from('weave_sessions').insert({room_code:roomCode,title,active_phase:-1,facilitator_name:name,config}).select().single();
   if(error){errEl.textContent='error: '+error.message;errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='create session →';}return;}
@@ -1145,10 +1164,17 @@ async function renderLog(){
 function renderHeader(){
   const title=state.session?.title||'';
   const code=state.session?.room_code||'';
+  const aLogo=getOrg('a').logo;
+  const bLogo=getOrg('b').logo;
+  const logosHtml=(aLogo||bLogo)?`<div class="org-logos">${aLogo?`<img src="${esc(aLogo)}" class="org-logo" alt="${esc(getOrg('a').name)}">`:''}${aLogo&&bLogo?`<span style="color:rgba(43,74,95,0.25);font-size:11px;font-weight:300">×</span>`:''}${bLogo?`<img src="${esc(bLogo)}" class="org-logo" alt="${esc(getOrg('b').name)}">`:''}
+</div>`:'';
   const el=document.createElement('div');
   el.className='app-header';
   el.innerHTML=`<div class="app-header-inner">
-    <div><div class="wordmark">winded<span class="dot">.</span>vertigo</div><div class="app-title">the weave</div></div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div><div class="wordmark">winded<span class="dot">.</span>vertigo</div><div class="app-title">the weave</div></div>
+      ${logosHtml}
+    </div>
     <div class="session-meta">
       ${title?`<div class="session-label">${esc(title)}</div>`:''}
       ${code?`<div class="room-badge">${esc(code)}</div>`:''}
