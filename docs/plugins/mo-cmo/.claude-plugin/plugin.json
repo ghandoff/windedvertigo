@@ -2,5 +2,7 @@
   "name": "mo-cmo",
   "version": "1.0.0",
   "description": "Mo — winded.vertigo's chief marketing officer. persistent memory across conversations.",
-  "author": "winded.vertigo"
+  "author": {
+    "name": "winded.vertigo"
+  }
 }
