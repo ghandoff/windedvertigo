@@ -1,0 +1,26 @@
+{
+  "name": "windedvertigo",
+  "owner": {
+    "name": "winded.vertigo"
+  },
+  "metadata": {
+    "description": "winded.vertigo collective agents — Mo (CMO), PaM (project/momentum manager), and cARL (research). Each pairs a persona skill with a memory MCP server backed by the shared port.windedvertigo.com memory layer."
+  },
+  "plugins": [
+    {
+      "name": "mo-cmo",
+      "source": "./docs/plugins/mo-cmo",
+      "description": "Mo — winded.vertigo's chief marketing officer. Persistent memory across conversations."
+    },
+    {
+      "name": "pam-pm",
+      "source": "./docs/plugins/pam-pm",
+      "description": "PaM — winded.vertigo's project and momentum manager. Tracks commitments, dependencies, and follow-ups."
+    },
+    {
+      "name": "carl-research",
+      "source": "./docs/plugins/carl-research",
+      "description": "cARL — winded.vertigo's cyber agent of research and learning. Living library of evidence and findings."
+    }
+  ]
+}
