@@ -58,7 +58,7 @@ export function AgentPageWithChat({ agentId, children }: AgentPageWithChatProps)
       </div>
 
       {/* ── Responsive split layout ─────────────────────────────── */}
-      <div className="md:grid md:grid-cols-[1fr_380px] md:gap-6 md:items-start">
+      <div className="md:grid md:grid-cols-[1fr_320px] md:gap-6 md:items-start">
         {/* Dashboard content — hidden on mobile when in chat view */}
         {/* min-w-0: overrides CSS Grid's default min-width:auto so the 1fr cell */}
         {/* respects its assigned fraction rather than expanding to content width. */}
