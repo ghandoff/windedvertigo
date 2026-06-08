@@ -22,6 +22,7 @@ import {
   ListChecks,
   BookOpen,
   Library,
+  FileSearch,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -56,6 +57,7 @@ export const NAV_SECTIONS: NavSection[] = [
     // shared inputs the collective + agents draw on
     title: "knowledge",
     items: [
+      { label: "find articles", href: "/find-articles", icon: FileSearch },
       { label: "council", href: "/council", icon: MessagesSquare },
       { label: "bibliography", href: "/bibliography", icon: Library },
     ],
