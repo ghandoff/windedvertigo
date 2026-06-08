@@ -57,13 +57,15 @@ export default async function CarlPage({
   const coveredTopics = curriculum.filter((c) => c.status === "covered").length;
 
   return (
-    <AgentPageWithChat agentId="carl">
-      <div className="space-y-6">
+    <>
+      <div className="mb-6">
         <PageHeader
           title="cARL"
           description="cyber agent of research + learning · the living library"
         />
-
+      </div>
+      <AgentPageWithChat agentId="carl">
+      <div className="space-y-6">
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-lg border border-border bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">findings</p>
@@ -101,5 +103,6 @@ export default async function CarlPage({
         {activeTab === "log" && <AgentLogTab decisions={decisions} agentName="cARL" />}
       </div>
     </AgentPageWithChat>
+    </>
   );
 }

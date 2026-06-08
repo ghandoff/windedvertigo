@@ -106,8 +106,8 @@ export default async function StrategyPage({
   }));
 
   return (
-    <AgentPageWithChat agentId="mo">
-    <div className="space-y-6">
+    <>
+    <div className="space-y-6 mb-6">
       <PageHeader
         title="strategy"
         description="q2–q3 2026 · marketing command centre · cmo: claude · sponsor: garrett"
@@ -118,7 +118,9 @@ export default async function StrategyPage({
       <StrategyHero subscribers={stats?.totalSubscribers ?? 0} revenueProgress={revenueProgress} />
 
       <TeamPulseStrip activeMember={memberFilter} timelines={liveTimelines} distributionItems={liveDistribution} />
-
+    </div>
+    <AgentPageWithChat agentId="mo">
+    <div className="space-y-6">
       <UrlTabs tabs={TABS} activeTab={activeTab} />
 
       {activeTab === "strategy" && <StrategyTab />}
@@ -153,5 +155,6 @@ export default async function StrategyPage({
       </div>
     </div>
     </AgentPageWithChat>
+    </>
   );
 }

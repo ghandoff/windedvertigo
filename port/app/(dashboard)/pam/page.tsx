@@ -38,13 +38,15 @@ export default async function PamPage({
   const blocked = active.filter((c) => c.status === "blocked");
 
   return (
-    <AgentPageWithChat agentId="pam">
-      <div className="space-y-6">
+    <>
+      <div className="mb-6">
         <PageHeader
           title="PaM"
           description="project + momentum manager · commitments, dependencies, follow-ups"
         />
-
+      </div>
+      <AgentPageWithChat agentId="pam">
+      <div className="space-y-6">
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-lg border border-border bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">active</p>
@@ -79,5 +81,6 @@ export default async function PamPage({
         {activeTab === "log" && <AgentLogTab decisions={decisions} agentName="PaM" />}
       </div>
     </AgentPageWithChat>
+    </>
   );
 }
