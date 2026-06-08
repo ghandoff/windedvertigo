@@ -1,6 +1,7 @@
 {
   "carl-memory": {
-    "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-servers/carl-memory/index.js"]
+    "type": "http",
+    "url": "https://port.windedvertigo.com/api/mcp/agents/carl",
+    "headers": { "Authorization": "Bearer ${WV_AGENT_TOKEN}" }
   }
 }

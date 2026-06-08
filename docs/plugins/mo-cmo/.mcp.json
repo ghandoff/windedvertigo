@@ -1,6 +1,7 @@
 {
   "mo-memory": {
-    "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-servers/mo-memory/index.js"]
+    "type": "http",
+    "url": "https://port.windedvertigo.com/api/mcp/agents/mo",
+    "headers": { "Authorization": "Bearer ${WV_AGENT_TOKEN}" }
   }
 }
