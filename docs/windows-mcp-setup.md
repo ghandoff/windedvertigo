@@ -1,5 +1,13 @@
 # winded.vertigo agent MCP servers — windows setup
 
+> ⚠️ **SUPERSEDED — do not follow this for Cowork.** This describes the old
+> *local* MCP approach (a `node` server per machine, written into
+> `claude_desktop_config.json`). Cowork (Claude Desktop) runs in a cloud VM and
+> **ignores that config + can't run local servers**, so this path can't surface
+> the agents there (see `docs/cowork-mcp-findings-2026-06-08.md`). The agents are
+> now hosted as a **remote MCP endpoint** — follow **`docs/plugins/REMOTE-MCP-SETUP.md`**
+> instead (Claude Code *and* Cowork). Kept only for historical reference.
+
 the original setup note was written for macos (zsh, `~/Library/Application
 Support/Claude`, `python3`). on windows none of those steps land: there's no
 `~/.zshrc` for windows to read, and the script as originally written pointed at

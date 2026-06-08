@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 """Add Mo, PaM, and cARL MCP servers to the Claude desktop config.
 
+⚠️ SUPERSEDED — do not use for Cowork. This writes a LOCAL stdio server into
+claude_desktop_config.json's mcpServers block. Cowork (Claude Desktop) runs in a
+cloud VM that ignores that block and can't launch local node servers, so the
+agents never appear there (see docs/cowork-mcp-findings-2026-06-08.md). The
+agents are now a hosted REMOTE MCP endpoint — follow docs/plugins/REMOTE-MCP-SETUP.md
+instead (works in Claude Code AND Cowork). Kept only for historical reference /
+local Claude Code fallback.
+
 Cross-platform: resolves the Claude Desktop config location for
 macOS, Windows, and Linux. Run with `python3` (macOS/Linux) or
 `python` (Windows). The agent token is written directly into each

@@ -122,8 +122,6 @@ export default async function StrategyPage({
 
       <DocentWelcomeBanner />
 
-      <CarlInsightsPanel entries={moMemory} />
-
       <StrategyHero subscribers={stats?.totalSubscribers ?? 0} revenueProgress={revenueProgress} />
 
       <TeamPulseStrip activeMember={memberFilter} timelines={liveTimelines} distributionItems={liveDistribution} />
@@ -155,6 +153,9 @@ export default async function StrategyPage({
         </Suspense>
       )}
       {activeTab === "mo-log" && <MoLogTab decisions={moDecisions} />}
+
+      {/* cARL's prepared insights — tucked at the bottom, collapsed by default */}
+      <CarlInsightsPanel entries={moMemory} />
 
       {/* doc meta */}
       <div className="text-[10px] text-muted-foreground space-y-0.5 px-1 pt-4">
