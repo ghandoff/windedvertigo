@@ -17,6 +17,7 @@
 
 import { Suspense } from "react";
 import { PageHeader } from "@/app/components/page-header";
+import { AssignResearchTopic } from "@/app/components/assign-research-topic";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { CardGridSkeleton } from "@/app/components/skeletons";
 import { getSocialStatsFromSnapshot } from "@/lib/marketing/social-stats";
@@ -108,10 +109,13 @@ export default async function StrategyPage({
   return (
     <>
     <div className="space-y-6 mb-6">
-      <PageHeader
-        title="strategy"
-        description="q2–q3 2026 · marketing command centre · cmo: claude · sponsor: garrett"
-      />
+      <div className="flex items-start justify-between gap-3">
+        <PageHeader
+          title="strategy"
+          description="q2–q3 2026 · marketing command centre · cmo: claude · sponsor: garrett"
+        />
+        <AssignResearchTopic assignedBy="Mo" label="brief cARL" />
+      </div>
 
       <DocentWelcomeBanner />
 

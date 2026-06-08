@@ -1,4 +1,5 @@
 import { PageHeader } from "@/app/components/page-header";
+import { AssignResearchTopic } from "@/app/components/assign-research-topic";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
@@ -58,11 +59,12 @@ export default async function CarlPage({
 
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-6 flex items-start justify-between gap-3">
         <PageHeader
           title="cARL"
           description="cyber agent of research + learning · the living library"
         />
+        <AssignResearchTopic />
       </div>
       <AgentPageWithChat agentId="carl">
       <div className="space-y-6">

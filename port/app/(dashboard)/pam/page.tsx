@@ -1,4 +1,5 @@
 import { PageHeader } from "@/app/components/page-header";
+import { AssignResearchTopic } from "@/app/components/assign-research-topic";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
@@ -39,11 +40,12 @@ export default async function PamPage({
 
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-6 flex items-start justify-between gap-3">
         <PageHeader
           title="PaM"
           description="project + momentum manager · commitments, dependencies, follow-ups"
         />
+        <AssignResearchTopic assignedBy="PaM" label="brief cARL" />
       </div>
       <AgentPageWithChat agentId="pam">
       <div className="space-y-6">
