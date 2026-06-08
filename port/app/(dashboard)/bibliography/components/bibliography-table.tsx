@@ -2,28 +2,24 @@
 
 import { Fragment, useState, useMemo, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
-  Pencil, Trash2, ExternalLink, Search, Library, Globe, ArrowUpDown, ArrowUp, ArrowDown,
-  Download, Loader2, Plus, Check, FileText, Sparkles, ChevronRight,
+  Pencil, Trash2, ExternalLink, Search, Globe, ArrowUpDown, ArrowUp, ArrowDown,
+  Download, Loader2, FileText, Sparkles, ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import type { BibliographyRow } from "@/lib/supabase/bibliography";
-import type { ScholarHit, ProviderStat } from "@/lib/bibliography/scholar/types";
 import { UsedInEditor } from "./used-in-editor";
 import { CitationDialog } from "./citation-dialog";
 import { AddCitationsDialog } from "./add-citations-dialog";
 import { CitationDetail } from "./citation-detail";
 import { FacetMultiSelect, type FacetOption } from "./facet-multi-select";
 import { AssignResearchTopic } from "@/app/components/assign-research-topic";
-import {
-  deleteCitationAction, retrievePdfAction,
-  searchScholarlyAction, addFromSearchAction,
-} from "../actions";
+import { deleteCitationAction, retrievePdfAction } from "../actions";
 
 // ── display helpers ───────────────────────────────────────────────────────────
 
@@ -74,8 +70,7 @@ export function BibliographyTable({
 }) {
   const router = useRouter();
 
-  // search + mode
-  const [mode, setMode] = useState<"library" | "find">("library");
+  // library filter
   const [search, setSearch] = useState("");
 
   // facets
@@ -199,27 +194,21 @@ export function BibliographyTable({
 
   return (
     <div className="space-y-4">
-      {/* ── unified search bar + mode toggle ─────────────────────────────── */}
+      {/* ── toolbar: filter the library · entry points ───────────────── */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
-          {/* mode toggle */}
-          <div className="inline-flex rounded-md border border-border p-0.5">
-            <button
-              type="button"
-              onClick={() => setMode("library")}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs transition-colors ${mode === "library" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <Library className="h-3.5 w-3.5" /> my library
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("find")}
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs transition-colors ${mode === "find" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <Globe className="h-3.5 w-3.5" /> find new
-            </button>
+          <div className="relative">
+            <Search className="h-3.5 w-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="filter the library…"
+              className="h-8 w-72 text-xs pl-7"
+            />
           </div>
-          <UnifiedSearch mode={mode} search={search} setSearch={setSearch} />
+          <Link href="/find-articles" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+            <Globe className="h-3.5 w-3.5" /> find new articles →
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           <AssignResearchTopic assignedBy="Jamie" />
@@ -227,9 +216,7 @@ export function BibliographyTable({
         </div>
       </div>
 
-      {mode === "library" ? (
-        <>
-          {/* ── facet bar ──────────────────────────────────────────────── */}
+      {/* ── facet bar ──────────────────────────────────────────────── */}
           <div className="flex items-center gap-2 flex-wrap">
             <FacetMultiSelect label="topics" options={topicOpts} selected={fTopics} onChange={setFTopics} />
             <FacetMultiSelect label="journals" options={journalOpts} selected={fJournals} onChange={setFJournals} />
@@ -480,10 +467,6 @@ export function BibliographyTable({
               <p className="text-sm text-muted-foreground text-center py-12">no citations match the current filters.</p>
             )}
           </div>
-        </>
-      ) : (
-        <FindNew search={search} />
-      )}
 
       <CitationDialog existing={editing ?? undefined} open={editOpen} onOpenChange={setEditOpen} allAssets={assets} />
       <CitationDetail
@@ -492,142 +475,6 @@ export function BibliographyTable({
         onOpenChange={setDetailOpen}
         onEdit={(r) => { setEditing(r); setEditOpen(true); }}
       />
-    </div>
-  );
-}
-
-// ── unified search input (drives library filter OR find-new search) ───────────
-
-function UnifiedSearch({
-  mode, search, setSearch,
-}: {
-  mode: "library" | "find";
-  search: string;
-  setSearch: (v: string) => void;
-}) {
-  return (
-    <div className="relative">
-      <Search className="h-3.5 w-3.5 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-      <Input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder={mode === "library" ? "filter the library…" : "search Semantic Scholar, PubMed, Crossref…"}
-        className="h-8 w-72 text-xs pl-7"
-      />
-    </div>
-  );
-}
-
-// ── find-new: federated search rendered inline in the same surface ────────────
-
-function FindNew({ search }: { search: string }) {
-  const router = useRouter();
-  const [hits, setHits] = useState<ScholarHit[]>([]);
-  const [providers, setProviders] = useState<ProviderStat[]>([]);
-  const [exact, setExact] = useState(false);
-  const [searched, setSearched] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [status, setStatus] = useState<Record<string, "added" | "exists">>({});
-  const [searching, startSearch] = useTransition();
-  const [, startAdd] = useTransition();
-
-  function run() {
-    if (!search.trim()) return;
-    setError(null);
-    startSearch(async () => {
-      const res = await searchScholarlyAction(search);
-      setSearched(true);
-      if (res.error) { setHits([]); setProviders([]); setExact(false); return setError(res.error); }
-      setHits(res.hits ?? []);
-      setProviders(res.providers ?? []);
-      setExact(!!res.exact);
-    });
-  }
-
-  function add(hit: ScholarHit) {
-    startAdd(async () => {
-      const res = await addFromSearchAction(hit, []);
-      if (res.ok) {
-        setStatus((s) => ({ ...s, [hit.id]: "added" }));
-        router.refresh();
-        if (res.id) void retrievePdfAction(res.id).then(() => router.refresh()).catch(() => {});
-      } else if (res.reason === "duplicate") {
-        setStatus((s) => ({ ...s, [hit.id]: "exists" }));
-      } else setError(res.error ?? "couldn't add");
-    });
-  }
-
-  return (
-    <div className="space-y-3">
-      <form onSubmit={(e) => { e.preventDefault(); run(); }} className="flex gap-2 items-center">
-        <p className="text-xs text-muted-foreground">
-          press <kbd className="px-1 py-0.5 rounded border border-border text-[10px]">enter</kbd> to search the wider literature for{" "}
-          <span className="font-medium text-foreground">{search.trim() || "…"}</span>
-        </p>
-        <Button type="submit" size="sm" className="gap-1" disabled={searching || !search.trim()}>
-          {searching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />} search
-        </Button>
-      </form>
-
-      {!exact && providers.length > 0 && (
-        <p className="text-[10px] text-muted-foreground">
-          {providers.map((p) => `${p.id} ${p.error === "rate-limited" ? "⚠ limited" : p.error ? "⚠" : p.count}`).join(" · ")}
-        </p>
-      )}
-      {exact && hits.length > 0 && <p className="text-[10px] text-muted-foreground">exact DOI match · crossref</p>}
-      {error && <p className="text-xs text-destructive">{error}</p>}
-
-      <div className="space-y-2">
-        {hits.map((h) => {
-          const st = status[h.id];
-          const sources = h.sources ?? [h.source];
-          const authors = h.authors.slice(0, 3).join(", ") + (h.authors.length > 3 ? ", et al." : "");
-          return (
-            <div key={h.id} className="rounded border border-border p-2.5 text-xs space-y-1">
-              <p className="font-medium text-foreground leading-snug">{h.title}</p>
-              <p className="text-muted-foreground">
-                {authors || "—"}
-                {h.year ? <span className="tabular-nums"> · {h.year}</span> : null}
-                {h.venue ? <span className="italic"> · {h.venue}</span> : ""}
-                {h.citationCount != null ? ` · cited by ${h.citationCount}` : ""}
-              </p>
-              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                {sources.map((s) => <Badge key={s} variant="outline" className="text-[9px] py-0 px-1.5">{s}</Badge>)}
-                {sources.length > 1 && <Badge variant="secondary" className="text-[9px] py-0 px-1.5">confirmed by {sources.length}</Badge>}
-              </div>
-              <div className="flex items-center gap-3 pt-0.5">
-                {st === "added" ? (
-                  <span className="inline-flex items-center gap-1 text-green-600"><Check className="h-3 w-3" /> added</span>
-                ) : st === "exists" ? (
-                  <span className="inline-flex items-center gap-1 text-muted-foreground"><Check className="h-3 w-3" /> in library</span>
-                ) : (
-                  <button type="button" onClick={() => add(h)} className="inline-flex items-center gap-1 text-primary hover:underline">
-                    <Plus className="h-3 w-3" /> add to library
-                  </button>
-                )}
-                {h.doi && (
-                  <a href={`https://doi.org/${h.doi}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
-                    <ExternalLink className="h-3 w-3" /> doi
-                  </a>
-                )}
-                {h.openAccessPdf && (
-                  <a href={h.openAccessPdf} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
-                    <FileText className="h-3 w-3" /> pdf
-                  </a>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        {searched && !searching && hits.length === 0 && !error && (
-          <p className="text-xs text-muted-foreground text-center py-6">no results — try different terms.</p>
-        )}
-        {!searched && !searching && (
-          <p className="text-xs text-muted-foreground text-center py-6">
-            search Semantic Scholar, PubMed, Crossref, OpenAlex, arXiv and CORE at once — then add with one click.
-          </p>
-        )}
-      </div>
     </div>
   );
 }
