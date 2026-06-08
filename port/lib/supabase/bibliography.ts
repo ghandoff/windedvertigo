@@ -44,6 +44,8 @@ export async function getBibliography(): Promise<BibliographyEntry[]> {
 export interface BibliographyRow {
   id: string;
   fullCitation: string;
+  /** Clean article title (ScholarHit/Crossref). Null for legacy rows → UI parses. */
+  title: string | null;
   abstract: string | null;
   keywords: string | null;
   notes: string | null;
@@ -71,6 +73,7 @@ function mapFullRow(r: any): BibliographyRow {
   return {
     id: r.id,
     fullCitation: r.full_citation ?? "",
+    title: r.title ?? null,
     abstract: r.abstract ?? null,
     keywords: r.keywords ?? null,
     notes: r.notes ?? null,
@@ -127,6 +130,7 @@ export async function updateBibliographyRow(
     authors?: string[] | null;
     firstAuthor?: string | null;
     journal?: string | null;
+    title?: string | null;
   },
 ): Promise<BibliographyRow> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -150,6 +154,7 @@ export async function updateBibliographyRow(
   if (fields.authors !== undefined) patch.authors = fields.authors;
   if (fields.firstAuthor !== undefined) patch.first_author = fields.firstAuthor;
   if (fields.journal !== undefined) patch.journal = fields.journal;
+  if (fields.title !== undefined) patch.title = fields.title;
 
   const { data, error } = await supabase
     .from("bibliography")
@@ -191,6 +196,7 @@ export interface NewBibliographyRow {
   authors?: string[] | null;
   firstAuthor?: string | null;
   journal?: string | null;
+  title?: string | null;
 }
 
 /**
@@ -223,6 +229,7 @@ export async function insertBibliographyRow(
       authors: entry.authors ?? null,
       first_author: entry.firstAuthor ?? null,
       journal: entry.journal ?? null,
+      title: entry.title ?? null,
     })
     .select("id")
     .single();

@@ -1,5 +1,6 @@
 import { PageHeader } from "@/app/components/page-header";
 import { AssignResearchTopic } from "@/app/components/assign-research-topic";
+import { CarlInsightsPanel, splitCarlInsights } from "@/app/components/carl-insights-panel";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
@@ -68,6 +69,8 @@ export default async function PamPage({
           </div>
         </div>
 
+        <CarlInsightsPanel entries={memory} />
+
         <UrlTabs tabs={TABS} activeTab={activeTab} />
 
         {activeTab === "commitments" && (
@@ -79,7 +82,7 @@ export default async function PamPage({
           </div>
         )}
         {activeTab === "timeline" && <CommitmentsTimeline commitments={commitments} />}
-        {activeTab === "memory" && <AgentMemoryPanel entries={memory} />}
+        {activeTab === "memory" && <AgentMemoryPanel entries={splitCarlInsights(memory).working} />}
         {activeTab === "log" && <AgentLogTab decisions={decisions} agentName="PaM" />}
       </div>
     </AgentPageWithChat>

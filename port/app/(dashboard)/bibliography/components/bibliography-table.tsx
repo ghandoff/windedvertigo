@@ -44,11 +44,11 @@ function authorDisplay(r: BibliographyRow): string {
 }
 
 /**
- * Clean title only — the title sentence, without the journal/volume/pages tail.
- * Strips the leading "Authors (year). " then keeps up to the end of the title
- * sentence (before the journal). The full citation lives in the expand row.
+ * Display title. Prefers the stored `title` (captured from the search hit /
+ * Crossref); falls back to parsing the citation for legacy rows with no title.
  */
 function cleanTitle(r: BibliographyRow): string {
+  if (r.title && r.title.trim()) return r.title.trim();
   const afterYear = r.fullCitation.split(/\)\.\s+/);
   const tail = (afterYear.length > 1 ? afterYear.slice(1).join("). ") : r.fullCitation).trim();
   const title = tail.split(/\.\s+/)[0]?.trim();
