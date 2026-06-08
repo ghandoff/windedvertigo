@@ -43,11 +43,16 @@ function authorDisplay(r: BibliographyRow): string {
   return lead;
 }
 
-/** Title-forward text: strip the leading "Authors (year)." so the title leads. */
-function deriveTitle(r: BibliographyRow): string {
-  const m = r.fullCitation.split(/\)\.\s+/);
-  const tail = m.length > 1 ? m.slice(1).join("). ") : r.fullCitation;
-  return tail.trim();
+/**
+ * Clean title only — the title sentence, without the journal/volume/pages tail.
+ * Strips the leading "Authors (year). " then keeps up to the end of the title
+ * sentence (before the journal). The full citation lives in the expand row.
+ */
+function cleanTitle(r: BibliographyRow): string {
+  const afterYear = r.fullCitation.split(/\)\.\s+/);
+  const tail = (afterYear.length > 1 ? afterYear.slice(1).join("). ") : r.fullCitation).trim();
+  const title = tail.split(/\.\s+/)[0]?.trim();
+  return title || tail || r.fullCitation;
 }
 
 type SortKey = "author" | "title" | "journal" | "year" | "cites" | "added";
@@ -131,7 +136,7 @@ export function BibliographyTable({
     const cmp = (a: BibliographyRow, b: BibliographyRow): number => {
       switch (sortKey) {
         case "author": return leadAuthor(a).localeCompare(leadAuthor(b)) * dir;
-        case "title": return deriveTitle(a).localeCompare(deriveTitle(b)) * dir;
+        case "title": return cleanTitle(a).localeCompare(cleanTitle(b)) * dir;
         case "journal": return (a.journal ?? "~").localeCompare(b.journal ?? "~") * dir;
         case "year": return ((a.year ?? 0) - (b.year ?? 0)) * dir;
         case "cites": return ((a.citationCount ?? 0) - (b.citationCount ?? 0)) * dir;
@@ -251,18 +256,18 @@ export function BibliographyTable({
             </span>
           </div>
 
-          {/* ── sortable table ─────────────────────────────────────────── */}
-          <div className="rounded-md border overflow-x-auto">
-            <Table className="min-w-[820px]">
+          {/* ── sortable table (desktop) ───────────────────────────────── */}
+          <div className="hidden md:block rounded-md border overflow-x-auto">
+            <Table className="min-w-[760px] table-fixed">
               <TableHeader>
                 <TableRow className="text-[11px] text-muted-foreground">
                   <TableHead className="w-9">pdf</TableHead>
                   {sortHead("author", "author", "w-32")}
-                  {sortHead("title", "title / citation")}
+                  {sortHead("title", "title")}
                   {sortHead("journal", "journal", "w-40")}
                   {sortHead("year", "year", "w-14 text-right")}
                   {sortHead("cites", "cites", "w-14 text-right")}
-                  <TableHead className="w-px">tags</TableHead>
+                  <TableHead className="w-24">tags</TableHead>
                   <TableHead className="w-9" />
                 </TableRow>
               </TableHeader>
@@ -297,7 +302,7 @@ export function BibliographyTable({
                           )}
                         </TableCell>
                         {/* author */}
-                        <TableCell className="py-2 text-xs text-muted-foreground">{authorDisplay(r)}</TableCell>
+                        <TableCell className="py-2 text-xs text-muted-foreground truncate" title={authorDisplay(r)}>{authorDisplay(r)}</TableCell>
                         {/* title / citation */}
                         <TableCell className="py-2">
                           <button
@@ -306,11 +311,11 @@ export function BibliographyTable({
                             className="text-left text-sm leading-snug hover:underline decoration-dotted underline-offset-2 flex items-start gap-1"
                           >
                             <ChevronRight className={`h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/50 transition-transform ${isOpen ? "rotate-90" : ""}`} />
-                            <span className="line-clamp-2">{deriveTitle(r)}</span>
+                            <span className="line-clamp-2">{cleanTitle(r)}</span>
                           </button>
                         </TableCell>
                         {/* journal */}
-                        <TableCell className="py-2 text-xs text-muted-foreground italic">{r.journal ?? "—"}</TableCell>
+                        <TableCell className="py-2 text-xs text-muted-foreground italic truncate" title={r.journal ?? undefined}>{r.journal ?? "—"}</TableCell>
                         {/* year */}
                         <TableCell className="py-2 text-xs text-muted-foreground tabular-nums text-right">{r.year ?? "—"}</TableCell>
                         {/* cites */}
@@ -345,7 +350,10 @@ export function BibliographyTable({
                         <TableRow className="bg-muted/20">
                           <TableCell />
                           <TableCell colSpan={7} className="py-3 space-y-2">
-                            <p className="text-xs text-foreground/80 leading-relaxed">{r.fullCitation}</p>
+                            <div>
+                              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">citation</span>
+                              <p className="text-xs text-foreground/80 leading-relaxed">{r.fullCitation}</p>
+                            </div>
                             {r.abstract && <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">{r.abstract}</p>}
                             <div className="flex items-center gap-2 flex-wrap pt-1">
                               <span className="text-[10px] text-muted-foreground">used in:</span>
@@ -365,6 +373,85 @@ export function BibliographyTable({
                 })}
               </TableBody>
             </Table>
+            {filtered.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-12">no citations match the current filters.</p>
+            )}
+          </div>
+
+          {/* ── stacked cards (mobile) ─────────────────────────────────── */}
+          <div className="md:hidden space-y-2">
+            {filtered.map((r) => {
+              const isOpen = expanded.has(r.id);
+              const busy = pdfBusy.has(r.id);
+              return (
+                <div key={r.id} className="rounded-lg border border-border bg-card p-3 space-y-1.5">
+                  <div className="flex items-start gap-2">
+                    <button type="button" onClick={() => toggleExpand(r.id)} className="flex-1 text-left">
+                      <p className="text-sm font-medium leading-snug line-clamp-3">{cleanTitle(r)}</p>
+                    </button>
+                    <div className="shrink-0 pt-0.5">
+                      {r.pdfUrl ? (
+                        <a href={r.pdfUrl} target="_blank" rel="noreferrer" title="open pdf" className="text-primary hover:opacity-80">
+                          <Download className="h-4 w-4" />
+                        </a>
+                      ) : busy ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                      ) : (
+                        <button type="button" onClick={() => findPdf(r)} className="text-[10px] text-muted-foreground/50 hover:text-primary">find pdf</button>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground">
+                    {authorDisplay(r)}
+                    {r.year ? <span className="tabular-nums"> · {r.year}</span> : null}
+                    {r.journal ? <span className="italic"> · {r.journal}</span> : null}
+                  </p>
+
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {r.topic && <Badge variant="outline" className="text-[10px] py-0">{r.topic}</Badge>}
+                    {r.sourceType === "cARL finding" && (
+                      <Badge variant="secondary" className="text-[10px] py-0 gap-0.5"><Sparkles className="h-2.5 w-2.5" /> cARL</Badge>
+                    )}
+                    <button
+                      type="button" onClick={() => toggleExpand(r.id)}
+                      className="ml-auto text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5"
+                    >
+                      <ChevronRight className={`h-3 w-3 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+                      {isOpen ? "less" : "details"}
+                    </button>
+                  </div>
+
+                  {isOpen && (
+                    <div className="pt-1.5 space-y-2 border-t border-border/60">
+                      <div>
+                        <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">citation</span>
+                        <p className="text-xs text-foreground/80 leading-relaxed">{r.fullCitation}</p>
+                      </div>
+                      {r.abstract && <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">{r.abstract}</p>}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] text-muted-foreground">used in:</span>
+                        <UsedInEditor id={r.id} usedIn={r.usedIn ?? []} allAssets={assets} />
+                      </div>
+                      <div className="flex items-center gap-3 pt-0.5">
+                        {r.doi && (
+                          <a href={r.doi} target="_blank" rel="noreferrer" className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                            <ExternalLink className="h-3 w-3" /> source
+                          </a>
+                        )}
+                        <button onClick={() => { setEditing(r); setEditOpen(true); }} className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                          <Pencil className="h-3 w-3" /> edit
+                        </button>
+                        <button onClick={() => { setDetailRow(r); setDetailOpen(true); }} className="text-[11px] text-primary">full details</button>
+                        <button onClick={() => del(r)} className="ml-auto text-muted-foreground hover:text-destructive" title="delete">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {filtered.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-12">no citations match the current filters.</p>
             )}
