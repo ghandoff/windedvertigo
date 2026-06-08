@@ -13,6 +13,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { RESOURCE, PROTECTED_RESOURCE_METADATA_URL, oauthSecret, isAllowedEmail } from "@/lib/oauth/config";
+import { verifyJwt } from "@/lib/oauth/jwt";
 
 export const maxDuration = 60;
 
@@ -185,6 +187,24 @@ const AGENTS: Record<string, AgentSpec> = {
 };
 AGENTS.cmo = AGENTS.mo; // alias
 
+// ── combined connector: all three agents behind one URL (the OAuth resource) ──
+// Cowork adds ONE custom connector (/api/mcp/agents/all) and gets all 14 tools.
+// Each call routes to the right agent by tool-name prefix.
+async function callAll(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
+  if (name.startsWith("cmo_")) return callMo(name, a, token);
+  if (name.startsWith("pam_")) return callPam(name, a, token);
+  if (name.startsWith("carl_")) return callCarl(name, a, token);
+  return { text: `unknown tool: ${name}`, isError: true };
+}
+AGENTS.all = {
+  serverName: "wv-agents",
+  title: "winded.vertigo agents",
+  instructions:
+    "Mo, PaM, and cARL in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL). Call the *_briefing tools at session start to load shared memory.",
+  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS],
+  call: callAll,
+};
+
 // ── JSON-RPC plumbing (mirrors /api/mcp/v1) ──────────────────────────────────
 
 interface JsonRpcRequest {
@@ -199,16 +219,46 @@ type JsonRpcResponse =
 
 const ERR = { PARSE: -32700, METHOD_NOT_FOUND: -32601, INTERNAL: -32603 } as const;
 
-function bearerToken(req: NextRequest): string | null {
-  const expected = process.env.CMO_API_TOKEN;
-  if (!expected) return null;
-  const auth = req.headers.get("authorization") ?? "";
-  if (!auth.startsWith("Bearer ")) return null;
-  const provided = auth.slice(7);
-  if (provided.length !== expected.length) return null;
-  let mismatch = 0;
-  for (let i = 0; i < provided.length; i++) mismatch |= provided.charCodeAt(i) ^ expected.charCodeAt(i);
-  return mismatch === 0 ? provided : null;
+/**
+ * Accept EITHER the static CMO_API_TOKEN (Claude Code plugins) OR a valid OAuth
+ * access token (Cowork sign-in). Returns the token to forward to the internal
+ * /api/{agent}/* API — always the static token, since that API only knows it —
+ * or null if unauthorized.
+ */
+async function authorize(req: NextRequest): Promise<string | null> {
+  const header = req.headers.get("authorization") ?? "";
+  if (!header.startsWith("Bearer ")) return null;
+  const provided = header.slice(7);
+  if (!provided) return null;
+
+  const staticTok = process.env.CMO_API_TOKEN;
+  // static token — constant-time compare
+  if (staticTok && provided.length === staticTok.length) {
+    let mismatch = 0;
+    for (let i = 0; i < provided.length; i++) mismatch |= provided.charCodeAt(i) ^ staticTok.charCodeAt(i);
+    if (mismatch === 0) return staticTok;
+  }
+  // OAuth access token (JWT) — verify signature, audience, allowlisted user
+  try {
+    const claims = await verifyJwt(provided, oauthSecret());
+    if (claims && claims.type === "access" && claims.aud === RESOURCE && isAllowedEmail(claims.sub)) {
+      return staticTok ?? "";
+    }
+  } catch {
+    /* not our JWT */
+  }
+  return null;
+}
+
+/** 401 carrying the RFC 9728 challenge so MCP clients discover the OAuth flow. */
+function unauthorized(): NextResponse {
+  return NextResponse.json(
+    { error: "unauthorized" },
+    {
+      status: 401,
+      headers: { "WWW-Authenticate": `Bearer resource_metadata="${PROTECTED_RESOURCE_METADATA_URL}"` },
+    },
+  );
 }
 
 async function dispatch(spec: AgentSpec, rpc: JsonRpcRequest, token: string): Promise<JsonRpcResponse | null> {
@@ -247,8 +297,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ agent: str
   const spec = resolveAgent(agent);
   if (!spec) return NextResponse.json({ error: `unknown agent '${agent}'` }, { status: 404 });
 
-  const token = bearerToken(req);
-  if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const token = await authorize(req);
+  if (token === null) return unauthorized();
 
   let body: unknown;
   try {
@@ -269,15 +319,19 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ agent: str
   return NextResponse.json(response);
 }
 
-export async function GET(_req: NextRequest, ctx: { params: Promise<{ agent: string }> }): Promise<NextResponse> {
+export async function GET(req: NextRequest, ctx: { params: Promise<{ agent: string }> }): Promise<NextResponse> {
   const { agent } = await ctx.params;
   const spec = resolveAgent(agent);
   if (!spec) return NextResponse.json({ error: `unknown agent '${agent}'`, agents: Object.keys(AGENTS) }, { status: 404 });
+  // Also gate GET (Streamable-HTTP clients may open a stream via GET), so the 401
+  // challenge fires here too and OAuth discovery kicks off.
+  const token = await authorize(req);
+  if (token === null) return unauthorized();
   return NextResponse.json({
     name: spec.serverName,
     version: "1.0.0",
     protocol: "Model Context Protocol over HTTP (JSON-RPC 2.0)",
-    instructions: "POST JSON-RPC requests here with Authorization: Bearer <agent token>. Methods: initialize, tools/list, tools/call.",
+    instructions: "POST JSON-RPC requests here. Auth: Bearer <agent token> (Claude Code) or OAuth (Cowork). Methods: initialize, tools/list, tools/call.",
     tools_available: spec.tools.map((t) => t.name),
   });
 }

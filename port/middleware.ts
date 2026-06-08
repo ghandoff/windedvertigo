@@ -20,6 +20,10 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/agent/slack") ||
     // MCP endpoint — uses its own bearer auth (PORT_MCP_TOKEN).
     pathname.startsWith("/api/mcp/") ||
+    // OAuth server for the agents' MCP connector (Cowork sign-in). /authorize does
+    // its own auth() check + login bounce; discovery + token endpoints are public.
+    pathname.startsWith("/.well-known/oauth") ||
+    pathname.startsWith("/api/oauth/") ||
     // Agent memory APIs (Mo, PaM, cARL) — use their own bearer auth (CMO_API_TOKEN).
     pathname.startsWith("/api/cmo/") ||
     pathname.startsWith("/api/pam/") ||
