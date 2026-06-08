@@ -1,70 +1,106 @@
 /**
- * cARL scheduled study — advances the curriculum a few topics at a time.
+ * cARL scheduled study — the collective's lifelong-learning engine.
  *
- * For each planned curriculum topic, cARL now SEARCHES the live academic
- * literature (Crossref, OpenAlex, Semantic Scholar, PubMed, arXiv, CORE via
- * searchScholar) for real papers on the topic, then asks Claude to choose the
- * most relevant result(s) and distil a finding grounded in them. The chosen
- * real article(s) are filed into the Annotated Bibliography with structured
- * fields (authors, journal, DOI, OA-PDF link → PDF retrievable, sortable), and
- * the finding lands in cARL's library. If a topic returns no hits, it falls
- * back to synthesising from training knowledge so the run still progresses.
+ * Runs DAILY (lib/scheduled.ts). Each run takes a batch of planned curriculum
+ * topics and, for each, SEARCHES the live academic literature (searchScholar),
+ * grounds an ambitious finding in real results, files the source(s) into the
+ * Annotated Bibliography with structured fields (authors, journal, DOI, title,
+ * OA-pdf → sortable + PDF-retrievable), and logs the finding to cARL's library.
+ * If a topic returns no hits, it falls back to synthesising from established
+ * knowledge so the run still progresses.
  *
- * After the run, the per-provider hit-counts are recorded to cARL's memory
- * (key: retrieval-source-notes) so patterns of which sources serve which
- * domains accumulate over time — the seed of "learning to strengthen the tool".
+ * cARL serves three tracks, by curriculum `domain` prefix:
+ *   - collective  → strengthens the harbour apps, facilitation, proposals
+ *   - "mo · …"     → develops Mo (CMO; MBA/PhD — strategy, marketing science, cases)
+ *   - "pam · …"    → develops Pam (PM craft — estimation, dependencies, momentum)
+ * Findings for Mo/Pam are delivered into their memory (cmo_memory/pam_memory,
+ * key carl-insight-*) so they surface on their dashboards.
  *
- * Token usage auto-logs to ai_usage_logs under "carl-study" (visible on
- * /ai-hub and the cARL dashboard).
+ * Self-replenishing: when the planned queue runs low, cARL proposes new topics
+ * across all three tracks so daily study never stalls.
+ *
+ * Triggerable by the scheduler (CRON_SECRET), an agent (CMO_API_TOKEN), or a
+ * logged-in user (the /carl "run a study now" button). Token usage logs under
+ * "carl-study" (visible on /ai-hub and the cARL dashboard).
  */
 
 import { NextRequest } from "next/server";
 import { json, error, param } from "@/lib/api-helpers";
+import { auth } from "@/lib/auth";
 import { callClaude, parseJsonResponse } from "@/lib/ai/client";
 import { insertCarlFinding, upsertCarlMemory } from "@/lib/supabase/carl";
-import { getCurriculum, updateCurriculumTopic } from "@/lib/supabase/carl-curriculum";
+import { getCurriculum, updateCurriculumTopic, insertCarlCurriculumTopic } from "@/lib/supabase/carl-curriculum";
+import { upsertCmoMemory } from "@/lib/supabase/cmo";
+import { upsertPamMemory } from "@/lib/supabase/pam";
 import { createBibliographyEntry } from "@/lib/notion/bibliography";
 import { insertBibliographyRow } from "@/lib/supabase/bibliography";
 import { searchScholar } from "@/lib/bibliography/scholar";
 import type { ScholarHit } from "@/lib/bibliography/scholar/types";
 
-// how many topics to study per run — keep modest (cheap + within worker time)
-const TOPICS_PER_RUN = 3;
+// go-big daily volume; manual ?count can override up to the cap
+const TOPICS_PER_RUN = 10;
+const COUNT_CAP = 20;
+// keep the queue full: replenish when fewer than this remain planned
+const REPLENISH_BELOW = 8;
 
-function verifyAuth(req: NextRequest): boolean {
+function hasTokenAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
   if (!token) return false;
   return token === process.env.CRON_SECRET || token === process.env.CMO_API_TOKEN;
 }
+async function isLoggedIn(): Promise<boolean> {
+  try {
+    const session = await auth();
+    return !!session?.user;
+  } catch {
+    return false;
+  }
+}
 
-// search-grounded prompt: pick from REAL results, ground the finding in them
-const SYSTEM_SEARCH = `you are cARL, winded.vertigo's research librarian and scholar. winded.vertigo is a regenerative-education collective that builds learning apps (the "harbour" apps), facilitation designs, and grant proposals.
+// ── prompts ───────────────────────────────────────────────────────────────────
 
-you are given ONE curriculum topic and a numbered list of REAL search results from the academic literature. choose the most relevant result (or two), and write a single distilled finding grounded in them. do not invent sources — only cite from the list. write in plain language with british spelling, lowercase, an oxford comma.
+const SYSTEM_SEARCH = `you are cARL, winded.vertigo's research librarian and lifelong-learning engine. winded.vertigo is a regenerative-education collective that builds learning apps (the "harbour" apps), facilitation designs, and grant proposals. you also actively develop two colleagues: mo (our cmo, pursuing an mba/phd — business strategy, marketing science, case studies) and pam (our pm — project craft, estimation, team momentum).
 
-return ONLY json, no prose, in this exact shape:
+you are given ONE topic, its audience, and a numbered list of REAL search results from the academic literature. be ambitious and rigorous: lean on the results, choose the most relevant (one or two), and write a single sharp finding grounded in them. do not invent sources — cite only from the list. plain language, british spelling, lowercase, an oxford comma.
+
+frame the finding for its audience:
+- audience "mo": write it as a business / case-study teaching note mo can learn from for her mba/phd and marketing craft.
+- audience "pam": write it as a pm-craft technique pam can apply to how we run projects.
+- audience "collective": connect it to what we're building — apps, facilitation, proposals.
+
+return ONLY json, no prose:
 {
   "title": "a clear, specific finding title",
   "summary": "1–3 sentences distilling the core insight from the chosen source(s)",
-  "relevance": "one sentence on how this helps w.v's learning apps, facilitation, or proposals",
+  "relevance": "one sentence on how this helps the audience",
   "tags": ["lowercase", "short", "tags"],
   "chosen": [0]
 }
-where "chosen" is an array of the result index numbers you used (e.g. [0] or [0, 2]).`;
+where "chosen" is the result index number(s) you used (e.g. [0] or [0, 2]).`;
 
-// fallback prompt: no search hits — synthesise from established knowledge
-const SYSTEM_KNOWLEDGE = `you are cARL, winded.vertigo's research librarian and scholar. winded.vertigo is a regenerative-education collective that builds learning apps, facilitation designs, and grant proposals.
+const SYSTEM_KNOWLEDGE = `you are cARL, winded.vertigo's research librarian and lifelong-learning engine — serving the collective and developing mo (cmo, mba/phd) and pam (pm craft).
 
-given ONE curriculum topic, produce a single distilled research finding drawn from the established literature. be accurate — cite a real, well-known work. write in plain language with british spelling, lowercase, an oxford comma.
+given ONE topic and its audience, produce a single distilled finding drawn from the established literature. be accurate — cite a real, well-known work. frame it for the audience (mo = business/case-study lens; pam = pm-craft lens; collective = our apps/facilitation/proposals). plain language, british spelling, lowercase, an oxford comma.
 
-return ONLY json, no prose, in this exact shape:
+return ONLY json, no prose:
 {
-  "title": "a clear, specific finding title",
-  "summary": "1–3 sentences distilling the core insight",
-  "relevance": "one sentence on how this helps w.v's learning apps, facilitation, or proposals",
+  "title": "...",
+  "summary": "1–3 sentences",
+  "relevance": "one sentence on how this helps the audience",
   "citation": "a key source — author(s), title, year",
-  "tags": ["lowercase", "short", "tags"]
+  "tags": ["...", "..."]
 }`;
+
+const SYSTEM_REPLENISH = `you are cARL, winded.vertigo's research librarian and lifelong-learning engine. propose NEW study topics to keep your curriculum full, spread across three tracks:
+- collective: learning sciences, curriculum design, ed-tech, facilitation, threshold concepts, play-based learning, UDL, assessment — whatever strengthens the harbour apps and proposals.
+- mo: business strategy, marketing science, brand, pricing, positioning, go-to-market, and mba/phd-level case studies.
+- pam: project-management craft — estimation, dependencies, risk, team momentum, agile/lean.
+
+use a "domain" prefix of "mo · <area>" for mo topics and "pam · <area>" for pam topics; collective topics use a plain domain. be specific and non-duplicative.
+
+return ONLY json: { "topics": [ { "domain": "...", "topic": "...", "key_works": ["author title year"], "priority": 2 } ] }`;
+
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 interface FindingJson {
   title: string;
@@ -75,17 +111,29 @@ interface FindingJson {
   chosen?: number[];
 }
 
+function audienceOf(domain: string): "mo" | "pam" | "collective" {
+  const d = (domain ?? "").toLowerCase().trim();
+  if (d.startsWith("mo ·") || d.startsWith("mo·") || d.startsWith("mo:")) return "mo";
+  if (d.startsWith("pam ·") || d.startsWith("pam·") || d.startsWith("pam:")) return "pam";
+  return "collective";
+}
+
+function slugify(s: string): string {
+  return (s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+}
+
 /** File a real search hit into the bibliography with structured fields. */
 async function fileHit(hit: ScholarHit, topicDomain: string) {
   const doiUrl = hit.doi ? `https://doi.org/${hit.doi}` : hit.url ?? null;
   await insertBibliographyRow({
     fullCitation: hit.fullCitation ?? `${hit.authors.join(", ")} (${hit.year ?? "n.d."}). ${hit.title}.`,
+    title: hit.title || null,
     year: hit.year ?? null,
     doi: doiUrl,
     sourceType: "cARL finding",
     abstract: hit.abstract ?? undefined,
     publisherLink: doiUrl,
-    scholarLink: hit.openAccessPdf ?? null, // tier-1 source for PDF retrieval
+    scholarLink: hit.openAccessPdf ?? null,
     citationCount: hit.citationCount ?? null,
     topic: topicDomain,
     authors: hit.authors?.length ? hit.authors : null,
@@ -94,28 +142,46 @@ async function fileHit(hit: ScholarHit, topicDomain: string) {
   });
 }
 
+/** Deliver a Mo/Pam-audience finding into that agent's memory. */
+async function deliverInsight(
+  audience: "mo" | "pam",
+  domain: string,
+  f: FindingJson,
+  citation: string | undefined,
+) {
+  const today = new Date().toISOString().slice(0, 10);
+  const key = `carl-insight-${today}-${slugify(f.title)}`;
+  const value =
+    `${f.title} — ${f.summary}` +
+    (citation ? ` (${citation})` : "") +
+    (f.relevance ? ` · why it matters: ${f.relevance}` : "") +
+    ` · track: ${domain}`;
+  if (audience === "mo") await upsertCmoMemory(key, value, "carl-automation");
+  else await upsertPamMemory(key, value, "carl-automation");
+}
+
+// ── main ──────────────────────────────────────────────────────────────────────
+
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return error("unauthorized", 401);
+  if (!hasTokenAuth(req) && !(await isLoggedIn())) return error("unauthorized", 401);
 
   try {
-    const count = Math.min(Math.max(Number(param(req, "count")) || TOPICS_PER_RUN, 1), 12);
+    const count = Math.min(Math.max(Number(param(req, "count")) || TOPICS_PER_RUN, 1), COUNT_CAP);
     const planned = await getCurriculum({ status: "planned" });
     const batch = planned
       .sort((a, b) => a.priority - b.priority || a.sort_order - b.sort_order)
       .slice(0, count);
 
-    if (batch.length === 0) {
-      return json({ studied: 0, note: "curriculum fully covered — nothing planned" });
-    }
-
     let costUsd = 0;
-    const studied: { domain: string; topic: string; title: string; grounded: boolean; filed: number }[] = [];
+    const studied: { domain: string; topic: string; title: string; audience: string; grounded: boolean; filed: number; delivered: boolean }[] = [];
     const providerTally: Record<string, number> = {};
     const studiedDomains = new Set<string>();
 
     for (const t of batch) {
       try {
-        // 1. search the live literature for this topic
+        const audience = audienceOf(t.domain);
+
+        // 1. search the live literature
         const queryStr = `${t.topic} ${(t.key_works ?? []).join(" ")}`.trim();
         const search = await searchScholar(queryStr, { limitPerProvider: 4, timeoutMs: 9000 })
           .catch(() => ({ hits: [] as ScholarHit[], providers: [], errors: [] }));
@@ -127,14 +193,11 @@ export async function GET(req: NextRequest) {
         let grounded = false;
 
         if (topHits.length > 0) {
-          // 2a. ground the finding in real results
           const list = topHits
             .map((h, i) => {
               const cite = h.fullCitation ?? `${h.authors.join(", ")} (${h.year ?? "n.d."}). ${h.title}.`;
-              const meta = [
-                h.citationCount != null ? `cited by ${h.citationCount}` : null,
-                h.openAccessPdf ? "OA pdf" : null,
-              ].filter(Boolean).join(" · ");
+              const meta = [h.citationCount != null ? `cited by ${h.citationCount}` : null, h.openAccessPdf ? "OA pdf" : null]
+                .filter(Boolean).join(" · ");
               return `[${i}] ${cite}${meta ? ` · ${meta}` : ""}`;
             })
             .join("\n");
@@ -142,24 +205,21 @@ export async function GET(req: NextRequest) {
             feature: "carl-study",
             userId: "carl-automation",
             system: SYSTEM_SEARCH,
-            userMessage: `domain: ${t.domain}\ntopic: ${t.topic}\n\nreal search results:\n${list}\n\nchoose the most relevant result(s) and write the finding.`,
+            userMessage: `audience: ${audience}\ndomain: ${t.domain}\ntopic: ${t.topic}\n\nreal search results:\n${list}\n\nchoose the most relevant result(s) and write the finding.`,
             maxTokens: 700,
             temperature: 0.3,
           });
           costUsd += res.costUsd;
           f = parseJsonResponse<FindingJson>(res.text);
-          const idxs = Array.isArray(f.chosen)
-            ? f.chosen.filter((i) => Number.isInteger(i) && i >= 0 && i < topHits.length)
-            : [];
+          const idxs = Array.isArray(f.chosen) ? f.chosen.filter((i) => Number.isInteger(i) && i >= 0 && i < topHits.length) : [];
           chosen = (idxs.length ? idxs : [0]).map((i) => topHits[i]);
           grounded = true;
         } else {
-          // 2b. fallback — synthesise from training knowledge
           const res = await callClaude({
             feature: "carl-study",
             userId: "carl-automation",
             system: SYSTEM_KNOWLEDGE,
-            userMessage: `domain: ${t.domain}\ntopic: ${t.topic}\nkey works to draw on: ${(t.key_works ?? []).join("; ") || "(use your knowledge of the canonical literature)"}`,
+            userMessage: `audience: ${audience}\ndomain: ${t.domain}\ntopic: ${t.topic}\nkey works: ${(t.key_works ?? []).join("; ") || "(use your knowledge of the canonical literature)"}`,
             maxTokens: 700,
             temperature: 0.3,
           });
@@ -167,7 +227,7 @@ export async function GET(req: NextRequest) {
           f = parseJsonResponse<FindingJson>(res.text);
         }
 
-        // 3. file the finding into cARL's library
+        // 2. file the finding in cARL's library
         const findingCitation = chosen[0]?.fullCitation ?? f.citation;
         await insertCarlFinding({
           domain: t.domain,
@@ -176,17 +236,14 @@ export async function GET(req: NextRequest) {
           relevance: f.relevance,
           citation: findingCitation,
           tags: Array.isArray(f.tags) ? f.tags : [],
-          source: grounded ? "cARL scheduled study (search-grounded)" : "cARL scheduled study",
+          source: grounded ? "cARL daily study (search-grounded)" : "cARL daily study",
         });
 
-        // 4. file the source(s) into the bibliography
+        // 3. file the source(s) into the bibliography
         let filed = 0;
         if (chosen.length > 0) {
-          for (const h of chosen) {
-            await fileHit(h, t.domain).then(() => { filed++; }).catch(() => {});
-          }
+          for (const h of chosen) await fileHit(h, t.domain).then(() => { filed++; }).catch(() => {});
         } else if (f.citation) {
-          // fallback path: bare citation string (Crossref-enriches if a DOI is present)
           await createBibliographyEntry({
             fullCitation: f.citation,
             abstract: f.summary,
@@ -198,20 +255,23 @@ export async function GET(req: NextRequest) {
           filed = 1;
         }
 
+        // 4. deliver to Mo/Pam when the topic is for them
+        let delivered = false;
+        if (audience === "mo" || audience === "pam") {
+          await deliverInsight(audience, t.domain, f, findingCitation).then(() => { delivered = true; }).catch(() => {});
+        }
+
         await updateCurriculumTopic(t.id, { status: "covered" });
         studiedDomains.add(t.domain);
-        studied.push({ domain: t.domain, topic: t.topic, title: f.title, grounded, filed });
+        studied.push({ domain: t.domain, topic: t.topic, title: f.title, audience, grounded, filed, delivered });
       } catch (perTopic) {
         console.error(`[cron/carl-study] topic failed (${t.domain} · ${t.topic}):`, perTopic);
       }
     }
 
-    // 5. record provider efficacy to memory — the "learning about sources" loop
+    // 5. provider-efficacy note (learning about sources)
     if (Object.keys(providerTally).length > 0) {
-      const tally = Object.entries(providerTally)
-        .sort((a, b) => b[1] - a[1])
-        .map(([id, n]) => `${id}: ${n}`)
-        .join(" · ");
+      const tally = Object.entries(providerTally).sort((a, b) => b[1] - a[1]).map(([id, n]) => `${id}: ${n}`).join(" · ");
       await upsertCarlMemory(
         "retrieval-source-notes",
         `last study run (${studied.length} topics across ${[...studiedDomains].join(", ") || "—"}): provider hit-counts — ${tally}. low/zero counts for a domain suggest a source gap worth flagging under 'source-suggestions'.`,
@@ -219,11 +279,44 @@ export async function GET(req: NextRequest) {
       ).catch(() => {});
     }
 
+    // 6. self-replenish — keep the daily engine fed
+    let replenished = 0;
+    const remaining = planned.length - studied.length;
+    if (remaining < REPLENISH_BELOW) {
+      try {
+        const need = Math.max(TOPICS_PER_RUN, REPLENISH_BELOW) + 2;
+        const res = await callClaude({
+          feature: "carl-study",
+          userId: "carl-automation",
+          system: SYSTEM_REPLENISH,
+          userMessage: `propose around ${need} new topics. avoid these recently-studied ones: ${[...studiedDomains].slice(0, 20).join("; ") || "(none)"}.`,
+          maxTokens: 900,
+          temperature: 0.6,
+        });
+        costUsd += res.costUsd;
+        const out = parseJsonResponse<{ topics?: { domain: string; topic: string; key_works?: string[]; priority?: number }[] }>(res.text);
+        for (const nt of out.topics ?? []) {
+          if (!nt?.domain || !nt?.topic) continue;
+          await insertCarlCurriculumTopic({
+            domain: String(nt.domain).trim(),
+            topic: String(nt.topic).trim(),
+            key_works: Array.isArray(nt.key_works) ? nt.key_works : [],
+            priority: typeof nt.priority === "number" ? nt.priority : 2,
+            notes: "auto-proposed by cARL to sustain daily study",
+          }).then(() => { replenished++; }).catch(() => {});
+        }
+      } catch (rep) {
+        console.error("[cron/carl-study] replenish failed:", rep);
+      }
+    }
+
     return json({
       studied: studied.length,
       grounded: studied.filter((s) => s.grounded).length,
       sources_filed: studied.reduce((n, s) => n + s.filed, 0),
-      remaining_planned: planned.length - studied.length,
+      delivered_to_agents: studied.filter((s) => s.delivered).length,
+      replenished,
+      remaining_planned: remaining + replenished,
       provider_hits: providerTally,
       cost_usd: Number(costUsd.toFixed(4)),
       findings: studied,

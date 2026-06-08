@@ -191,10 +191,11 @@ const CRON_TABLE: CronEntry[] = [
   // with real API calls. Meta stays stub (pending PAGE_ACCESS_TOKEN approval).
   { path: "/api/cron/sync-social-stats", hours: [4] },
 
-  // Weekly Mon 13:00 UTC — cARL advances its curriculum a few topics at a time,
-  // logging findings + filing citations to the annotated bibliography. Cheap
-  // (Haiku); cost tracked under "carl-study" on /ai-hub.
-  { path: "/api/cron/carl-study", hours: [13], weekdays: [1] },
+  // Daily 13:00 UTC — cARL's lifelong-learning run: searches the live literature,
+  // grounds findings in real papers, files them to the bibliography, delivers
+  // Mo/Pam-track insights to their dashboards, and self-replenishes its
+  // curriculum. Cheap (Haiku + free search); cost tracked under "carl-study".
+  { path: "/api/cron/carl-study", hours: [13] },
 ];
 
 // sweep-stuck-proposals runs every 5 minutes — handled by the */5 trigger,

@@ -41,7 +41,8 @@ import { DistributionTab } from "./components/distribution-tab";
 import { TimelineTab } from "./components/timeline-tab";
 import { CompetitorsTab } from "./components/competitors-tab";
 import { MoLogTab } from "./components/mo-log-tab";
-import { getCmoDecisions } from "@/lib/supabase/cmo";
+import { getCmoDecisions, getCmoMemory } from "@/lib/supabase/cmo";
+import { CarlInsightsPanel } from "@/app/components/carl-insights-panel";
 import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
 
 const TABS: readonly TabDef[] = [
@@ -69,7 +70,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress, moDecisions, revenueSummary] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress, moDecisions, revenueSummary, moMemory] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -98,6 +99,8 @@ export default async function StrategyPage({
     // Aggregated revenue summary (origin_type + tier breakdown) for the pipeline tab.
     // Feeds data from the phase-3 origin_type column; gracefully returns null on error.
     getRevenueProgress().catch(() => null),
+    // Mo's working memory — used to surface cARL's prepared insights at the top.
+    getCmoMemory().catch(() => []),
   ]);
   const pmProjects = pmProjectsResult.data;
   const crmCampaigns = allCampaigns.map((c) => ({
@@ -118,6 +121,8 @@ export default async function StrategyPage({
       </div>
 
       <DocentWelcomeBanner />
+
+      <CarlInsightsPanel entries={moMemory} />
 
       <StrategyHero subscribers={stats?.totalSubscribers ?? 0} revenueProgress={revenueProgress} />
 

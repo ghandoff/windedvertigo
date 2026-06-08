@@ -92,6 +92,7 @@ export async function createBibliographyEntry(
   let authors: string[] | null = null;
   let firstAuthor: string | null = null;
   let journal: string | null = null;
+  let title: string | null = null;
   if (entry.doi) {
     try {
       const { fetchByDoi } = await import("@/lib/bibliography/crossref");
@@ -103,6 +104,7 @@ export async function createBibliographyEntry(
         authors = authorStr ? [authorStr] : null;
         firstAuthor = authorStr ? authorStr.split(/[,\s]/)[0] || null : null;
         journal = meta.venue ?? null;
+        title = meta.title?.trim() || null;
       }
     } catch {
       /* enrichment is best-effort */
@@ -120,5 +122,6 @@ export async function createBibliographyEntry(
     authors,
     firstAuthor,
     journal,
+    title,
   });
 }
