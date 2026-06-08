@@ -7,9 +7,8 @@
  * memory. Use `splitCarlInsights` to keep these out of the raw memory tab.
  */
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
 import type { AgentMemoryEntry } from "./agent-memory-panel";
+import { CarlInsightsCollapsible } from "./carl-insights-collapsible";
 
 const PREFIX = "carl-insight-";
 
@@ -33,25 +32,5 @@ export function CarlInsightsPanel({
 }) {
   const { insights } = splitCarlInsights(entries);
   if (insights.length === 0) return null;
-  const shown = insights.slice(0, max);
-
-  return (
-    <Card className="border-l-2 border-l-primary/40">
-      <CardContent className="py-3 space-y-2">
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <h3 className="text-sm font-medium">what cARL prepared for you</h3>
-          <span className="text-[10px] text-muted-foreground">{insights.length} insight{insights.length === 1 ? "" : "s"}</span>
-        </div>
-        <ul className="space-y-2">
-          {shown.map((m) => (
-            <li key={m.key} className="text-xs leading-relaxed border-l border-border/60 pl-2">
-              <p className="text-foreground/90">{m.value}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{m.updated_at?.slice(0, 10)}</p>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  );
+  return <CarlInsightsCollapsible insights={insights.slice(0, max)} total={insights.length} />;
 }
