@@ -45,7 +45,7 @@ export default async function DashboardLayout({
             <div className="md:hidden flex items-center justify-end gap-2 px-4 pt-3 pb-0">
               <TopBarTools compact />
             </div>
-            <div className="p-6 md:p-8 max-w-7xl mx-auto">{children}</div>
+            <div className="p-4 md:px-6 md:py-8 max-w-none">{children}</div>
           </main>
         </div>
         <FeedbackWidget />
