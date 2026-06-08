@@ -106,6 +106,40 @@ async function fromEuropePmc(doi: string): Promise<string | null> {
   }
 }
 
+/**
+ * Resolve a full-text URL via the same tier order, WITHOUT downloading bytes.
+ * Returns the first working open-access URL + which source found it, or null.
+ * Light enough to run for every search result so the UI can offer "read full
+ * text" up front (the byte-download + R2 rehost still happens on save).
+ */
+export async function resolveFullTextUrl(
+  input: RetrievalInput,
+): Promise<{ url: string; source: string } | null> {
+  const doi = normalizeDoi(input.doi);
+
+  // 1. the OA link the provider already gave us
+  if (input.oaUrl) return { url: input.oaUrl, source: "oa-link" };
+
+  // 2. arXiv direct
+  if (input.arxivId) {
+    const id = input.arxivId.replace(/v\d+$/, "");
+    return { url: `https://arxiv.org/pdf/${id}`, source: "arxiv" };
+  }
+
+  if (doi) {
+    const up = await fromUnpaywall(doi);
+    if (up) return { url: up, source: "unpaywall" };
+    const oa = await fromOpenAlex(doi);
+    if (oa) return { url: oa, source: "openalex" };
+    const core = await fromCore(doi);
+    if (core) return { url: core, source: "core" };
+    const epmc = await fromEuropePmc(doi);
+    if (epmc) return { url: epmc, source: "europepmc" };
+  }
+
+  return null;
+}
+
 /** Run the waterfall. Returns the first real PDF found, or null. */
 export async function retrievePdf(input: RetrievalInput): Promise<RetrievalResult | null> {
   const doi = normalizeDoi(input.doi);

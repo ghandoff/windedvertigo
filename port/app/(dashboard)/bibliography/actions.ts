@@ -8,7 +8,7 @@ import {
   deleteBibliographyRow,
   getBibliographyRowById,
 } from "@/lib/supabase/bibliography";
-import { retrievePdf } from "@/lib/bibliography/scholar/pdf-retrieval";
+import { retrievePdf, resolveFullTextUrl } from "@/lib/bibliography/scholar/pdf-retrieval";
 import { uploadAsset } from "@/lib/r2/upload";
 import {
   parseReferences,
@@ -207,6 +207,30 @@ export async function searchScholarlyAction(
     return { hits, providers };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/**
+ * Resolve a working full-text URL for a search hit via the OA waterfall —
+ * WITHOUT downloading bytes. Lets the search results offer "read full text"
+ * up front, independent of saving. Returns null when no open-access copy exists.
+ */
+export async function resolveFullTextAction(input: {
+  doi?: string | null;
+  openAccessPdf?: string | null;
+  arxivId?: string | null;
+  pmid?: string | null;
+}): Promise<{ url: string; source: string } | null> {
+  await requireSession();
+  try {
+    return await resolveFullTextUrl({
+      doi: input.doi ?? null,
+      oaUrl: input.openAccessPdf ?? null,
+      arxivId: input.arxivId ?? null,
+      pmid: input.pmid ?? null,
+    });
+  } catch {
+    return null;
   }
 }
 
