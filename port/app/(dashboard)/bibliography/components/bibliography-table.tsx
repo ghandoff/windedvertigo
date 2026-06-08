@@ -256,6 +256,29 @@ export function BibliographyTable({
             </span>
           </div>
 
+          {/* ── sort control (mobile only — desktop sorts via column headers) ── */}
+          <div className="md:hidden">
+            <label htmlFor="biblio-sort" className="sr-only">sort by</label>
+            <select
+              id="biblio-sort"
+              value={`${sortKey}:${sortDir}`}
+              onChange={(e) => {
+                const [k, d] = e.target.value.split(":");
+                setSortKey(k as SortKey);
+                setSortDir(d as "asc" | "desc");
+              }}
+              className="h-9 w-full text-sm border border-input rounded-md px-2 bg-background text-muted-foreground"
+            >
+              <option value="year:desc">newest first</option>
+              <option value="year:asc">oldest first</option>
+              <option value="author:asc">author A–Z</option>
+              <option value="title:asc">title A–Z</option>
+              <option value="journal:asc">journal A–Z</option>
+              <option value="cites:desc">most cited</option>
+              <option value="added:desc">recently added</option>
+            </select>
+          </div>
+
           {/* ── sortable table (desktop) ───────────────────────────────── */}
           <div className="hidden md:block rounded-md border overflow-x-auto">
             <Table className="min-w-[760px] table-fixed">

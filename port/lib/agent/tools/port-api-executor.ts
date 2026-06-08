@@ -217,6 +217,13 @@ export async function executeAgentApiTool(request: {
         });
         break;
 
+      case "search_articles":
+        content = await portGet("/api/carl/search-articles", {
+          query: String(input.query ?? ""),
+          limit: typeof input.limit === "number" ? String(input.limit) : "",
+        });
+        break;
+
       default:
         return {
           tool_use_id,

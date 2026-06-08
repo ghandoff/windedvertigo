@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>the weave — winded.vertigo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -76,21 +77,21 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 .participant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:20px}
 .participant-chip{background:var(--white);border-radius:12px;padding:14px 16px;border:1px solid rgba(43,74,95,0.1);display:flex;align-items:center;gap:10px;animation:fadeSlideIn 0.4s ease}
 .org-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.org-dot.wv{background:var(--wv-color)}
-.org-dot.lb{background:var(--lb-color)}
+.org-dot.wv,.org-dot.org-a{background:var(--wv-color)}
+.org-dot.lb,.org-dot.org-b{background:var(--lb-color)}
 .org-dot.guest{background:rgba(43,74,95,0.3)}
 .participant-name{font-size:14px;font-weight:500;color:var(--navy)}
 .participant-org{font-size:11px;color:rgba(43,74,95,0.45);text-transform:lowercase}
 .polaroid-canvas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;margin-top:24px}
 .polaroid{background:var(--white);border-radius:4px;padding:16px 16px 24px;box-shadow:0 3px 16px rgba(43,74,95,0.12),0 1px 4px rgba(43,74,95,0.06);animation:polaroidDrop 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative}
-.polaroid.wv-card{border-top:3px solid var(--wv-color)}
-.polaroid.lb-card{border-top:3px solid var(--lb-color)}
+.polaroid.wv-card,.polaroid.org-a-card{border-top:3px solid var(--wv-color)}
+.polaroid.lb-card,.polaroid.org-b-card{border-top:3px solid var(--lb-color)}
 .polaroid.guest-card{border-top:3px solid rgba(43,74,95,0.3)}
 .polaroid-text{font-size:14px;color:var(--navy);line-height:1.5;margin-bottom:16px;min-height:48px}
 .polaroid-author{font-size:11px;font-weight:600;letter-spacing:0.06em;color:rgba(43,74,95,0.5);text-transform:lowercase}
 .polaroid-org-tag{display:inline-block;margin-top:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.06em}
-.polaroid-org-tag.wv{background:rgba(160,82,45,0.1);color:var(--wv-color)}
-.polaroid-org-tag.lb{background:rgba(42,157,143,0.1);color:var(--lb-color)}
+.polaroid-org-tag.wv,.polaroid-org-tag.org-a{background:rgba(160,82,45,0.1);color:var(--wv-color)}
+.polaroid-org-tag.lb,.polaroid-org-tag.org-b{background:rgba(42,157,143,0.1);color:var(--lb-color)}
 .polaroid-org-tag.guest{background:rgba(43,74,95,0.1);color:var(--navy)}
 .polaroid.mine{outline:2.5px solid var(--sienna);outline-offset:3px}
 .showtell-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
@@ -184,6 +185,15 @@ body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-h
 @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes polaroidDrop{from{opacity:0;transform:translateY(-20px) rotate(var(--rot,0deg))}to{opacity:1;transform:translateY(0) rotate(var(--rot,0deg))}}
 @keyframes pulse{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.15);opacity:1}}
+.qr-block{display:flex;flex-direction:column;align-items:center;gap:8px;margin:24px 0}
+.qr-label{font-size:11px;font-weight:600;letter-spacing:0.1em;color:rgba(43,74,95,0.45)}
+.log-wrap{max-width:760px;margin:0 auto;padding:40px 24px}
+.log-table{width:100%;border-collapse:collapse;margin-top:24px}
+.log-table th{font-size:11px;font-weight:600;letter-spacing:0.08em;color:rgba(43,74,95,0.45);text-align:left;padding:8px 12px;border-bottom:2px solid rgba(43,74,95,0.1)}
+.log-table td{padding:12px;border-bottom:1px solid rgba(43,74,95,0.07);font-size:14px;color:var(--navy);vertical-align:middle}
+.log-table tr:hover td{background:var(--champagne-light)}
+.log-link{color:var(--teal);text-decoration:none;font-weight:600;font-size:13px}
+.log-link:hover{text-decoration:underline}
 @keyframes constellationReveal{from{opacity:0;transform:scale(0.7) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes constellationPulse{0%,100%{text-shadow:0 0 24px rgba(245,230,204,0.5),0 0 48px rgba(42,157,143,0.3)}50%{text-shadow:0 0 36px rgba(245,230,204,0.85),0 0 72px rgba(42,157,143,0.55),0 0 100px rgba(42,157,143,0.2)}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -209,7 +219,14 @@ const OVERLAP_SEEDS={
 const THREAD_LINES=['two organisations, distinct approaches, a shared horizon.','what happens when facilitation meets community?','when design thinking meets the lightbulb way?','when winded.vertigo meets lightbulb learning lab?','','today we find out.'];
 
 let sb=null;
-let state={session:null,participant:null,isFacilitator:false,participants:[],responses:{},selectedLeft:null,selectedRight:null,myVotes:new Set(),phaseSubmitted:{}};
+let state={session:null,participant:null,isFacilitator:false,participants:[],responses:{},selectedLeft:null,selectedRight:null,myVotes:new Set(),phaseSubmitted:{},orgA:null,orgB:null};
+
+const DEFAULT_ORGS={
+  a:{code:'wv',name:'winded.vertigo'},
+  b:{code:'lb',name:'lightbulb learning lab'}
+};
+function getOrg(which){return(which==='a'?state.orgA:state.orgB)||DEFAULT_ORGS[which];}
+function setOrgState(){const cfg=state.session?.config;state.orgA=cfg?.orgA||DEFAULT_ORGS.a;state.orgB=cfg?.orgB||DEFAULT_ORGS.b;}
 
 // ── safe HTML helpers ────────────────────────────────────────────────────────
 // All user content passes through esc() before being placed in HTML
@@ -218,8 +235,8 @@ function esc(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function orgLabel(org){
-  if(org==='wv')return'winded.vertigo';
-  if(org==='lb')return'lightbulb';
+  if(org===getOrg('a').code)return getOrg('a').name;
+  if(org===getOrg('b').code)return getOrg('b').name;
   return'guest';
 }
 function getParticipantOrg(pid){
@@ -238,14 +255,24 @@ function setHTML(id,html){
   const el=document.getElementById(id);
   if(el)el.innerHTML=html;
 }
+function renderQR(canvasId,url){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas||typeof QRCode==='undefined')return;
+  QRCode.toCanvas(canvas,url,{width:200,margin:2,color:{dark:'#2B4A5F',light:'#FAFAF7'}},err=>{if(err)console.warn('QR error',err);});
+}
+function getThreadLines(){
+  return['two organisations, distinct approaches, a shared horizon.','what happens when facilitation meets community?',`when design thinking meets the ${esc(getOrg('b').name.split(' ')[0])} way?`,`when ${esc(getOrg('a').name)} meets ${esc(getOrg('b').name)}?`,'','today we find out.'];
+}
 
 // ── init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',async()=>{
   try{
     sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
     const params=new URLSearchParams(location.search);
+    const view=params.get('view');
     const room=params.get('room');
-    if(room)await attemptRejoin(room);
+    if(view==='log')await renderLog();
+    else if(room)await attemptRejoin(room);
     else renderLanding();
   }catch(e){showError('failed to connect: '+e.message);}
   finally{document.getElementById('loading').style.display='none';}
@@ -278,8 +305,8 @@ function renderLanding(prefilledRoom){
         <input class="text-input" id="join-name" placeholder="first name or full name"></div>
       <div class="form-row"><label class="form-label">your organisation</label>
         <select class="form-select" id="join-org">
-          <option value="wv">winded.vertigo</option>
-          <option value="lb">lightbulb learning lab</option>
+          <option value="${esc(getOrg('a').code)}">${esc(getOrg('a').name)}</option>
+          <option value="${esc(getOrg('b').code)}">${esc(getOrg('b').name)}</option>
           <option value="guest">guest</option>
         </select></div>
       <div id="join-error" class="status-msg error" style="display:none"></div>
@@ -291,6 +318,7 @@ function renderLanding(prefilledRoom){
       <div class="landing-logo">the <span>weave</span></div>
       <div class="landing-subtitle">a session by winded.vertigo</div>
       ${joinCard}
+      <div class="qr-block"><canvas id="landing-qr"></canvas><div class="qr-label">scan to join</div></div>
       <div style="margin-top:32px;font-size:11px;color:rgba(43,74,95,0.3);letter-spacing:0.06em">the weave — a collaborative workshop tool by winded.vertigo</div>
     </div>`;
   }else{
@@ -300,9 +328,30 @@ function renderLanding(prefilledRoom){
       <div class="card" style="margin-bottom:16px">
         <div class="card-title">create a session</div>
         <div class="form-row"><label class="form-label">session title</label>
-          <input class="text-input" id="create-title" placeholder="e.g. whirlpool × lightbulb — 8 june 2026" value="whirlpool × lightbulb learning lab — 8 june 2026"></div>
+          <input class="text-input" id="create-title" placeholder="e.g. org a × org b — date"></div>
         <div class="form-row"><label class="form-label">your name (facilitator)</label>
-          <input class="text-input" id="create-name" placeholder="garrett"></div>
+          <input class="text-input" id="create-name" placeholder="your name"></div>
+        <div class="form-row">
+          <button type="button" id="adv-toggle" style="width:100%;text-align:left;background:none;border:1px solid rgba(43,74,95,0.12);border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:12px;color:rgba(43,74,95,0.5);cursor:pointer">▸ advanced options (organisations &amp; overlap seeds)</button>
+        </div>
+        <div id="adv-options" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;margin-bottom:12px">
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">organisation A name</label>
+              <input class="text-input" id="create-org-a-name" placeholder="winded.vertigo" value="winded.vertigo" style="font-size:14px"></div>
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">short code</label>
+              <input class="text-input" id="create-org-a-code" placeholder="wv" value="wv" maxlength="8" style="font-size:14px"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 90px;gap:8px;margin-bottom:16px">
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">organisation B name</label>
+              <input class="text-input" id="create-org-b-name" placeholder="lightbulb learning lab" value="lightbulb learning lab" style="font-size:14px"></div>
+            <div class="form-row" style="margin-bottom:0"><label class="form-label">short code</label>
+              <input class="text-input" id="create-org-b-code" placeholder="lb" value="lb" maxlength="8" style="font-size:14px"></div>
+          </div>
+          <div class="form-row"><label class="form-label">overlap seeds — left column (one per line, blank for defaults)</label>
+            <textarea class="text-input" id="create-seeds-left" rows="4" placeholder="one item per line…" style="font-size:12px;resize:vertical"></textarea></div>
+          <div class="form-row"><label class="form-label">overlap seeds — right column (one per line, blank for defaults)</label>
+            <textarea class="text-input" id="create-seeds-right" rows="4" placeholder="one item per line…" style="font-size:12px;resize:vertical"></textarea></div>
+        </div>
         <div id="create-error" class="status-msg error" style="display:none"></div>
         <button class="btn btn-sienna" style="width:100%" id="create-btn">create session →</button>
       </div>
@@ -313,12 +362,24 @@ function renderLanding(prefilledRoom){
     document.getElementById('create-btn')?.addEventListener('click',handleCreate);
     document.getElementById('create-name')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleCreate();});
     document.getElementById('create-title')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleCreate();});
+    document.getElementById('adv-toggle')?.addEventListener('click',()=>{
+      const panel=document.getElementById('adv-options');
+      const btn=document.getElementById('adv-toggle');
+      if(!panel)return;
+      const open=panel.style.display!=='none';
+      panel.style.display=open?'none':'block';
+      btn.textContent=(open?'▸':'▾')+' advanced options (organisations & overlap seeds)';
+    });
   }
 
   const codeInput=document.getElementById('join-code');
   if(codeInput)codeInput.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();});
   document.getElementById('join-btn')?.addEventListener('click',handleJoin);
   document.getElementById('join-name')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleJoin();});
+  if(prefilledRoom){
+    const shareUrl=window.location.origin+'/tools/the-weave/?room='+prefilledRoom.toUpperCase();
+    renderQR('landing-qr',shareUrl);
+  }
 }
 
 async function handleCreate(){
@@ -328,12 +389,21 @@ async function handleCreate(){
   if(!name){errEl.textContent='enter your name';errEl.style.display='block';return;}
   const btn=document.getElementById('create-btn');
   if(btn){btn.disabled=true;btn.textContent='creating…';}
+  const orgAName=(document.getElementById('create-org-a-name')?.value?.trim())||'winded.vertigo';
+  const orgACode=(document.getElementById('create-org-a-code')?.value?.trim())||'wv';
+  const orgBName=(document.getElementById('create-org-b-name')?.value?.trim())||'lightbulb learning lab';
+  const orgBCode=(document.getElementById('create-org-b-code')?.value?.trim())||'lb';
+  const seedsLeftRaw=(document.getElementById('create-seeds-left')?.value?.trim());
+  const seedsRightRaw=(document.getElementById('create-seeds-right')?.value?.trim());
+  const seedsLeft=seedsLeftRaw?seedsLeftRaw.split('\n').map(s=>s.trim()).filter(Boolean):OVERLAP_SEEDS.left;
+  const seedsRight=seedsRightRaw?seedsRightRaw.split('\n').map(s=>s.trim()).filter(Boolean):OVERLAP_SEEDS.right;
+  const config={orgA:{code:orgACode,name:orgAName},orgB:{code:orgBCode,name:orgBName},seedsLeft,seedsRight};
   const roomCode=generateRoomCode();
-  const{data:session,error}=await sb.from('weave_sessions').insert({room_code:roomCode,title,active_phase:-1,facilitator_name:name}).select().single();
+  const{data:session,error}=await sb.from('weave_sessions').insert({room_code:roomCode,title,active_phase:-1,facilitator_name:name,config}).select().single();
   if(error){errEl.textContent='error: '+error.message;errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='create session →';}return;}
-  const{data:participant,error:pe}=await sb.from('weave_participants').insert({session_id:session.id,name,role:'facilitator',org:'wv'}).select().single();
+  const{data:participant,error:pe}=await sb.from('weave_participants').insert({session_id:session.id,name,role:'facilitator',org:orgACode}).select().single();
   if(pe){errEl.textContent='error joining: '+pe.message;errEl.style.display='block';if(btn){btn.disabled=false;}return;}
-  await seedOverlapMap(session.id,participant.id);
+  await seedOverlapMap(session.id,participant.id,seedsLeft,seedsRight);
   state.participant=participant;
   state.isFacilitator=true;
   document.body.classList.add('is-facilitator');
@@ -353,7 +423,10 @@ async function handleJoin(){
   if(btn){btn.disabled=true;btn.textContent='joining…';}
   const{data:session,error}=await sb.from('weave_sessions').select('*').eq('room_code',code).single();
   if(error||!session){errEl.textContent='room not found. check the code and try again.';errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='join →';}return;}
-  const{data:participant,error:pe}=await sb.from('weave_participants').insert({session_id:session.id,name,org,role:org==='wv'?'wv':org==='lb'?'lightbulb':'guest'}).select().single();
+  state.session=session;setOrgState();
+  const aCode=getOrg('a').code,bCode=getOrg('b').code;
+  const role=org===aCode?aCode:org===bCode?bCode:'guest';
+  const{data:participant,error:pe}=await sb.from('weave_participants').insert({session_id:session.id,name,org,role}).select().single();
   if(pe){
     const{data:existing}=await sb.from('weave_participants').select('*').eq('session_id',session.id).eq('name',name).single();
     if(existing){state.participant=existing;sessionStorage.setItem('weave_participant_'+session.id,JSON.stringify(existing));history.replaceState(null,'','?room='+code);await joinSession(session);return;}
@@ -365,10 +438,11 @@ async function handleJoin(){
   await joinSession(session);
 }
 
-async function seedOverlapMap(sessionId,participantId){
+async function seedOverlapMap(sessionId,participantId,left,right){
+  left=left||OVERLAP_SEEDS.left;right=right||OVERLAP_SEEDS.right;
   const items=[];
-  OVERLAP_SEEDS.left.forEach(text=>{items.push({session_id:sessionId,participant_id:participantId,phase:4,response_type:'overlap_item',content:{text,side:'left',upvotes:0}});});
-  OVERLAP_SEEDS.right.forEach(text=>{items.push({session_id:sessionId,participant_id:participantId,phase:4,response_type:'overlap_item',content:{text,side:'right',upvotes:0}});});
+  left.forEach(text=>{items.push({session_id:sessionId,participant_id:participantId,phase:4,response_type:'overlap_item',content:{text,side:'left',upvotes:0}});});
+  right.forEach(text=>{items.push({session_id:sessionId,participant_id:participantId,phase:4,response_type:'overlap_item',content:{text,side:'right',upvotes:0}});});
   await sb.from('weave_responses').insert(items);
 }
 
@@ -391,6 +465,7 @@ async function loadAllData(){
   state.participants=parts||[];
   state.responses={};
   (resps||[]).forEach(r=>{if(!state.responses[r.phase])state.responses[r.phase]=[];state.responses[r.phase].push(r);});
+  setOrgState();
 }
 
 function subscribeToSession(){
@@ -440,8 +515,9 @@ function renderWaitingRoom(){
       <div style="text-align:center;padding:40px 0 32px">
         <div style="font-size:11px;letter-spacing:0.12em;color:rgba(43,74,95,0.45);text-transform:lowercase;margin-bottom:8px">session ready</div>
         <div style="font-size:28px;font-weight:300;color:var(--navy)">${esc(state.session.title)}</div>
-        <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
-          <div style="font-size:13px;color:rgba(43,74,95,0.5)">share this link:</div>
+        <div class="qr-block"><canvas id="waiting-qr"></canvas><div class="qr-label">scan to join</div></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:13px;color:rgba(43,74,95,0.5)">or share this link:</div>
           <input id="share-url" readonly style="font-size:12px;padding:6px 12px;border:1px solid rgba(43,74,95,0.15);border-radius:8px;background:var(--white);color:var(--navy);width:220px;outline:none">
           <button class="btn btn-sm btn-secondary" id="copy-btn">copy</button>
         </div>
@@ -460,21 +536,22 @@ function renderWaitingRoom(){
     </div>`:''}
   `;
   // Set share URL value safely via JS property (not innerHTML)
+  const shareUrl=window.location.origin+'/tools/the-weave/?room='+state.session.room_code;
   const shareInput=document.getElementById('share-url');
-  if(shareInput)shareInput.value=url;
+  if(shareInput)shareInput.value=shareUrl;
   document.getElementById('copy-btn')?.addEventListener('click',copyLink);
   document.getElementById('begin-btn')?.addEventListener('click',advancePhase);
+  renderQR('waiting-qr',shareUrl);
   renderWaitingRoomParticipants();
 }
 
 function renderWaitingRoomParticipants(){
   const grid=document.getElementById('participant-grid');
   if(!grid)return;
-  grid.innerHTML=state.participants.map(p=>`
-    <div class="participant-chip">
-      <div class="org-dot ${esc(p.org||'guest')}"></div>
-      <div><div class="participant-name">${esc(p.name)}</div><div class="participant-org">${esc(orgLabel(p.org))}</div></div>
-    </div>`).join('');
+  grid.innerHTML=state.participants.map(p=>{
+    const dc=p.org===getOrg('a').code?'org-a':p.org===getOrg('b').code?'org-b':'guest';
+    return`<div class="participant-chip"><div class="org-dot ${dc}"></div><div><div class="participant-name">${esc(p.name)}</div><div class="participant-org">${esc(orgLabel(p.org))}</div></div></div>`;
+  }).join('');
   const fac=document.getElementById('fac-count');
   if(fac)fac.textContent=state.participants.length+' connected';
 }
@@ -535,12 +612,13 @@ function wirePhaseEvents(phase){
     document.getElementById('polaroid-btn')?.addEventListener('click',submitPolaroid);
   }
   if(phase===2){
-    document.getElementById('close-btn-2')?.addEventListener('click',()=>submitCustomSpark('wv'));
-    document.getElementById('close-btn-3')?.addEventListener('click',()=>submitCustomSpark('lb'));
-    document.getElementById('custom-spark-wv')?.addEventListener('keydown',e=>{if(e.key==='Enter')submitCustomSpark('wv');});
-    document.getElementById('custom-spark-lb')?.addEventListener('keydown',e=>{if(e.key==='Enter')submitCustomSpark('lb');});
-    document.getElementById('set-presenting-wv')?.addEventListener('click',()=>setPresenting('wv'));
-    document.getElementById('set-presenting-lb')?.addEventListener('click',()=>setPresenting('lb'));
+    const aC=getOrg('a').code,bC=getOrg('b').code;
+    document.getElementById('close-btn-spark-'+bC)?.addEventListener('click',()=>submitCustomSpark(bC));
+    document.getElementById('close-btn-spark-'+aC)?.addEventListener('click',()=>submitCustomSpark(aC));
+    document.getElementById('custom-spark-'+bC)?.addEventListener('keydown',e=>{if(e.key==='Enter')submitCustomSpark(bC);});
+    document.getElementById('custom-spark-'+aC)?.addEventListener('keydown',e=>{if(e.key==='Enter')submitCustomSpark(aC);});
+    document.getElementById('set-presenting-'+aC)?.addEventListener('click',()=>setPresenting(aC));
+    document.getElementById('set-presenting-'+bC)?.addEventListener('click',()=>setPresenting(bC));
   }
   if(phase===3){
     const ainp=document.getElementById('annotation-input');
@@ -555,8 +633,9 @@ function wirePhaseEvents(phase){
     });
   }
   if(phase===5){
-    document.getElementById('commit-btn-wv')?.addEventListener('click',()=>submitCommitment('wv'));
-    document.getElementById('commit-btn-lb')?.addEventListener('click',()=>submitCommitment('lb'));
+    const aC=getOrg('a').code,bC=getOrg('b').code;
+    document.getElementById('commit-btn-'+aC)?.addEventListener('click',()=>submitCommitment(aC));
+    document.getElementById('commit-btn-'+bC)?.addEventListener('click',()=>submitCommitment(bC));
   }
   if(phase===6){
     const cinp=document.getElementById('close-input');
@@ -569,11 +648,12 @@ function wirePhaseEvents(phase){
 
 // Phase 0: The Thread
 function renderPhase0(el){
+  const lines=getThreadLines();
   el.innerHTML=`<div class="thread-wrap">
-    ${THREAD_LINES.map((line,i)=>`<div class="thread-line" id="thread-${i}">${esc(line)||'&nbsp;'}</div>`).join('')}
+    ${lines.map((line,i)=>`<div class="thread-line" id="thread-${i}">${line||'&nbsp;'}</div>`).join('')}
     <div style="margin-top:48px;font-size:13px;color:rgba(43,74,95,0.3);letter-spacing:0.08em">${state.participants.length} ${state.participants.length===1?'person':'people'} present</div>
   </div>`;
-  THREAD_LINES.forEach((_,i)=>{
+  lines.forEach((_,i)=>{
     setTimeout(()=>{
       const tl=document.getElementById('thread-'+i);
       if(tl)tl.classList.add('visible');
@@ -590,10 +670,11 @@ function renderPhase1(el,rs){
     const rot=rots[i%rots.length];
     const org=r.content.org||getParticipantOrg(r.participant_id);
     const mine=r.participant_id===myId;
-    return `<div class="polaroid ${esc(org)}-card${mine?' mine':''}" style="transform:rotate(${rot}deg)">
+    const dc=org===getOrg('a').code?'org-a':org===getOrg('b').code?'org-b':'guest';
+    return `<div class="polaroid ${dc}-card${mine?' mine':''}" style="transform:rotate(${rot}deg)">
       <div class="polaroid-text">${esc(r.content.text)}</div>
       <div class="polaroid-author">${esc(r.content.name)}</div>
-      <div class="polaroid-org-tag ${esc(org)}">${esc(orgLabel(org))}</div>
+      <div class="polaroid-org-tag ${dc}">${esc(orgLabel(org))}</div>
     </div>`;
   }).join('');
 
@@ -619,7 +700,8 @@ async function submitPolaroid(){
 
 // Phase 2: Show & Tell
 function renderPhase2(el,rs){
-  const presenting=state.session.config?.presenting||'wv';
+  const aC=getOrg('a').code,bC=getOrg('b').code;
+  const presenting=state.session.config?.presenting||aC;
   const sparks=rs.filter(r=>r.response_type==='spark');
   const myOrg=state.participant?.org;
   const icons={overlap:'✦',try:'⚡',more:'◉',custom:'◈'};
@@ -634,28 +716,28 @@ function renderPhase2(el,rs){
     <button class="spark-btn" data-type="more" data-target="${esc(target)}">◉ tell me more</button>
     <div style="display:flex;gap:8px;margin-top:4px">
       <input class="text-input" id="custom-spark-${esc(target)}" placeholder="custom reaction…" style="font-size:13px;padding:8px 12px">
-      <button class="btn btn-sm btn-secondary" id="close-btn-${target==='wv'?2:3}">send</button>
+      <button class="btn btn-sm btn-secondary" id="close-btn-spark-${esc(target)}">send</button>
     </div>`;
 
   el.innerHTML=`
     <div class="phase-prompt">reactions as each side presents</div>
     ${state.isFacilitator?`<div style="margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <span style="font-size:13px;color:rgba(43,74,95,0.5)">presenting now:</span>
-      <button class="btn btn-sm ${presenting==='wv'?'btn-sienna':'btn-secondary'}" id="set-presenting-wv">winded.vertigo</button>
-      <button class="btn btn-sm ${presenting==='lb'?'btn-teal':'btn-secondary'}" id="set-presenting-lb">lightbulb learning lab</button>
+      <button class="btn btn-sm ${presenting===aC?'btn-sienna':'btn-secondary'}" id="set-presenting-${esc(aC)}">${esc(getOrg('a').name)}</button>
+      <button class="btn btn-sm ${presenting===bC?'btn-teal':'btn-secondary'}" id="set-presenting-${esc(bC)}">${esc(getOrg('b').name)}</button>
     </div>`:''}
     <div class="showtell-layout">
-      <div class="presenting-panel ${presenting==='wv'?'presenting-active':''}">
-        <div class="presenting-label">${presenting==='wv'?'▶ presenting':'listening'}</div>
-        <div class="presenting-org" style="color:var(--sienna)">winded.vertigo</div>
-        ${myOrg!=='wv'&&presenting==='wv'?`<div style="font-size:12px;color:rgba(43,74,95,0.4);margin-bottom:12px">drop a spark while w.v presents:</div>${mkSparkBtns('lb')}`:''}
-        <div class="sparks-list">${sparks.filter(r=>r.content.target==='lb').map(mkSparkChip).join('')}</div>
+      <div class="presenting-panel ${presenting===aC?'presenting-active':''}">
+        <div class="presenting-label">${presenting===aC?'▶ presenting':'listening'}</div>
+        <div class="presenting-org" style="color:var(--sienna)">${esc(getOrg('a').name)}</div>
+        ${myOrg!==aC&&presenting===aC?`<div style="font-size:12px;color:rgba(43,74,95,0.4);margin-bottom:12px">drop a spark while ${esc(getOrg('a').name)} presents:</div>${mkSparkBtns(bC)}`:''}
+        <div class="sparks-list">${sparks.filter(r=>r.content.target===bC).map(mkSparkChip).join('')}</div>
       </div>
-      <div class="presenting-panel ${presenting==='lb'?'presenting-active':''}">
-        <div class="presenting-label">${presenting==='lb'?'▶ presenting':'listening'}</div>
-        <div class="presenting-org" style="color:var(--teal)">lightbulb learning lab</div>
-        ${myOrg!=='lb'&&presenting==='lb'?`<div style="font-size:12px;color:rgba(43,74,95,0.4);margin-bottom:12px">drop a spark while lightbulb presents:</div>${mkSparkBtns('wv')}`:''}
-        <div class="sparks-list">${sparks.filter(r=>r.content.target==='wv').map(mkSparkChip).join('')}</div>
+      <div class="presenting-panel ${presenting===bC?'presenting-active':''}">
+        <div class="presenting-label">${presenting===bC?'▶ presenting':'listening'}</div>
+        <div class="presenting-org" style="color:var(--teal)">${esc(getOrg('b').name)}</div>
+        ${myOrg!==bC&&presenting===bC?`<div style="font-size:12px;color:rgba(43,74,95,0.4);margin-bottom:12px">drop a spark while ${esc(getOrg('b').name)} presents:</div>${mkSparkBtns(aC)}`:''}
+        <div class="sparks-list">${sparks.filter(r=>r.content.target===aC).map(mkSparkChip).join('')}</div>
       </div>
     </div>
   `;
@@ -699,7 +781,7 @@ function renderPhase3(el,rs){
   }).join('');
 
   el.innerHTML=`
-    <div class="phase-prompt">what jumps out? what's missing? what would a lightbulb version look like?</div>
+    <div class="phase-prompt">what jumps out? what's missing? what would a ${esc(getOrg('b').name)} version look like?</div>
     <div class="input-group" style="margin-bottom:16px">
       <input class="text-input" id="annotation-input" placeholder="type a short annotation…" maxlength="200">
       <button class="btn btn-sienna" id="annotation-btn">add note</button>
@@ -768,12 +850,12 @@ function renderPhase4(el,rs){
       <svg id="overlap-svg" style="position:absolute;pointer-events:none;z-index:10;overflow:visible;top:0;left:0"></svg>
       <div class="overlap-layout" id="overlap-layout">
         <div class="overlap-col left">
-          <div class="overlap-col-header">what lightbulb needs from w.v</div>
+          <div class="overlap-col-header">what ${esc(getOrg('b').name)} needs from ${esc(getOrg('a').name)}</div>
           <div class="overlap-items">${leftItems.map(r=>mkItem(r,'left')).join('')}</div>
           <div class="overlap-add"><input id="add-left" placeholder="add an item…" maxlength="120"><button class="btn btn-sm btn-secondary" id="add-btn-left">add</button></div>
         </div>
         <div class="overlap-col right">
-          <div class="overlap-col-header">what w.v needs from lightbulb</div>
+          <div class="overlap-col-header">what ${esc(getOrg('a').name)} needs from ${esc(getOrg('b').name)}</div>
           <div class="overlap-items">${rightItems.map(r=>mkItem(r,'right')).join('')}</div>
           <div class="overlap-add"><input id="add-right" placeholder="add an item…" maxlength="120"><button class="btn btn-sm btn-secondary" id="add-btn-right">add</button></div>
         </div>
@@ -854,9 +936,10 @@ function drawConnections(connections,leftItems,rightItems){
 
 // Phase 5: Commitment Board
 function renderPhase5(el,rs){
+  const aC=getOrg('a').code,bC=getOrg('b').code;
   const commitments=rs.filter(r=>r.response_type==='commitment');
-  const wvParts=state.participants.filter(p=>p.org==='wv');
-  const lbParts=state.participants.filter(p=>p.org==='lb');
+  const aParts=state.participants.filter(p=>p.org===aC);
+  const bParts=state.participants.filter(p=>p.org===bC);
   const mkOpts=parts=>`${parts.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('')}<option value="the team">the team</option>`;
   const mkCards=side=>commitments.filter(r=>r.content.side===side).map(r=>`
     <div class="commitment-card locked">
@@ -868,23 +951,23 @@ function renderPhase5(el,rs){
     <div class="phase-prompt">concrete commitments for the next two weeks — what, who, by when</div>
     <div class="commitment-layout">
       <div class="commitment-col wv-side">
-        <div class="commitment-col-header">winded.vertigo will…</div>
-        ${mkCards('wv')}
+        <div class="commitment-col-header">${esc(getOrg('a').name)} will…</div>
+        ${mkCards(aC)}
         <div class="commitment-form">
-          <input id="commit-what-wv" placeholder="what will you do?" maxlength="200">
-          <select id="commit-who-wv"><option value="">who's responsible?</option>${mkOpts(wvParts)}</select>
-          <input type="date" id="commit-when-wv">
-          <button class="btn btn-sienna" id="commit-btn-wv">lock it in</button>
+          <input id="commit-what-${esc(aC)}" placeholder="what will you do?" maxlength="200">
+          <select id="commit-who-${esc(aC)}"><option value="">who's responsible?</option>${mkOpts(aParts)}</select>
+          <input type="date" id="commit-when-${esc(aC)}">
+          <button class="btn btn-sienna" id="commit-btn-${esc(aC)}">lock it in</button>
         </div>
       </div>
       <div class="commitment-col lb-side">
-        <div class="commitment-col-header">lightbulb will…</div>
-        ${mkCards('lb')}
+        <div class="commitment-col-header">${esc(getOrg('b').name)} will…</div>
+        ${mkCards(bC)}
         <div class="commitment-form">
-          <input id="commit-what-lb" placeholder="what will you do?" maxlength="200">
-          <select id="commit-who-lb"><option value="">who's responsible?</option>${mkOpts(lbParts)}</select>
-          <input type="date" id="commit-when-lb">
-          <button class="btn btn-teal" id="commit-btn-lb">lock it in</button>
+          <input id="commit-what-${esc(bC)}" placeholder="what will you do?" maxlength="200">
+          <select id="commit-who-${esc(bC)}"><option value="">who's responsible?</option>${mkOpts(bParts)}</select>
+          <input type="date" id="commit-when-${esc(bC)}">
+          <button class="btn btn-teal" id="commit-btn-${esc(bC)}">lock it in</button>
         </div>
       </div>
     </div>
@@ -981,7 +1064,7 @@ function renderArtefact(){
       </div>
       ${polaroids.length?`<div class="artefact-section">
         <div class="artefact-label">one-year polaroids</div>
-        <div class="polaroid-canvas">${polaroids.map((r,i)=>{const org=r.content.org||getParticipantOrg(r.participant_id);return`<div class="polaroid ${esc(org)}-card" style="transform:rotate(${rots[i%rots.length]}deg)"><div class="polaroid-text">${esc(r.content.text)}</div><div class="polaroid-author">${esc(r.content.name)}</div><div class="polaroid-org-tag ${esc(org)}">${esc(orgLabel(org))}</div></div>`;}).join('')}
+        <div class="polaroid-canvas">${polaroids.map((r,i)=>{const org=r.content.org||getParticipantOrg(r.participant_id);const dc=org===getOrg('a').code?'org-a':org===getOrg('b').code?'org-b':'guest';return`<div class="polaroid ${dc}-card" style="transform:rotate(${rots[i%rots.length]}deg)"><div class="polaroid-text">${esc(r.content.text)}</div><div class="polaroid-author">${esc(r.content.name)}</div><div class="polaroid-org-tag ${dc}">${esc(orgLabel(org))}</div></div>`;}).join('')}
         </div></div>`:''}
       ${annotations.length?`<div class="artefact-section">
         <div class="artefact-label">conference page annotations</div>
@@ -991,11 +1074,11 @@ function renderArtefact(){
         <div class="artefact-label">the overlap map</div>
         <div class="overlap-layout" style="margin-top:12px">
           <div class="overlap-col left">
-            <div class="overlap-col-header">what lightbulb needs from w.v</div>
+            <div class="overlap-col-header">what ${esc(getOrg('b').name)} needs from ${esc(getOrg('a').name)}</div>
             <div class="overlap-items">${leftItems.map(r=>{const count=upvotes.filter(u=>u.content.item_id===r.id).length;const connected=connections.some(c=>c.content.left_id===r.id);return`<div class="overlap-item ${connected?'connected':''}"><span>${esc(r.content.text)}</span><span style="font-size:12px;color:rgba(43,74,95,0.4)">↑${count}</span></div>`;}).join('')}</div>
           </div>
           <div class="overlap-col right">
-            <div class="overlap-col-header">what w.v needs from lightbulb</div>
+            <div class="overlap-col-header">what ${esc(getOrg('a').name)} needs from ${esc(getOrg('b').name)}</div>
             <div class="overlap-items">${rightItems.map(r=>{const count=upvotes.filter(u=>u.content.item_id===r.id).length;const connected=connections.some(c=>c.content.right_id===r.id);return`<div class="overlap-item ${connected?'connected':''}"><span>${esc(r.content.text)}</span><span style="font-size:12px;color:rgba(43,74,95,0.4)">↑${count}</span></div>`;}).join('')}</div>
           </div>
         </div>
@@ -1004,12 +1087,12 @@ function renderArtefact(){
         <div class="artefact-label">commitments</div>
         <div class="commitment-layout" style="margin-top:12px">
           <div class="commitment-col wv-side">
-            <div class="commitment-col-header">winded.vertigo will…</div>
-            ${commitments.filter(r=>r.content.side==='wv').map(r=>`<div class="commitment-card locked"><div class="commitment-what">${esc(r.content.what)}</div><div class="commitment-meta">${r.content.who?esc(r.content.who)+' · ':''}${r.content.by_when?formatDate(r.content.by_when):''}</div></div>`).join('')}
+            <div class="commitment-col-header">${esc(getOrg('a').name)} will…</div>
+            ${commitments.filter(r=>r.content.side===getOrg('a').code).map(r=>`<div class="commitment-card locked"><div class="commitment-what">${esc(r.content.what)}</div><div class="commitment-meta">${r.content.who?esc(r.content.who)+' · ':''}${r.content.by_when?formatDate(r.content.by_when):''}</div></div>`).join('')}
           </div>
           <div class="commitment-col lb-side">
-            <div class="commitment-col-header">lightbulb will…</div>
-            ${commitments.filter(r=>r.content.side==='lb').map(r=>`<div class="commitment-card locked"><div class="commitment-what">${esc(r.content.what)}</div><div class="commitment-meta">${r.content.who?esc(r.content.who)+' · ':''}${r.content.by_when?formatDate(r.content.by_when):''}</div></div>`).join('')}
+            <div class="commitment-col-header">${esc(getOrg('b').name)} will…</div>
+            ${commitments.filter(r=>r.content.side===getOrg('b').code).map(r=>`<div class="commitment-card locked"><div class="commitment-what">${esc(r.content.what)}</div><div class="commitment-meta">${r.content.who?esc(r.content.who)+' · ':''}${r.content.by_when?formatDate(r.content.by_when):''}</div></div>`).join('')}
           </div>
         </div>
       </div>`:''}
@@ -1020,6 +1103,40 @@ function renderArtefact(){
     </div>
     <div class="artefact-footer">facilitated with the weave · winded.vertigo</div>
   `;
+}
+
+// ── session log ──────────────────────────────────────────────────────────────
+async function renderLog(){
+  const app=document.getElementById('app');
+  const hdr=`<div class="app-header"><div class="app-header-inner"><div><div class="wordmark">winded<span class="dot">.</span>vertigo</div><div class="app-title">the weave</div></div><div><a href="/tools/the-weave/" class="btn btn-sm btn-secondary">new session →</a></div></div></div>`;
+  app.innerHTML=`${hdr}<div class="log-wrap">
+    <div style="font-size:11px;letter-spacing:0.12em;color:var(--sienna);text-transform:lowercase;margin-bottom:8px">session log</div>
+    <div style="font-size:24px;font-weight:600;color:var(--navy);margin-bottom:4px">all sessions</div>
+    <div id="log-content"><div class="loading-text" style="padding:40px 0;text-align:center">loading…</div></div>
+  </div>`;
+
+  const{data:sessions,error}=await sb.from('weave_sessions').select('*, weave_participants(count)').order('created_at',{ascending:false});
+  if(error){document.getElementById('log-content').innerHTML=`<div class="status-msg error">error loading sessions: ${esc(error.message)}</div>`;return;}
+  if(!sessions?.length){document.getElementById('log-content').innerHTML=`<div style="color:rgba(43,74,95,0.4);padding:40px 0;text-align:center">no sessions yet</div>`;return;}
+
+  const rows=sessions.map(s=>{
+    const count=s.weave_participants?.[0]?.count??0;
+    const status=s.active_phase>=TOTAL_PHASES?'complete':s.active_phase===-1?'waiting':'phase '+(s.active_phase+1)+' of '+TOTAL_PHASES;
+    return`<tr>
+      <td style="font-weight:500">${esc(s.title||'—')}</td>
+      <td style="color:rgba(43,74,95,0.5)">${formatDate(s.created_at?.slice(0,10))}</td>
+      <td style="text-align:center">${count}</td>
+      <td><span style="font-size:11px;color:rgba(43,74,95,0.4)">${esc(status)}</span></td>
+      <td><a class="log-link" href="/tools/the-weave/?room=${esc(s.room_code)}">view →</a></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('log-content').innerHTML=`<table class="log-table">
+    <thead><tr>
+      <th>title</th><th>date</th><th style="text-align:center">participants</th><th>status</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 // ── header ────────────────────────────────────────────────────────────────────

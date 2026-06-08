@@ -178,6 +178,25 @@ export const CARL_TOOLS = [
       required: ["domain", "topic"],
     },
   },
+  {
+    name: "search_articles",
+    description:
+      "Search the live academic literature for real papers on a topic — queries Crossref, OpenAlex, Semantic Scholar, PubMed, arXiv, and CORE in parallel and returns deduplicated results with titles, authors, year, venue, DOI, citation count, and whether an open-access PDF exists. Use this whenever a research question or curriculum topic needs real, current sources rather than training knowledge. After reviewing the results, call carl_add_finding with the chosen paper's full citation to file it into the library and bibliography. The response also reports how many hits each provider returned — if a topic area is poorly served by the current sources, note it via carl_update_memory under the key 'source-suggestions' so we can strengthen the retrieval tool.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        query: {
+          type: "string",
+          description: "Search query — a topic, title, author, or research question.",
+        },
+        limit: {
+          type: "number",
+          description: "Max results to return (default 8, max 20).",
+        },
+      },
+      required: ["query"],
+    },
+  },
 ] as const;
 
 export type CarlToolName = (typeof CARL_TOOLS)[number]["name"];
