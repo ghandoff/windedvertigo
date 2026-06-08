@@ -171,6 +171,8 @@ const TOOL_INSTRUCTIONS: Record<Exclude<AgentId, "port">, string> = {
   carl:
     "when research surfaces a significant finding, call carl_add_finding immediately. " +
     "use carl_search_findings before answering research questions to check what's already in the knowledge base. " +
+    "when a question or topic needs real, current sources — not just your training knowledge — call search_articles to query the live academic databases, then file the best result with carl_add_finding (include its full citation so it lands in the bibliography). " +
+    "if you notice a topic area where the current providers return little, record it via carl_update_memory under the key 'source-suggestions' so we can strengthen the retrieval tool. " +
     "when working state changes, call carl_update_memory. " +
     "use carl_curriculum to review what's been covered and what's planned.",
 };
