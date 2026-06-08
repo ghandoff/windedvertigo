@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the weave — winded.vertigo</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#2B4A5F;
+  --champagne:#F5E6CC;
+  --sienna:#A0522D;
+  --teal:#2A9D8F;
+  --off-white:#FAFAF7;
+  --white:#FFFFFF;
+  --navy-light:#3a6278;
+  --champagne-light:#fdf3e4;
+  --teal-light:#3bbdac;
+  --wv-color:#A0522D;
+  --lb-color:#2A9D8F;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+}
+html{height:100%;font-size:16px}
+body{font-family:var(--font);background:var(--off-white);color:var(--navy);min-height:100vh;line-height:1.6;letter-spacing:0.02em}
+.weave-bg{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:0;opacity:0.04;background-image:repeating-linear-gradient(45deg,var(--navy) 0,var(--navy) 1px,transparent 0,transparent 50%),repeating-linear-gradient(-45deg,var(--teal) 0,var(--teal) 1px,transparent 0,transparent 50%);background-size:28px 28px}
+#app{position:relative;z-index:1;min-height:100vh}
+.screen{display:none;min-height:100vh}
+.screen.active{display:block}
+.app-header{padding:20px 24px 16px;border-bottom:1px solid rgba(43,74,95,0.12);background:rgba(250,250,247,0.95);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+.app-header-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.wordmark{font-size:13px;font-weight:600;color:var(--navy);letter-spacing:0.05em;text-transform:lowercase}
+.wordmark .dot{color:var(--sienna)}
+.app-title{font-size:18px;font-weight:600;color:var(--navy)}
+.session-meta{text-align:right}
+.session-label{font-size:11px;color:rgba(43,74,95,0.5);text-transform:lowercase;letter-spacing:0.08em}
+.room-badge{font-size:13px;font-weight:700;letter-spacing:0.15em;color:var(--sienna);font-variant-numeric:tabular-nums}
+.phase-progress{height:3px;background:rgba(43,74,95,0.08);position:relative;overflow:hidden}
+.phase-progress-fill{height:100%;background:var(--sienna);transition:width 0.6s ease}
+.phase-dots{display:flex;gap:6px;padding:8px 24px;max-width:900px;margin:0 auto}
+.phase-dot{width:8px;height:8px;border-radius:50%;background:rgba(43,74,95,0.15);transition:all 0.3s ease}
+.phase-dot.completed{background:var(--sienna);opacity:0.5}
+.phase-dot.active{background:var(--sienna);transform:scale(1.3)}
+.phase-area{max-width:900px;margin:0 auto;padding:32px 24px 120px}
+.phase-title{font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:rgba(43,74,95,0.45);margin-bottom:8px}
+.phase-heading{font-size:clamp(1.4rem,3.5vw,2rem);font-weight:600;color:var(--navy);margin-bottom:16px;line-height:1.3}
+.phase-prompt{font-size:15px;color:rgba(43,74,95,0.7);margin-bottom:32px;max-width:620px;font-weight:400}
+.input-group{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.text-input{flex:1;min-width:200px;padding:12px 16px;border:1.5px solid rgba(43,74,95,0.2);border-radius:10px;font-family:var(--font);font-size:15px;color:var(--navy);background:var(--white);transition:border-color 0.2s;outline:none}
+.text-input:focus{border-color:var(--teal)}
+.text-input::placeholder{color:rgba(43,74,95,0.35)}
+.btn{padding:12px 20px;border:none;border-radius:10px;font-family:var(--font);font-size:14px;font-weight:600;letter-spacing:0.03em;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.btn-primary{background:var(--navy);color:var(--white)}
+.btn-primary:hover{background:var(--navy-light)}
+.btn-secondary{background:var(--champagne);color:var(--navy)}
+.btn-secondary:hover{background:#ead6b0}
+.btn-teal{background:var(--teal);color:var(--white)}
+.btn-teal:hover{background:var(--teal-light)}
+.btn-sienna{background:var(--sienna);color:var(--white)}
+.btn-sienna:hover{background:#bf6437}
+.btn-sm{padding:8px 14px;font-size:13px}
+.btn:disabled{opacity:0.45;cursor:not-allowed}
+.landing-wrap{max-width:520px;margin:0 auto;padding:60px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:100vh;justify-content:center}
+.landing-logo{font-size:36px;font-weight:300;color:var(--navy);margin-bottom:8px;letter-spacing:-0.01em}
+.landing-logo span{color:var(--sienna);font-weight:600}
+.landing-subtitle{font-size:14px;color:rgba(43,74,95,0.5);margin-bottom:48px;letter-spacing:0.04em}
+.card{background:var(--white);border-radius:16px;padding:32px;width:100%;box-shadow:0 2px 16px rgba(43,74,95,0.08);border:1px solid rgba(43,74,95,0.07)}
+.card-title{font-size:13px;font-weight:600;text-transform:lowercase;letter-spacing:0.08em;color:var(--sienna);margin-bottom:20px}
+.form-row{margin-bottom:16px;text-align:left}
+.form-label{display:block;font-size:12px;font-weight:600;color:rgba(43,74,95,0.6);letter-spacing:0.06em;text-transform:lowercase;margin-bottom:6px}
+.form-select{width:100%;padding:12px 16px;border:1.5px solid rgba(43,74,95,0.2);border-radius:10px;font-family:var(--font);font-size:15px;color:var(--navy);background:var(--white);outline:none;cursor:pointer;transition:border-color 0.2s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232B4A5F' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.form-select:focus{border-color:var(--teal)}
+.or-divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:rgba(43,74,95,0.3);font-size:13px}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(43,74,95,0.1)}
+.waiting-area{max-width:680px;margin:0 auto;padding:40px 24px}
+.participant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:20px}
+.participant-chip{background:var(--white);border-radius:12px;padding:14px 16px;border:1px solid rgba(43,74,95,0.1);display:flex;align-items:center;gap:10px;animation:fadeSlideIn 0.4s ease}
+.org-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.org-dot.wv{background:var(--wv-color)}
+.org-dot.lb{background:var(--lb-color)}
+.org-dot.guest{background:rgba(43,74,95,0.3)}
+.participant-name{font-size:14px;font-weight:500;color:var(--navy)}
+.participant-org{font-size:11px;color:rgba(43,74,95,0.45);text-transform:lowercase}
+.polaroid-canvas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;margin-top:24px}
+.polaroid{background:var(--white);border-radius:4px;padding:16px 16px 24px;box-shadow:0 3px 16px rgba(43,74,95,0.12),0 1px 4px rgba(43,74,95,0.06);animation:polaroidDrop 0.5s cubic-bezier(0.34,1.56,0.64,1);position:relative}
+.polaroid.wv-card{border-top:3px solid var(--wv-color)}
+.polaroid.lb-card{border-top:3px solid var(--lb-color)}
+.polaroid.guest-card{border-top:3px solid rgba(43,74,95,0.3)}
+.polaroid-text{font-size:14px;color:var(--navy);line-height:1.5;margin-bottom:16px;min-height:48px}
+.polaroid-author{font-size:11px;font-weight:600;letter-spacing:0.06em;color:rgba(43,74,95,0.5);text-transform:lowercase}
+.polaroid-org-tag{display:inline-block;margin-top:4px;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;letter-spacing:0.06em}
+.polaroid-org-tag.wv{background:rgba(160,82,45,0.1);color:var(--wv-color)}
+.polaroid-org-tag.lb{background:rgba(42,157,143,0.1);color:var(--lb-color)}
+.polaroid-org-tag.guest{background:rgba(43,74,95,0.1);color:var(--navy)}
+.polaroid.mine{outline:2.5px solid var(--sienna);outline-offset:3px}
+.showtell-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+@media(max-width:640px){.showtell-layout{grid-template-columns:1fr}}
+.presenting-panel{background:var(--white);border-radius:16px;padding:24px;border:1px solid rgba(43,74,95,0.08)}
+.presenting-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:lowercase;color:rgba(43,74,95,0.45);margin-bottom:8px}
+.presenting-org{font-size:20px;font-weight:600;color:var(--navy);margin-bottom:20px}
+.presenting-active{border:2px solid var(--sienna);box-shadow:0 0 0 4px rgba(160,82,45,0.1)}
+.spark-btn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:10px 14px;border-radius:8px;background:var(--off-white);border:1px solid rgba(43,74,95,0.1);font-family:var(--font);font-size:14px;color:var(--navy);cursor:pointer;margin-bottom:8px;transition:all 0.2s}
+.spark-btn:hover{background:var(--champagne);border-color:rgba(43,74,95,0.2)}
+.sparks-list{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.spark-chip{padding:8px 12px;border-radius:8px;font-size:13px;animation:fadeSlideIn 0.3s ease;display:flex;align-items:flex-start;gap:8px}
+.spark-chip.overlap{background:rgba(42,157,143,0.1)}
+.spark-chip.try{background:rgba(160,82,45,0.1)}
+.spark-chip.more{background:rgba(43,74,95,0.06)}
+.spark-chip.custom{background:rgba(43,74,95,0.06)}
+.conferences-wrap{position:relative;margin-top:24px}
+.conferences-iframe-container{position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(43,74,95,0.15);background:var(--champagne-light);min-height:400px}
+.conferences-iframe{width:100%;height:480px;border:none;border-radius:12px}
+.conferences-fallback{padding:32px;text-align:center;color:rgba(43,74,95,0.5);font-size:14px}
+.annotations-layer{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+.sticky-note{position:absolute;background:var(--champagne);border-radius:4px;padding:8px 10px;font-size:12px;color:var(--navy);max-width:160px;box-shadow:2px 2px 8px rgba(43,74,95,0.15);animation:fadeSlideIn 0.3s ease;pointer-events:all;cursor:default;line-height:1.4}
+.sticky-note.lb{background:rgba(42,157,143,0.15)}
+.sticky-note-author{font-size:10px;font-weight:600;color:rgba(43,74,95,0.5);margin-top:6px}
+.overlap-layout{display:grid;grid-template-columns:1fr 1fr;gap:0;position:relative;margin-top:24px;min-height:400px}
+@media(max-width:640px){.overlap-layout{grid-template-columns:1fr}}
+.overlap-col{padding:20px;border-radius:12px;position:relative}
+.overlap-col.left{background:rgba(245,230,204,0.4);margin-right:16px}
+.overlap-col.right{background:rgba(42,157,143,0.07);margin-left:16px}
+.overlap-col-header{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:lowercase;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(43,74,95,0.12)}
+.overlap-col.left .overlap-col-header{color:var(--sienna)}
+.overlap-col.right .overlap-col-header{color:var(--teal)}
+.overlap-items{display:flex;flex-direction:column;gap:8px;min-height:200px}
+.overlap-item{background:var(--white);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--navy);border:1px solid rgba(43,74,95,0.1);display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;transition:all 0.2s;animation:fadeSlideIn 0.3s ease;position:relative}
+.overlap-item:hover{border-color:var(--sienna);box-shadow:0 2px 8px rgba(43,74,95,0.08)}
+.overlap-item.selected-left{border-color:var(--sienna);background:rgba(160,82,45,0.05)}
+.overlap-item.selected-right{border-color:var(--teal);background:rgba(42,157,143,0.05)}
+.overlap-item.connected{border-color:var(--teal);background:rgba(42,157,143,0.05)}
+.upvote-btn{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;background:rgba(43,74,95,0.06);border:none;font-family:var(--font);font-size:12px;color:rgba(43,74,95,0.6);cursor:pointer;transition:all 0.15s;flex-shrink:0}
+.upvote-btn:hover{background:rgba(160,82,45,0.1);color:var(--sienna)}
+.upvote-btn.voted{background:rgba(160,82,45,0.12);color:var(--sienna)}
+.overlap-svg{position:absolute;top:0;left:0;pointer-events:none;z-index:10;width:100%;height:100%;overflow:visible}
+.connection-line{fill:none;stroke:var(--teal);stroke-width:2;stroke-dasharray:6 4;opacity:0.6}
+.overlap-add{display:flex;gap:8px;margin-top:12px}
+.overlap-add input{flex:1;padding:8px 12px;border:1.5px solid rgba(43,74,95,0.15);border-radius:8px;font-family:var(--font);font-size:13px;outline:none;color:var(--navy);background:var(--white)}
+.overlap-add input:focus{border-color:var(--teal)}
+.commitment-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+@media(max-width:640px){.commitment-layout{grid-template-columns:1fr}}
+.commitment-col{background:var(--white);border-radius:16px;padding:24px;border:1px solid rgba(43,74,95,0.08)}
+.commitment-col-header{font-size:13px;font-weight:600;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid rgba(43,74,95,0.1)}
+.commitment-col.wv-side .commitment-col-header{color:var(--sienna)}
+.commitment-col.lb-side .commitment-col-header{color:var(--teal)}
+.commitment-card{background:var(--off-white);border-radius:10px;padding:14px;margin-bottom:12px;border:1px solid rgba(43,74,95,0.08);animation:fadeSlideIn 0.4s ease}
+.commitment-card.locked{border-color:var(--teal);background:rgba(42,157,143,0.05)}
+.commitment-what{font-size:14px;font-weight:500;color:var(--navy);margin-bottom:6px}
+.commitment-meta{font-size:12px;color:rgba(43,74,95,0.5)}
+.commitment-form{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.commitment-form input,.commitment-form select{padding:10px 12px;border:1.5px solid rgba(43,74,95,0.15);border-radius:8px;font-family:var(--font);font-size:14px;color:var(--navy);background:var(--white);outline:none;transition:border-color 0.2s;width:100%}
+.commitment-form input:focus,.commitment-form select:focus{border-color:var(--teal)}
+.constellation-wrap{min-height:60vh;position:relative;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:32px;padding:60px 24px;background:var(--navy);border-radius:20px;margin-top:24px}
+.close-node{background:rgba(245,230,204,0.06);border-radius:16px;padding:24px 28px;max-width:300px;text-align:center;font-size:clamp(16px,2vw,22px);color:var(--champagne);line-height:1.6;text-shadow:0 0 24px rgba(245,230,204,0.5),0 0 48px rgba(42,157,143,0.3);border:1px solid rgba(245,230,204,0.18);box-shadow:0 0 40px rgba(42,157,143,0.12),inset 0 1px 0 rgba(245,230,204,0.08)}
+.close-node.revealed{animation:constellationReveal 0.8s ease both}
+.close-node-author{font-size:11px;color:rgba(245,230,204,0.4);margin-top:10px;font-weight:600;letter-spacing:0.06em}
+.waiting-reveal{text-align:center;padding:60px 20px;font-size:15px;color:rgba(43,74,95,0.4)}
+.pulse-waiting{width:48px;height:48px;border-radius:50%;background:rgba(160,82,45,0.2);margin:0 auto 16px;animation:pulse 2s ease-in-out infinite}
+.artefact-section{padding:32px 0;border-bottom:1px solid rgba(43,74,95,0.08)}
+.artefact-section:last-child{border-bottom:none}
+.artefact-label{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:lowercase;color:var(--sienna);margin-bottom:16px}
+.artefact-footer{text-align:center;padding:40px 24px;font-size:12px;color:rgba(43,74,95,0.3);letter-spacing:0.06em}
+.facilitator-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--navy);color:var(--white);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 -4px 24px rgba(43,74,95,0.25)}
+.facilitator-bar-info{font-size:13px;opacity:0.7}
+.facilitator-bar-actions{display:flex;gap:10px;align-items:center}
+.fac-btn{padding:10px 18px;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s}
+.fac-btn-next{background:var(--sienna);color:var(--white)}
+.fac-btn-next:hover{background:#bf6437}
+.fac-btn-reveal{background:var(--teal);color:var(--white)}
+.fac-btn-reveal:hover{background:var(--teal-light)}
+.fac-count{font-size:12px;opacity:0.6;border-left:1px solid rgba(255,255,255,0.15);padding-left:14px}
+.thread-wrap{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px}
+.thread-line{font-size:clamp(1rem,2.5vw,1.3rem);color:var(--navy);line-height:1.9;font-weight:300;opacity:0;transition:opacity 1s ease, transform 1s ease;transform:translateY(8px)}
+.thread-line.visible{opacity:1;transform:translateY(0)}
+.status-msg{padding:12px 16px;border-radius:10px;font-size:14px;margin-bottom:16px}
+.status-msg.error{background:rgba(160,82,45,0.1);color:var(--sienna)}
+.status-msg.success{background:rgba(42,157,143,0.1);color:var(--teal)}
+.status-msg.info{background:rgba(43,74,95,0.07);color:var(--navy)}
+.char-counter{font-size:11px;color:rgba(43,74,95,0.35);text-align:right;margin-top:4px}
+.char-counter.warn{color:var(--sienna)}
+.loading{position:fixed;inset:0;background:var(--off-white);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px}
+.loading-spinner{width:32px;height:32px;border-radius:50%;border:3px solid rgba(43,74,95,0.1);border-top-color:var(--sienna);animation:spin 0.8s linear infinite}
+.loading-text{font-size:13px;color:rgba(43,74,95,0.4);letter-spacing:0.06em}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes polaroidDrop{from{opacity:0;transform:translateY(-20px) rotate(var(--rot,0deg))}to{opacity:1;transform:translateY(0) rotate(var(--rot,0deg))}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:0.6}50%{transform:scale(1.15);opacity:1}}
+@keyframes constellationReveal{from{opacity:0;transform:scale(0.7) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes constellationPulse{0%,100%{text-shadow:0 0 24px rgba(245,230,204,0.5),0 0 48px rgba(42,157,143,0.3)}50%{text-shadow:0 0 36px rgba(245,230,204,0.85),0 0 72px rgba(42,157,143,0.55),0 0 100px rgba(42,157,143,0.2)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:640px){.phase-area{padding:24px 16px 100px}.landing-wrap{padding:40px 16px}.app-header{padding:14px 16px}.facilitator-bar{padding:12px 16px;gap:10px}.fac-btn{padding:8px 14px;font-size:12px}.overlap-layout{grid-template-columns:1fr}.overlap-svg{display:none}.commitment-layout{grid-template-columns:1fr}.showtell-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="weave-bg"></div>
+<div id="loading" class="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">the weave</div>
+</div>
+<div id="app"></div>
+<script>
+const SUPABASE_URL='https://fpqbokzjipovjhvujqtm.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_XPHCNVwus7RiMf87Kl1VRQ_zMpZ7kt1';
+const PHASE_NAMES=['the thread','one-year polaroid','show & tell','the conferences page','the overlap map','the first swap','what\'s trying to be born?'];
+const TOTAL_PHASES=7;
+const OVERLAP_SEEDS={
+  left:['marketing support — linkedin, substack, thought leadership content','digital workshop tools — interactive check-ins, post-engagement measurement','conference technology — simulators, harbour tools for live events','design + social media — visual identity, campaign execution'],
+  right:['facilitation methodology — the lightbulb way, community of practice design','network access — cmu (john baylash), civics (fernanda rain), lego ecosystem','research/mel collaboration — belonging + inclusion frameworks for evaluation','the "show don\'t tell" lens — applied to w.v\'s own workshop design']
+};
+const THREAD_LINES=['two organisations, distinct approaches, a shared horizon.','what happens when facilitation meets community?','when design thinking meets the lightbulb way?','when winded.vertigo meets lightbulb learning lab?','','today we find out.'];
+
+let sb=null;
+let state={session:null,participant:null,isFacilitator:false,participants:[],responses:{},selectedLeft:null,selectedRight:null,myVotes:new Set(),phaseSubmitted:{}};
+
+// ── safe HTML helpers ────────────────────────────────────────────────────────
+// All user content passes through esc() before being placed in HTML
+function esc(s){
+  if(!s)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function orgLabel(org){
+  if(org==='wv')return'winded.vertigo';
+  if(org==='lb')return'lightbulb';
+  return'guest';
+}
+function getParticipantOrg(pid){
+  const p=state.participants.find(p=>p.id===pid);
+  return p?.org||'guest';
+}
+function formatDate(s){
+  if(!s)return'';
+  try{return new Date(s+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch{return s;}
+}
+function generateRoomCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:4},()=>c[Math.floor(Math.random()*c.length)]).join('');
+}
+function setHTML(id,html){
+  const el=document.getElementById(id);
+  if(el)el.innerHTML=html;
+}
+
+// ── init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',async()=>{
+  try{
+    sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    const params=new URLSearchParams(location.search);
+    const room=params.get('room');
+    if(room)await attemptRejoin(room);
+    else renderLanding();
+  }catch(e){showError('failed to connect: '+e.message);}
+  finally{document.getElementById('loading').style.display='none';}
+});
+
+async function attemptRejoin(roomCode){
+  const{data:session}=await sb.from('weave_sessions').select('*').eq('room_code',roomCode.toUpperCase()).single();
+  if(!session){renderLanding();return;}
+  const saved=sessionStorage.getItem('weave_participant_'+session.id);
+  if(saved){
+    const p=JSON.parse(saved);
+    state.participant=p;
+    state.isFacilitator=p.role==='facilitator';
+    if(state.isFacilitator)document.body.classList.add('is-facilitator');
+    await joinSession(session);
+  }else{
+    renderLanding(roomCode);
+  }
+}
+
+// ── landing ──────────────────────────────────────────────────────────────────
+function renderLanding(prefilledRoom){
+  const app=document.getElementById('app');
+  const joinCard=`
+    <div class="card">
+      <div class="card-title">${prefilledRoom?'join session':'join a session'}</div>
+      <div class="form-row"><label class="form-label">room code</label>
+        <input class="text-input" id="join-code" placeholder="XXXX" value="${prefilledRoom?esc(prefilledRoom.toUpperCase()):''}" style="letter-spacing:0.15em;font-weight:700;text-transform:uppercase" maxlength="4"></div>
+      <div class="form-row"><label class="form-label">your name</label>
+        <input class="text-input" id="join-name" placeholder="first name or full name"></div>
+      <div class="form-row"><label class="form-label">your organisation</label>
+        <select class="form-select" id="join-org">
+          <option value="wv">winded.vertigo</option>
+          <option value="lb">lightbulb learning lab</option>
+          <option value="guest">guest</option>
+        </select></div>
+      <div id="join-error" class="status-msg error" style="display:none"></div>
+      <button class="btn btn-primary" style="width:100%" id="join-btn">join →</button>
+    </div>`;
+
+  if(prefilledRoom){
+    app.innerHTML=`<div class="landing-wrap" style="animation:fadeSlideIn 0.5s ease">
+      <div class="landing-logo">the <span>weave</span></div>
+      <div class="landing-subtitle">a session by winded.vertigo</div>
+      ${joinCard}
+      <div style="margin-top:32px;font-size:11px;color:rgba(43,74,95,0.3);letter-spacing:0.06em">the weave — a collaborative workshop tool by winded.vertigo</div>
+    </div>`;
+  }else{
+    app.innerHTML=`<div class="landing-wrap" style="animation:fadeSlideIn 0.5s ease">
+      <div class="landing-logo">the <span>weave</span></div>
+      <div class="landing-subtitle">a session by winded.vertigo</div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">create a session</div>
+        <div class="form-row"><label class="form-label">session title</label>
+          <input class="text-input" id="create-title" placeholder="e.g. whirlpool × lightbulb — 8 june 2026" value="whirlpool × lightbulb learning lab — 8 june 2026"></div>
+        <div class="form-row"><label class="form-label">your name (facilitator)</label>
+          <input class="text-input" id="create-name" placeholder="garrett"></div>
+        <div id="create-error" class="status-msg error" style="display:none"></div>
+        <button class="btn btn-sienna" style="width:100%" id="create-btn">create session →</button>
+      </div>
+      <div class="or-divider">or join an existing session</div>
+      ${joinCard}
+      <div style="margin-top:32px;font-size:11px;color:rgba(43,74,95,0.3);letter-spacing:0.06em">the weave — a collaborative workshop tool by winded.vertigo</div>
+    </div>`;
+    document.getElementById('create-btn')?.addEventListener('click',handleCreate);
+    document.getElementById('create-name')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleCreate();});
+    document.getElementById('create-title')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleCreate();});
+  }
+
+  const codeInput=document.getElementById('join-code');
+  if(codeInput)codeInput.addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase();});
+  document.getElementById('join-btn')?.addEventListener('click',handleJoin);
+  document.getElementById('join-name')?.addEventListener('keydown',e=>{if(e.key==='Enter')handleJoin();});
+}
+
+async function handleCreate(){
+  const title=(document.getElementById('create-title')?.value?.trim())||'the weave';
+  const name=(document.getElementById('create-name')?.value?.trim());
+  const errEl=document.getElementById('create-error');
+  if(!name){errEl.textContent='enter your name';errEl.style.display='block';return;}
+  const btn=document.getElementById('create-btn');
+  if(btn){btn.disabled=true;btn.textContent='creating…';}
+  const roomCode=generateRoomCode();
+  const{data:session,error}=await sb.from('weave_sessions').insert({room_code:roomCode,title,active_phase:-1,facilitator_name:name}).select().single();
+  if(error){errEl.textContent='error: '+error.message;errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='create session →';}return;}
+  const{data:participant,error:pe}=await sb.from('weave_participants').insert({session_id:session.id,name,role:'facilitator',org:'wv'}).select().single();
+  if(pe){errEl.textContent='error joining: '+pe.message;errEl.style.display='block';if(btn){btn.disabled=false;}return;}
+  await seedOverlapMap(session.id,participant.id);
+  state.participant=participant;
+  state.isFacilitator=true;
+  document.body.classList.add('is-facilitator');
+  sessionStorage.setItem('weave_participant_'+session.id,JSON.stringify(participant));
+  history.replaceState(null,'','?room='+roomCode);
+  await joinSession(session);
+}
+
+async function handleJoin(){
+  const code=(document.getElementById('join-code')?.value||'').toUpperCase().trim();
+  const name=(document.getElementById('join-name')?.value||'').trim();
+  const org=document.getElementById('join-org')?.value||'guest';
+  const errEl=document.getElementById('join-error');
+  if(!code||code.length<4){errEl.textContent='enter the 4-character room code';errEl.style.display='block';return;}
+  if(!name){errEl.textContent='enter your name';errEl.style.display='block';return;}
+  const btn=document.getElementById('join-btn');
+  if(btn){btn.disabled=true;btn.textContent='joining…';}
+  const{data:session,error}=await sb.from('weave_sessions').select('*').eq('room_code',code).single();
+  if(error||!session){errEl.textContent='room not found. check the code and try again.';errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='join →';}return;}
+  const{data:participant,error:pe}=await sb.from('weave_participants').insert({session_id:session.id,name,org,role:org==='wv'?'wv':org==='lb'?'lightbulb':'guest'}).select().single();
+  if(pe){
+    const{data:existing}=await sb.from('weave_participants').select('*').eq('session_id',session.id).eq('name',name).single();
+    if(existing){state.participant=existing;sessionStorage.setItem('weave_participant_'+session.id,JSON.stringify(existing));history.replaceState(null,'','?room='+code);await joinSession(session);return;}
+    errEl.textContent='error joining: '+pe.message;errEl.style.display='block';if(btn){btn.disabled=false;btn.textContent='join →';}return;
+  }
+  state.participant=participant;
+  sessionStorage.setItem('weave_participant_'+session.id,JSON.stringify(participant));
+  history.replaceState(null,'','?room='+code);
+  await joinSession(session);
+}
+
+async function seedOverlapMap(sessionId,participantId){
+  const items=[];
+  OVERLAP_SEEDS.left.forEach(text=>{items.push({session_id:sessionId,participant_id:participantId,phase:4,response_type:'overlap_item',content:{text,side:'left',upvotes:0}});});
+  OVERLAP_SEEDS.right.forEach(text=>{items.push({session_id:sessionId,participant_id:participantId,phase:4,response_type:'overlap_item',content:{text,side:'right',upvotes:0}});});
+  await sb.from('weave_responses').insert(items);
+}
+
+// ── session ──────────────────────────────────────────────────────────────────
+async function joinSession(session){
+  state.session=session;
+  await loadAllData();
+  subscribeToSession();
+  if(session.active_phase===-1)renderWaitingRoom();
+  else if(session.active_phase>=TOTAL_PHASES)renderArtefact();
+  else renderPhase(session.active_phase);
+}
+
+async function loadAllData(){
+  const sid=state.session.id;
+  const[{data:parts},{data:resps}]=await Promise.all([
+    sb.from('weave_participants').select('*').eq('session_id',sid).order('joined_at'),
+    sb.from('weave_responses').select('*').eq('session_id',sid).order('created_at'),
+  ]);
+  state.participants=parts||[];
+  state.responses={};
+  (resps||[]).forEach(r=>{if(!state.responses[r.phase])state.responses[r.phase]=[];state.responses[r.phase].push(r);});
+}
+
+function subscribeToSession(){
+  const sid=state.session.id;
+  sb.channel('session-'+sid)
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'weave_sessions',filter:'id=eq.'+sid},payload=>{
+      const upd=payload.new;
+      const oldPhase=state.session.active_phase;
+      state.session=upd;
+      if(upd.active_phase!==oldPhase){
+        if(upd.active_phase>=TOTAL_PHASES)renderArtefact();
+        else if(upd.active_phase===-1)renderWaitingRoom();
+        else renderPhase(upd.active_phase);
+      }else{refreshPhaseDisplay();}
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'weave_participants',filter:'session_id=eq.'+sid},payload=>{
+      if(!state.participants.find(p=>p.id===payload.new.id))state.participants.push(payload.new);
+      refreshPhaseDisplay();
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'weave_responses',filter:'session_id=eq.'+sid},payload=>{
+      const r=payload.new;
+      if(!state.responses[r.phase])state.responses[r.phase]=[];
+      if(!state.responses[r.phase].find(x=>x.id===r.id))state.responses[r.phase].push(r);
+      refreshPhaseDisplay();
+    })
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'weave_responses',filter:'session_id=eq.'+sid},payload=>{
+      const r=payload.new;
+      if(state.responses[r.phase]){const idx=state.responses[r.phase].findIndex(x=>x.id===r.id);if(idx>=0)state.responses[r.phase][idx]=r;}
+      refreshPhaseDisplay();
+    })
+    .subscribe();
+}
+
+function refreshPhaseDisplay(){
+  const phase=state.session.active_phase;
+  if(phase===-1){renderWaitingRoomParticipants();return;}
+  if(phase>=TOTAL_PHASES)return;
+  renderPhaseContent(phase);
+}
+
+// ── waiting room ─────────────────────────────────────────────────────────────
+function renderWaitingRoom(){
+  const url=location.href;
+  document.getElementById('app').innerHTML=`
+    ${renderHeader()}
+    <div class="waiting-area">
+      <div style="text-align:center;padding:40px 0 32px">
+        <div style="font-size:11px;letter-spacing:0.12em;color:rgba(43,74,95,0.45);text-transform:lowercase;margin-bottom:8px">session ready</div>
+        <div style="font-size:28px;font-weight:300;color:var(--navy)">${esc(state.session.title)}</div>
+        <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:13px;color:rgba(43,74,95,0.5)">share this link:</div>
+          <input id="share-url" readonly style="font-size:12px;padding:6px 12px;border:1px solid rgba(43,74,95,0.15);border-radius:8px;background:var(--white);color:var(--navy);width:220px;outline:none">
+          <button class="btn btn-sm btn-secondary" id="copy-btn">copy</button>
+        </div>
+        <div style="margin-top:12px;font-size:22px;font-weight:700;letter-spacing:0.2em;color:var(--sienna)">${esc(state.session.room_code)}</div>
+      </div>
+      <div><div style="font-size:12px;font-weight:600;letter-spacing:0.08em;color:rgba(43,74,95,0.45);text-transform:lowercase;margin-bottom:12px">in the room</div>
+        <div class="participant-grid" id="participant-grid"></div>
+      </div>
+    </div>
+    ${state.isFacilitator?`<div class="facilitator-bar">
+      <div class="facilitator-bar-info">waiting for participants to join</div>
+      <div class="facilitator-bar-actions">
+        <span class="fac-count" id="fac-count">${state.participants.length} connected</span>
+        <button class="fac-btn fac-btn-next" id="begin-btn">begin the weave →</button>
+      </div>
+    </div>`:''}
+  `;
+  // Set share URL value safely via JS property (not innerHTML)
+  const shareInput=document.getElementById('share-url');
+  if(shareInput)shareInput.value=url;
+  document.getElementById('copy-btn')?.addEventListener('click',copyLink);
+  document.getElementById('begin-btn')?.addEventListener('click',advancePhase);
+  renderWaitingRoomParticipants();
+}
+
+function renderWaitingRoomParticipants(){
+  const grid=document.getElementById('participant-grid');
+  if(!grid)return;
+  grid.innerHTML=state.participants.map(p=>`
+    <div class="participant-chip">
+      <div class="org-dot ${esc(p.org||'guest')}"></div>
+      <div><div class="participant-name">${esc(p.name)}</div><div class="participant-org">${esc(orgLabel(p.org))}</div></div>
+    </div>`).join('');
+  const fac=document.getElementById('fac-count');
+  if(fac)fac.textContent=state.participants.length+' connected';
+}
+
+function copyLink(){
+  const shareInput=document.getElementById('share-url');
+  const url=shareInput?shareInput.value:location.href;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    if(btn){btn.textContent='copied!';setTimeout(()=>{btn.textContent='copy';},1500);}
+  });
+}
+
+// ── phases ────────────────────────────────────────────────────────────────────
+function renderPhase(phase){
+  const dots=Array.from({length:TOTAL_PHASES},(_,i)=>`<div class="phase-dot ${i<phase?'completed':i===phase?'active':''}"></div>`).join('');
+  document.getElementById('app').innerHTML=`
+    ${renderHeader(phase)}
+    <div class="phase-progress"><div class="phase-progress-fill" style="width:${((phase+1)/TOTAL_PHASES*100).toFixed(1)}%"></div></div>
+    <div class="phase-dots">${dots}</div>
+    <div class="phase-area">
+      <div class="phase-title">phase ${phase+1} of ${TOTAL_PHASES}</div>
+      <div class="phase-heading">${esc(PHASE_NAMES[phase])}</div>
+      <div id="phase-content"></div>
+    </div>
+    ${renderFacilitatorBar(phase)}
+  `;
+  renderPhaseContent(phase);
+}
+
+function renderPhaseContent(phase){
+  const el=document.getElementById('phase-content');
+  if(!el)return;
+  const rs=state.responses[phase]||[];
+  switch(phase){
+    case 0:renderPhase0(el,rs);break;
+    case 1:renderPhase1(el,rs);break;
+    case 2:renderPhase2(el,rs);break;
+    case 3:renderPhase3(el,rs);break;
+    case 4:renderPhase4(el,rs);break;
+    case 5:renderPhase5(el,rs);break;
+    case 6:renderPhase6(el,rs);break;
+  }
+  wirePhaseEvents(phase);
+}
+
+function wirePhaseEvents(phase){
+  // Attach event listeners after innerHTML render
+  if(phase===1){
+    const inp=document.getElementById('polaroid-input');
+    if(inp){
+      inp.addEventListener('input',()=>{
+        const count=document.getElementById('polaroid-count');
+        if(count){count.textContent=inp.value.length+' / 150';count.className='char-counter'+(inp.value.length>130?' warn':'');}
+      });
+      inp.addEventListener('keydown',e=>{if(e.key==='Enter')submitPolaroid();});
+    }
+    document.getElementById('polaroid-btn')?.addEventListener('click',submitPolaroid);
+  }
+  if(phase===2){
+    document.getElementById('close-btn-2')?.addEventListener('click',()=>submitCustomSpark('wv'));
+    document.getElementById('close-btn-3')?.addEventListener('click',()=>submitCustomSpark('lb'));
+    document.getElementById('custom-spark-wv')?.addEventListener('keydown',e=>{if(e.key==='Enter')submitCustomSpark('wv');});
+    document.getElementById('custom-spark-lb')?.addEventListener('keydown',e=>{if(e.key==='Enter')submitCustomSpark('lb');});
+    document.getElementById('set-presenting-wv')?.addEventListener('click',()=>setPresenting('wv'));
+    document.getElementById('set-presenting-lb')?.addEventListener('click',()=>setPresenting('lb'));
+  }
+  if(phase===3){
+    const ainp=document.getElementById('annotation-input');
+    if(ainp)ainp.addEventListener('keydown',e=>{if(e.key==='Enter')submitAnnotation();});
+    document.getElementById('annotation-btn')?.addEventListener('click',submitAnnotation);
+  }
+  if(phase===4){
+    ['left','right'].forEach(side=>{
+      const inp=document.getElementById('add-'+side);
+      if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter')addOverlapItem(side);});
+      document.getElementById('add-btn-'+side)?.addEventListener('click',()=>addOverlapItem(side));
+    });
+  }
+  if(phase===5){
+    document.getElementById('commit-btn-wv')?.addEventListener('click',()=>submitCommitment('wv'));
+    document.getElementById('commit-btn-lb')?.addEventListener('click',()=>submitCommitment('lb'));
+  }
+  if(phase===6){
+    const cinp=document.getElementById('close-input');
+    if(cinp)cinp.addEventListener('keydown',e=>{if(e.key==='Enter')submitClose();});
+    document.getElementById('close-submit-btn')?.addEventListener('click',submitClose);
+  }
+  document.getElementById('fac-next-btn')?.addEventListener('click',advancePhase);
+  document.getElementById('fac-reveal-btn')?.addEventListener('click',revealPhase);
+}
+
+// Phase 0: The Thread
+function renderPhase0(el){
+  el.innerHTML=`<div class="thread-wrap">
+    ${THREAD_LINES.map((line,i)=>`<div class="thread-line" id="thread-${i}">${esc(line)||'&nbsp;'}</div>`).join('')}
+    <div style="margin-top:48px;font-size:13px;color:rgba(43,74,95,0.3);letter-spacing:0.08em">${state.participants.length} ${state.participants.length===1?'person':'people'} present</div>
+  </div>`;
+  THREAD_LINES.forEach((_,i)=>{
+    setTimeout(()=>{
+      const tl=document.getElementById('thread-'+i);
+      if(tl)tl.classList.add('visible');
+    },i*1100+200);
+  });
+}
+
+// Phase 1: Polaroid
+function renderPhase1(el,rs){
+  const myId=state.participant?.id;
+  const submitted=rs.find(r=>r.participant_id===myId&&r.response_type==='polaroid');
+  const rots=[-3,-1.5,1,2.5,-2,1.5,-1,2,-2.5,1.5,0,-1.5];
+  const cards=rs.filter(r=>r.response_type==='polaroid').map((r,i)=>{
+    const rot=rots[i%rots.length];
+    const org=r.content.org||getParticipantOrg(r.participant_id);
+    const mine=r.participant_id===myId;
+    return `<div class="polaroid ${esc(org)}-card${mine?' mine':''}" style="transform:rotate(${rot}deg)">
+      <div class="polaroid-text">${esc(r.content.text)}</div>
+      <div class="polaroid-author">${esc(r.content.name)}</div>
+      <div class="polaroid-org-tag ${esc(org)}">${esc(orgLabel(org))}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="phase-prompt">one thing that's changed about your work in the last year</div>
+    ${!submitted?`<div class="input-group"><div style="flex:1">
+      <input class="text-input" id="polaroid-input" placeholder="one sentence, 150 characters max" maxlength="150" style="width:100%">
+      <div class="char-counter" id="polaroid-count">0 / 150</div>
+    </div><button class="btn btn-sienna" id="polaroid-btn">place card</button></div>`
+    :`<div class="status-msg success">your card is on the board ✓</div>`}
+    <div class="polaroid-canvas">${cards}</div>
+  `;
+}
+
+async function submitPolaroid(){
+  const inp=document.getElementById('polaroid-input');
+  const text=inp?.value?.trim();
+  if(!text)return;
+  const btn=document.getElementById('polaroid-btn');
+  if(btn){btn.disabled=true;btn.textContent='…';}
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:1,response_type:'polaroid',content:{text,name:state.participant.name,org:state.participant.org}});
+}
+
+// Phase 2: Show & Tell
+function renderPhase2(el,rs){
+  const presenting=state.session.config?.presenting||'wv';
+  const sparks=rs.filter(r=>r.response_type==='spark');
+  const myOrg=state.participant?.org;
+  const icons={overlap:'✦',try:'⚡',more:'◉',custom:'◈'};
+
+  const mkSparkChip=r=>{
+    const t=r.content.spark_type||'custom';
+    return `<div class="spark-chip ${esc(t)}"><span>${esc(icons[t]||'◈')}</span><span>${esc(r.content.text)} <span style="opacity:0.5;font-size:11px">— ${esc(r.content.name)}</span></span></div>`;
+  };
+  const mkSparkBtns=target=>`
+    <button class="spark-btn" data-type="overlap" data-target="${esc(target)}">✦ this overlaps with our work</button>
+    <button class="spark-btn" data-type="try" data-target="${esc(target)}">⚡ i want to try this</button>
+    <button class="spark-btn" data-type="more" data-target="${esc(target)}">◉ tell me more</button>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <input class="text-input" id="custom-spark-${esc(target)}" placeholder="custom reaction…" style="font-size:13px;padding:8px 12px">
+      <button class="btn btn-sm btn-secondary" id="close-btn-${target==='wv'?2:3}">send</button>
+    </div>`;
+
+  el.innerHTML=`
+    <div class="phase-prompt">reactions as each side presents</div>
+    ${state.isFacilitator?`<div style="margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:13px;color:rgba(43,74,95,0.5)">presenting now:</span>
+      <button class="btn btn-sm ${presenting==='wv'?'btn-sienna':'btn-secondary'}" id="set-presenting-wv">winded.vertigo</button>
+      <button class="btn btn-sm ${presenting==='lb'?'btn-teal':'btn-secondary'}" id="set-presenting-lb">lightbulb learning lab</button>
+    </div>`:''}
+    <div class="showtell-layout">
+      <div class="presenting-panel ${presenting==='wv'?'presenting-active':''}">
+        <div class="presenting-label">${presenting==='wv'?'▶ presenting':'listening'}</div>
+        <div class="presenting-org" style="color:var(--sienna)">winded.vertigo</div>
+        ${myOrg!=='wv'&&presenting==='wv'?`<div style="font-size:12px;color:rgba(43,74,95,0.4);margin-bottom:12px">drop a spark while w.v presents:</div>${mkSparkBtns('lb')}`:''}
+        <div class="sparks-list">${sparks.filter(r=>r.content.target==='lb').map(mkSparkChip).join('')}</div>
+      </div>
+      <div class="presenting-panel ${presenting==='lb'?'presenting-active':''}">
+        <div class="presenting-label">${presenting==='lb'?'▶ presenting':'listening'}</div>
+        <div class="presenting-org" style="color:var(--teal)">lightbulb learning lab</div>
+        ${myOrg!=='lb'&&presenting==='lb'?`<div style="font-size:12px;color:rgba(43,74,95,0.4);margin-bottom:12px">drop a spark while lightbulb presents:</div>${mkSparkBtns('wv')}`:''}
+        <div class="sparks-list">${sparks.filter(r=>r.content.target==='wv').map(mkSparkChip).join('')}</div>
+      </div>
+    </div>
+  `;
+
+  // Bind preset spark buttons
+  el.querySelectorAll('.spark-btn[data-type]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const type=btn.dataset.type;
+      const target=btn.dataset.target;
+      const labels={overlap:'✦ this overlaps with our work',try:'⚡ i want to try this',more:'◉ tell me more'};
+      submitSpark(type,labels[type]||type,target);
+    });
+  });
+}
+
+async function setPresenting(org){
+  const config={...(state.session.config||{}),presenting:org};
+  await sb.from('weave_sessions').update({config}).eq('id',state.session.id);
+  state.session.config=config;
+  renderPhaseContent(2);
+}
+async function submitSpark(type,text,target){
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:2,response_type:'spark',content:{spark_type:type,text,target,name:state.participant.name}});
+}
+async function submitCustomSpark(target){
+  const inp=document.getElementById('custom-spark-'+target);
+  const text=inp?.value?.trim();
+  if(!text)return;
+  inp.value='';
+  await submitSpark('custom',text,target);
+}
+
+// Phase 3: Conferences
+function renderPhase3(el,rs){
+  const annotations=rs.filter(r=>r.response_type==='annotation');
+  const notesHtml=annotations.map((r,i)=>{
+    const org=r.content.org||getParticipantOrg(r.participant_id);
+    const left=5+(i*17%75)+'%';
+    const top=5+(i*23%80)+'%';
+    return `<div class="sticky-note ${esc(org)}" style="left:${left};top:${top}">${esc(r.content.text)}<div class="sticky-note-author">${esc(r.content.name)}</div></div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="phase-prompt">what jumps out? what's missing? what would a lightbulb version look like?</div>
+    <div class="input-group" style="margin-bottom:16px">
+      <input class="text-input" id="annotation-input" placeholder="type a short annotation…" maxlength="200">
+      <button class="btn btn-sienna" id="annotation-btn">add note</button>
+    </div>
+    <div class="conferences-wrap">
+      <div class="conferences-iframe-container">
+        <iframe class="conferences-iframe" id="conf-iframe" src="https://windedvertigo.com/conferences" sandbox="allow-scripts allow-same-origin" title="windedvertigo.com/conferences"></iframe>
+        <div id="conf-fallback" class="conferences-fallback" style="display:none">
+          <div style="font-size:40px;margin-bottom:16px">🌐</div>
+          <div style="margin-bottom:8px">view the page at:</div>
+          <a id="conf-link" style="color:var(--teal)" target="_blank" rel="noopener">windedvertigo.com/conferences</a>
+          <div style="margin-top:8px;font-size:13px">open in a new tab to view</div>
+        </div>
+        <div class="annotations-layer">${notesHtml}</div>
+      </div>
+    </div>
+  `;
+  // Set link href via JS (not in template)
+  const link=document.getElementById('conf-link');
+  if(link)link.href='https://windedvertigo.com/conferences';
+  // Detect iframe block
+  const iframe=document.getElementById('conf-iframe');
+  if(iframe){
+    iframe.addEventListener('load',()=>{
+      try{const t=iframe.contentWindow?.location?.href;if(!t)iframeFailed();}catch{iframeFailed();}
+    });
+    iframe.addEventListener('error',iframeFailed);
+    setTimeout(()=>{try{if(!iframe.contentDocument)iframeFailed();}catch{iframeFailed();}},3000);
+  }
+}
+function iframeFailed(){
+  const iframe=document.getElementById('conf-iframe');
+  const fallback=document.getElementById('conf-fallback');
+  if(iframe)iframe.style.display='none';
+  if(fallback)fallback.style.display='block';
+}
+async function submitAnnotation(){
+  const inp=document.getElementById('annotation-input');
+  const text=inp?.value?.trim();
+  if(!text)return;
+  inp.value='';
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:3,response_type:'annotation',content:{text,name:state.participant.name,org:state.participant.org}});
+}
+
+// Phase 4: Overlap Map
+function renderPhase4(el,rs){
+  const items=rs.filter(r=>r.response_type==='overlap_item');
+  const connections=rs.filter(r=>r.response_type==='connection');
+  const upvotes=rs.filter(r=>r.response_type==='upvote');
+  const leftItems=items.filter(r=>r.content.side==='left');
+  const rightItems=items.filter(r=>r.content.side==='right');
+
+  const mkItem=(r,side)=>{
+    const count=upvotes.filter(u=>u.content.item_id===r.id).length;
+    const voted=state.myVotes.has(r.id);
+    const connected=connections.some(c=>c.content.left_id===r.id||c.content.right_id===r.id);
+    return `<div class="overlap-item ${connected?'connected':''}" id="item-${r.id}" data-id="${r.id}" data-side="${esc(side)}">
+      <span>${esc(r.content.text)}</span>
+      <button class="upvote-btn ${voted?'voted':''}" data-item-id="${r.id}">↑ ${count}</button>
+    </div>`;
+  };
+
+  el.innerHTML=`
+    <div class="phase-prompt">click an item on the left, then one on the right to draw a connection. upvote what resonates.</div>
+    <div style="position:relative">
+      <svg id="overlap-svg" style="position:absolute;pointer-events:none;z-index:10;overflow:visible;top:0;left:0"></svg>
+      <div class="overlap-layout" id="overlap-layout">
+        <div class="overlap-col left">
+          <div class="overlap-col-header">what lightbulb needs from w.v</div>
+          <div class="overlap-items">${leftItems.map(r=>mkItem(r,'left')).join('')}</div>
+          <div class="overlap-add"><input id="add-left" placeholder="add an item…" maxlength="120"><button class="btn btn-sm btn-secondary" id="add-btn-left">add</button></div>
+        </div>
+        <div class="overlap-col right">
+          <div class="overlap-col-header">what w.v needs from lightbulb</div>
+          <div class="overlap-items">${rightItems.map(r=>mkItem(r,'right')).join('')}</div>
+          <div class="overlap-add"><input id="add-right" placeholder="add an item…" maxlength="120"><button class="btn btn-sm btn-secondary" id="add-btn-right">add</button></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Bind item clicks and upvotes via event delegation
+  el.querySelectorAll('.overlap-item').forEach(item=>{
+    item.addEventListener('click',e=>{
+      if(e.target.closest('.upvote-btn'))return;
+      selectOverlapItem(item.dataset.id,item.dataset.side);
+    });
+  });
+  el.querySelectorAll('.upvote-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();upvoteItem(btn.dataset.itemId);});
+  });
+  drawConnections(connections,leftItems,rightItems);
+}
+
+function selectOverlapItem(id,side){
+  if(side==='left'){
+    state.selectedLeft=(state.selectedLeft===id)?null:id;
+    document.querySelectorAll('.overlap-item').forEach(el=>el.classList.remove('selected-left'));
+    if(state.selectedLeft)document.getElementById('item-'+id)?.classList.add('selected-left');
+  }else{
+    if(state.selectedLeft){
+      connectItems(state.selectedLeft,id);
+      state.selectedLeft=null;state.selectedRight=null;
+      document.querySelectorAll('.overlap-item').forEach(el=>el.classList.remove('selected-left','selected-right'));
+    }else{
+      state.selectedRight=(state.selectedRight===id)?null:id;
+      document.querySelectorAll('.overlap-item').forEach(el=>el.classList.remove('selected-right'));
+      if(state.selectedRight)document.getElementById('item-'+id)?.classList.add('selected-right');
+    }
+  }
+}
+async function connectItems(leftId,rightId){
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:4,response_type:'connection',content:{left_id:leftId,right_id:rightId}});
+}
+async function upvoteItem(id){
+  if(state.myVotes.has(id))return;
+  state.myVotes.add(id);
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:4,response_type:'upvote',content:{item_id:id,name:state.participant.name}});
+}
+async function addOverlapItem(side){
+  const inp=document.getElementById('add-'+side);
+  const text=inp?.value?.trim();
+  if(!text)return;
+  inp.value='';
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:4,response_type:'overlap_item',content:{text,side,upvotes:0}});
+}
+function drawConnections(connections,leftItems,rightItems){
+  requestAnimationFrame(()=>{
+    const svg=document.getElementById('overlap-svg');
+    const layout=document.getElementById('overlap-layout');
+    if(!svg||!layout)return;
+    const rect=layout.getBoundingClientRect();
+    svg.setAttribute('width',rect.width);
+    svg.setAttribute('height',rect.height);
+    svg.setAttribute('viewBox',`0 0 ${rect.width} ${rect.height}`);
+    svg.style.width=rect.width+'px';
+    svg.style.height=rect.height+'px';
+    const paths=connections.map(c=>{
+      const le=document.getElementById('item-'+c.content.left_id);
+      const re=document.getElementById('item-'+c.content.right_id);
+      if(!le||!re)return'';
+      const lr=le.getBoundingClientRect();
+      const rr=re.getBoundingClientRect();
+      const x1=lr.right-rect.left,y1=lr.top+lr.height/2-rect.top;
+      const x2=rr.left-rect.left,y2=rr.top+rr.height/2-rect.top;
+      const mx=(x1+x2)/2;
+      return `<path fill="none" stroke="#2A9D8F" stroke-width="2" stroke-dasharray="6 4" opacity="0.6" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}"/>`;
+    }).join('');
+    svg.innerHTML=paths;
+  });
+}
+
+// Phase 5: Commitment Board
+function renderPhase5(el,rs){
+  const commitments=rs.filter(r=>r.response_type==='commitment');
+  const wvParts=state.participants.filter(p=>p.org==='wv');
+  const lbParts=state.participants.filter(p=>p.org==='lb');
+  const mkOpts=parts=>`${parts.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('')}<option value="the team">the team</option>`;
+  const mkCards=side=>commitments.filter(r=>r.content.side===side).map(r=>`
+    <div class="commitment-card locked">
+      <div class="commitment-what">${esc(r.content.what)}</div>
+      <div class="commitment-meta">${r.content.who?esc(r.content.who)+' · ':''}${r.content.by_when?formatDate(r.content.by_when):''}</div>
+    </div>`).join('');
+
+  el.innerHTML=`
+    <div class="phase-prompt">concrete commitments for the next two weeks — what, who, by when</div>
+    <div class="commitment-layout">
+      <div class="commitment-col wv-side">
+        <div class="commitment-col-header">winded.vertigo will…</div>
+        ${mkCards('wv')}
+        <div class="commitment-form">
+          <input id="commit-what-wv" placeholder="what will you do?" maxlength="200">
+          <select id="commit-who-wv"><option value="">who's responsible?</option>${mkOpts(wvParts)}</select>
+          <input type="date" id="commit-when-wv">
+          <button class="btn btn-sienna" id="commit-btn-wv">lock it in</button>
+        </div>
+      </div>
+      <div class="commitment-col lb-side">
+        <div class="commitment-col-header">lightbulb will…</div>
+        ${mkCards('lb')}
+        <div class="commitment-form">
+          <input id="commit-what-lb" placeholder="what will you do?" maxlength="200">
+          <select id="commit-who-lb"><option value="">who's responsible?</option>${mkOpts(lbParts)}</select>
+          <input type="date" id="commit-when-lb">
+          <button class="btn btn-teal" id="commit-btn-lb">lock it in</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+async function submitCommitment(side){
+  const what=document.getElementById('commit-what-'+side)?.value?.trim();
+  const who=document.getElementById('commit-who-'+side)?.value?.trim();
+  const byWhen=document.getElementById('commit-when-'+side)?.value;
+  if(!what)return;
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:5,response_type:'commitment',content:{what,who,by_when:byWhen,side,name:state.participant.name}});
+  const wi=document.getElementById('commit-what-'+side);
+  const di=document.getElementById('commit-when-'+side);
+  if(wi)wi.value='';if(di)di.value='';
+}
+
+// Phase 6: Close
+function renderPhase6(el,rs){
+  const myId=state.participant?.id;
+  const submitted=rs.find(r=>r.participant_id===myId&&r.response_type==='close');
+  const revealed=state.session.phase_revealed;
+  const nodes=rs.filter(r=>r.response_type==='close').map((r,i)=>`
+    <div class="close-node revealed" style="animation:constellationReveal 0.8s ease ${i*0.2}s both, constellationPulse 3.5s ease ${i*0.2+1}s infinite">
+      <div>${esc(r.content.text)}</div>
+      <div class="close-node-author">${esc(r.content.name)}</div>
+    </div>`).join('');
+
+  el.innerHTML=`
+    <div class="phase-prompt">what's trying to be born between us?</div>
+    ${!submitted?`<div class="input-group">
+      <input class="text-input" id="close-input" placeholder="one sentence" maxlength="200">
+      <button class="btn btn-sienna" id="close-submit-btn">share</button>
+    </div>`:`<div class="status-msg success">your answer is in ✓</div>`}
+    ${revealed?`<div class="constellation-wrap">${nodes}</div>`:`
+    <div class="waiting-reveal">
+      <div class="pulse-waiting"></div>
+      ${state.isFacilitator?'when everyone has responded, click "reveal" below to show all answers at once.':'your answer has been received. the facilitator will reveal all responses together.'}
+      <div style="margin-top:12px;font-size:13px;color:rgba(43,74,95,0.35)">${rs.filter(r=>r.response_type==='close').length} of ${state.participants.length} responded</div>
+    </div>`}
+  `;
+}
+async function submitClose(){
+  const inp=document.getElementById('close-input');
+  const text=inp?.value?.trim();
+  if(!text)return;
+  const btn=document.getElementById('close-submit-btn');
+  if(btn)btn.disabled=true;
+  await sb.from('weave_responses').insert({session_id:state.session.id,participant_id:state.participant.id,phase:6,response_type:'close',content:{text,name:state.participant.name,org:state.participant.org}});
+}
+
+// ── facilitator bar ───────────────────────────────────────────────────────────
+function renderFacilitatorBar(phase){
+  if(!state.isFacilitator)return'';
+  const isLast=phase>=TOTAL_PHASES-1;
+  const needsReveal=phase===6&&!state.session.phase_revealed;
+  return`<div class="facilitator-bar">
+    <div class="facilitator-bar-info">${esc(PHASE_NAMES[phase])}</div>
+    <div class="facilitator-bar-actions">
+      <span class="fac-count">${state.participants.length} connected</span>
+      ${needsReveal?`<button class="fac-btn fac-btn-reveal" id="fac-reveal-btn">reveal →</button>`:''}
+      <button class="fac-btn fac-btn-next" id="fac-next-btn">${isLast?'end session':'next phase →'}</button>
+    </div>
+  </div>`;
+}
+async function advancePhase(){
+  const next=state.session.active_phase+1;
+  await sb.from('weave_sessions').update({active_phase:next,phase_revealed:false}).eq('id',state.session.id);
+}
+async function revealPhase(){
+  await sb.from('weave_sessions').update({phase_revealed:true}).eq('id',state.session.id);
+}
+
+// ── artefact ─────────────────────────────────────────────────────────────────
+function renderArtefact(){
+  const allR=Object.values(state.responses).flat();
+  const polaroids=allR.filter(r=>r.response_type==='polaroid');
+  const annotations=allR.filter(r=>r.response_type==='annotation');
+  const overlapItems=allR.filter(r=>r.response_type==='overlap_item');
+  const connections=allR.filter(r=>r.response_type==='connection');
+  const commitments=allR.filter(r=>r.response_type==='commitment');
+  const closes=allR.filter(r=>r.response_type==='close');
+  const upvotes=allR.filter(r=>r.response_type==='upvote');
+  const leftItems=overlapItems.filter(r=>r.content.side==='left');
+  const rightItems=overlapItems.filter(r=>r.content.side==='right');
+  const rots=[-2,-1,1.5,2,-1.5,1];
+
+  document.getElementById('app').innerHTML=`
+    ${renderHeader()}
+    <div class="phase-area">
+      <div style="padding:20px 0 32px;border-bottom:1px solid rgba(43,74,95,0.08);margin-bottom:32px">
+        <div style="font-size:11px;letter-spacing:0.12em;color:var(--sienna);text-transform:lowercase;margin-bottom:8px">session artefact</div>
+        <div style="font-size:24px;font-weight:600;color:var(--navy)">${esc(state.session.title)}</div>
+        <div style="font-size:13px;color:rgba(43,74,95,0.4);margin-top:8px">${state.participants.length} participants · room ${esc(state.session.room_code)}</div>
+      </div>
+      ${polaroids.length?`<div class="artefact-section">
+        <div class="artefact-label">one-year polaroids</div>
+        <div class="polaroid-canvas">${polaroids.map((r,i)=>{const org=r.content.org||getParticipantOrg(r.participant_id);return`<div class="polaroid ${esc(org)}-card" style="transform:rotate(${rots[i%rots.length]}deg)"><div class="polaroid-text">${esc(r.content.text)}</div><div class="polaroid-author">${esc(r.content.name)}</div><div class="polaroid-org-tag ${esc(org)}">${esc(orgLabel(org))}</div></div>`;}).join('')}
+        </div></div>`:''}
+      ${annotations.length?`<div class="artefact-section">
+        <div class="artefact-label">conference page annotations</div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px">${annotations.map(r=>{const org=r.content.org||getParticipantOrg(r.participant_id);return`<div class="sticky-note ${esc(org)}" style="position:static;max-width:none">${esc(r.content.text)}<div class="sticky-note-author">${esc(r.content.name)}</div></div>`;}).join('')}</div>
+      </div>`:''}
+      ${overlapItems.length?`<div class="artefact-section">
+        <div class="artefact-label">the overlap map</div>
+        <div class="overlap-layout" style="margin-top:12px">
+          <div class="overlap-col left">
+            <div class="overlap-col-header">what lightbulb needs from w.v</div>
+            <div class="overlap-items">${leftItems.map(r=>{const count=upvotes.filter(u=>u.content.item_id===r.id).length;const connected=connections.some(c=>c.content.left_id===r.id);return`<div class="overlap-item ${connected?'connected':''}"><span>${esc(r.content.text)}</span><span style="font-size:12px;color:rgba(43,74,95,0.4)">↑${count}</span></div>`;}).join('')}</div>
+          </div>
+          <div class="overlap-col right">
+            <div class="overlap-col-header">what w.v needs from lightbulb</div>
+            <div class="overlap-items">${rightItems.map(r=>{const count=upvotes.filter(u=>u.content.item_id===r.id).length;const connected=connections.some(c=>c.content.right_id===r.id);return`<div class="overlap-item ${connected?'connected':''}"><span>${esc(r.content.text)}</span><span style="font-size:12px;color:rgba(43,74,95,0.4)">↑${count}</span></div>`;}).join('')}</div>
+          </div>
+        </div>
+      </div>`:''}
+      ${commitments.length?`<div class="artefact-section">
+        <div class="artefact-label">commitments</div>
+        <div class="commitment-layout" style="margin-top:12px">
+          <div class="commitment-col wv-side">
+            <div class="commitment-col-header">winded.vertigo will…</div>
+            ${commitments.filter(r=>r.content.side==='wv').map(r=>`<div class="commitment-card locked"><div class="commitment-what">${esc(r.content.what)}</div><div class="commitment-meta">${r.content.who?esc(r.content.who)+' · ':''}${r.content.by_when?formatDate(r.content.by_when):''}</div></div>`).join('')}
+          </div>
+          <div class="commitment-col lb-side">
+            <div class="commitment-col-header">lightbulb will…</div>
+            ${commitments.filter(r=>r.content.side==='lb').map(r=>`<div class="commitment-card locked"><div class="commitment-what">${esc(r.content.what)}</div><div class="commitment-meta">${r.content.who?esc(r.content.who)+' · ':''}${r.content.by_when?formatDate(r.content.by_when):''}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>`:''}
+      ${closes.length?`<div class="artefact-section">
+        <div class="artefact-label">what's trying to be born between us?</div>
+        <div class="constellation-wrap">${closes.map(r=>`<div class="close-node revealed"><div>${esc(r.content.text)}</div><div class="close-node-author">${esc(r.content.name)}</div></div>`).join('')}</div>
+      </div>`:''}
+    </div>
+    <div class="artefact-footer">facilitated with the weave · winded.vertigo</div>
+  `;
+}
+
+// ── header ────────────────────────────────────────────────────────────────────
+function renderHeader(){
+  const title=state.session?.title||'';
+  const code=state.session?.room_code||'';
+  const el=document.createElement('div');
+  el.className='app-header';
+  el.innerHTML=`<div class="app-header-inner">
+    <div><div class="wordmark">winded<span class="dot">.</span>vertigo</div><div class="app-title">the weave</div></div>
+    <div class="session-meta">
+      ${title?`<div class="session-label">${esc(title)}</div>`:''}
+      ${code?`<div class="room-badge">${esc(code)}</div>`:''}
+    </div>
+  </div>`;
+  return el.outerHTML;
+}
+
+function showError(msg){
+  const app=document.getElementById('app');
+  if(app){app.textContent='';const d=document.createElement('div');d.style.cssText='padding:60px 24px;text-align:center;color:var(--sienna)';d.textContent=msg;app.appendChild(d);}
+}
+</script>
+</body>
+</html>
