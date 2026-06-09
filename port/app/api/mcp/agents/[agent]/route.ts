@@ -132,6 +132,7 @@ const CARL_TOOLS: ToolDef[] = [
   { name: "carl_add_finding", description: "Add a synthesised finding to cARL's living research library. Call when a relevant study, framework, or insight is surfaced that connects to the team's work.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Research domain (e.g. 'threshold concepts', 'play-based learning', 'UDL')" }, title: { ...STR, description: "Clear descriptive title of the finding" }, summary: { ...STR, description: "1-3 sentence distilled insight (not raw notes)" }, source: { ...STR, description: "Author(s) and title of the source" }, citation: { ...STR, description: "Enough detail to find the source (author, year, journal/book)" }, relevance: { ...STR, description: "How this connects to what the team is currently building" }, tags: { ...STR_ARR, description: "Searchable tags" }, connected_to: { ...STR_ARR, description: "Related concepts or other finding titles" } }, required: ["domain", "title", "summary"] } },
   { name: "carl_search_findings", description: "Search cARL's living research library by domain, tags, or keyword. Call before starting a research response to check what's already known.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Filter by research domain" }, tags: { ...STR, description: "Filter by tag (single tag)" }, search: { ...STR, description: "Keyword search across title and summary" } }, required: [] } },
   { name: "carl_curriculum", description: "Read cARL's target curriculum — the marketing + lifelong-learning syllabus cARL is working toward, with each topic's coverage status (planned / in-progress / covered). Use it to see what's covered, the blind spots (planned-but-uncovered), and what to research next.", inputSchema: { type: "object", properties: { status: { ...STR, description: "Filter by status: planned | in-progress | covered (optional)" }, domain: { ...STR, description: "Filter by domain (optional)" } }, required: [] } },
+  { name: "carl_add_curriculum_topic", description: "Add a NEW topic to cARL's target curriculum — for a blind spot or a teammate/agent-requested research line that isn't covered yet. The topic starts as 'planned'; logging findings against it later advances its coverage. Use this when you spot a gap and want to formally adopt it into the syllabus.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Research domain the topic belongs to (e.g. 'pricing', 'motivation science', 'threshold concepts')" }, topic: { ...STR, description: "The specific topic or question to research" }, key_works: { ...STR_ARR, description: "Known key works/authors to anchor it (optional)" }, notes: { ...STR, description: "Why it matters / who asked for it (optional)" } }, required: ["domain", "topic"] } },
 ];
 
 async function callCarl(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
@@ -176,6 +177,13 @@ async function callCarl(name: string, a: Record<string, unknown>, token: string)
       return `**${domain}** (${covered}/${ts.length})\n${rows}`;
     });
     return { text: lines.join("\n\n") };
+  }
+  if (name === "carl_add_curriculum_topic") {
+    const d = (await apiFetch("/api/carl/curriculum", token, {
+      method: "POST",
+      body: JSON.stringify({ domain: a.domain, topic: a.topic, key_works: a.key_works ?? [], notes: a.notes || undefined }),
+    })) as { id?: string };
+    return { text: `curriculum topic added (planned) — ${a.domain}: ${a.topic}${d.id ? ` [id: ${d.id}]` : ""}` };
   }
   return { text: `unknown tool: ${name}`, isError: true };
 }

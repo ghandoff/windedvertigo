@@ -494,7 +494,7 @@ export const STEPS: Step[] = [
     subtitle: 'winded.vertigo has three AI teammates with long memories: Mo, PaM, and cARL.',
     shared: {
       intro:
-        "the collective runs three persistent AI agents. unlike a fresh claude conversation, they remember decisions across sessions — because they read and write a shared memory api on the port. you talk to them in cowork (via plugins) or in claude code (by cd-ing into their brain folder).",
+        "the collective runs three persistent AI agents. unlike a fresh claude conversation, they remember decisions across sessions — because they read and write a shared memory api on the port. you reach them in cowork (one connector you sign in to) or in claude code (by cd-ing into their brain folder, or saying \"talk to Mo\").",
       body: [
         { kind: 'heading', text: 'the three agents' },
         {
@@ -514,16 +514,26 @@ export const STEPS: Step[] = [
           tone: 'info',
           text: "all three share one memory api on port.windedvertigo.com. their decisions are transparent — anything they log shows up on the dashboards, so the whole collective can see what was decided.",
         },
-        { kind: 'heading', text: 'one-time setup: your agent token' },
+        { kind: 'heading', text: 'cowork: connect once, then sign in (no token)' },
         {
           kind: 'paragraph',
-          text: "the plugins talk to the memory api using a shared token called `WV_AGENT_TOKEN`. **ask garrett for the value** (it isn't written down in the repo on purpose), then add it to your shell so every session can read it.",
+          text: "cowork can't run local files, so the agents are served as a hosted connector you sign in to. in cowork: **settings → connectors → add custom connector**. set the **url** to `https://port.windedvertigo.com/api/mcp/agents/all`, leave the **oauth client id / secret** fields blank, click **add**, then **connect** → sign in with your **winded.vertigo google account** → **approve**. that one connector gives you all three agents' tools — no token to paste anywhere.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "for a focused, in-character conversation, give each agent its own cowork conversation (or project) and paste its persona from `docs/plugins/cowork-agent-projects.md` as the instructions. connector (tools) + persona (instructions) = a teammate that loads the shared briefing and writes decisions back. full setup + troubleshooting: `docs/plugins/REMOTE-MCP-SETUP.md`.",
+        },
+        { kind: 'heading', text: 'claude code: a token, and the persona is built in' },
+        {
+          kind: 'paragraph',
+          text: "in claude code you don't sign in — you use the shared token `WV_AGENT_TOKEN`. **ask garrett for the value** (it isn't in the repo on purpose), add it to your shell, then either install the plugins or just `cd` into a brain folder — the persona is a built-in skill.",
         },
         {
           kind: 'commands',
           commands: [
             {
-              label: 'mac / linux — add to your shell, then reload it',
+              label: 'mac / linux — add the token to your shell, then reload it',
               command: "echo 'export WV_AGENT_TOKEN=\"paste-the-token-from-garrett-here\"' >> ~/.zshrc && source ~/.zshrc",
               note: "replace the placeholder with the real token. if you use bash, swap ~/.zshrc for ~/.bashrc.",
             },
@@ -534,33 +544,28 @@ export const STEPS: Step[] = [
             },
           ],
         },
-        { kind: 'heading', text: 'install the cowork plugins' },
-        {
-          kind: 'paragraph',
-          text: "the three plugins live in the repo at `docs/plugins/dist/` — `mo-cmo.plugin`, `pam-pm.plugin`, and `carl-research.plugin`. in cowork, open plugins → install from file → pick the `.plugin` you want, then start a session. the agent loads its memory automatically.",
-        },
         {
           kind: 'callout',
           tone: 'tip',
-          text: "prefer claude code? you don't need the plugins at all — just `cd docs/cmo` (or `docs/pam`, `docs/carl`) and start talking, or say \"i want to talk to PaM\" from anywhere in the monorepo.",
+          text: "then either install the plugins (`/plugin marketplace add ghandoff/windedvertigo`, then `/plugin install mo-cmo` · `pam-pm` · `carl-research`), or skip them and just `cd docs/cmo` (or `docs/pam`, `docs/carl`) and start talking — or say \"i want to talk to PaM\" anywhere in the monorepo.",
         },
         { kind: 'heading', text: 'say hello' },
         {
           kind: 'claudePrompt',
-          label: 'paste into a cowork session with the pam-pm plugin installed',
+          label: 'paste into your PaM conversation (cowork) or a claude code session',
           prompt:
             "hi PaM — what's on my plate this week, and is anything blocked or waiting on someone else? if you don't have any commitments logged for me yet, say so and ask me what i'm working on.",
         },
         {
           kind: 'callout',
           tone: 'success',
-          text: "if PaM answers with your commitments (or asks what you're working on), the token, plugin, and memory api are all wired correctly. the same pattern works for Mo (\"what's our pipeline looking like?\") and cARL (\"what does the research say about threshold concepts?\").",
+          text: "if PaM answers with your commitments (or asks what you're working on), the connector + memory api are wired correctly. the same pattern works for Mo (\"what's our pipeline looking like?\") and cARL (\"what does the research say about threshold concepts?\").",
         },
       ],
       doneLooksLike:
-        "your WV_AGENT_TOKEN is in your shell, at least one agent plugin is installed in cowork, and you've had a first exchange where the agent clearly remembered (or asked to learn) your context.",
+        "in cowork the winded.vertigo agents connector is connected (you signed in), or in claude code your WV_AGENT_TOKEN is set — and you've had a first exchange where an agent clearly remembered (or asked to learn) your context.",
       helpPrompt:
-        "i'm setting up the winded.vertigo agents (Mo / PaM / cARL). i added WV_AGENT_TOKEN and installed the [which one] plugin, but [describe what happened — the agent says the token isn't set, the plugin won't install, the briefing is empty]. walk me through fixing it.",
+        "i'm setting up the winded.vertigo agents (Mo / PaM / cARL). in cowork i added the custom connector `https://port.windedvertigo.com/api/mcp/agents/all` and clicked connect, but [describe what happened — sign-in failed, it says couldn't connect, no tools appear]. walk me through fixing it.",
     },
   },
   // ────────────────────────────────────────────────────────────────

@@ -123,6 +123,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: [],
       },
     },
+    {
+      name: "carl_add_curriculum_topic",
+      description: "Add a NEW topic to cARL's target curriculum — for a blind spot or a teammate/agent-requested research line not covered yet. Starts as 'planned'; logging findings against it advances coverage.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          domain: { type: "string", description: "Research domain (e.g. 'pricing', 'motivation science')" },
+          topic: { type: "string", description: "The specific topic or question to research" },
+          key_works: { type: "array", items: { type: "string" }, description: "Known key works/authors (optional)" },
+          notes: { type: "string", description: "Why it matters / who asked (optional)" },
+        },
+        required: ["domain", "topic"],
+      },
+    },
   ],
 }));
 
@@ -213,6 +227,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return `**${domain}** (${covered}/${ts.length})\n${rows}`;
       });
       return { content: [{ type: "text", text: lines.join("\n\n") }] };
+    }
+
+    if (name === "carl_add_curriculum_topic") {
+      const data = await apiFetch("/api/carl/curriculum", {
+        method: "POST",
+        body: JSON.stringify({ domain: args.domain, topic: args.topic, key_works: args.key_works || [], notes: args.notes || undefined }),
+      });
+      return { content: [{ type: "text", text: `curriculum topic added (planned) — ${args.domain}: ${args.topic}${data.id ? ` [id: ${data.id}]` : ""}` }] };
     }
 
     return { content: [{ type: "text", text: `unknown tool: ${name}` }], isError: true };
