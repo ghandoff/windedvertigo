@@ -514,6 +514,29 @@ export const STEPS: Step[] = [
           tone: 'info',
           text: "all three share one memory api on port.windedvertigo.com. their decisions are transparent — anything they log shows up on the dashboards, so the whole collective can see what was decided.",
         },
+        { kind: 'heading', text: 'what each agent can do — their 15 skills' },
+        {
+          kind: 'paragraph',
+          text: "**Mo (3):** read the briefing · log a decision · update working-state memory.",
+        },
+        {
+          kind: 'paragraph',
+          text: "**PaM (5):** all of Mo's, plus create a commitment · update a commitment (status, blockers, start/due dates — these drive the gantt at `/pam`).",
+        },
+        {
+          kind: 'paragraph',
+          text: "**cARL (7):** all of Mo's, plus add a finding · search the library · read the curriculum · adopt a new curriculum topic.",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "in cowork all 15 arrive in one connector; on the port dashboards the briefing loads automatically, so you don't call it yourself.",
+        },
+        { kind: 'heading', text: "how documenting happens — you don't flip a switch, the agents do" },
+        {
+          kind: 'paragraph',
+          text: "you don't \"turn on\" logging per tool — the agent documents *as you talk*: when a decision lands, a commitment is made, or a finding is confirmed, it calls the matching tool right then. just talk normally, and **nudge** when you want something captured — \"log that decision,\" \"track that with a due date,\" \"add that to the library.\" everything logged is shared instantly — it shows on the dashboards (Mo's log · PaM's board + timeline · cARL's library + bibliography) and in everyone's next briefing. that's how a conversation becomes collective memory.",
+        },
         { kind: 'heading', text: 'two ways to reach them' },
         {
           kind: 'paragraph',
