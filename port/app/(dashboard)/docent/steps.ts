@@ -514,6 +514,20 @@ export const STEPS: Step[] = [
           tone: 'info',
           text: "all three share one memory api on port.windedvertigo.com. their decisions are transparent — anything they log shows up on the dashboards, so the whole collective can see what was decided.",
         },
+        { kind: 'heading', text: 'two ways to reach them' },
+        {
+          kind: 'paragraph',
+          text: "**the port (browser — zero setup):** sign in at port.windedvertigo.com and chat with them in the sidebar on `/strategy` (Mo), `/pam` (PaM), and `/carl` (cARL). they auto-load the shared memory and persona — nothing to install. they can *think and log* (record decisions, commitments, findings) but can't browse the live web or create documents. the port also hosts **`/bibliography`** — the citation library plus an article-retrieval (scholarly search) tool, open to any signed-in member.",
+        },
+        {
+          kind: 'paragraph',
+          text: "**cowork / claude code (full power):** the same agents, the same memory — plus the reach to *do the work*: live web research (cARL), drafting proposals and decks, creating documents, email, calendar, notion, slack. this is the surface you set up below. rule of thumb: use the port when you just want to think and log; use cowork or claude code when you want the agent to act.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "short on setup time, or just want the simplest path? the port is browser-only and needs nothing — sign in and start chatting. it's the recommended starting point for anyone who works in short bursts; you can add cowork later when you want an agent to research or draft.",
+        },
         { kind: 'heading', text: 'cowork: connect once, then sign in (no token)' },
         {
           kind: 'paragraph',
