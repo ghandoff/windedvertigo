@@ -71,18 +71,26 @@ Verified end-to-end:
 → In a **new Claude Code session opened in this repo**, "talk to Mo" activates the
 persona (skill) and silently calls `cmo_briefing` (MCP) for shared memory.
 
-## Recommendation for Cowork
+## Resolution for Cowork (confirmed 2026-06-08)
 
-The backend is already an HTTP API (`port.windedvertigo.com/api/cmo/*`), so the
-supported path is straightforward:
+Garrett stood up a **remote (HTTP) MCP endpoint** that serves all three agents,
+which is exactly the path this investigation pointed to (the Cowork VM can reach a
+URL; it can't run local stdio). No token, no terminal, no `claude_desktop_config`.
 
-1. **Host the memory servers as a remote (HTTP/SSE) MCP server** — a URL endpoint,
-   not local `node` files — wrapping the same API. The Cowork VM can reach a URL;
-   it can't run local stdio.
-2. **Distribute via the Cowork plugin marketplace** so they install as
-   `plugin:mo-cmo:...` etc. (every working Cowork MCP server in the log arrives
-   this way). The `.claude-plugin/marketplace.json` added here is a starting
-   point, but each `plugin.json` would need to declare its remote MCP server.
+**Endpoint:** `https://port.windedvertigo.com/api/mcp/agents/all`
+(verified live from the Windows cloud PC — returns HTTP 401 to an unauthenticated
+GET, i.e. up and OAuth-gated.)
 
-Open question for Garrett: do we want to stand up the hosted remote-MCP endpoint +
-marketplace listing? That's the piece that unblocks Cowork.
+**Setup in Cowork (one-time, GUI):**
+
+1. Cowork → Settings → Connectors → **Add custom connector**.
+2. Name: `winded.vertigo agents` · URL: the endpoint above · leave OAuth Client
+   ID/Secret blank → **Add**.
+3. Click **Connect** → browser opens → sign in with your winded.vertigo Google
+   account → **Approve**. Status flips to **Connected**.
+4. Start a chat: _"talk to Mo, give me a briefing."_ — pulls the real shared
+   memory (pipeline, play-conference campaign, team focus, etc.).
+
+Note: this supersedes the config-file approach for Cowork. The Claude Code wiring
+below (local stdio servers + local marketplace) still works for terminal use but
+is optional now that the remote connector exists.
