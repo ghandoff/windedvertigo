@@ -14,6 +14,17 @@ const nextConfig: NextConfig = {
     BUILD_TIME: new Date().toISOString(),
   },
 
+  async rewrites() {
+    return [
+      // OAuth discovery — Next ignores dot-folders, so map the well-known URLs
+      // onto API routes. Claude Desktop fetches these to find the auth server.
+      { source: "/.well-known/oauth-authorization-server", destination: "/api/oauth/metadata/authorization-server" },
+      { source: "/.well-known/oauth-authorization-server/:path*", destination: "/api/oauth/metadata/authorization-server" },
+      { source: "/.well-known/oauth-protected-resource", destination: "/api/oauth/metadata/protected-resource" },
+      { source: "/.well-known/oauth-protected-resource/:path*", destination: "/api/oauth/metadata/protected-resource" },
+    ];
+  },
+
   async redirects() {
     return [
       // Phase 2 restructure — permanent redirects from old routes

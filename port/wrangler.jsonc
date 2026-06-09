@@ -48,6 +48,13 @@
     { "binding": "PORT_ASSETS", "bucket_name": "port-assets" }
   ],
 
+  // ── KV binding ───────────────────────────────────────────────────────────
+  // OAUTH_KV: OAuth bookkeeping for the agents' MCP connector (Cowork sign-in) —
+  // registered clients (DCR) + one-time auth codes. Tokens are stateless JWTs.
+  "kv_namespaces": [
+    { "binding": "OAUTH_KV", "id": "267a63db1d4f4789a25b2cae406b6948" }
+  ],
+
   // ── Non-secret vars ───────────────────────────────────────────────────────
   // PORT_URL is used by the scheduled() hourly router when self-requesting
   // API routes. Must match the production domain.

@@ -41,6 +41,12 @@ declare global {
     BROWSER?: {
       fetch(request: Request): Promise<Response>;
     };
+    /** OAuth bookkeeping for the agents' MCP connector — clients + one-time codes. */
+    OAUTH_KV: {
+      get(key: string, type: "json"): Promise<unknown>;
+      put(key: string, value: string, opts?: { expirationTtl?: number }): Promise<void>;
+      delete(key: string): Promise<void>;
+    };
     PORT_URL: string;
     CRON_SECRET: string;
   }

@@ -5,17 +5,20 @@ The three agents share one memory ("the brain") behind the port API
 through a hosted **remote MCP** endpoint — no local `node` server, so it works in both
 Claude Code **and** Cowork (Claude Desktop), on any machine, Windows included.
 
-Hosted endpoints (one per agent):
+Hosted endpoints:
 
-| agent | URL |
-|-------|-----|
-| Mo (CMO) | `https://port.windedvertigo.com/api/mcp/agents/mo` |
-| PaM | `https://port.windedvertigo.com/api/mcp/agents/pam` |
-| cARL | `https://port.windedvertigo.com/api/mcp/agents/carl` |
+| use | URL |
+|-----|-----|
+| **Cowork** — all three agents in one | `https://port.windedvertigo.com/api/mcp/agents/all` |
+| Claude Code — Mo (CMO) | `https://port.windedvertigo.com/api/mcp/agents/mo` |
+| Claude Code — PaM | `https://port.windedvertigo.com/api/mcp/agents/pam` |
+| Claude Code — cARL | `https://port.windedvertigo.com/api/mcp/agents/carl` |
 
-**Auth:** a single shared bearer token (ask Garrett for `WV_AGENT_TOKEN`). It's the same
-token the agents already use. Treat it like a password — don't paste it into public chats
-or commit it.
+**Two ways to authenticate, depending on the app:**
+- **Cowork → sign in.** You click *Connect* and sign in with your winded.vertigo Google
+  account. **No token to paste.** (Cowork connectors use OAuth, not pasted tokens.)
+- **Claude Code → a shared token.** The plugin reads `WV_AGENT_TOKEN` from your shell (ask
+  Garrett for the value). Treat it like a password — don't paste it into public chats or commit it.
 
 ---
 
@@ -43,23 +46,22 @@ Verify: `/mcp` should list `mo-memory` / `pam-memory` / `carl-memory` as **conne
 
 ---
 
-## B. Cowork (Claude Desktop app, each machine)
+## B. Cowork (Claude Desktop app, each machine) — ONE connector, sign in
 
-Cowork can't run local servers, so add each agent as a **custom connector** (remote MCP):
+You add **one** connector and sign in. No token, no `WV_AGENT_TOKEN`, nothing to paste.
 
 1. Open **Settings → Connectors → Add custom connector** (a.k.a. "Add remote MCP server").
-2. **Name:** `mo-memory` · **URL:** `https://port.windedvertigo.com/api/mcp/agents/mo`
-3. When asked for authentication, provide the **bearer token** (`WV_AGENT_TOKEN`) — this build
-   uses a static token, not OAuth, so paste it in the token/authorization field (under
-   "Advanced" if that's where the token field lives in your version).
-4. Repeat for **pam** (`…/api/mcp/agents/pam`) and **carl** (`…/api/mcp/agents/carl`).
-5. Start a Cowork session and confirm the agent's tools appear (e.g. `cmo_briefing`) and a
-   briefing loads.
+2. **Name:** `winded.vertigo agents` · **URL:** `https://port.windedvertigo.com/api/mcp/agents/all`
+   — leave the OAuth Client ID / Secret fields **blank**.
+3. Save, then click **Connect**. A browser window opens → sign in with your **winded.vertigo
+   Google account** → click **approve** on the "connect to your agents" screen.
+4. Done. All three agents' tools (Mo `cmo_*`, PaM `pam_*`, cARL `carl_*` — 14 in total) appear
+   in Cowork. Start a chat and say "talk to Mo".
 
-> Cowork's connector UI changes between Desktop versions. If "Add custom connector" isn't
-> where this says, look for **Connectors / MCP servers / Developer** in Settings. If a clean
-> marketplace install becomes available for Cowork, that's preferred — this manual connector
-> path is the always-works fallback. Flag anything that doesn't match and we'll update this doc.
+> The connection lasts ~30 days, then you just click Connect + sign in again. If you don't see
+> "Add custom connector" exactly here, look for **Connectors / MCP servers / Developer** in
+> Settings — Cowork moves these between Desktop versions. Screenshot anything that doesn't match
+> and ping Garrett.
 
 ---
 
