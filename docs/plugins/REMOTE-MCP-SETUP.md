@@ -95,3 +95,17 @@ for the others.
   `/api/{cmo,pam,carl}/*` API. To add/rename a tool, edit that one file.
 - Plugins point here via `docs/plugins/*/.mcp.json` (`type: http`, `url`, `Authorization` header).
 - The old local `docs/plugins/*/mcp-servers/*/index.js` servers are kept as reference/fallback.
+- **OAuth (Cowork sign-in):** `port/app/api/oauth/*` (discovery metadata, dynamic client
+  registration, PKCE `/authorize` reusing the Auth.js Google login + one-click consent,
+  `/token`) + `port/lib/oauth/*` (HS256 JWTs signed with `NEXTAUTH_SECRET`, PKCE verify,
+  `OAUTH_KV` store for codes + clients). The combined `…/agents/all` connector accepts the
+  OAuth token; per-agent URLs accept the static token. `next.config.ts` rewrites the
+  `/.well-known/oauth-*` paths onto the metadata routes; `middleware.ts` exempts
+  `/.well-known/oauth` + `/api/oauth/`.
+- **⚠️ Cloudflare WAF carve-out — do NOT delete.** The `windedvertigo.com` zone blocks AI-bot
+  UAs (`ClaudeBot`/`anthropic-ai`/`Claude-User`), which is exactly what Anthropic's MCP
+  connection sends. A WAF custom rule **"allow anthropic mcp + oauth on api paths"** skips
+  bot/managed protection for `/api/mcp/`, `/api/oauth/`, `/.well-known/oauth` only. Without it,
+  Cowork fails with *"the integration rejected the credentials"* even though the OAuth handshake
+  looks perfect in the worker logs (the block happens at the CF edge, before the worker). The
+  marketing site keeps full AI-scraper protection.
