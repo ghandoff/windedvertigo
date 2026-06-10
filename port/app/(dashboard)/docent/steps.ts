@@ -517,15 +517,15 @@ export const STEPS: Step[] = [
         { kind: 'heading', text: 'what each agent can do — their 15 skills' },
         {
           kind: 'paragraph',
-          text: "**Mo (3):** read the briefing · log a decision · update working-state memory.",
+          text: "**Mo (3)** — *read the briefing:* \"Mo, catch me up on strategy and pipeline\" · *log a decision:* \"log that — we're pivoting harbour messaging to ecosystem storytelling\" · *update memory:* \"note that the WTG proposal is now submitted.\"",
         },
         {
           kind: 'paragraph',
-          text: "**PaM (5):** all of Mo's, plus create a commitment · update a commitment (status, blockers, start/due dates — these drive the gantt at `/pam`).",
+          text: "**PaM (5)** — *read the briefing:* \"PaM, what's on my plate this week?\" · *create a commitment:* \"track that I'll send the DW Akademie follow-up by friday\" · *update a commitment:* \"mark the PPCS draft done\" (or \"that one's blocked on maria\") · *log a decision:* \"log that we pushed the harbour campaign to july\" · *update memory:* \"note payton's focus this week is the launch deck.\"",
         },
         {
           kind: 'paragraph',
-          text: "**cARL (7):** all of Mo's, plus add a finding · search the library · read the curriculum · adopt a new curriculum topic.",
+          text: "**cARL (7)** — *read the briefing:* \"cARL, what's in the library lately?\" · *search findings:* \"what do we already know about play-based assessment?\" · *add a finding:* \"save that to our research\" · *read the curriculum:* \"what are your blind spots?\" · *adopt a topic:* \"add 'value-based pricing for edtech' and go research it\" · *log a decision:* \"log that we're adopting Meyer & Land's threshold framework\" · *update memory:* \"note pricing research is now a priority.\"",
         },
         {
           kind: 'callout',
