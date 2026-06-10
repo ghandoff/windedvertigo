@@ -4,6 +4,7 @@ import {
   getPamCommitments,
   insertPamCommitment,
   updatePamCommitment,
+  deletePamCommitment,
 } from "@/lib/supabase/pam";
 
 function verifyAuth(req: NextRequest): boolean {
@@ -48,6 +49,21 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("[api/pam/commitments] POST failed:", err);
     return error("failed to create commitment", 500);
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  if (!verifyAuth(req)) return error("unauthorized", 401);
+
+  const id = param(req, "id");
+  if (!id) return error("id is required as query param");
+
+  try {
+    await deletePamCommitment(id);
+    return json({ ok: true });
+  } catch (err) {
+    console.error("[api/pam/commitments] DELETE failed:", err);
+    return error("failed to delete commitment", 500);
   }
 }
 

@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { PamCommitment } from "@/lib/supabase/pam";
-import { updateCommitmentAction } from "../actions";
+import { updateCommitmentAction, deleteCommitmentAction } from "../actions";
 
 const STATUSES = ["not-started", "in-progress", "blocked", "done", "parked"];
 const PEOPLE = ["garrett", "maria", "payton", "jamie", "lamis"];
@@ -41,6 +41,7 @@ export function EditCommitmentDialog({
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export function EditCommitmentDialog({
       setStartDate(commitment.start_date ?? "");
       setDueDate(commitment.due_date ?? "");
       setError(null);
+      setConfirmDelete(false);
     }
   }, [commitment]);
 
@@ -124,13 +126,35 @@ export function EditCommitmentDialog({
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
-            cancel
+        <DialogFooter className="flex-row items-center justify-between sm:justify-between">
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={pending}
+            onClick={() => {
+              if (!confirmDelete) {
+                setConfirmDelete(true);
+                return;
+              }
+              if (!commitment) return;
+              startTransition(async () => {
+                const res = await deleteCommitmentAction(commitment.id);
+                if (res.error) { setError(res.error); setConfirmDelete(false); return; }
+                onOpenChange(false);
+                router.refresh();
+              });
+            }}
+          >
+            {confirmDelete ? "confirm delete" : "delete"}
           </Button>
-          <Button onClick={submit} disabled={pending}>
-            {pending ? "saving…" : "save"}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="ghost" onClick={() => { onOpenChange(false); setConfirmDelete(false); }} disabled={pending}>
+              cancel
+            </Button>
+            <Button onClick={submit} disabled={pending}>
+              {pending ? "saving…" : "save"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -155,6 +155,11 @@ export async function insertPamCommitment(data: {
   return row;
 }
 
+export async function deletePamCommitment(id: string): Promise<void> {
+  const { error } = await supabase.from("pam_commitments").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function updatePamCommitment(
   id: string,
   data: {

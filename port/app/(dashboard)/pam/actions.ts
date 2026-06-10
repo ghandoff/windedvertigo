@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import {
   insertPamCommitment,
   updatePamCommitment,
+  deletePamCommitment,
   getPamCommitments,
 } from "@/lib/supabase/pam";
 import { wouldCreateCycle } from "@/app/components/timeline/graph";
@@ -86,6 +87,19 @@ export async function updateCommitmentAction(
       ...fields,
       ...(fields.status === "done" ? { completed_at: new Date().toISOString() } : {}),
     });
+    revalidatePath("/pam");
+    return { ok: true };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+export async function deleteCommitmentAction(
+  id: string,
+): Promise<{ ok?: true; error?: string }> {
+  await requireSession();
+  try {
+    await deletePamCommitment(id);
     revalidatePath("/pam");
     return { ok: true };
   } catch (err) {
