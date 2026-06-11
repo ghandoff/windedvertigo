@@ -24,10 +24,11 @@ export async function middleware(req: NextRequest) {
     // its own auth() check + login bounce; discovery + token endpoints are public.
     pathname.startsWith("/.well-known/oauth") ||
     pathname.startsWith("/api/oauth/") ||
-    // Agent memory APIs (Mo, PaM, cARL) — use their own bearer auth (CMO_API_TOKEN).
+    // Agent memory APIs (Mo, PaM, cARL, Opsy) — use their own bearer auth (CMO_API_TOKEN).
     pathname.startsWith("/api/cmo/") ||
     pathname.startsWith("/api/pam/") ||
     pathname.startsWith("/api/carl/") ||
+    pathname.startsWith("/api/opsy/") ||
     // Citation import — route enforces CMO_API_TOKEN for assistant-run backfills.
     // Scoped to /import only; the PDF serve/upload routes stay session-gated.
     pathname.startsWith("/api/bibliography/import") ||
