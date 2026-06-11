@@ -314,8 +314,18 @@ export function tstzrange(start: Date, end: Date): string {
 export function parseTstzrange(literal: string): { start: Date; end: Date } {
   const m = literal.match(/^[\[(]([^,]+),([^)\]]+)[)\]]$/);
   if (!m) throw new SupabaseError(`invalid tstzrange: ${literal}`, 500);
-  return {
-    start: new Date(m[1].trim().replace(" ", "T")),
-    end: new Date(m[2].trim().replace(" ", "T")),
-  };
+  // PostgreSQL quotes range elements that contain spaces (all timestamps do),
+  // so strip surrounding double-quotes before parsing. Also normalise the
+  // short timezone suffix "+00" → "+00:00" so V8/CF Workers accept it.
+  const clean = (s: string) =>
+    s.trim()
+      .replace(/^"|"$/g, "")
+      .replace(" ", "T")
+      .replace(/([+-]\d{2})$/, "$1:00");
+  const start = new Date(clean(m[1]));
+  const end = new Date(clean(m[2]));
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    throw new SupabaseError(`could not parse tstzrange timestamps: ${literal}`, 500);
+  }
+  return { start, end };
 }
