@@ -1,13 +1,13 @@
 /**
- * POST /api/mcp/agents/[agent] — remote MCP server for the Mo / PaM / cARL
- * memory layer, over HTTP (JSON-RPC 2.0). This is the Cowork-compatible twin of
+ * POST /api/mcp/agents/[agent] — remote MCP server for the Mo / PaM / cARL /
+ * Opsy memory layer, over HTTP (JSON-RPC 2.0). This is the Cowork-compatible twin of
  * the local stdio servers in docs/plugins/* : Claude Desktop / Cowork runs in a
  * VM and cannot launch local `node index.js`, so the tools must arrive as a
  * remote URL. Same tools, same backend — this route is a thin protocol shim in
  * front of the existing /api/{cmo,pam,carl}/* API (self-fetched via PORT_URL,
  * the established internal-call pattern in this app).
  *
- * agent ∈ { mo (alias cmo) | pam | carl }. Auth: Bearer CMO_API_TOKEN — the same
+ * agent ∈ { mo (alias cmo) | pam | carl | opsy }. Auth: Bearer CMO_API_TOKEN — the same
  * shared agent token the local servers use (WV_AGENT_TOKEN). Path is exempt from
  * session auth in middleware (/api/mcp/*).
  */
@@ -188,10 +188,58 @@ async function callCarl(name: string, a: Record<string, unknown>, token: string)
   return { text: `unknown tool: ${name}`, isError: true };
 }
 
+// ---- Opsy (ops) ----
+// phase 1 toolset — opsy_scan_emails arrives with the phase-2 email-scan endpoint.
+const OPSY_TOOLS: ToolDef[] = [
+  { name: "opsy_briefing", description: "Load Opsy's full working state — current health of all platforms, open incidents, recent auto-fixes, learned patterns, and 14 days of conversation history. Call silently at session start.", inputSchema: { type: "object", properties: {}, required: [] } },
+  { name: "opsy_health_check", description: "Run an on-demand health check. scope: 'tier1' (core platform — default), 'all', or a single service id (wv-site, harbour, nordic, port, creaseworks). Stores results and opens/resolves incidents on threshold breaches.", inputSchema: { type: "object", properties: { scope: { ...STR, description: "'tier1' | 'all' | service id (default 'tier1')" } }, required: [] } },
+  { name: "opsy_log_incident", description: "Log a new infrastructure incident. Use for issues observed in conversation that the automated checks haven't caught.", inputSchema: { type: "object", properties: { service: { ...STR, description: "Service id or name (e.g. 'wv-site', 'notion-sync')" }, severity: { type: "string", enum: ["critical", "warning", "info"], description: "Incident severity" }, symptoms: { ...STR, description: "What is observably wrong" }, cause: { ...STR, description: "Root cause or best hypothesis (optional)" }, remediation: { ...STR, description: "What fixed it or what's being tried (optional)" }, auto_fixed: { type: "boolean", description: "True if Opsy fixed it without human action" } }, required: ["service", "severity", "symptoms"] } },
+  { name: "opsy_search_incidents", description: "Search incident history. Filter by service, severity, status, or an ISO date (since). Call before diagnosing — recurring incidents carry their past remediations.", inputSchema: { type: "object", properties: { service: { ...STR, description: "Filter by service id" }, severity: { type: "string", enum: ["critical", "warning", "info"], description: "Filter by severity" }, status: { type: "string", enum: ["open", "investigating", "resolved", "monitoring"], description: "Filter by status" }, since: { ...STR, description: "ISO date — incidents opened after this (e.g. '2026-06-01')" } }, required: [] } },
+  { name: "opsy_update_memory", description: "Update a key in Opsy's working state memory. Use when operational state changes — monitoring scope, known degradations, maintenance windows.", inputSchema: { type: "object", properties: { key: { ...STR, description: "Memory key (e.g. 'monitoring-status')" }, value: { ...STR, description: "New value" }, updated_by: { ...STR, description: "Who made the update (e.g. 'garrett')" } }, required: ["key", "value", "updated_by"] } },
+  { name: "opsy_log_decision", description: "Log an operational decision from the current conversation — threshold changes, remediation policies, infrastructure choices.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Name of the person in the conversation" }, summary: { ...STR, description: "Summary of what was discussed" }, decisions: { ...STR_ARR, description: "Specific operational decisions made" }, tags: { ...STR_ARR, description: "Relevant tags e.g. ['monitoring', 'cloudflare', 'supabase']" }, session_type: { ...STR, description: "Session type, default 'cowork'" } }, required: ["who", "summary"] } },
+];
+
+async function callOpsy(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
+  if (name === "opsy_briefing") {
+    const d = (await apiFetch("/api/opsy/briefing", token)) as { briefing: string };
+    return { text: d.briefing };
+  }
+  if (name === "opsy_health_check") {
+    const d = (await apiFetch("/api/opsy/check", token, { method: "POST", body: JSON.stringify({ scope: a.scope ?? "tier1" }) })) as { checked: number; results?: Array<{ service: string; status: string; response_time_ms: number }>; incidents_opened?: string[]; incidents_resolved?: string[]; message?: string };
+    if (d.message) return { text: d.message };
+    const rows = (d.results ?? []).map((r) => `- ${r.status === "green" ? "🟢" : r.status === "amber" ? "🟡" : "🔴"} ${r.service}: ${r.response_time_ms}ms`).join("\n");
+    return { text: `checked ${d.checked} services:\n${rows}\nincidents opened: ${d.incidents_opened?.length ?? 0}, resolved: ${d.incidents_resolved?.length ?? 0}` };
+  }
+  if (name === "opsy_log_incident") {
+    const d = (await apiFetch("/api/opsy/incidents", token, { method: "POST", body: JSON.stringify({ service: a.service, severity: a.severity, symptoms: a.symptoms, cause: a.cause || undefined, remediation: a.remediation || undefined, auto_fixed: a.auto_fixed ?? false }) })) as { id: string };
+    return { text: `incident logged (id: ${d.id}) — [${a.severity}] ${a.service}: ${a.symptoms}` };
+  }
+  if (name === "opsy_search_incidents") {
+    const p = new URLSearchParams();
+    if (a.service) p.set("service", String(a.service));
+    if (a.severity) p.set("severity", String(a.severity));
+    if (a.status) p.set("status", String(a.status));
+    if (a.since) p.set("since", String(a.since));
+    const incidents = (await apiFetch(`/api/opsy/incidents?${p.toString()}`, token)) as Array<{ service: string; severity: string; status: string; symptoms: string; remediation?: string; opened_at: string }>;
+    if (!incidents.length) return { text: "no incidents match that query" };
+    return { text: incidents.map((i) => `**[${i.severity}] ${i.service}** (${i.status}, ${i.opened_at.slice(0, 16)} UTC)\n${i.symptoms}${i.remediation ? `\n_remediation: ${i.remediation}_` : ""}`).join("\n\n") };
+  }
+  if (name === "opsy_update_memory") {
+    const d = (await apiFetch("/api/opsy/memory", token, { method: "POST", body: JSON.stringify({ key: a.key, value: a.value, updated_by: a.updated_by }) })) as { key: string };
+    return { text: `memory updated: ${d.key}` };
+  }
+  if (name === "opsy_log_decision") {
+    const d = (await apiFetch("/api/opsy/decisions", token, { method: "POST", body: JSON.stringify({ who: a.who, summary: a.summary, decisions: a.decisions ?? [], tags: a.tags ?? [], session_type: a.session_type ?? "cowork" }) })) as { id: string };
+    return { text: `decision logged (id: ${d.id})` };
+  }
+  return { text: `unknown tool: ${name}`, isError: true };
+}
+
 const AGENTS: Record<string, AgentSpec> = {
   mo: { serverName: "mo-memory", title: "Mo (CMO) memory", instructions: "Mo is winded.vertigo's chief marketing officer. Call cmo_briefing silently at session start to load persistent memory; log decisions as they're made.", tools: MO_TOOLS, call: callMo },
   pam: { serverName: "pam-memory", title: "PaM memory", instructions: "PaM is winded.vertigo's project + momentum manager. Call pam_briefing silently at session start; create/update commitments and log decisions as they happen.", tools: PAM_TOOLS, call: callPam },
   carl: { serverName: "carl-memory", title: "cARL memory", instructions: "cARL is winded.vertigo's research agent. Call carl_briefing at session start; search the library before researching, and add findings as they're synthesised.", tools: CARL_TOOLS, call: callCarl },
+  opsy: { serverName: "opsy-memory", title: "Opsy (ops) memory", instructions: "Opsy is winded.vertigo's operations + systems intelligence agent. Call opsy_briefing silently at session start; run health checks on demand, search incident history before diagnosing, and log incidents and decisions as they happen.", tools: OPSY_TOOLS, call: callOpsy },
 };
 AGENTS.cmo = AGENTS.mo; // alias
 
@@ -202,14 +250,15 @@ async function callAll(name: string, a: Record<string, unknown>, token: string):
   if (name.startsWith("cmo_")) return callMo(name, a, token);
   if (name.startsWith("pam_")) return callPam(name, a, token);
   if (name.startsWith("carl_")) return callCarl(name, a, token);
+  if (name.startsWith("opsy_")) return callOpsy(name, a, token);
   return { text: `unknown tool: ${name}`, isError: true };
 }
 AGENTS.all = {
   serverName: "wv-agents",
   title: "winded.vertigo agents",
   instructions:
-    "Mo, PaM, and cARL in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL). Call the *_briefing tools at session start to load shared memory.",
-  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS],
+    "Mo, PaM, cARL, and Opsy in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL), opsy_* = infrastructure ops (Opsy). Call the *_briefing tools at session start to load shared memory.",
+  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS, ...OPSY_TOOLS],
   call: callAll,
 };
 
