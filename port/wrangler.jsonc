@@ -29,7 +29,7 @@
   // ── Cron triggers ────────────────────────────────────────────────────────
   // Two triggers:
   //   "0 * * * *"   — hourly router (replaces 39 vercel.json crons via CRON_TABLE)
-  //   "*/5 * * * *" — sweep-stuck-proposals (every 5 min; can't use hourly router)
+  //   "*/5 * * * *" — 5-minute jobs: sweep-stuck-proposals + opsy-health-check-t1
   // The scheduled() handler in port/lib/scheduled.ts distinguishes by controller.cron.
   "triggers": {
     "crons": ["0 * * * *", "*/5 * * * *"]
