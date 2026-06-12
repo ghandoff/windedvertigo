@@ -388,6 +388,32 @@ export async function insertOpsyAutoFix(data: {
   return row;
 }
 
+export interface OpsyCronRun {
+  id: string;
+  path: string;
+  fired_at: string;
+  ok: boolean;
+  status_code: number | null;
+  error: string | null;
+  retried: boolean;
+  retry_ok: boolean | null;
+}
+
+/** Recent cron failures for the /ops cron grid (successes aren't recorded). */
+export async function getRecentCronFailures(days: number): Promise<OpsyCronRun[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const { data, error } = await supabase
+    .from("opsy_cron_runs")
+    .select("*")
+    .gte("fired_at", since.toISOString())
+    .order("fired_at", { ascending: false })
+    .limit(100);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 // ── auto-fixes + patterns (read paths for briefing; writes land in phase 2) ──
 
 export async function getRecentAutoFixes(days: number): Promise<OpsyAutoFix[]> {
