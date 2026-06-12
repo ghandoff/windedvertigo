@@ -1,0 +1,7 @@
+{
+  "opsy-memory": {
+    "type": "http",
+    "url": "https://port.windedvertigo.com/api/mcp/agents/opsy",
+    "headers": { "Authorization": "Bearer ${WV_AGENT_TOKEN}" }
+  }
+}
