@@ -172,19 +172,37 @@ export async function ensureChannel(
   const plain = name.replace(/^#/, "");
   let channelId: string | null = null;
 
-  const created = await slackApi({ method: "conversations.create", body: { name: plain } });
-  if (created?.ok) {
-    channelId = created.channel?.id ?? null;
-  } else if (created?.error === "name_taken") {
+  if (/^[CG][A-Z0-9]{8,}$/.test(plain)) {
+    // Already a channel ID (e.g. OPSY_ALERTS_CHANNEL=C…) — just try to join it.
+    channelId = plain;
+  } else {
+    const created = await slackApi({ method: "conversations.create", body: { name: plain } });
+    if (created?.ok) {
+      // creator is automatically a member — no join needed
+      const id = created.channel?.id ?? null;
+      if (id) {
+        for (const email of inviteEmails) {
+          const userId = await getSlackUserByEmail(email);
+          if (userId) await slackApi({ method: "conversations.invite", body: { channel: id, users: userId } });
+        }
+      }
+      return id;
+    }
+    // create failed (name_taken, missing_scope, …) — the channel may still
+    // exist (e.g. a human created it). Find it by name and fall through to
+    // the join attempt: channels:join is commonly granted even when
+    // channels:manage isn't.
     const list = await slackApi({
       method: "conversations.list",
       body: { types: "public_channel", limit: 1000, exclude_archived: true },
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     channelId = list?.channels?.find((c: any) => c.name === plain)?.id ?? null;
-    if (channelId) await slackApi({ method: "conversations.join", body: { channel: channelId } });
   }
   if (!channelId) return null;
+
+  const joined = await slackApi({ method: "conversations.join", body: { channel: channelId } });
+  if (!joined?.ok) return null;
 
   for (const email of inviteEmails) {
     const userId = await getSlackUserByEmail(email);
