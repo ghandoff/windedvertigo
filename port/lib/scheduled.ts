@@ -223,6 +223,32 @@ function shouldRun(entry: CronEntry, now: Date): boolean {
   return true;
 }
 
+/**
+ * Report a failed dispatch to Opsy's cron watchdog, which records it and
+ * auto-retries once (POST /api/opsy/cron-failure). Fire-and-forget; never
+ * reports its own failures (no recursion) and never throws into dispatch.
+ */
+function reportCronFailure(
+  path: string,
+  status: number | null,
+  error: string | null,
+  env: ScheduledEnv,
+): Promise<void> {
+  if (path.startsWith("/api/opsy/cron-failure")) return Promise.resolve();
+  return fetch(`${env.PORT_URL}/api/opsy/cron-failure`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.CRON_SECRET}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ path, status, error }),
+  })
+    .then(() => undefined)
+    .catch((err) => {
+      console.error(`[scheduled] cron-failure report for ${path} failed:`, err);
+    });
+}
+
 async function dispatch(
   entry: CronEntry,
   env: ScheduledEnv,
@@ -236,9 +262,11 @@ async function dispatch(
     }).then(async (res) => {
       if (!res.ok) {
         console.error(`[scheduled] ${entry.path} → ${res.status}`);
+        await reportCronFailure(entry.path, res.status, null, env);
       }
-    }).catch((err) => {
+    }).catch(async (err) => {
       console.error(`[scheduled] ${entry.path} fetch error:`, err);
+      await reportCronFailure(entry.path, null, err instanceof Error ? err.message : String(err), env);
     }),
   );
 }

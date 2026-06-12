@@ -276,6 +276,55 @@ export async function getHealthHistory(hours: number): Promise<
   return data ?? [];
 }
 
+// ── cron runs + auto-fixes ────────────────────────────────────────────────────
+
+/** Record a failed cron dispatch (successes are not recorded — see migration note). */
+export async function insertOpsyCronRun(data: {
+  path: string;
+  ok: boolean;
+  status_code?: number | null;
+  error?: string | null;
+  retried?: boolean;
+  retry_ok?: boolean | null;
+}): Promise<{ id: string }> {
+  const { data: row, error } = await supabase
+    .from("opsy_cron_runs")
+    .insert({
+      path: data.path,
+      ok: data.ok,
+      status_code: data.status_code ?? null,
+      error: data.error ?? null,
+      retried: data.retried ?? false,
+      retry_ok: data.retry_ok ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return row;
+}
+
+export async function insertOpsyAutoFix(data: {
+  incident_id?: string | null;
+  action: string;
+  result: "success" | "failure" | "partial";
+  details?: Record<string, unknown>;
+}): Promise<{ id: string }> {
+  const { data: row, error } = await supabase
+    .from("opsy_auto_fixes")
+    .insert({
+      incident_id: data.incident_id ?? null,
+      action: data.action,
+      result: data.result,
+      details: data.details ?? {},
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return row;
+}
+
 // ── auto-fixes + patterns (read paths for briefing; writes land in phase 2) ──
 
 export async function getRecentAutoFixes(days: number): Promise<OpsyAutoFix[]> {
