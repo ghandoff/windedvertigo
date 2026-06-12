@@ -19,6 +19,7 @@ import {
   insertOpsyIncident,
   resolveOpsyIncident,
 } from "@/lib/supabase/opsy";
+import { notifyIncidentOpened, notifyIncidentResolved } from "./alerts";
 import { servicesForScope, type CheckScope, type MonitoredService } from "./services";
 
 const PROBE_TIMEOUT_MS = 10_000;
@@ -101,21 +102,22 @@ export async function runHealthChecks(scope: CheckScope = "tier1"): Promise<Chec
 
     if (r.status === "green") {
       if (existing) {
-        await resolveOpsyIncident(
-          existing.id,
-          `recovered — health check returned green (${r.response_time_ms}ms) at ${new Date().toISOString()}`,
-        );
+        const resolution = `recovered — health check returned green (${r.response_time_ms}ms) at ${new Date().toISOString()}`;
+        await resolveOpsyIncident(existing.id, resolution);
         incidents_resolved.push(existing.id);
+        await notifyIncidentResolved(existing, resolution);
       }
       continue;
     }
 
     if (existing) continue; // already tracking this outage/slowdown
 
-    const { id } = await insertOpsyIncident({
+    const severity = r.status === "red" ? ("critical" as const) : ("warning" as const);
+    const symptoms = symptomsFor(service, r);
+    const { id, opened_at } = await insertOpsyIncident({
       service: r.service,
-      severity: r.status === "red" ? "critical" : "warning",
-      symptoms: symptomsFor(service, r),
+      severity,
+      symptoms,
       metadata: {
         auto_created: true,
         status_code: r.status_code,
@@ -124,6 +126,7 @@ export async function runHealthChecks(scope: CheckScope = "tier1"): Promise<Chec
       },
     });
     incidents_opened.push(id);
+    await notifyIncidentOpened({ id, service: r.service, severity, symptoms, opened_at });
   }
 
   return {
