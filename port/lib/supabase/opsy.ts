@@ -276,6 +276,69 @@ export async function getHealthHistory(hours: number): Promise<
   return data ?? [];
 }
 
+// ── email captures ────────────────────────────────────────────────────────────
+
+export interface OpsyEmailCapture {
+  id: string;
+  email_account: string;
+  /** holds the gmail MESSAGE id (more precise than thread id for dedupe) */
+  gmail_thread_id: string;
+  from_address: string;
+  subject: string;
+  service: string | null;
+  severity: "critical" | "warning" | "info" | null;
+  summary: string | null;
+  action_taken: string | null;
+  incident_id: string | null;
+  received_at: string;
+  processed_at: string;
+}
+
+/** Which of these gmail message ids have already been captured (dedupe). */
+export async function getCapturedMessageIds(messageIds: string[]): Promise<Set<string>> {
+  if (messageIds.length === 0) return new Set();
+  const { data, error } = await supabase
+    .from("opsy_email_captures")
+    .select("gmail_thread_id")
+    .in("gmail_thread_id", messageIds);
+
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => r.gmail_thread_id));
+}
+
+export async function insertOpsyEmailCapture(data: {
+  email_account: string;
+  gmail_message_id: string;
+  from_address: string;
+  subject: string;
+  service?: string | null;
+  severity?: "critical" | "warning" | "info" | null;
+  summary?: string | null;
+  action_taken?: string | null;
+  incident_id?: string | null;
+  received_at: string;
+}): Promise<{ id: string }> {
+  const { data: row, error } = await supabase
+    .from("opsy_email_captures")
+    .insert({
+      email_account: data.email_account,
+      gmail_thread_id: data.gmail_message_id,
+      from_address: data.from_address,
+      subject: data.subject,
+      service: data.service ?? null,
+      severity: data.severity ?? null,
+      summary: data.summary ?? null,
+      action_taken: data.action_taken ?? null,
+      incident_id: data.incident_id ?? null,
+      received_at: data.received_at,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return row;
+}
+
 // ── cron runs + auto-fixes ────────────────────────────────────────────────────
 
 /** Record a failed cron dispatch (successes are not recorded — see migration note). */

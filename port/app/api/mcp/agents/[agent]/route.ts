@@ -197,6 +197,7 @@ const OPSY_TOOLS: ToolDef[] = [
   { name: "opsy_search_incidents", description: "Search incident history. Filter by service, severity, status, or an ISO date (since). Call before diagnosing — recurring incidents carry their past remediations.", inputSchema: { type: "object", properties: { service: { ...STR, description: "Filter by service id" }, severity: { type: "string", enum: ["critical", "warning", "info"], description: "Filter by severity" }, status: { type: "string", enum: ["open", "investigating", "resolved", "monitoring"], description: "Filter by status" }, since: { ...STR, description: "ISO date — incidents opened after this (e.g. '2026-06-01')" } }, required: [] } },
   { name: "opsy_update_memory", description: "Update a key in Opsy's working state memory. Use when operational state changes — monitoring scope, known degradations, maintenance windows.", inputSchema: { type: "object", properties: { key: { ...STR, description: "Memory key (e.g. 'monitoring-status')" }, value: { ...STR, description: "New value" }, updated_by: { ...STR, description: "Who made the update (e.g. 'garrett')" } }, required: ["key", "value", "updated_by"] } },
   { name: "opsy_log_decision", description: "Log an operational decision from the current conversation — threshold changes, remediation policies, infrastructure choices.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Name of the person in the conversation" }, summary: { ...STR, description: "Summary of what was discussed" }, decisions: { ...STR_ARR, description: "Specific operational decisions made" }, tags: { ...STR_ARR, description: "Relevant tags e.g. ['monitoring', 'cloudflare', 'supabase']" }, session_type: { ...STR, description: "Session type, default 'cowork'" } }, required: ["who", "summary"] } },
+  { name: "opsy_scan_emails", description: "Scan the team inboxes for new infrastructure notification emails (supabase, cloudflare, vercel, github, google cloud, stripe). Classifies by service + severity, captures everything seen, and opens incidents for actionable alerts.", inputSchema: { type: "object", properties: {}, required: [] } },
 ];
 
 async function callOpsy(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
@@ -205,10 +206,11 @@ async function callOpsy(name: string, a: Record<string, unknown>, token: string)
     return { text: d.briefing };
   }
   if (name === "opsy_health_check") {
-    const d = (await apiFetch("/api/opsy/check", token, { method: "POST", body: JSON.stringify({ scope: a.scope ?? "tier1" }) })) as { checked: number; results?: Array<{ service: string; status: string; response_time_ms: number }>; incidents_opened?: string[]; incidents_resolved?: string[]; message?: string };
+    const d = (await apiFetch("/api/opsy/check", token, { method: "POST", body: JSON.stringify({ scope: a.scope ?? "tier1" }) })) as { checked: number; skipped?: number; results?: Array<{ service: string; status: string; response_time_ms: number | null; details?: { reason?: string } }>; incidents_opened?: string[]; incidents_resolved?: string[]; message?: string };
     if (d.message) return { text: d.message };
-    const rows = (d.results ?? []).map((r) => `- ${r.status === "green" ? "🟢" : r.status === "amber" ? "🟡" : "🔴"} ${r.service}: ${r.response_time_ms}ms`).join("\n");
-    return { text: `checked ${d.checked} services:\n${rows}\nincidents opened: ${d.incidents_opened?.length ?? 0}, resolved: ${d.incidents_resolved?.length ?? 0}` };
+    const icon: Record<string, string> = { green: "🟢", amber: "🟡", red: "🔴", skipped: "⏭️" };
+    const rows = (d.results ?? []).map((r) => `- ${icon[r.status] ?? "⚪"} ${r.service}: ${r.status === "skipped" ? (r.details?.reason ?? "skipped") : `${r.response_time_ms}ms`}`).join("\n");
+    return { text: `checked ${d.checked} services (${d.skipped ?? 0} skipped):\n${rows}\nincidents opened: ${d.incidents_opened?.length ?? 0}, resolved: ${d.incidents_resolved?.length ?? 0}` };
   }
   if (name === "opsy_log_incident") {
     const d = (await apiFetch("/api/opsy/incidents", token, { method: "POST", body: JSON.stringify({ service: a.service, severity: a.severity, symptoms: a.symptoms, cause: a.cause || undefined, remediation: a.remediation || undefined, auto_fixed: a.auto_fixed ?? false }) })) as { id: string };
@@ -231,6 +233,15 @@ async function callOpsy(name: string, a: Record<string, unknown>, token: string)
   if (name === "opsy_log_decision") {
     const d = (await apiFetch("/api/opsy/decisions", token, { method: "POST", body: JSON.stringify({ who: a.who, summary: a.summary, decisions: a.decisions ?? [], tags: a.tags ?? [], session_type: a.session_type ?? "cowork" }) })) as { id: string };
     return { text: `decision logged (id: ${d.id})` };
+  }
+  if (name === "opsy_scan_emails") {
+    const d = (await apiFetch("/api/opsy/email-scan", token, { method: "POST", body: "{}" })) as { accounts_scanned: string[]; accounts_unavailable: string[]; seen: number; captured: number; incidents_opened: string[]; errors: string[] };
+    const lines = [
+      `scanned ${d.accounts_scanned.join(", ") || "no accounts"} — ${d.seen} allowlisted emails seen, ${d.captured} newly captured, ${d.incidents_opened.length} incident(s) opened`,
+    ];
+    if (d.accounts_unavailable.length) lines.push(`unavailable: ${d.accounts_unavailable.join("; ")}`);
+    if (d.errors.length) lines.push(`errors: ${d.errors.slice(0, 3).join("; ")}`);
+    return { text: lines.join("\n") };
   }
   return { text: `unknown tool: ${name}`, isError: true };
 }
