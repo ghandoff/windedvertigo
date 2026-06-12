@@ -18,7 +18,6 @@
  */
 
 import {
-  getGmailAccessToken,
   getMessageWithBody,
   getServiceAccountAccessToken,
   listMessages,
@@ -62,7 +61,12 @@ async function resolveAccounts(): Promise<{ accounts: ScanAccount[]; unavailable
   const accounts: ScanAccount[] = [];
   const unavailable: string[] = [];
 
-  const saKey = process.env.GOOGLE_SA_RFP_SCANNER;
+  // Workspace account via SA domain-wide delegation. The wv-port worker
+  // carries GOOGLE_SERVICE_ACCOUNT_JSON (used by gcal/gdocs); .env.example's
+  // GOOGLE_SA_RFP_SCANNER takes precedence where present. If the SA's
+  // delegation grant lacks the gmail scope, the token exchange fails and the
+  // account is reported unavailable — presence-gated, never fatal.
+  const saKey = process.env.GOOGLE_SA_RFP_SCANNER ?? process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (saKey) {
     try {
       const token = await getServiceAccountAccessToken(saKey, WORKSPACE_SUBJECT);
@@ -71,12 +75,32 @@ async function resolveAccounts(): Promise<{ accounts: ScanAccount[]; unavailable
       unavailable.push(`${WORKSPACE_SUBJECT}: ${err instanceof Error ? err.message : "token error"}`);
     }
   } else {
-    unavailable.push(`${WORKSPACE_SUBJECT}: awaiting credential GOOGLE_SA_RFP_SCANNER`);
+    unavailable.push(
+      `${WORKSPACE_SUBJECT}: awaiting credential GOOGLE_SA_RFP_SCANNER or GOOGLE_SERVICE_ACCOUNT_JSON`,
+    );
   }
 
-  if (process.env.GMAIL_REFRESH_TOKEN) {
+  // Personal gmail via OAuth refresh token. The worker has GMAIL_REFRESH_TOKEN
+  // but not GMAIL_CLIENT_ID/SECRET — fall back to the GOOGLE_CLIENT_ID/SECRET
+  // pair (refresh tokens only redeem against the client that issued them, so
+  // a mismatch fails the exchange and lands in `unavailable`).
+  const clientId = process.env.GMAIL_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET;
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
+  if (clientId && clientSecret && refreshToken) {
     try {
-      const token = await getGmailAccessToken();
+      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          refresh_token: refreshToken,
+          grant_type: "refresh_token",
+        }),
+      });
+      if (!tokenRes.ok) throw new Error(`token refresh failed: HTTP ${tokenRes.status}`);
+      const { access_token: token } = (await tokenRes.json()) as { access_token: string };
       const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -86,7 +110,7 @@ async function resolveAccounts(): Promise<{ accounts: ScanAccount[]; unavailable
       unavailable.push(`personal gmail: ${err instanceof Error ? err.message : "token error"}`);
     }
   } else {
-    unavailable.push("personal gmail: awaiting credential GMAIL_REFRESH_TOKEN");
+    unavailable.push("personal gmail: awaiting credentials GMAIL_REFRESH_TOKEN + (GMAIL_ or GOOGLE_)CLIENT_ID/SECRET");
   }
 
   return { accounts, unavailable };
