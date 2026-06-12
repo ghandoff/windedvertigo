@@ -71,7 +71,9 @@ export const SERVICES: MonitoredService[] = [
     platform: "harbour",
     tier: 1,
     kind: "http",
-    url: "https://windedvertigo.com/harbour/creaseworks",
+    // /api/health is an edge route that returns immediately without DB calls,
+    // so we get worker availability without Neon latency spikes as false positives.
+    url: "https://windedvertigo.com/harbour/creaseworks/api/health",
     amberMs: 2000,
   },
 
