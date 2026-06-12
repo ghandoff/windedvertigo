@@ -91,8 +91,9 @@ export async function getRfpGmailAccessToken(): Promise<string> {
 /**
  * Obtain a short-lived access token by signing a JWT as a service account
  * and requesting impersonation of `subject` via domain-wide delegation.
+ * Exported for Opsy's infra-notification scanner (impersonates garrett@).
  */
-async function getServiceAccountAccessToken(saKeyJson: string, subject: string): Promise<string> {
+export async function getServiceAccountAccessToken(saKeyJson: string, subject: string): Promise<string> {
   const key = JSON.parse(saKeyJson) as { client_email: string; private_key: string };
   const now = Math.floor(Date.now() / 1000);
 
@@ -137,7 +138,7 @@ async function getServiceAccountAccessToken(saKeyJson: string, subject: string):
  * Search Gmail inbox for messages matching the query.
  * Returns up to maxResults message IDs.
  */
-async function listMessages(
+export async function listMessages(
   query: string,
   accessToken: string,
   maxResults = 50,

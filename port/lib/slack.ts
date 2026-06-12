@@ -158,6 +158,44 @@ export async function postToChannel(
 }
 
 /**
+ * Ensure a public channel exists and the bot is a member; invite the given
+ * users. Returns the channel ID, or null if the bot lacks the scopes
+ * (channels:manage / channels:join) — callers should fall back gracefully.
+ *
+ * Flow: conversations.create → on name_taken, find via conversations.list and
+ * conversations.join → conversations.invite for each resolvable email.
+ */
+export async function ensureChannel(
+  name: string,
+  inviteEmails: string[] = [],
+): Promise<string | null> {
+  const plain = name.replace(/^#/, "");
+  let channelId: string | null = null;
+
+  const created = await slackApi({ method: "conversations.create", body: { name: plain } });
+  if (created?.ok) {
+    channelId = created.channel?.id ?? null;
+  } else if (created?.error === "name_taken") {
+    const list = await slackApi({
+      method: "conversations.list",
+      body: { types: "public_channel", limit: 1000, exclude_archived: true },
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    channelId = list?.channels?.find((c: any) => c.name === plain)?.id ?? null;
+    if (channelId) await slackApi({ method: "conversations.join", body: { channel: channelId } });
+  }
+  if (!channelId) return null;
+
+  for (const email of inviteEmails) {
+    const userId = await getSlackUserByEmail(email);
+    if (userId) {
+      await slackApi({ method: "conversations.invite", body: { channel: channelId, users: userId } });
+    }
+  }
+  return channelId;
+}
+
+/**
  * Resolve an array of emails to an `<@U123> <@U456>` mention string. Emails
  * that can't be resolved are silently dropped (don't want to send a message
  * with a dangling plaintext email in it). Empty array → empty string.

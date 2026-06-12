@@ -48,6 +48,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   "carl-research": "claude-sonnet-4-6",
   // Haiku: parse a document's reference list into structured citations.
   "bibliography-import": "claude-haiku-4-5-20251001",
+  // Haiku: classify infrastructure notification emails (Opsy) — high volume,
+  // short outputs, cost-sensitive.
+  "opsy-email-triage": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -69,7 +72,8 @@ export type AiFeature =
   | "conference-triage"
   | "carl-study"
   | "carl-research"
-  | "bibliography-import";
+  | "bibliography-import"
+  | "opsy-email-triage";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -89,6 +93,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "carl-study": "cARL Scheduled Study",
   "carl-research": "cARL Deep Research",
   "bibliography-import": "Bibliography Import",
+  "opsy-email-triage": "Opsy Email Triage",
 };
 
 // ── token usage tracking ─────────────────────────────────

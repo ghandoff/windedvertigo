@@ -196,6 +196,10 @@ const CRON_TABLE: CronEntry[] = [
   // Mo/Pam-track insights to their dashboards, and self-replenishes its
   // curriculum. Cheap (Haiku + free search); cost tracked under "carl-study".
   { path: "/api/cron/carl-study", hours: [13] },
+
+  // Daily 06:00 UTC — Opsy tier-4 security & compliance (DNS email auth,
+  // supabase RLS audit). Tiers 1-3 + email scan run on the */5 trigger below.
+  { path: "/api/cron/opsy-health-check-t4", hours: [6] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
@@ -206,6 +210,15 @@ const FIVE_MINUTE_PATHS = [
   "/api/cron/sweep-stuck-proposals",
   "/api/cron/opsy-health-check-t1",
 ];
+
+// Sub-hourly Opsy jobs ride the same */5 trigger, slotted by the scheduled
+// minute (controller.scheduledTime, so a delayed invocation can't miss its
+// slot): :00/:15/:30/:45 → tier 2 + email scan; :00/:30 → tier 3.
+const FIFTEEN_MINUTE_PATHS = [
+  "/api/cron/opsy-health-check-t2",
+  "/api/cron/opsy-email-scan",
+];
+const THIRTY_MINUTE_PATHS = ["/api/cron/opsy-health-check-t3"];
 
 // ── Dispatch logic ────────────────────────────────────────────────────────────
 
@@ -223,6 +236,32 @@ function shouldRun(entry: CronEntry, now: Date): boolean {
   return true;
 }
 
+/**
+ * Report a failed dispatch to Opsy's cron watchdog, which records it and
+ * auto-retries once (POST /api/opsy/cron-failure). Fire-and-forget; never
+ * reports its own failures (no recursion) and never throws into dispatch.
+ */
+function reportCronFailure(
+  path: string,
+  status: number | null,
+  error: string | null,
+  env: ScheduledEnv,
+): Promise<void> {
+  if (path.startsWith("/api/opsy/cron-failure")) return Promise.resolve();
+  return fetch(`${env.PORT_URL}/api/opsy/cron-failure`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.CRON_SECRET}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ path, status, error }),
+  })
+    .then(() => undefined)
+    .catch((err) => {
+      console.error(`[scheduled] cron-failure report for ${path} failed:`, err);
+    });
+}
+
 async function dispatch(
   entry: CronEntry,
   env: ScheduledEnv,
@@ -236,9 +275,11 @@ async function dispatch(
     }).then(async (res) => {
       if (!res.ok) {
         console.error(`[scheduled] ${entry.path} → ${res.status}`);
+        await reportCronFailure(entry.path, res.status, null, env);
       }
-    }).catch((err) => {
+    }).catch(async (err) => {
       console.error(`[scheduled] ${entry.path} fetch error:`, err);
+      await reportCronFailure(entry.path, null, err instanceof Error ? err.message : String(err), env);
     }),
   );
 }
@@ -251,10 +292,22 @@ export async function scheduled(
   ctx: ExecutionContext,
 ): Promise<void> {
   // 5-minute jobs fire on their own */5 trigger — dispatch immediately and
-  // return. The hourly router does not run them.
+  // return. The hourly router does not run them. 15/30-minute jobs slot off
+  // the scheduled minute of the same trigger.
   if (controller.cron === "*/5 * * * *") {
+    const minute = new Date(controller.scheduledTime).getUTCMinutes();
     for (const path of FIVE_MINUTE_PATHS) {
       await dispatch({ path }, env, ctx);
+    }
+    if (minute % 15 === 0) {
+      for (const path of FIFTEEN_MINUTE_PATHS) {
+        await dispatch({ path }, env, ctx);
+      }
+    }
+    if (minute % 30 === 0) {
+      for (const path of THIRTY_MINUTE_PATHS) {
+        await dispatch({ path }, env, ctx);
+      }
     }
     return;
   }
