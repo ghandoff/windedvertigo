@@ -1,7 +1,7 @@
 # Mo / PaM / cARL — remote MCP setup (Claude Code + Cowork)
 
-The three agents share one memory ("the brain") behind the port API
-(`port.windedvertigo.com/api/{cmo,pam,carl}/*` + Supabase). Claude's apps reach it
+The four agents share one memory ("the brain") behind the port API
+(`port.windedvertigo.com/api/{cmo,pam,carl,opsy}/*` + Supabase). Claude's apps reach it
 through a hosted **remote MCP** endpoint — no local `node` server, so it works in both
 Claude Code **and** Cowork (Claude Desktop), on any machine, Windows included.
 
@@ -9,7 +9,7 @@ Hosted endpoints:
 
 | use | URL |
 |-----|-----|
-| **Cowork** — all three agents in one | `https://port.windedvertigo.com/api/mcp/agents/all` |
+| **Cowork** — all four agents in one | `https://port.windedvertigo.com/api/mcp/agents/all` |
 | Claude Code — Mo (CMO) | `https://port.windedvertigo.com/api/mcp/agents/mo` |
 | Claude Code — PaM | `https://port.windedvertigo.com/api/mcp/agents/pam` |
 | Claude Code — cARL | `https://port.windedvertigo.com/api/mcp/agents/carl` |
@@ -55,7 +55,7 @@ You add **one** connector and sign in. No token, no `WV_AGENT_TOKEN`, nothing to
    — leave the OAuth Client ID / Secret fields **blank**.
 3. Save, then click **Connect**. A browser window opens → sign in with your **winded.vertigo
    Google account** → click **approve** on the "connect to your agents" screen.
-4. Done. All three agents' tools (Mo `cmo_*`, PaM `pam_*`, cARL `carl_*` — 14 in total) appear
+4. Done. All four agents' tools (Mo `cmo_*`, PaM `pam_*`, cARL `carl_*`, Opsy `opsy_*`) appear
    in Cowork. Start a chat and say "talk to Mo".
 
 > The connection lasts ~30 days, then you just click Connect + sign in again. If you don't see
@@ -92,7 +92,7 @@ for the others.
 
 - Hosted endpoint: `port/app/api/mcp/agents/[agent]/route.ts` (JSON-RPC 2.0 MCP over HTTP;
   mirrors `port/app/api/mcp/v1/route.ts`). It's a thin shim that self-fetches the existing
-  `/api/{cmo,pam,carl}/*` API. To add/rename a tool, edit that one file.
+  `/api/{cmo,pam,carl,opsy}/*` API. To add/rename a tool, edit that one file.
 - Plugins point here via `docs/plugins/*/.mcp.json` (`type: http`, `url`, `Authorization` header).
 - The old local `docs/plugins/*/mcp-servers/*/index.js` servers are kept as reference/fallback.
 - **OAuth (Cowork sign-in):** `port/app/api/oauth/*` (discovery metadata, dynamic client
