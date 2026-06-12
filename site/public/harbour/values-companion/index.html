@@ -763,6 +763,49 @@ document.querySelectorAll('.company-tab').forEach(btn => {
 renderCompany('ethos');
 
 /* ══════════════════════════════════════════
+   PPCS COMPANION GATE — limited-scope taster
+   the free sampler is a taste: the first 2 organisations and the first 5
+   values. the companion tier (free for the PRME community via an access code,
+   or paid) unlocks the full 8-organisation, 20-value game. asks the harbour
+   hub's shared tier endpoint (same origin → the .windedvertigo.com session
+   cookie rides along). fails OPEN, and is a no-op until HARBOUR_GATE_ENFORCED
+   flips on, so today this changes nothing for anyone.
+══════════════════════════════════════════ */
+(async () => {
+  const SAMPLE_COMPANIES = 2;
+  const SAMPLE_VALUES = 5;
+  const gate = await fetch('/harbour/api/tier?app=values-companion', { credentials: 'include' })
+    .then(r => (r.ok ? r.json() : { enforced: false }))
+    .catch(() => ({ enforced: false }));
+  if (!(gate.enforced && gate.tier === 'sampler')) return;
+
+  document.body.dataset.tier = 'sampler';
+  document.querySelectorAll('.company-tab').forEach((tab, i) => {
+    if (i >= SAMPLE_COMPANIES) tab.hidden = true;
+  });
+  document.querySelectorAll('.value-card').forEach(card => {
+    if (Number(card.dataset.idx) >= SAMPLE_VALUES) card.hidden = true;
+  });
+
+  const grid = document.getElementById('values-grid');
+  if (grid) {
+    const banner = document.createElement('div');
+    banner.className = 'sampler-banner';
+    banner.setAttribute('role', 'note');
+    banner.style.cssText = 'grid-column: 1 / -1; padding: 12px 14px; margin-bottom: 4px; border: 1px solid rgba(203,120,88,0.4); border-radius: 10px; background: rgba(203,120,88,0.08); font-size: 13px; line-height: 1.5; color: var(--fg);';
+    // build with safe DOM nodes (no innerHTML) — the copy is static, but this
+    // keeps the gate XSS-clean by construction.
+    banner.appendChild(document.createTextNode('you’re exploring a taste — 2 organisations and 5 values. unlock the full game (8 organisations, 20 values), free for the PRME community, with your access code → '));
+    const link = document.createElement('a');
+    link.href = '/harbour/redeem';
+    link.style.cssText = 'color: var(--accent); font-weight: 600;';
+    link.textContent = 'windedvertigo.com/harbour/redeem';
+    banner.appendChild(link);
+    grid.prepend(banner);
+  }
+})();
+
+/* ══════════════════════════════════════════
    CREDOS WIDGET
 ══════════════════════════════════════════ */
 function updateCredosWidget() {

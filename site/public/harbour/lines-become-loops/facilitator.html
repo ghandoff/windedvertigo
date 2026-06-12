@@ -222,6 +222,20 @@ document.getElementById('btn-create').addEventListener('click', async () => {
     return;
   }
 
+  // ── PPCS companion gate ──
+  // hosting a class session is a companion-tier feature; solo play, joining by
+  // code, and rejoining stay free. ask the harbour hub's shared tier endpoint
+  // (same origin → the .windedvertigo.com session cookie rides along). fails
+  // OPEN, and is a no-op until HARBOUR_GATE_ENFORCED flips on, so today this
+  // changes nothing for anyone.
+  const gate = await fetch('/harbour/api/tier?app=lines-become-loops', { credentials: 'include' })
+    .then(r => (r.ok ? r.json() : { enforced: false }))
+    .catch(() => ({ enforced: false }));
+  if (gate.enforced && gate.tier === 'sampler') {
+    err.textContent = 'hosting a session is part of the companion tier — free for the PRME community. redeem your access code at windedvertigo.com/harbour/redeem.';
+    return;
+  }
+
   const btn = document.getElementById('btn-create');
   btn.disabled = true;
   try {
