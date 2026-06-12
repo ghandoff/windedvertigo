@@ -198,9 +198,14 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/carl-study", hours: [13] },
 ];
 
-// sweep-stuck-proposals runs every 5 minutes — handled by the */5 trigger,
-// NOT via CRON_TABLE (hourly router would under-fire it to once per hour).
-const SWEEP_PATH = "/api/cron/sweep-stuck-proposals";
+// Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
+// (the hourly router would under-fire them to once per hour).
+//   sweep-stuck-proposals  — proposal pipeline watchdog
+//   opsy-health-check-t1   — Opsy tier-1 platform probes (posture.md tier 1)
+const FIVE_MINUTE_PATHS = [
+  "/api/cron/sweep-stuck-proposals",
+  "/api/cron/opsy-health-check-t1",
+];
 
 // ── Dispatch logic ────────────────────────────────────────────────────────────
 
@@ -245,10 +250,12 @@ export async function scheduled(
   env: ScheduledEnv,
   ctx: ExecutionContext,
 ): Promise<void> {
-  // sweep-stuck-proposals fires on its own */5 trigger — dispatch immediately
-  // and return. The hourly router does not run sweep-stuck-proposals.
+  // 5-minute jobs fire on their own */5 trigger — dispatch immediately and
+  // return. The hourly router does not run them.
   if (controller.cron === "*/5 * * * *") {
-    await dispatch({ path: SWEEP_PATH }, env, ctx);
+    for (const path of FIVE_MINUTE_PATHS) {
+      await dispatch({ path }, env, ctx);
+    }
     return;
   }
 
