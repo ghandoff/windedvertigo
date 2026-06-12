@@ -26,6 +26,7 @@ import {
 } from "@/lib/supabase/opsy";
 import { notifyIncidentOpened, notifyIncidentResolved } from "./alerts";
 import { CHECKERS } from "./checks";
+import { recurrenceHint } from "./patterns";
 import { servicesForScope, type CheckScope, type MonitoredService } from "./services";
 
 const PROBE_TIMEOUT_MS = 10_000;
@@ -170,7 +171,8 @@ export async function runHealthChecks(scope: CheckScope = "tier1"): Promise<Chec
       },
     });
     incidents_opened.push(id);
-    await notifyIncidentOpened({ id, service: r.service, severity, symptoms, opened_at });
+    const pattern = await recurrenceHint(r.service);
+    await notifyIncidentOpened({ id, service: r.service, severity, symptoms, opened_at, pattern });
   }
 
   return {

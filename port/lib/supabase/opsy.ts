@@ -388,6 +388,32 @@ export async function insertOpsyAutoFix(data: {
   return row;
 }
 
+export interface OpsyCronRun {
+  id: string;
+  path: string;
+  fired_at: string;
+  ok: boolean;
+  status_code: number | null;
+  error: string | null;
+  retried: boolean;
+  retry_ok: boolean | null;
+}
+
+/** Recent cron failures for the /ops cron grid (successes aren't recorded). */
+export async function getRecentCronFailures(days: number): Promise<OpsyCronRun[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+  const { data, error } = await supabase
+    .from("opsy_cron_runs")
+    .select("*")
+    .gte("fired_at", since.toISOString())
+    .order("fired_at", { ascending: false })
+    .limit(100);
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 // ── auto-fixes + patterns (read paths for briefing; writes land in phase 2) ──
 
 export async function getRecentAutoFixes(days: number): Promise<OpsyAutoFix[]> {
@@ -402,6 +428,50 @@ export async function getRecentAutoFixes(days: number): Promise<OpsyAutoFix[]> {
 
   if (error) throw error;
   return data ?? [];
+}
+
+/**
+ * Upsert a pattern keyed by (pattern_type, first service) — the table has no
+ * natural unique constraint, so match-then-write keeps one row per recurrence.
+ */
+export async function upsertOpsyPattern(data: {
+  pattern_type: string;
+  description: string;
+  services: string[];
+  occurrence_count: number;
+  last_seen: string;
+  recommendation?: string | null;
+}): Promise<void> {
+  const { data: existing, error: findErr } = await supabase
+    .from("opsy_patterns")
+    .select("id")
+    .eq("pattern_type", data.pattern_type)
+    .contains("services", data.services)
+    .limit(1);
+  if (findErr) throw findErr;
+
+  if (existing?.length) {
+    const { error } = await supabase
+      .from("opsy_patterns")
+      .update({
+        description: data.description,
+        occurrence_count: data.occurrence_count,
+        last_seen: data.last_seen,
+        recommendation: data.recommendation ?? null,
+      })
+      .eq("id", existing[0].id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("opsy_patterns").insert({
+      pattern_type: data.pattern_type,
+      description: data.description,
+      services: data.services,
+      occurrence_count: data.occurrence_count,
+      last_seen: data.last_seen,
+      recommendation: data.recommendation ?? null,
+    });
+    if (error) throw error;
+  }
 }
 
 export async function getOpsyPatterns(): Promise<OpsyPattern[]> {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# rebuild all three agent .plugin files.
+# rebuild all four agent .plugin files.
 # run this after editing any plugin's source (index.js, SKILL.md, plugin.json…),
 # then commit the updated dist/*.plugin files.
 #
@@ -8,14 +8,16 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-for a in mo-cmo pam-pm carl-research; do
+AGENTS=(mo-cmo pam-pm carl-research opsy-ops)
+
+for a in "${AGENTS[@]}"; do
   server_dir="$a/mcp-servers/$(ls "$a/mcp-servers")"
   echo "installing deps for $a ($server_dir)…"
   npm install --prefix "$server_dir" --silent
 done
 
 mkdir -p dist && rm -f dist/*.plugin
-for a in mo-cmo pam-pm carl-research; do
+for a in "${AGENTS[@]}"; do
   ( cd "$a" && zip -rq "../dist/$a.plugin" . -x "*.DS_Store" "*/.in_use/*" )
   echo "built dist/$a.plugin"
 done

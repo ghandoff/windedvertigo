@@ -51,6 +51,8 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // Haiku: classify infrastructure notification emails (Opsy) — high volume,
   // short outputs, cost-sensitive.
   "opsy-email-triage": "claude-haiku-4-5-20251001",
+  // Haiku: Opsy's weekly ops digest — one short summary per week.
+  "opsy-digest": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -73,7 +75,8 @@ export type AiFeature =
   | "carl-study"
   | "carl-research"
   | "bibliography-import"
-  | "opsy-email-triage";
+  | "opsy-email-triage"
+  | "opsy-digest";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -94,6 +97,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "carl-research": "cARL Deep Research",
   "bibliography-import": "Bibliography Import",
   "opsy-email-triage": "Opsy Email Triage",
+  "opsy-digest": "Opsy Weekly Digest",
 };
 
 // ── token usage tracking ─────────────────────────────────

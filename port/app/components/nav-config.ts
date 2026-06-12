@@ -6,6 +6,7 @@
  */
 
 import {
+  Activity,
   Users,
   FolderKanban,
   Megaphone,
@@ -44,13 +45,14 @@ export interface NavSection {
 
 export const NAV_SECTIONS: NavSection[] = [
   {
-    // the three AI agents (Mo · PaM · cARL)
+    // the four AI agents (Mo · PaM · cARL · Opsy)
     title: "agents",
     defaultOpen: true,
     items: [
       { label: "strategy", href: "/strategy", icon: LineChart },
       { label: "pam", href: "/pam", icon: ListChecks },
       { label: "carl", href: "/carl", icon: BookOpen },
+      { label: "ops", href: "/ops", icon: Activity },
     ],
   },
   {

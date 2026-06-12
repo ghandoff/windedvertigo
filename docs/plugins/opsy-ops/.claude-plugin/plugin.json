@@ -1,0 +1,8 @@
+{
+  "name": "opsy-ops",
+  "version": "1.0.0",
+  "description": "Opsy — winded.vertigo's operations + systems intelligence agent. live health checks, incident history, and persistent ops memory.",
+  "author": {
+    "name": "winded.vertigo"
+  }
+}
