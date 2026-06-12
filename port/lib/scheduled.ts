@@ -200,6 +200,10 @@ const CRON_TABLE: CronEntry[] = [
   // Daily 06:00 UTC — Opsy tier-4 security & compliance (DNS email auth,
   // supabase RLS audit). Tiers 1-3 + email scan run on the */5 trigger below.
   { path: "/api/cron/opsy-health-check-t4", hours: [6] },
+
+  // Monday 07:00 UTC — Opsy weekly ops digest + pattern-detection learning
+  // pass. Posts to #ops-alerts.
+  { path: "/api/cron/opsy-digest", hours: [7], weekdays: [1] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
