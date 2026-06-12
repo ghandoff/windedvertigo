@@ -81,36 +81,49 @@ async function resolveAccounts(): Promise<{ accounts: ScanAccount[]; unavailable
   }
 
   // Personal gmail via OAuth refresh token. The worker has GMAIL_REFRESH_TOKEN
-  // but not GMAIL_CLIENT_ID/SECRET — fall back to the GOOGLE_CLIENT_ID/SECRET
-  // pair (refresh tokens only redeem against the client that issued them, so
-  // a mismatch fails the exchange and lands in `unavailable`).
-  const clientId = process.env.GMAIL_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GMAIL_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET;
+  // but not GMAIL_CLIENT_ID/SECRET — refresh tokens only redeem against the
+  // client that issued them, so try each candidate client pair on the worker
+  // until one exchanges (a mismatch is a 4xx, harmless).
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-  if (clientId && clientSecret && refreshToken) {
-    try {
-      const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: clientId,
-          client_secret: clientSecret,
-          refresh_token: refreshToken,
-          grant_type: "refresh_token",
-        }),
-      });
-      if (!tokenRes.ok) throw new Error(`token refresh failed: HTTP ${tokenRes.status}`);
-      const { access_token: token } = (await tokenRes.json()) as { access_token: string };
-      const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const profile = res.ok ? ((await res.json()) as { emailAddress?: string }) : {};
-      accounts.push({ userId: "me", address: profile.emailAddress ?? "personal-gmail", token });
-    } catch (err) {
-      unavailable.push(`personal gmail: ${err instanceof Error ? err.message : "token error"}`);
+  const clientCandidates: Array<[string, string | undefined, string | undefined]> = [
+    ["GMAIL_CLIENT_*", process.env.GMAIL_CLIENT_ID, process.env.GMAIL_CLIENT_SECRET],
+    ["GOOGLE_CLIENT_*", process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET],
+    ["GOOGLE_CALENDAR_CLIENT_*", process.env.GOOGLE_CALENDAR_CLIENT_ID, process.env.GOOGLE_CALENDAR_CLIENT_SECRET],
+  ];
+  if (refreshToken) {
+    const failures: string[] = [];
+    let resolved = false;
+    for (const [label, clientId, clientSecret] of clientCandidates) {
+      if (!clientId || !clientSecret) continue;
+      try {
+        const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            refresh_token: refreshToken,
+            grant_type: "refresh_token",
+          }),
+        });
+        if (!tokenRes.ok) throw new Error(`HTTP ${tokenRes.status}`);
+        const { access_token: token } = (await tokenRes.json()) as { access_token: string };
+        const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const profile = res.ok ? ((await res.json()) as { emailAddress?: string }) : {};
+        accounts.push({ userId: "me", address: profile.emailAddress ?? "personal-gmail", token });
+        resolved = true;
+        break;
+      } catch (err) {
+        failures.push(`${label}: ${err instanceof Error ? err.message : "token error"}`);
+      }
+    }
+    if (!resolved) {
+      unavailable.push(`personal gmail: no client pair redeems the refresh token (${failures.join("; ") || "no client pairs configured"})`);
     }
   } else {
-    unavailable.push("personal gmail: awaiting credentials GMAIL_REFRESH_TOKEN + (GMAIL_ or GOOGLE_)CLIENT_ID/SECRET");
+    unavailable.push("personal gmail: awaiting credential GMAIL_REFRESH_TOKEN");
   }
 
   return { accounts, unavailable };
