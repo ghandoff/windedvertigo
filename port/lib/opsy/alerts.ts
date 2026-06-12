@@ -35,6 +35,8 @@ export interface AlertableIncident {
   cause?: string | null;
   remediation?: string | null;
   opened_at?: string;
+  /** recurrence context from the learning layer ("this is incident #4 …") */
+  pattern?: string | null;
 }
 
 function utcStamp(iso?: string): string {
@@ -75,6 +77,7 @@ export async function notifyIncidentOpened(incident: AlertableIncident): Promise
     `*symptoms:* ${incident.symptoms}`,
   ];
   if (incident.cause) lines.push(`*likely cause:* ${incident.cause}`);
+  if (incident.pattern) lines.push(`*pattern:* ${incident.pattern}`);
   lines.push("", "_I'll update when it's resolved._");
   const text = lines.join("\n");
 

@@ -404,6 +404,50 @@ export async function getRecentAutoFixes(days: number): Promise<OpsyAutoFix[]> {
   return data ?? [];
 }
 
+/**
+ * Upsert a pattern keyed by (pattern_type, first service) — the table has no
+ * natural unique constraint, so match-then-write keeps one row per recurrence.
+ */
+export async function upsertOpsyPattern(data: {
+  pattern_type: string;
+  description: string;
+  services: string[];
+  occurrence_count: number;
+  last_seen: string;
+  recommendation?: string | null;
+}): Promise<void> {
+  const { data: existing, error: findErr } = await supabase
+    .from("opsy_patterns")
+    .select("id")
+    .eq("pattern_type", data.pattern_type)
+    .contains("services", data.services)
+    .limit(1);
+  if (findErr) throw findErr;
+
+  if (existing?.length) {
+    const { error } = await supabase
+      .from("opsy_patterns")
+      .update({
+        description: data.description,
+        occurrence_count: data.occurrence_count,
+        last_seen: data.last_seen,
+        recommendation: data.recommendation ?? null,
+      })
+      .eq("id", existing[0].id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("opsy_patterns").insert({
+      pattern_type: data.pattern_type,
+      description: data.description,
+      services: data.services,
+      occurrence_count: data.occurrence_count,
+      last_seen: data.last_seen,
+      recommendation: data.recommendation ?? null,
+    });
+    if (error) throw error;
+  }
+}
+
 export async function getOpsyPatterns(): Promise<OpsyPattern[]> {
   const { data, error } = await supabase
     .from("opsy_patterns")
