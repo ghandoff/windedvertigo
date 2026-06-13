@@ -211,46 +211,90 @@ export default async function FinancesPage() {
 
           {/* payroll */}
           <div className="rounded-lg border border-border bg-card">
-            <div className="border-b border-border px-4 py-3">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
               <h2 className="text-sm font-medium">payroll</h2>
-            </div>
-            <div className="px-4 py-3 space-y-2 text-sm">
-              {!payroll ? (
-                <p className="text-muted-foreground">no snapshot — run fin_briefing</p>
-              ) : (
-                (() => {
-                  const pd = payroll.data as Record<string, unknown>;
-                  return (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">last check date</span>
-                        <span>{String(pd?.check_date ?? "—")}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">pay period</span>
-                        <span className="text-xs">{pd?.pay_period_start && pd?.pay_period_end ? `${String(pd.pay_period_start).slice(5)} – ${String(pd.pay_period_end).slice(5)}` : "—"}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">gross pay</span>
-                        <span className="tabular-nums">{fmtUsd(safeNum(pd?.gross_pay_cents))}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">net pay</span>
-                        <span className="tabular-nums">{fmtUsd(safeNum(pd?.net_pay_cents))}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">company debit</span>
-                        <span className="tabular-nums font-medium">{fmtUsd(safeNum(pd?.company_debit_cents))}</span>
-                      </div>
-                      <div className="flex justify-between pt-1 border-t border-border mt-1">
-                        <span className="text-muted-foreground">next scheduled</span>
-                        <span>{String(pd?.next_pay_date ?? "—")}</span>
-                      </div>
-                    </>
-                  );
-                })()
+              {payroll && (
+                <span className="text-[11px] text-muted-foreground">
+                  {String((payroll.data as Record<string, unknown>)?.pay_period_start ?? "").slice(5)} – {String((payroll.data as Record<string, unknown>)?.pay_period_end ?? "").slice(5)} · next {String((payroll.data as Record<string, unknown>)?.next_pay_date ?? "—")}
+                </span>
               )}
             </div>
+            {!payroll ? (
+              <p className="px-4 py-4 text-sm text-muted-foreground">no snapshot — run fin_briefing</p>
+            ) : (
+              (() => {
+                const pd = payroll.data as Record<string, unknown>;
+                type EmpRow = { name: string; role: string; type: string; excluded_this_period?: boolean; excluded_reason?: string; gusto_rate?: string; mtd_gross_cents?: number; mtd_net_cents?: number; mtd_hours?: number; ytd_gross_cents?: number; ytd_net_cents?: number; ytd_hours?: number };
+                type ContractorRow = { name: string; org?: string; invoice_channel?: string; note?: string };
+                const employees = (pd?.employees as EmpRow[] | undefined) ?? [];
+                const contractors = (pd?.contractors as ContractorRow[] | undefined) ?? [];
+                return (
+                  <>
+                    {/* gusto W-2 employees */}
+                    <div className="divide-y divide-border">
+                      {/* header row */}
+                      <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 px-4 py-1.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        <span>name</span><span className="text-right">this month</span><span className="text-right">ytd</span>
+                      </div>
+                      {employees.map((emp, i) => (
+                        <div key={i} className="px-4 py-2">
+                          <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 items-center">
+                            <div>
+                              <p className="text-sm font-medium">{emp.name}</p>
+                              <p className="text-[11px] text-muted-foreground">{emp.role} · {emp.gusto_rate ?? emp.type}</p>
+                            </div>
+                            <div className="text-right">
+                              {emp.excluded_this_period ? (
+                                <span className="text-[11px] text-muted-foreground italic">excluded</span>
+                              ) : (
+                                <>
+                                  <p className="text-sm tabular-nums">{fmtUsd(emp.mtd_gross_cents ?? null)}</p>
+                                  {emp.mtd_hours != null && (
+                                    <p className="text-[11px] text-muted-foreground">{emp.mtd_hours}h</p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm tabular-nums font-medium">{fmtUsd(emp.ytd_gross_cents ?? null)}</p>
+                              {emp.ytd_hours != null && (
+                                <p className="text-[11px] text-muted-foreground">{emp.ytd_hours}h</p>
+                              )}
+                            </div>
+                          </div>
+                          {emp.excluded_this_period && emp.excluded_reason && (
+                            <p className="mt-0.5 text-[10px] text-muted-foreground">{emp.excluded_reason}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {/* company totals row */}
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 px-4 py-2 border-t border-border bg-muted/30 text-xs">
+                      <span className="font-medium text-muted-foreground">gusto total debit</span>
+                      <span className="tabular-nums font-semibold text-right">{fmtUsd(safeNum(pd?.company_debit_cents))}</span>
+                      <span className="tabular-nums font-semibold text-right">{fmtUsd(safeNum(pd?.ytd_company_debit_cents))}</span>
+                    </div>
+                    {/* BOCS contractors */}
+                    {contractors.length > 0 && (
+                      <>
+                        <div className="px-4 py-1.5 border-t border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                          contractors (bocs)
+                        </div>
+                        {contractors.map((c, i) => (
+                          <div key={i} className="px-4 py-2 border-t border-border flex items-center justify-between text-sm">
+                            <div>
+                              <p className="font-medium">{c.name}</p>
+                              <p className="text-[11px] text-muted-foreground">{c.org ?? "contractor"} · invoices via {c.invoice_channel ?? "admin@"}</p>
+                            </div>
+                            <span className="text-[11px] text-muted-foreground italic">manual tracking</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </>
+                );
+              })()
+            )}
           </div>
         </div>
 

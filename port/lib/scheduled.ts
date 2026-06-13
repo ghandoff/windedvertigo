@@ -84,6 +84,7 @@ const CRON_TABLE: CronEntry[] = [
   // ── Inngest cron migrations ─────────────────────────────────────────────────
   { path: "/api/cron/submission-followup", hours: [8] },
   { path: "/api/cron/bd-asset-health",     hours: [9], weekdays: [1] },
+  { path: "/api/cron/fin-email-scan",      hours: [7] },
 
   // ── Weekday-only ────────────────────────────────────────────────────────────
   { path: "/api/cron/meeting-briefings",   hours: [11], originalMinute: 30, weekdays: [1,2,3,4,5] },
