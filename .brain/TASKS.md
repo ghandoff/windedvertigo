@@ -1,5 +1,17 @@
 # Tasks
 
+## Nordic — Budget C Preview (2026-06-13) — feat/budget-c-market-explorer-preview
+
+- [x] **Budget C Marketing Intelligence Interface** (`/research/pcs/explore`) — super-user-gated, three lenses (by benefit category, by ingredient, by product). Results table: Claim · Ingredient/Dose · Benefit Category · Evidence (# studies) · Substantiation Status · PCS Reference.
+- [x] **Substantiation Status** — transparent Supported/Thin/Unsupported derived from evidence count + SQR-RCT normalized scores (0–1). Thresholds in `SUBSTANTIATION_THRESHOLDS` config constant. Hover badge shows inputs.
+- [x] **Substantiation Dossier export** — DOCX (uses existing `docx` library). Human sign-off field: omit → DRAFT watermark on every page. Provide name → final export attributed to named reviewer.
+- [x] **Capabilities** — `pcs.market-explorer:view` + `pcs.dossier:export` added to `CAPABILITIES` + `SUPER_USER_ONLY_CAPABILITIES`. Live Notion re-verify on every API call (same gate as `pcs.revisions:revert`).
+- [x] **Sidebar** — "Marketing Intelligence ✦" group added to super-user sidebar layout only. All other roles see nothing.
+- [x] **verify:market-explorer** — 31 tests: capability registration, role gating (all 4 non-super roles blocked), threshold shape, normalizeSqrScore correctness, computeSubstantiationStatus all three outcomes.
+- [ ] **Pending Garrett review**: push feature branch to GitHub once reviewed. Branch: `feat/budget-c-market-explorer-preview`. **Do NOT push to main** — push auto-deploys to `nordic.windedvertigo.com`.
+- [ ] **Optional**: add Sharon to `PREVIEW_ALLOW_LIST` (single constant in `pcs-explorer.js`) when ready to let her demo herself vs. Garrett driving the demo.
+- [ ] **Budget C payment** → widen role access beyond super-user.
+
 ## Whirlpool actions — 2026-05-20
 
 From the may 20 whirlpool ([notion AI meeting](https://www.notion.so/366e4ee74ba48035836fca89b21386d6) · [agenda](https://www.notion.so/366e4ee74ba481f79453eb7516cd3872)). T-8 days to the may 28 harbour prime+ launch. Morning debriefed the Amna intro meeting, then a harbour crawl + co.rubric companion demo.

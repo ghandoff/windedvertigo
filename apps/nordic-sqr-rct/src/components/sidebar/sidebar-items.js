@@ -263,6 +263,18 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'schema',    label: 'Schema',     href: '/admin/schema' },
         ],
       },
+      // Budget C Preview — visible only to super-users.
+      // Gate is enforced server-side via pcs.market-explorer:view; this group
+      // is purely a UX convenience. Remove once Budget C payment clears and
+      // the feature graduates to a wider role.
+      {
+        key: 'budget-c-preview',
+        label: 'Marketing Intelligence ✦',
+        defaultOpen: true,
+        items: [
+          { key: 'explore', label: 'Explore Claims', href: '/research/pcs/explore' },
+        ],
+      },
     ],
   },
 });

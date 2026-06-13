@@ -128,6 +128,13 @@ export const CAPABILITIES = Object.freeze({
   'aics.documents:create': 'aics.documents:create',
   'aics.claims:read': 'aics.claims:read',
   'aics.claims:edit': 'aics.claims:edit',
+
+  // Budget C Preview — Marketing Intelligence Interface.
+  // Super-user-only until Budget C (Addendum B) payment clears.
+  // Gate with SUPER_USER_ONLY_CAPABILITIES so live Notion re-verification
+  // is required on every API call — a stale JWT cannot unlock the demo.
+  'pcs.market-explorer:view': 'pcs.market-explorer:view',
+  'pcs.dossier:export': 'pcs.dossier:export',
 });
 
 // ─── Capability bundles (private; composed into role map below) ──────────
@@ -317,6 +324,9 @@ export const SUPER_USER_ONLY_CAPABILITIES = Object.freeze(new Set([
   // Locking to super-user + live Notion re-verify prevents a stolen
   // admin JWT from undoing anybody's work.
   'pcs.revisions:revert',
+  // Budget C Preview — stays super-user-only until payment clears.
+  'pcs.market-explorer:view',
+  'pcs.dossier:export',
 ]));
 
 // ─── Public helpers ──────────────────────────────────────────────────────
