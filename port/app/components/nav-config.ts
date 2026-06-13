@@ -55,7 +55,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "pam", href: "/pam", icon: ListChecks },
       { label: "carl", href: "/carl", icon: BookOpen },
       { label: "ops", href: "/ops", icon: Activity },
-      { label: "finances", href: "/finances", icon: DollarSign, ownerOnly: true },
+      { label: "finn", href: "/finn", icon: DollarSign, ownerOnly: true },
     ],
   },
   {

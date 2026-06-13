@@ -90,7 +90,7 @@ export default async function FinancesPage() {
   return (
     <>
       <PageHeader
-        title="finances"
+        title="finn"
         description={`Fin · CFO agent · winded.vertigo LLC + garrett personal`}
       >
         <DollarSign className="h-4 w-4 text-muted-foreground" />
