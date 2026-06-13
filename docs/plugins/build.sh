@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# rebuild all four agent .plugin files.
+# rebuild all five agent .plugin files.
 # run this after editing any plugin's source (index.js, SKILL.md, plugin.json…),
 # then commit the updated dist/*.plugin files.
 #
@@ -8,7 +8,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-AGENTS=(mo-cmo pam-pm carl-research opsy-ops)
+AGENTS=(mo-cmo pam-pm carl-research opsy-ops fin-cfo)
 
 for a in "${AGENTS[@]}"; do
   server_dir="$a/mcp-servers/$(ls "$a/mcp-servers")"

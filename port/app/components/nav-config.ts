@@ -24,6 +24,7 @@ import {
   BookOpen,
   Library,
   FileSearch,
+  DollarSign,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -33,6 +34,7 @@ export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  ownerOnly?: boolean;
 }
 
 export interface NavSection {
@@ -45,7 +47,7 @@ export interface NavSection {
 
 export const NAV_SECTIONS: NavSection[] = [
   {
-    // the four AI agents (Mo · PaM · cARL · Opsy)
+    // the five AI agents (Mo · PaM · cARL · Opsy · Fin)
     title: "agents",
     defaultOpen: true,
     items: [
@@ -53,6 +55,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "pam", href: "/pam", icon: ListChecks },
       { label: "carl", href: "/carl", icon: BookOpen },
       { label: "ops", href: "/ops", icon: Activity },
+      { label: "finances", href: "/finances", icon: DollarSign, ownerOnly: true },
     ],
   },
   {
