@@ -1,5 +1,59 @@
 # Tasks
 
+## Nordic — Governance Persistence + Multi-region (2026-06-13) — feat/governance-persistence-and-multiregion
+
+Branch cut from `feat/budget-c-and-gates-preview`. Inherits all governance persistence wiring from that branch.
+
+### GAP 1 — Persist governance layer to Supabase
+- [x] **`supabase/migrations/20260613000001_018_pcs_review_gate.sql`** — Three tables: `pcs_review_events` (append-only with Postgres rules), `pcs_governance_config` (singleton), `pcs_governance_rules` (seeded with 2 defaults).
+- [x] **`src/lib/pcs-review-events.js`** — Persistence layer: `appendReviewEvent()`, `getReviewEvents()`, `getRecordGateStatus()`, `getGovernanceConfig()`, `updateGovernanceConfig()`, `getGovernanceRules()`, `upsertGovernanceRule()`.
+- [x] **`POST /api/pcs/review`** — wired to call `appendReviewEvent()` (non-fatal on failure).
+- [x] **`deriveGateStatus(events[])`** — pure function added to `review-gate.js`; replaces inline derivation in `pcs-review-events.js`.
+- [x] **verify:review-gate** — extended with 9 new `deriveGateStatus` tests (106 total, 0 failed).
+
+### GAP 2 — Surface ReviewStatusBadge on detail pages
+- [x] **`src/components/ReviewStatusBadge.js`** — shared badge component (created on `feat/budget-c-and-gates-preview`).
+- [x] **`GET /api/pcs/review/status`** — endpoint for single-record gate status.
+- [x] **Evidence detail** (`/research/pcs/evidence/[id]/page.js`) — badge wired.
+- [x] **Claim detail** (`/research/pcs/claims/[id]/page.js`) — badge wired.
+- [x] **Canonical-claim detail** (`/research/pcs/canonical-claims/[id]/page.js`) — badge wired.
+
+### NEW — Multi-region / multi-authority dimension
+- [x] **`CLAIM_AUTHORITY_REGIONS`** — constant exported from `pcs-config.js` (FDA, EFSA, Health Canada, TGA, FSANZ, Japan MHLW).
+- [x] **`supabase/migrations/20260613000002_019_claim_authority_regions.sql`** — `authority_regions TEXT[]` column + GIN index on `pcs_claims`.
+- [x] **`src/lib/pcs-claims.js`** — `parsePostgresRow` and `parsePage` updated to map `authorityRegions`.
+- [x] **`src/lib/pcs-explorer.js`** — `filterByRegion(rows, region)` exported; all 3 query functions accept `{ region }` option.
+- [x] **`GET /api/pcs/explore`** — accepts `region` query param, returns `region` in response.
+- [x] **`/research/pcs/explore`** — region/authority selector added; Authorities column added to ExplorerTable; re-queries on region change.
+- [x] **`tests/pcs-explorer.verify.mjs`** — new file, 23 tests: `filterByRegion` edge cases + `CLAIM_AUTHORITY_REGIONS` contract. Added to `verify:all`.
+- [ ] **Data backfill**: `authority_regions` data is empty (schema only). Research team to populate via manual review. Flagged in handoff.
+
+### Pending
+- [ ] **Push to Garrett for review**: feature branch `feat/governance-persistence-and-multiregion`. **Do NOT push to main**.
+- [ ] **Supabase migrations**: run `20260613000001_018_pcs_review_gate.sql` and `20260613000002_019_claim_authority_regions.sql` on the live DB after Garrett reviews.
+
+---
+
+## Nordic — Parts B + C: Expert Gates & Governance (2026-06-13) — feat/budget-c-and-gates-preview
+
+- [x] **`src/lib/review-gate.js`** — reusable expert-in-the-loop gate library (pure logic, no I/O). Exports: `GATE_MODES` (4 modes), `GATE_STATUS`, `AUDIT_ACTION`, `createAuditEvent()` (frozen/immutable), `validateStatusTransition()`, `applyRule()` / `checkRuleViolations()`, `isRubberStamp()`, `computeCorrectionRate()`, `computeTimeSaved()` (explicit baselines, always `isEstimate: true`), `computeRuleAdherence()`.
+- [x] **DEFAULT_GATE_MODE** = `human-first-ai-verify` (Sharon's preference: human reads + enters, AI verifies alignment after).
+- [x] **3 new capabilities** in `capabilities.js`: `pcs.review:approve` (researcher/ra/admin/super-user), `pcs.review.rules:edit` (ra/admin/super-user), `pcs.governance:manage` (super-user-only in `SUPER_USER_ONLY_CAPABILITIES` → live re-verify).
+- [x] **`POST /api/pcs/review`** — submit review actions (approve/correct/reject/request-changes) with role gate.
+- [x] **`GET /api/pcs/review/queue`** — unified review queue, filterable by type and confidence.
+- [x] **`GET|POST /api/pcs/governance`** — governance toggle (super-user only). Ships OFF by default.
+- [x] **`GET|POST /api/pcs/governance/rules`** — admin/RA define which gate mode applies per record type.
+- [x] **`GET /api/pcs/governance/metrics`** — correction rate, time-saved estimate, rule adherence.
+- [x] **`/research/pcs/governance`** — management dashboard for Sharon: toggle, metrics, rules, time-saved assumptions.
+- [x] **`/research/pcs/review-queue`** — unified review queue UI with status badges.
+- [x] **`ReviewStatusBadge`** exported from review-queue page for platform-wide use.
+- [x] **Sidebar** — "Review Governance ✦" group added to super-user layout only.
+- [x] **verify:review-gate** — 97 tests: all acceptance criteria from spec §7. `verify:all` green (355 total).
+- [ ] **Pending Garrett review**: push feature branch `feat/budget-c-and-gates-preview` to GitHub. **Do NOT push to main**.
+- [ ] **After Garrett demo to leadership**: flip governance toggle ON via `/research/pcs/governance`.
+- [ ] **Persistence**: connect governance config + rules + audit log to Supabase (in-memory stubs currently reset on cold start).
+- [ ] **Status badges**: add `ReviewStatusBadge` to claim detail, evidence detail, and canonical claim pages.
+
 ## Nordic — Budget C Preview (2026-06-13) — feat/budget-c-market-explorer-preview
 
 - [x] **Budget C Marketing Intelligence Interface** (`/research/pcs/explore`) — super-user-gated, three lenses (by benefit category, by ingredient, by product). Results table: Claim · Ingredient/Dose · Benefit Category · Evidence (# studies) · Substantiation Status · PCS Reference.

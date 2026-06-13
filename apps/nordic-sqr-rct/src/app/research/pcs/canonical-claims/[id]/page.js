@@ -14,6 +14,8 @@
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import InlineEditField from '@/components/pcs/InlineEditField';
+import { ReviewStatusBadge } from '@/components/ReviewStatusBadge';
+import { useAuth } from '@/lib/useAuth';
 
 const CLAIM_FAMILY_OPTIONS = [
   'Mood / stress',
@@ -37,9 +39,11 @@ const DEDUPE_DECISION_OPTIONS = [
 
 export default function CanonicalClaimDetailPage({ params }) {
   const { id } = use(params);
+  const { user } = useAuth();
   const [claim, setClaim] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
+  const [gateStatus, setGateStatus] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +69,14 @@ export default function CanonicalClaimDetailPage({ params }) {
     return () => { cancelled = true; };
   }, [id]);
 
+  useEffect(() => {
+    if (!id || !user) return;
+    fetch(`/api/pcs/review/status?recordId=${id}&recordType=canonical-claim`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.status) setGateStatus(data.status); })
+      .catch(() => {});
+  }, [id, user]);
+
   function onSaved(updated) {
     setClaim(updated);
   }
@@ -84,9 +96,18 @@ export default function CanonicalClaimDetailPage({ params }) {
       </div>
 
       <section className="space-y-1">
-        <label className="block text-xs uppercase tracking-wide text-gray-500">
-          Canonical claim (title)
-        </label>
+        <div className="flex items-center gap-2 flex-wrap">
+          <label className="block text-xs uppercase tracking-wide text-gray-500">
+            Canonical claim (title)
+          </label>
+          {gateStatus && (
+            <ReviewStatusBadge
+              status={gateStatus.status}
+              approvedBy={gateStatus.approvedBy}
+              approvedAt={gateStatus.approvedAt}
+            />
+          )}
+        </div>
         <div className="text-xl font-semibold">
           <InlineEditField
             entityType="canonical_claim"

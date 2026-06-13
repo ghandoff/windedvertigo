@@ -247,8 +247,8 @@ export async function getReviewEvents(recordId, recordType) {
 
 /**
  * Returns the current gate status for a record by inspecting its event log.
- * The latest terminal event (approved/rejected) or the latest non-terminal
- * event determines the status.
+ * Delegates to the pure `deriveGateStatus()` in review-gate.js so the
+ * derivation logic is testable without a live database.
  *
  * Returns null if no events exist (record is pre-gate or not in the gate flow).
  */
@@ -256,22 +256,8 @@ export async function getRecordGateStatus(recordId, recordType) {
   const events = await getReviewEvents(recordId, recordType);
   if (events.length === 0) return null;
 
-  const { GATE_STATUS, AUDIT_ACTION, actionToStatus } = await import('./review-gate.js');
-  const last = events[events.length - 1];
-  const derivedStatus = actionToStatus(last.action);
-
-  const approvedEvent = [...events].reverse().find(
-    (e) => actionToStatus(e.action) === GATE_STATUS.APPROVED
-  );
-
-  return {
-    status: derivedStatus ?? GATE_STATUS.PENDING_REVIEW,
-    approvedBy: approvedEvent?.actorEmail ?? null,
-    approvedAt: approvedEvent?.createdAt ?? null,
-    lastAction: last.action,
-    lastActorEmail: last.actorEmail,
-    eventCount: events.length,
-  };
+  const { deriveGateStatus } = await import('./review-gate.js');
+  return deriveGateStatus(events);
 }
 
 /**

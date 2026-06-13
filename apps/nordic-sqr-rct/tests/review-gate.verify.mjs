@@ -67,6 +67,7 @@ import {
   computeTimeSaved,
   computeRuleAdherence,
   DEFAULT_TIME_BASELINES_MINUTES,
+  deriveGateStatus,
 } from '../src/lib/review-gate.js';
 
 let passed = 0;
@@ -720,6 +721,96 @@ console.log('\nDefault mode:');
 test('DEFAULT_GATE_MODE is HUMAN_FIRST_AI_VERIFY', () => {
   assertEqual(DEFAULT_GATE_MODE, GATE_MODES.HUMAN_FIRST_AI_VERIFY,
     "Default must be human-first + AI verify (Sharon's stated preference for PCS document entry)");
+});
+
+// ─── 26. deriveGateStatus — pure event → status derivation ───────────────────
+console.log('\nderiveGateStatus:');
+
+test('deriveGateStatus returns null for empty event array', () => {
+  assertEqual(deriveGateStatus([]), null);
+});
+
+test('deriveGateStatus returns null for undefined input', () => {
+  assertEqual(deriveGateStatus(undefined), null);
+});
+
+test('single CONFIRMED event → approved status', () => {
+  const event = createAuditEvent({
+    recordId: 'r1', recordType: 'claim',
+    action: AUDIT_ACTION.CONFIRMED,
+    actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST_AI_VERIFY,
+  });
+  const result = deriveGateStatus([event]);
+  assertEqual(result.status, GATE_STATUS.APPROVED);
+  assertEqual(result.approvedBy, ACTOR.email);
+});
+
+test('single REJECTED event → rejected status', () => {
+  const event = createAuditEvent({
+    recordId: 'r1', recordType: 'claim',
+    action: AUDIT_ACTION.REJECTED,
+    actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST_AI_VERIFY,
+  });
+  const result = deriveGateStatus([event]);
+  assertEqual(result.status, GATE_STATUS.REJECTED);
+  assertEqual(result.approvedBy, null);
+});
+
+test('AI_VERIFIED event does not advance status', () => {
+  const aiEvent = createAuditEvent({
+    recordId: 'r1', recordType: 'claim',
+    action: AUDIT_ACTION.AI_VERIFIED,
+    actor: { id: 'ai-system', email: 'ai@system' }, mode: GATE_MODES.AI_FIRST_EXPERT_REVIEW,
+  });
+  const result = deriveGateStatus([aiEvent]);
+  // AI_VERIFIED maps to null via actionToStatus — should not change pending_review initial state
+  assertEqual(result.status, GATE_STATUS.PENDING_REVIEW);
+});
+
+test('approved followed by AI_VERIFIED still reports approved (terminal state preserved)', () => {
+  const approvedEvent = createAuditEvent({
+    recordId: 'r1', recordType: 'claim',
+    action: AUDIT_ACTION.CONFIRMED,
+    actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST_AI_VERIFY,
+  });
+  const aiEvent = createAuditEvent({
+    recordId: 'r1', recordType: 'claim',
+    action: AUDIT_ACTION.AI_VERIFIED,
+    actor: { id: 'ai', email: 'ai@system' }, mode: GATE_MODES.AI_FIRST_EXPERT_REVIEW,
+  });
+  const result = deriveGateStatus([approvedEvent, aiEvent]);
+  assertEqual(result.status, GATE_STATUS.APPROVED, 'AI_VERIFIED must not overwrite approved status');
+  assertTrue(result.approvedBy != null, 'approvedBy must still be set');
+});
+
+test('needs_changes → REQUESTED_CHANGES event correctly derives needs_changes', () => {
+  const event = createAuditEvent({
+    recordId: 'r1', recordType: 'evidence',
+    action: AUDIT_ACTION.REQUESTED_CHANGES,
+    actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST_AI_VERIFY,
+  });
+  const result = deriveGateStatus([event]);
+  assertEqual(result.status, GATE_STATUS.NEEDS_CHANGES);
+  assertEqual(result.approvedBy, null);
+});
+
+test('eventCount matches number of events processed', () => {
+  const events = [
+    createAuditEvent({ recordId: 'r1', recordType: 'claim', action: AUDIT_ACTION.REQUESTED_CHANGES, actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST }),
+    createAuditEvent({ recordId: 'r1', recordType: 'claim', action: AUDIT_ACTION.CONFIRMED, actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST }),
+  ];
+  const result = deriveGateStatus(events);
+  assertEqual(result.eventCount, 2);
+  assertEqual(result.status, GATE_STATUS.APPROVED, 'final status after confirm should be approved');
+});
+
+test('lastAction reflects the last event action', () => {
+  const events = [
+    createAuditEvent({ recordId: 'r1', recordType: 'claim', action: AUDIT_ACTION.REQUESTED_CHANGES, actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST }),
+    createAuditEvent({ recordId: 'r1', recordType: 'claim', action: AUDIT_ACTION.CONFIRMED, actor: ACTOR, mode: GATE_MODES.HUMAN_FIRST }),
+  ];
+  const result = deriveGateStatus(events);
+  assertEqual(result.lastAction, AUDIT_ACTION.CONFIRMED);
 });
 
 // ─── Summary ──────────────────────────────────────────────────────────────────

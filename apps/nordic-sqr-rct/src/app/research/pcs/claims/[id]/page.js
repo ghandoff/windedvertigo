@@ -9,6 +9,7 @@ import ClaimDoseRequirements from '@/components/pcs/ClaimDoseRequirements';
 import RevisionSidePanel from '@/components/pcs/RevisionSidePanel';
 import { EVIDENCE_ROLES, SUBSTANTIATION_TIERS } from '@/lib/pcs-config';
 import { can } from '@/lib/auth/capabilities';
+import { ReviewStatusBadge } from '@/components/ReviewStatusBadge';
 
 const BUCKET_COLORS = {
   '3A': 'bg-green-100 text-green-800 border-green-200',
@@ -552,6 +553,7 @@ export default function ClaimDetail({ params }) {
   const [notesValue, setNotesValue] = useState('');
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [gateStatus, setGateStatus] = useState(null);
   const savingRef = useRef(false);
 
   // Client check is UX hint; server is the source of truth (authenticatePcsWrite).
@@ -614,6 +616,14 @@ export default function ClaimDetail({ params }) {
     fetchClaim();
   }, [fetchClaim]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (!id || !user) return;
+    fetch(`/api/pcs/review/status?recordId=${id}&recordType=claim`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.status) setGateStatus(data.status); })
+      .catch(() => {});
+  }, [id, user]);
 
   async function updateField(field, value) {
     if (savingRef.current) return;
@@ -688,7 +698,17 @@ export default function ClaimDetail({ params }) {
             <span className="text-gray-300">/</span>
             <span className="text-sm text-gray-700">#{claim.claimNo || '—'}</span>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 leading-snug break-words">{claim.claim}</h1>
+          <div className="flex items-start gap-2 flex-wrap">
+            <h1 className="text-xl font-bold text-gray-900 leading-snug break-words">{claim.claim}</h1>
+            {gateStatus && (
+              <ReviewStatusBadge
+                status={gateStatus.status}
+                approvedBy={gateStatus.approvedBy}
+                approvedAt={gateStatus.approvedAt}
+                className="mt-0.5 shrink-0"
+              />
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <button

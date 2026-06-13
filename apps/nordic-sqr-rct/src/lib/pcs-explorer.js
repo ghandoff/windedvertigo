@@ -205,12 +205,29 @@ function buildRow(claim, index) {
     canonicalClaimText: canonical?.canonicalClaim || null,
     pcsVersionId,
     pcsRef: pcsVersionId ? `/research/pcs/documents` : null,
+    // Multi-region authority applicability (Budget C spine)
+    authorityRegions: claim.authorityRegions ?? [],
   };
+}
+
+/**
+ * Filter helper for region/authority dimension.
+ * Returns true when the row is permissible under the requested authority,
+ * or when no region filter is active (region is falsy).
+ *
+ * Claims with an empty authorityRegions array have not yet been assessed —
+ * they are shown when no filter is active, hidden when a filter is set.
+ */
+export function filterByRegion(rows, region) {
+  if (!region) return rows;
+  return rows.filter(row =>
+    Array.isArray(row.authorityRegions) && row.authorityRegions.includes(region)
+  );
 }
 
 // ─── Three query lenses ──────────────────────────────────────────────────
 
-export async function queryByBenefitCategory(benefitCategoryId) {
+export async function queryByBenefitCategory(benefitCategoryId, { region } = {}) {
   const index = await buildExplorerIndex();
   const { claims, canonicalById } = index;
 
@@ -220,10 +237,10 @@ export async function queryByBenefitCategory(benefitCategoryId) {
     return canonical?.benefitCategoryId === benefitCategoryId;
   });
 
-  return matching.map(c => buildRow(c, index));
+  return filterByRegion(matching.map(c => buildRow(c, index)), region);
 }
 
-export async function queryByIngredient(ingredientId) {
+export async function queryByIngredient(ingredientId, { region } = {}) {
   const index = await buildExplorerIndex();
   const { claims, canonicalById } = index;
 
@@ -233,10 +250,10 @@ export async function queryByIngredient(ingredientId) {
     return canonical?.activeIngredientId === ingredientId;
   });
 
-  return matching.map(c => buildRow(c, index));
+  return filterByRegion(matching.map(c => buildRow(c, index)), region);
 }
 
-export async function queryByProduct(documentId) {
+export async function queryByProduct(documentId, { region } = {}) {
   const index = await buildExplorerIndex();
   // Documents → versions → claims: claims carry pcsVersionId.
   // We filter claims whose parent version's document matches documentId.
@@ -256,7 +273,7 @@ export async function queryByProduct(documentId) {
     claim.pcsVersionId && versionIds.has(claim.pcsVersionId)
   );
 
-  return matching.map(c => buildRow(c, index));
+  return filterByRegion(matching.map(c => buildRow(c, index)), region);
 }
 
 // ─── Filter options (for UI dropdowns) ──────────────────────────────────

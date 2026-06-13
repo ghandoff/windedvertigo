@@ -19,6 +19,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/useAuth';
 import RoleRoute from '@/components/RoleRoute';
+import { CLAIM_AUTHORITY_REGIONS } from '@/lib/pcs-config';
 
 const LENSES = [
   { key: 'benefit',     label: 'By Benefit Category', placeholder: 'Select a benefit category…' },
@@ -84,6 +85,7 @@ function ExplorerTable({ rows, onSelectForDossier, selectedIds }) {
             <th className="px-4 py-3 text-left font-semibold text-gray-700">Benefit Category</th>
             <th className="px-4 py-3 text-center font-semibold text-gray-700">Evidence</th>
             <th className="px-4 py-3 text-left font-semibold text-gray-700">Status</th>
+            <th className="px-4 py-3 text-left font-semibold text-gray-700">Authorities</th>
             <th className="px-4 py-3 text-left font-semibold text-gray-700">PCS Reference</th>
           </tr>
         </thead>
@@ -131,6 +133,19 @@ function ExplorerTable({ rows, onSelectForDossier, selectedIds }) {
               </td>
               <td className="px-4 py-3">
                 <StatusBadge status={row.status} statusInputs={row.statusInputs} />
+              </td>
+              <td className="px-4 py-3">
+                {row.authorityRegions && row.authorityRegions.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {row.authorityRegions.map(r => (
+                      <span key={r} className="inline-block text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded px-1.5 py-0.5">
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-300 italic">Not assessed</span>
+                )}
               </td>
               <td className="px-4 py-3">
                 {row.pcsRef ? (
@@ -228,6 +243,7 @@ function ExploreContent() {
   const [options, setOptions] = useState(null);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState('');
+  const [regionFilter, setRegionFilter] = useState('');
   const [rows, setRows] = useState(null);
   const [queryLoading, setQueryLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -260,7 +276,8 @@ function ExploreContent() {
     setQueryLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/pcs/explore?lens=${activeLens}&id=${encodeURIComponent(id)}`);
+      const regionParam = regionFilter ? `&region=${encodeURIComponent(regionFilter)}` : '';
+      const res = await fetch(`/api/pcs/explore?lens=${activeLens}&id=${encodeURIComponent(id)}${regionParam}`);
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setRows(data.rows || []);
@@ -270,7 +287,13 @@ function ExploreContent() {
     } finally {
       setQueryLoading(false);
     }
-  }, [activeLens]);
+  }, [activeLens, regionFilter]);
+
+  // Re-query when region filter changes (if a selection is already active)
+  useEffect(() => {
+    if (selectedId) handleSelectChange(selectedId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regionFilter]);
 
   const handleExport = async (claimIds, signedOffBy) => {
     try {
@@ -344,25 +367,52 @@ function ExploreContent() {
         ))}
       </div>
 
-      {/* Filter select */}
-      <div>
-        {optionsLoading ? (
-          <div className="h-10 bg-gray-100 rounded w-80 animate-pulse" />
-        ) : error && !options ? (
-          <p className="text-red-600 text-sm">{error}</p>
-        ) : (
+      {/* Filter row — lens select + authority region filter */}
+      <div className="flex flex-wrap gap-3 items-end">
+        <div>
+          {optionsLoading ? (
+            <div className="h-10 bg-gray-100 rounded w-80 animate-pulse" />
+          ) : error && !options ? (
+            <p className="text-red-600 text-sm">{error}</p>
+          ) : (
+            <select
+              value={selectedId}
+              onChange={e => handleSelectChange(e.target.value)}
+              className="rounded border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pacific-400 w-full max-w-sm"
+            >
+              <option value="">{activeLensMeta?.placeholder || 'Select…'}</option>
+              {(lensOptions || []).map(opt => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.name}{opt.pcsId ? ` (${opt.pcsId})` : ''}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            Authority / Region
+          </label>
           <select
-            value={selectedId}
-            onChange={e => handleSelectChange(e.target.value)}
-            className="rounded border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pacific-400 w-full max-w-sm"
+            value={regionFilter}
+            onChange={e => setRegionFilter(e.target.value)}
+            className="rounded border border-gray-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pacific-400"
           >
-            <option value="">{activeLensMeta?.placeholder || 'Select…'}</option>
-            {(lensOptions || []).map(opt => (
-              <option key={opt.id} value={opt.id}>
-                {opt.name}{opt.pcsId ? ` (${opt.pcsId})` : ''}
-              </option>
+            <option value="">All regions</option>
+            {CLAIM_AUTHORITY_REGIONS.map(r => (
+              <option key={r} value={r}>{r}</option>
             ))}
           </select>
+        </div>
+
+        {regionFilter && (
+          <button
+            onClick={() => setRegionFilter('')}
+            className="text-xs text-gray-400 hover:text-gray-600 underline self-end pb-2"
+          >
+            Clear filter
+          </button>
         )}
       </div>
 

@@ -72,6 +72,7 @@ function parsePostgresRow(row) {
     certaintyScore: row.certainty_score ?? null,
     certaintyRating: row.certainty_rating || null,
     confidence: row.confidence ?? null,
+    authorityRegions: row.authority_regions ?? [],
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
   };
@@ -108,6 +109,9 @@ function parsePage(page) {
     certaintyRating: p[P.certaintyRating]?.select?.name || null,
     // Wave 4.5.5 — per-item extractor confidence (0-1; Notion stores percent as fraction)
     confidence: p[P.confidence]?.number ?? null,
+    // Multi-region authority dimension (Migration 019 / Budget C spine)
+    // Notion uses multi_select; Postgres uses TEXT[]. Both parsed to string[].
+    authorityRegions: (p[P.authorityRegions]?.multi_select || []).map(s => s.name),
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };

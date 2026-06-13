@@ -632,3 +632,55 @@ export function computeRuleAdherence(auditEvents = [], rules = []) {
     },
   };
 }
+
+/**
+ * Derives the current gate status for a record from its ordered event log.
+ *
+ * Pure function — no I/O. Used by pcs-review-events.js `getRecordGateStatus`
+ * so the derivation logic is testable without a live database.
+ *
+ * Status derivation rules:
+ *   - If events is empty → null (record has no gate history)
+ *   - Walk events in order; each status-changing action updates the running
+ *     status. The LAST status-changing action wins.
+ *   - AI_VERIFIED does not change status (null from actionToStatus).
+ *   - Capture the most recent APPROVED event's actor for approvedBy / approvedAt.
+ *
+ * @param {Array<{action:string, actor:{email?:string}, createdAt:string}>} events
+ *   — ordered oldest-first (as stored in the append-only log)
+ * @returns {{ status: string, approvedBy: string|null, approvedAt: string|null,
+ *             lastAction: string, lastActorEmail: string|null, eventCount: number }|null}
+ */
+export function deriveGateStatus(events = []) {
+  if (!events || events.length === 0) return null;
+
+  let currentStatus = GATE_STATUS.PENDING_REVIEW;
+  let approvedBy = null;
+  let approvedAt = null;
+  const last = events[events.length - 1];
+
+  for (const event of events) {
+    const next = actionToStatus(event.action);
+    if (next === null) continue; // AI_VERIFIED — no status change
+
+    currentStatus = next;
+
+    if (next === GATE_STATUS.APPROVED) {
+      approvedBy = event.actor?.email ?? event.actor?.id ?? null;
+      approvedAt = event.createdAt ?? null;
+    } else {
+      // Reset approval tracking when status moves away from approved
+      approvedBy = null;
+      approvedAt = null;
+    }
+  }
+
+  return {
+    status: currentStatus,
+    approvedBy,
+    approvedAt,
+    lastAction: last.action,
+    lastActorEmail: last.actor?.email ?? last.actor?.id ?? null,
+    eventCount: events.length,
+  };
+}
