@@ -263,6 +263,31 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'schema',    label: 'Schema',     href: '/admin/schema' },
         ],
       },
+      // Budget C Preview — visible only to super-users.
+      // Gate is enforced server-side via pcs.market-explorer:view; this group
+      // is purely a UX convenience. Remove once Budget C payment clears and
+      // the feature graduates to a wider role.
+      {
+        key: 'budget-c-preview',
+        label: 'Marketing Intelligence ✦',
+        defaultOpen: true,
+        items: [
+          { key: 'explore', label: 'Explore Claims', href: '/research/pcs/explore' },
+        ],
+      },
+      // Part C — Expert-in-the-loop governance dashboard.
+      // Super-user-only control panel. Ships OFF; walk through as a tutorial
+      // with leadership before activating. Gate enforced server-side via
+      // pcs.governance:manage (in SUPER_USER_ONLY_CAPABILITIES → live re-verify).
+      {
+        key: 'gates-governance',
+        label: 'Review Governance ✦',
+        defaultOpen: false,
+        items: [
+          { key: 'governance', label: 'Governance Dashboard', href: '/research/pcs/governance' },
+          { key: 'review-queue', label: 'Review Queue', href: '/research/pcs/review-queue' },
+        ],
+      },
     ],
   },
 });

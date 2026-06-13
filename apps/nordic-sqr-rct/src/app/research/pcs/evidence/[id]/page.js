@@ -9,6 +9,7 @@ import { can } from '@/lib/auth/capabilities';
 import { EVIDENCE_TYPES, SQR_RISK_OF_BIAS } from '@/lib/pcs-config';
 import { useToast } from '@/components/Toast';
 import Can from '@/components/auth/Can';
+import { ReviewStatusBadge } from '@/components/ReviewStatusBadge';
 
 function Field({ label, value, editing, onEdit, type = 'text', options }) {
   if (editing) {
@@ -122,6 +123,7 @@ export default function PcsEvidenceDetail() {
   const [enrichFeedback, setEnrichFeedback] = useState(null);
   const [uploadingPdf, setUploadingPdf] = useState(null); // { sizeMb } while in flight
   const [isDragOver, setIsDragOver] = useState(false);
+  const [gateStatus, setGateStatus] = useState(null);
   const dragDepthRef = useRef(0);
   const pdfInputRef = useRef(null);
   const toast = useToast();
@@ -139,6 +141,14 @@ export default function PcsEvidenceDetail() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !user) return;
+    fetch(`/api/pcs/review/status?recordId=${id}&recordType=evidence`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.status) setGateStatus(data.status); })
+      .catch(() => {});
+  }, [id, user]);
 
   function updateDraft(field, value) {
     setDraft(prev => ({ ...prev, [field]: value }));
@@ -345,18 +355,28 @@ export default function PcsEvidenceDetail() {
           <Link href="/research/pcs/evidence" className="text-sm text-pacific-600 hover:underline">
             ← Evidence Library
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2 break-words">
-            {editing ? (
-              <input
-                type="text"
-                value={draft.name || ''}
-                onChange={e => updateDraft('name', e.target.value)}
-                className="text-2xl font-bold text-gray-900 border border-gray-300 rounded-md px-2 py-1 w-full focus:ring-1 focus:ring-pacific-500 focus:border-pacific-500"
+          <div className="flex items-start gap-2 mt-2 flex-wrap">
+            <h1 className="text-2xl font-bold text-gray-900 break-words">
+              {editing ? (
+                <input
+                  type="text"
+                  value={draft.name || ''}
+                  onChange={e => updateDraft('name', e.target.value)}
+                  className="text-2xl font-bold text-gray-900 border border-gray-300 rounded-md px-2 py-1 w-full focus:ring-1 focus:ring-pacific-500 focus:border-pacific-500"
+                />
+              ) : (
+                evidence.name || 'Untitled'
+              )}
+            </h1>
+            {gateStatus && (
+              <ReviewStatusBadge
+                status={gateStatus.status}
+                approvedBy={gateStatus.approvedBy}
+                approvedAt={gateStatus.approvedAt}
+                className="mt-1.5 shrink-0"
               />
-            ) : (
-              evidence.name || 'Untitled'
             )}
-          </h1>
+          </div>
         </div>
         {canWrite && !editing && (
           <div className="flex gap-2 shrink-0">

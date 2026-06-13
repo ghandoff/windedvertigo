@@ -47,6 +47,20 @@ export const PCS_DB = {
 /** Valid enum values — shared between client dropdowns and server validation. */
 export const CLAIM_STATUSES = ['Authorized', 'Proposed', 'Not approved', 'NA', 'Unknown'];
 export const CLAIM_BUCKETS = ['3A', '3B', '3C'];
+
+/**
+ * Regulatory authority regions for multi-region claim applicability.
+ * A PCS claim may be valid under one or more of these authorities.
+ * Data is backfilled manually — see TASKS.md for backfill status.
+ */
+export const CLAIM_AUTHORITY_REGIONS = [
+  'FDA',           // United States — Food & Drug Administration
+  'EFSA',          // European Union — European Food Safety Authority
+  'Health Canada', // Canada — Health Canada / Natural Health Products Directorate
+  'TGA',           // Australia — Therapeutic Goods Administration
+  'FSANZ',         // Australia / New Zealand — Food Standards Australia New Zealand
+  'Japan MHLW',    // Japan — Ministry of Health, Labour and Welfare
+];
 export const EVIDENCE_ROLES = ['structure-function', 'mechanistic', 'clinical', 'safety', 'bioavailability'];
 export const EVIDENCE_TYPES = ['RCT', 'Meta-analysis', 'Systematic review', 'Observational', 'In vitro', 'Animal', 'Mechanistic', 'Review', 'Other'];
 export const SQR_RISK_OF_BIAS = ['Low', 'Some concerns', 'High'];
@@ -233,6 +247,8 @@ export const PROPS = {
     coreBenefit: 'Core benefit',
     // Wave 4.5.5 — per-item extractor confidence persistence (added 2026-04-21)
     confidence: 'Confidence',
+    // Budget C spine — multi-region authority applicability (added 2026-06-13)
+    authorityRegions: 'Authority Regions',
   },
   evidence: {
     name: 'Name',

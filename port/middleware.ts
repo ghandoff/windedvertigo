@@ -33,6 +33,8 @@ export async function middleware(req: NextRequest) {
     // Citation import — route enforces CMO_API_TOKEN for assistant-run backfills.
     // Scoped to /import only; the PDF serve/upload routes stay session-gated.
     pathname.startsWith("/api/bibliography/import") ||
+    // Admin backfill tools — routes enforce CMO_API_TOKEN or CRON_SECRET.
+    pathname.startsWith("/api/admin/") ||
     // cARL study cron — its route enforces CRON_SECRET or CMO_API_TOKEN, so it can
     // also be triggered on demand by an admin/agent (not just the scheduler).
     pathname === "/api/cron/carl-study" ||
