@@ -367,6 +367,12 @@ export async function updateClaim(id, fields) {
   if (fields.confidence !== undefined) {
     properties[P.confidence] = { number: fields.confidence };
   }
+  // Budget C multi-region: which regulatory authorities this claim is valid under.
+  if (fields.authorityRegions !== undefined) {
+    properties[P.authorityRegions] = {
+      multi_select: (fields.authorityRegions || []).map(name => ({ name })),
+    };
+  }
   // 2026-05-07 — Phase B: stub row carries only the fields being updated;
   // notionShapeToPgRow strips undefined so the upsert only touches changed columns.
   if (shouldWriteToPostgresFirst()) {

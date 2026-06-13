@@ -7,7 +7,7 @@ import { hasAnyRole, ROLE_SETS } from '@/lib/auth/has-any-role';
 import CommentThread from '@/components/pcs/CommentThread';
 import ClaimDoseRequirements from '@/components/pcs/ClaimDoseRequirements';
 import RevisionSidePanel from '@/components/pcs/RevisionSidePanel';
-import { EVIDENCE_ROLES, SUBSTANTIATION_TIERS } from '@/lib/pcs-config';
+import { EVIDENCE_ROLES, SUBSTANTIATION_TIERS, CLAIM_AUTHORITY_REGIONS } from '@/lib/pcs-config';
 import { can } from '@/lib/auth/capabilities';
 import { ReviewStatusBadge } from '@/components/ReviewStatusBadge';
 
@@ -296,6 +296,86 @@ function LinkEvidenceModal({ claimId, existingEvidenceItemIds, onLinked, onClose
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Authority Regions Editor — Budget C multi-region backfill          */
+/* ------------------------------------------------------------------ */
+function AuthorityRegionsEditor({ claimId, value, onSaved }) {
+  const [draft, setDraft] = useState(Array.isArray(value) ? [...value] : []);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setDraft(Array.isArray(value) ? [...value] : []);
+  }, [value]);
+
+  function toggle(region) {
+    setDraft(prev =>
+      prev.includes(region) ? prev.filter(r => r !== region) : [...prev, region],
+    );
+    setSaved(false);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/pcs/claims/${claimId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ authorityRegions: draft }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Save failed');
+      }
+      const updated = await res.json();
+      onSaved(updated);
+      setSaved(true);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const dirty = JSON.stringify(draft.slice().sort()) !== JSON.stringify((Array.isArray(value) ? [...value] : []).slice().sort());
+
+  return (
+    <div className="col-span-2 mt-2 pt-3 border-t border-gray-100">
+      <div className="text-xs font-medium text-gray-500 mb-2">
+        Authority / Region Applicability
+        <span className="ml-2 text-gray-400 font-normal">(which authorities this claim is valid under)</span>
+      </div>
+      <div className="flex flex-wrap gap-2 mb-2">
+        {CLAIM_AUTHORITY_REGIONS.map(region => (
+          <button
+            key={region}
+            type="button"
+            onClick={() => toggle(region)}
+            className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+              draft.includes(region)
+                ? 'bg-blue-100 text-blue-700 border-blue-300'
+                : 'bg-white text-gray-500 border-gray-300 hover:border-blue-300'
+            }`}
+          >
+            {draft.includes(region) ? '✓ ' : ''}{region}
+          </button>
+        ))}
+      </div>
+      {error && <p className="text-xs text-red-600 mb-1">{error}</p>}
+      {saved && !dirty && <p className="text-xs text-green-600 mb-1">Saved.</p>}
+      <button
+        onClick={handleSave}
+        disabled={saving || !dirty}
+        className="text-xs px-3 py-1.5 bg-pacific-600 text-white rounded hover:bg-pacific-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        {saving ? 'Saving…' : 'Save Regions'}
+      </button>
     </div>
   );
 }
@@ -769,6 +849,22 @@ export default function ClaimDetail({ params }) {
               </div>
             </div>
 
+            {/* Authority regions display */}
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <label className="text-xs font-medium text-gray-500 block mb-1">Authorities</label>
+              {claim.authorityRegions && claim.authorityRegions.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {claim.authorityRegions.map(r => (
+                    <span key={r} className="inline-block text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded px-1.5 py-0.5">
+                      {r}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs text-gray-400 italic">Not assessed</span>
+              )}
+            </div>
+
             {/* Legacy dose guidance — min/max mg single-AI — kept for backward-compat with old imports */}
             {(claim.minDoseMg || claim.maxDoseMg) && (
               <div className="mt-4 pt-4 border-t border-gray-100">
@@ -924,6 +1020,11 @@ export default function ClaimDetail({ params }) {
                   label="Claim prefix (relation id)"
                   type="text"
                   value={claim.claimPrefixId}
+                  onSaved={setClaim}
+                />
+                <AuthorityRegionsEditor
+                  claimId={id}
+                  value={claim.authorityRegions}
                   onSaved={setClaim}
                 />
               </div>

@@ -6,6 +6,7 @@ import {
   CLAIM_STATUSES, CLAIM_BUCKETS,
   HETEROGENEITY, PUBLICATION_BIAS, FUNDING_BIAS, PRECISION,
   EFFECT_SIZE_CATEGORIES, DOSE_RESPONSE_GRADIENT, CERTAINTY_RATINGS,
+  CLAIM_AUTHORITY_REGIONS,
 } from '@/lib/pcs-config';
 
 export async function GET(request, { params }) {
@@ -69,6 +70,17 @@ export async function PATCH(request, { params }) {
       fields[numField] = n;
     } else if (fields[numField] === '' || fields[numField] === null) {
       fields[numField] = null;
+    }
+  }
+
+  // authorityRegions must be a subset of CLAIM_AUTHORITY_REGIONS
+  if (fields.authorityRegions !== undefined) {
+    if (!Array.isArray(fields.authorityRegions)) {
+      return NextResponse.json({ error: 'authorityRegions must be an array' }, { status: 400 });
+    }
+    const invalid = fields.authorityRegions.filter(r => !CLAIM_AUTHORITY_REGIONS.includes(r));
+    if (invalid.length > 0) {
+      return NextResponse.json({ error: `Unknown authority regions: ${invalid.join(', ')}` }, { status: 400 });
     }
   }
 
