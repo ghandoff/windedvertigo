@@ -42,6 +42,7 @@ const nextConfig: NextConfig = {
       // Phase 11 settings refactor — ai-hub/competitors promoted to top-level
       { source: "/settings/ai", destination: "/ai-hub", permanent: true },
       { source: "/settings/competitors", destination: "/competitors", permanent: true },
+      { source: "/finances", destination: "/finn", permanent: true },
     ];
   },
 
