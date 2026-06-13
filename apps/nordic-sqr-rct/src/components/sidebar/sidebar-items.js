@@ -273,6 +273,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         defaultOpen: true,
         items: [
           { key: 'explore', label: 'Explore Claims', href: '/research/pcs/explore' },
+          { key: 'caipb',   label: 'CAIPB Dashboards', href: '/research/pcs/caipb' },
         ],
       },
       // Part C — Expert-in-the-loop governance dashboard.

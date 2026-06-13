@@ -22,7 +22,8 @@
     "verify:market-explorer": "node tests/market-explorer.verify.mjs",
     "verify:review-gate": "node tests/review-gate.verify.mjs",
     "verify:pcs-explorer": "node tests/pcs-explorer.verify.mjs",
-    "verify:all": "node tests/rob2-mapping.verify.mjs && node tests/applicability-scoring.verify.mjs && node tests/nutrigrade.verify.mjs && node tests/llm-reliability.verify.mjs && node tests/capabilities.verify.mjs && node tests/pcs-revisions.verify.mjs && node tests/merge-canonical-claims.verify.mjs && node tests/audit-reviewer-emails.verify.mjs && node tests/llm-adapter.verify.mjs && node tests/controlled-vocab.verify.mjs && node tests/market-explorer.verify.mjs && node tests/review-gate.verify.mjs && node tests/pcs-explorer.verify.mjs",
+    "verify:caipb": "node tests/caipb.verify.mjs",
+    "verify:all": "node tests/rob2-mapping.verify.mjs && node tests/applicability-scoring.verify.mjs && node tests/nutrigrade.verify.mjs && node tests/llm-reliability.verify.mjs && node tests/capabilities.verify.mjs && node tests/pcs-revisions.verify.mjs && node tests/merge-canonical-claims.verify.mjs && node tests/audit-reviewer-emails.verify.mjs && node tests/llm-adapter.verify.mjs && node tests/controlled-vocab.verify.mjs && node tests/market-explorer.verify.mjs && node tests/review-gate.verify.mjs && node tests/pcs-explorer.verify.mjs && node tests/caipb.verify.mjs",
     "ingest:labels": "node scripts/ingest-label-intake.mjs",
     "merge:canonical-claims": "node scripts/merge-canonical-claims.mjs",
     "audit:emails": "node scripts/audit-reviewer-emails.mjs"
