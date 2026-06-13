@@ -71,16 +71,18 @@ export default async function FinancesPage() {
       .at(-1) ?? null;
 
   // merge upcoming items + upcoming patterns, sort by date
-  const upcomingRows: Array<{ date: string | null; label: string; sublabel?: string }> = [
+  const upcomingRows: Array<{ date: string | null; label: string; sublabel?: string; amount_cents?: number | null }> = [
     ...upcomingItems.map((i) => ({
       date: i.due_date,
       label: i.title,
       sublabel: i.type.replace(/_/g, " "),
+      amount_cents: i.amount_cents,
     })),
     ...upcomingDeadlines.map((p) => ({
       date: p.next_expected,
       label: `${p.vendor} — ${p.description}`,
       sublabel: p.typical_cycle,
+      amount_cents: p.typical_amount_cents,
     })),
   ].sort((a, b) => (a.date ?? "9999") < (b.date ?? "9999") ? -1 : 1);
 
@@ -216,20 +218,37 @@ export default async function FinancesPage() {
               {!payroll ? (
                 <p className="text-muted-foreground">no snapshot — run fin_briefing</p>
               ) : (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">last run</span>
-                    <span>{String((payroll.data as Record<string, unknown>)?.check_date ?? "—")}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">total paid</span>
-                    <span className="tabular-nums">{fmtUsd(safeNum((payroll.data as Record<string, unknown>)?.total_cents))}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">next scheduled</span>
-                    <span>{String((payroll.data as Record<string, unknown>)?.next_pay_date ?? "—")}</span>
-                  </div>
-                </>
+                (() => {
+                  const pd = payroll.data as Record<string, unknown>;
+                  return (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">last check date</span>
+                        <span>{String(pd?.check_date ?? "—")}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">pay period</span>
+                        <span className="text-xs">{pd?.pay_period_start && pd?.pay_period_end ? `${String(pd.pay_period_start).slice(5)} – ${String(pd.pay_period_end).slice(5)}` : "—"}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">gross pay</span>
+                        <span className="tabular-nums">{fmtUsd(safeNum(pd?.gross_pay_cents))}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">net pay</span>
+                        <span className="tabular-nums">{fmtUsd(safeNum(pd?.net_pay_cents))}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">company debit</span>
+                        <span className="tabular-nums font-medium">{fmtUsd(safeNum(pd?.company_debit_cents))}</span>
+                      </div>
+                      <div className="flex justify-between pt-1 border-t border-border mt-1">
+                        <span className="text-muted-foreground">next scheduled</span>
+                        <span>{String(pd?.next_pay_date ?? "—")}</span>
+                      </div>
+                    </>
+                  );
+                })()
               )}
             </div>
           </div>
@@ -291,6 +310,9 @@ export default async function FinancesPage() {
                 <span className="flex-1 truncate">{row.label}</span>
                 {row.sublabel && (
                   <span className="text-[11px] text-muted-foreground shrink-0">{row.sublabel}</span>
+                )}
+                {row.amount_cents != null && (
+                  <span className="tabular-nums text-xs font-medium shrink-0">{fmtUsd(row.amount_cents)}</span>
                 )}
               </div>
             ))}
