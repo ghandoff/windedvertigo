@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   try {
     const result = await scanFinancialEmails();
     console.log(
-      `[cron/fin-email-scan] seen=${result.seen} captured=${result.already_captured} created=${result.created} skipped=${result.skipped} errors=${result.errors.length}`,
+      `[cron/fin-email-scan] seen=${result.seen} captured=${result.already_captured} created=${result.created} skipped=${result.skipped} drive_uploads=${result.drive_uploads} notifications=${result.notifications_sent} errors=${result.errors.length}`,
     );
     return json(result);
   } catch (err) {

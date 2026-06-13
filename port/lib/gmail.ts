@@ -13,8 +13,9 @@
  *
  * To set up domain-wide delegation for the service account:
  *   Google Workspace Admin → Security → API controls → Domain-wide delegation
- *   Add client ID 109146183570982842405 with scope:
+ *   Add client ID 109146183570982842405 with scopes:
  *   https://www.googleapis.com/auth/gmail.modify
+ *   https://www.googleapis.com/auth/drive
  */
 
 import { createSign } from "crypto";
@@ -119,7 +120,11 @@ export async function getRfpGmailAccessToken(): Promise<string> {
  * and requesting impersonation of `subject` via domain-wide delegation.
  * Exported for Opsy's infra-notification scanner (impersonates garrett@).
  */
-export async function getServiceAccountAccessToken(saKeyJson: string, subject: string): Promise<string> {
+export async function getServiceAccountAccessToken(
+  saKeyJson: string,
+  subject: string,
+  scope = "https://www.googleapis.com/auth/gmail.modify",
+): Promise<string> {
   const key = JSON.parse(saKeyJson) as { client_email: string; private_key: string };
   const now = Math.floor(Date.now() / 1000);
 
@@ -127,7 +132,7 @@ export async function getServiceAccountAccessToken(saKeyJson: string, subject: s
   const payload = {
     iss: key.client_email,
     sub: subject,
-    scope: "https://www.googleapis.com/auth/gmail.modify",
+    scope,
     aud: TOKEN_URL,
     iat: now,
     exp: now + 3600,
@@ -264,13 +269,35 @@ export async function fetchRecentReplies(
 
 export interface GmailMessageWithBody extends GmailMessage {
   body: string;
+  attachments: GmailAttachment[];
 }
 
 interface GmailPayload {
   mimeType?: string;
-  body?: { data?: string; size?: number };
+  filename?: string;
+  body?: { data?: string; size?: number; attachmentId?: string };
   parts?: GmailPayload[];
   headers?: { name: string; value: string }[];
+}
+
+export interface GmailAttachment {
+  attachmentId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+}
+
+function extractAttachments(payload: GmailPayload, out: GmailAttachment[] = []): GmailAttachment[] {
+  if (payload.body?.attachmentId && payload.filename) {
+    out.push({
+      attachmentId: payload.body.attachmentId,
+      filename: payload.filename,
+      mimeType: payload.mimeType ?? "application/octet-stream",
+      size: payload.body.size ?? 0,
+    });
+  }
+  for (const part of payload.parts ?? []) extractAttachments(part, out);
+  return out;
 }
 
 /** Decode base64url to UTF-8 string. */
@@ -340,7 +367,27 @@ export async function getMessageWithBody(
 
   if (!subject) return null;
 
-  return { id: data.id, threadId: data.threadId, subject, from, date, body };
+  const attachments = extractAttachments(data.payload ?? {});
+  return { id: data.id, threadId: data.threadId, subject, from, date, body, attachments };
+}
+
+/**
+ * Download a Gmail attachment as a Buffer.
+ * Returns null if the request fails.
+ */
+export async function downloadAttachment(
+  messageId: string,
+  attachmentId: string,
+  accessToken: string,
+  userId = "me",
+): Promise<Buffer | null> {
+  const url = `${gmailBase(userId)}/messages/${messageId}/attachments/${attachmentId}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) return null;
+  const data = await res.json() as { data?: string };
+  if (!data.data) return null;
+  const base64 = data.data.replace(/-/g, "+").replace(/_/g, "/");
+  return Buffer.from(base64, "base64");
 }
 
 /**
