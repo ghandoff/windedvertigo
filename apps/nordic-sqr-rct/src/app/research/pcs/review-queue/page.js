@@ -15,6 +15,7 @@
 import { useState, useEffect } from 'react';
 import RoleRoute from '@/components/RoleRoute.js';
 import { GATE_STATUS, GATE_MODES } from '@/lib/review-gate.js';
+import { ReviewStatusBadge } from '@/components/ReviewStatusBadge.js';
 
 const MODE_LABEL = {
   [GATE_MODES.HUMAN_FIRST]: 'Human-first',
@@ -22,44 +23,6 @@ const MODE_LABEL = {
   [GATE_MODES.AI_FIRST_EXPERT_REVIEW]: 'AI-first + expert review',
   [GATE_MODES.AI_AUTO_ABOVE_CONFIDENCE]: 'AI-auto above T',
 };
-
-const STATUS_BADGE = {
-  [GATE_STATUS.PENDING_REVIEW]: {
-    label: 'Pending review',
-    cls: 'bg-amber-50 text-amber-700 border-amber-100',
-  },
-  [GATE_STATUS.APPROVED]: {
-    label: 'Approved',
-    cls: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-  },
-  [GATE_STATUS.NEEDS_CHANGES]: {
-    label: 'Needs changes',
-    cls: 'bg-orange-50 text-orange-700 border-orange-100',
-  },
-  [GATE_STATUS.REJECTED]: {
-    label: 'Rejected',
-    cls: 'bg-red-50 text-red-700 border-red-100',
-  },
-};
-
-export function ReviewStatusBadge({ status, approvedBy, approvedAt }) {
-  const config = STATUS_BADGE[status] ?? { label: status, cls: 'bg-gray-50 text-gray-600 border-gray-100' };
-  const title =
-    status === GATE_STATUS.APPROVED && approvedBy
-      ? `Approved by ${approvedBy}${approvedAt ? ` · ${new Date(approvedAt).toLocaleDateString()}` : ''}`
-      : config.label;
-
-  return (
-    <span
-      title={title}
-      className={`inline-flex items-center border rounded px-2 py-0.5 text-xs font-medium ${config.cls}`}
-    >
-      {status === GATE_STATUS.APPROVED && approvedBy
-        ? `Approved by ${approvedBy}${approvedAt ? ` · ${new Date(approvedAt).toLocaleDateString()}` : ''}`
-        : config.label}
-    </span>
-  );
-}
 
 function ConfidenceBadge({ score }) {
   if (score == null) return null;

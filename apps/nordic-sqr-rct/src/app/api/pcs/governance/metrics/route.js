@@ -1,12 +1,8 @@
 /**
  * GET /api/pcs/governance/metrics
  *
- * Returns governance metrics: correction rate, time-saved estimate,
- * rubber-stamp signals, and rule adherence.
- *
- * Super-user-only when governance layer is OFF.
- * When governance is ON: all users with pcs.review:approve can see their own
- * metrics; admin/super-user see team-wide metrics.
+ * Governance metrics: correction rate, time-saved estimate, rubber-stamp
+ * signals, and rule adherence. Reads from the pcs_review_events audit log.
  *
  * Query params:
  *   ?period=7d|30d|90d   (default: 30d)
@@ -22,6 +18,11 @@ import {
   DEFAULT_TIME_BASELINES_MINUTES,
   isGovernanceEnabled,
 } from '@/lib/review-gate.js';
+import {
+  getGovernanceConfig,
+  getGovernanceRules,
+  getReviewEventsPeriod,
+} from '@/lib/pcs-review-events.js';
 
 export const revalidate = 0;
 
@@ -32,50 +33,36 @@ export async function GET(request) {
   if (gate.error) return gate.error;
 
   const { searchParams } = new URL(request.url);
-  const period = searchParams.get('period') ?? '30d';
+  const periodParam = searchParams.get('period') ?? '30d';
   const type = searchParams.get('type') ?? null;
 
-  const [governanceConfig, auditEvents, rules] = await Promise.all([
-    loadGovernanceConfig(),
-    loadAuditEvents({ period, type }),
-    loadRules(),
+  const periodDays = periodParam === '7d' ? 7 : periodParam === '90d' ? 90 : 30;
+
+  const [governanceConfig, rules, auditEvents] = await Promise.all([
+    getGovernanceConfig(),
+    getGovernanceRules(),
+    getReviewEventsPeriod({ periodDays, recordType: type }),
   ]);
 
-  const filteredEvents = type
-    ? auditEvents.filter((e) => e.recordType === type)
-    : auditEvents;
-
-  const correctionRate = computeCorrectionRate(filteredEvents);
-  const timeSaved = computeTimeSaved(filteredEvents, {});
-  const adherence = computeRuleAdherence(filteredEvents, rules);
+  const correctionRate = computeCorrectionRate(auditEvents);
+  const timeSaved = computeTimeSaved(auditEvents, {});
+  const adherence = computeRuleAdherence(auditEvents, rules);
 
   return NextResponse.json({
-    period,
+    period: periodParam,
+    periodDays,
     type,
     governanceEnabled: isGovernanceEnabled(governanceConfig),
     correctionRate,
     timeSaved,
     adherence,
+    eventCount: auditEvents.length,
     assumptions: {
       timeBaselines: DEFAULT_TIME_BASELINES_MINUTES,
       note: 'Time-saved figures are estimates. Baselines represent assumed manual-entry time per record type and should be calibrated with the team.',
     },
     _note: auditEvents.length === 0
-      ? 'No audit events yet. Metrics will populate as the team reviews records.'
+      ? 'No audit events in this period. Metrics will populate as the team reviews records.'
       : null,
   });
-}
-
-// ─── Stubs ───────────────────────────────────────────────────────────────────
-
-async function loadGovernanceConfig() {
-  return { governanceEnabled: false, captureHistoryWhenOff: true };
-}
-
-async function loadAuditEvents({ period, type }) {
-  return [];
-}
-
-async function loadRules() {
-  return [];
 }

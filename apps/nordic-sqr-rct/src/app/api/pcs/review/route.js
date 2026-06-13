@@ -17,6 +17,7 @@
  *     mode?: string,             // GATE_MODES.* — defaults to DEFAULT_GATE_MODE
  *     notes?: string,
  *     ruleId?: string,
+ *     currentStatus?: string,    // GATE_STATUS.* — for transition validation
  *   }
  *
  * Returns: { auditEvent, newStatus, isRubberStamp }
@@ -33,8 +34,10 @@ import {
   validateStatusTransition,
   canApprove,
   isRubberStamp,
+  shouldCaptureHistory,
   GATE_STATUS,
 } from '@/lib/review-gate.js';
+import { appendReviewEvent, getGovernanceConfig } from '@/lib/pcs-review-events.js';
 
 export async function POST(request) {
   const gate = await requireCapability(request, 'pcs.review:approve', {
@@ -125,6 +128,18 @@ export async function POST(request) {
     });
   } catch (err) {
     return NextResponse.json({ error: 'audit-event-error', message: err.message }, { status: 400 });
+  }
+
+  // Persist to Supabase if governance config says we should.
+  const governanceConfig = await getGovernanceConfig();
+  if (shouldCaptureHistory(governanceConfig)) {
+    try {
+      await appendReviewEvent(auditEvent);
+    } catch (err) {
+      // Non-fatal: the response is still successful even if persistence fails.
+      // The caller gets the audit event object and can retry.
+      console.warn(`[review-gate] appendReviewEvent failed: ${err.message}`);
+    }
   }
 
   const rubberStamp = isRubberStamp(auditEvent);

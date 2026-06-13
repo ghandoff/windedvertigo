@@ -12,9 +12,9 @@
 import { NextResponse } from 'next/server';
 import { requireCapability } from '@/lib/auth/require-capability.js';
 import {
-  DEFAULT_GOVERNANCE_CONFIG,
   isGovernanceEnabled,
 } from '@/lib/review-gate.js';
+import { getGovernanceConfig, saveGovernanceConfig } from '@/lib/pcs-review-events.js';
 
 export const revalidate = 0;
 
@@ -24,7 +24,7 @@ export async function GET(request) {
   });
   if (gate.error) return gate.error;
 
-  const config = await loadGovernanceConfig();
+  const config = await getGovernanceConfig();
 
   return NextResponse.json({
     ...config,
@@ -52,31 +52,18 @@ export async function POST(request) {
     );
   }
 
-  const updated = await saveGovernanceConfig({
-    ...DEFAULT_GOVERNANCE_CONFIG,
-    ...body,
-    toggledAt: new Date().toISOString(),
-    toggledBy: gate.user.email,
-  });
+  try {
+    const updated = await saveGovernanceConfig({
+      ...body,
+      toggledAt: new Date().toISOString(),
+      toggledBy: gate.user.email,
+    });
 
-  return NextResponse.json({
-    ...updated,
-    isEnabled: isGovernanceEnabled(updated),
-  });
-}
-
-// ─── Config persistence stub ─────────────────────────────────────────────────
-// TODO: persist to Supabase pcs_governance_config table once provisioned.
-// For the preview this is an in-memory singleton; it resets on cold start.
-// The UI reflects the current in-process state.
-
-let _governanceConfig = { ...DEFAULT_GOVERNANCE_CONFIG };
-
-async function loadGovernanceConfig() {
-  return { ..._governanceConfig };
-}
-
-async function saveGovernanceConfig(config) {
-  _governanceConfig = { ...config };
-  return { ..._governanceConfig };
+    return NextResponse.json({
+      ...updated,
+      isEnabled: isGovernanceEnabled(updated),
+    });
+  } catch (err) {
+    return NextResponse.json({ error: 'save-failed', message: err.message }, { status: 500 });
+  }
 }
