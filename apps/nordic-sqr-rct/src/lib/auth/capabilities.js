@@ -135,6 +135,20 @@ export const CAPABILITIES = Object.freeze({
   // is required on every API call — a stale JWT cannot unlock the demo.
   'pcs.market-explorer:view': 'pcs.market-explorer:view',
   'pcs.dossier:export': 'pcs.dossier:export',
+
+  // Expert-in-the-loop review gates (Part B).
+  // researcher/ra/admin/super-user can approve; pcs-readonly/reviewer cannot.
+  // Server-side re-verified via requireCapability on every approve/reject call.
+  'pcs.review:approve': 'pcs.review:approve',
+
+  // Admins and RA can define gate rules (which mode applies per record type,
+  // dual-review requirements, auto-approve thresholds, etc.).
+  'pcs.review.rules:edit': 'pcs.review.rules:edit',
+
+  // Governance module toggle + management dashboard (Part C).
+  // Only super-users can flip the governance layer ON or OFF.
+  // Super-user-only → live re-verify required; no stale JWT can enable it.
+  'pcs.governance:manage': 'pcs.governance:manage',
 });
 
 // ─── Capability bundles (private; composed into role map below) ──────────
@@ -185,6 +199,8 @@ const RESEARCHER_CAPS = [
   // Bundle 3 Phase 3.2 — researchers can read AICS docs + claims (RA owns the review).
   'aics.documents:read',
   'aics.claims:read',
+  // Part B — researchers can approve/reject review-gate items (expert role).
+  'pcs.review:approve',
 ];
 
 const RA_CAPS = [
@@ -226,6 +242,10 @@ const RA_CAPS = [
   'aics.documents:create',
   'aics.claims:read',
   'aics.claims:edit',
+  // Part B — RA can approve/reject review-gate items (expert role).
+  'pcs.review:approve',
+  // Part C — RA can define gate rules (which mode applies per record type).
+  'pcs.review.rules:edit',
 ];
 
 /**
@@ -327,6 +347,9 @@ export const SUPER_USER_ONLY_CAPABILITIES = Object.freeze(new Set([
   // Budget C Preview — stays super-user-only until payment clears.
   'pcs.market-explorer:view',
   'pcs.dossier:export',
+  // Part C — governance toggle. Only super-users can flip the governance layer.
+  // Live re-verify required; no other role can enable it even with a valid JWT.
+  'pcs.governance:manage',
 ]));
 
 // ─── Public helpers ──────────────────────────────────────────────────────

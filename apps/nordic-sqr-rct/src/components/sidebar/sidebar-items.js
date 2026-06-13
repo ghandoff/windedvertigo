@@ -275,6 +275,19 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
           { key: 'explore', label: 'Explore Claims', href: '/research/pcs/explore' },
         ],
       },
+      // Part C — Expert-in-the-loop governance dashboard.
+      // Super-user-only control panel. Ships OFF; walk through as a tutorial
+      // with leadership before activating. Gate enforced server-side via
+      // pcs.governance:manage (in SUPER_USER_ONLY_CAPABILITIES → live re-verify).
+      {
+        key: 'gates-governance',
+        label: 'Review Governance ✦',
+        defaultOpen: false,
+        items: [
+          { key: 'governance', label: 'Governance Dashboard', href: '/research/pcs/governance' },
+          { key: 'review-queue', label: 'Review Queue', href: '/research/pcs/review-queue' },
+        ],
+      },
     ],
   },
 });
