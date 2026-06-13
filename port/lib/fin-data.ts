@@ -210,6 +210,7 @@ export async function getLatestSnapshot(type: FinSnapshotType): Promise<FinSnaps
     .select("*")
     .eq("snapshot_type", type)
     .order("fetched_at", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
