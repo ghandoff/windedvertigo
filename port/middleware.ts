@@ -29,6 +29,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/pam/") ||
     pathname.startsWith("/api/carl/") ||
     pathname.startsWith("/api/opsy/") ||
+    pathname.startsWith("/api/fin/") ||
     // Citation import — route enforces CMO_API_TOKEN for assistant-run backfills.
     // Scoped to /import only; the PDF serve/upload routes stay session-gated.
     pathname.startsWith("/api/bibliography/import") ||
