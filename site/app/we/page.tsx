@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { fetchSiteContent, extractTeamMembers } from "@/lib/notion";
 import { TeamGrid } from "@/components/team-grid";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "we. – winded.vertigo",

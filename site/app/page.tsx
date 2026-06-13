@@ -4,8 +4,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { CollabTypewriter } from "@/components/collab-variants/collab-typewriter";
 import { fetchSiteContent } from "@/lib/notion";
 
-/** SSR: render at request time so CF Worker NOTION_TOKEN secret is available. */
-export const dynamic = "force-dynamic";
+// KV ISR: first request fetches from Notion (NOTION_TOKEN available at runtime),
+// result cached in NEXT_INC_CACHE_KV for 5 min. Reads no cookies/headers/searchParams.
+export const revalidate = 300;
 
 export default async function HomePage() {
   const sections = await fetchSiteContent("home");

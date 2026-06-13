@@ -5,13 +5,10 @@ import { CollaboratorStrip } from "@/components/collaborator-strip";
 import { fetchPortfolioAssets, fetchSiteContent } from "@/lib/notion";
 import { PortfolioGallery } from "@/components/portfolio-gallery";
 
-// force-dynamic: NOTION_TOKEN is a CF Workers runtime secret — not available
-// at build time. staticAssetsIncrementalCache would pre-render this page with
-// an empty token, baking 0 assets into the static bundle. force-dynamic defers
-// rendering to request time where the secret is accessible.
-// TODO: switch to revalidate = 300 once kvIncrementalCache is enabled (requires
-// wrangler login during deploy or CLOUDFLARE_API_TOKEN env var in CI).
-export const dynamic = "force-dynamic";
+// KV ISR: kvIncrementalCache is wired (NEXT_INC_CACHE_KV binding, wv-site-next-cache
+// namespace). NOTION_TOKEN is available at runtime; first post-stale request fetches
+// from Notion, result stored in KV for 5 min. No per-request inputs read here.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "do. – winded.vertigo",
