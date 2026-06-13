@@ -1,5 +1,36 @@
 # Tasks
 
+## Nordic — CAIPB Dashboards + Authority Regions Editor (2026-06-13) — feat/caipb-dashboards
+
+Branch cut from `main` (which includes the merged governance-persistence-and-multiregion work).
+
+### PART 1 — CAIPB Dashboards (browse mode)
+- [x] **`GET /api/pcs/caipb/ingredient/[id]`** — ingredient + formula lines (with fmPlm) + form usage rollup + benefit categories + claims (region-aware). Gated via `pcs.market-explorer:view`.
+- [x] **`GET /api/pcs/caipb/benefit/[id]`** — benefit category + claims + ingredient aggregation (region-aware). Gated via `pcs.market-explorer:view`.
+- [x] **`GET /api/pcs/caipb/product/[id]`** — document + versions + formula lines + claims grouped by benefit category (region-aware). Gated via `pcs.market-explorer:view`.
+- [x] **`/research/pcs/caipb`** — hub page with ingredient / benefit / product pickers. Super-user-gated.
+- [x] **`/research/pcs/caipb/ingredient/[id]`** — forms+sources table, benefit categories panel, form usage % bar chart, product usage table with FM PLM#. Cross-links to benefit + product dashboards.
+- [x] **`/research/pcs/caipb/benefit/[id]`** — ingredients list + claims list, region filter, cross-links to ingredient dashboards.
+- [x] **`/research/pcs/caipb/product/[id]`** — claims grouped by benefit category, formula lines with FM PLM#, version history. Cross-links to ingredient + benefit dashboards.
+- [x] **Sidebar** — "CAIPB Dashboards" added to Marketing Intelligence ✦ group in `sidebar-items.js`.
+
+### PART 2 — Region-aware + Authority Regions Backfill Editor
+- [x] **`src/lib/pcs-claims.js` `updateClaim()`** — `authorityRegions` now writes `multi_select` to Notion; Postgres write path already worked via stub row.
+- [x] **`PATCH /api/pcs/claims/[id]`** — accepts + validates `authorityRegions` against `CLAIM_AUTHORITY_REGIONS`.
+- [x] **`AuthorityRegionsEditor`** — chip-toggle multi-select on claim detail page, gated to `canWrite` (researcher/ra/admin/super-user). Saves via PATCH.
+- [x] **Authority regions display** — chip row on claim detail (read-only for all viewers, edit chips for writers).
+
+### Tests
+- [x] **`tests/caipb.verify.mjs`** — 22 tests: form usage rollup, benefit category aggregation, region filtering, authorityRegions patch validation, cross-link integrity. All pass.
+- [x] **`verify:caipb`** added to `package.json`; `verify:all` extended.
+
+### Pending
+- [ ] **Push to Garrett for review**: `feat/caipb-dashboards`. **Do NOT push to main**.
+- [ ] **Data backfill**: `authority_regions` data is empty (schema only). Research team to populate via `AuthorityRegionsEditor` on claim detail pages.
+- [ ] **Update handoff doc** at `.brain/memory/handoff/2026-06-13-nordic-caipb.md`.
+
+---
+
 ## Nordic — Governance Persistence + Multi-region (2026-06-13) — feat/governance-persistence-and-multiregion
 
 Branch cut from `feat/budget-c-and-gates-preview`. Inherits all governance persistence wiring from that branch.

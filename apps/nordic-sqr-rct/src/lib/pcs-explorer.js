@@ -267,7 +267,7 @@ export async function queryByProduct(documentId, { region } = {}) {
   if (!doc) return [];
 
   // pcs document has a versions relation (array of version page IDs)
-  const versionIds = new Set(doc.versions || doc.pcsVersionIds || []);
+  const versionIds = new Set(doc.allVersionIds || []);
 
   const matching = claims.filter(claim =>
     claim.pcsVersionId && versionIds.has(claim.pcsVersionId)
