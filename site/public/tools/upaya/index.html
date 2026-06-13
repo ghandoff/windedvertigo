@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>upaya — toys meet thresholds</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--cadet:#273248;--redwood:#b15043;--sienna:#cb7858;--champagne:#ffebd2;--teal:#43b187;--surface:#1e2738}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--cadet);color:var(--champagne);line-height:1.6;letter-spacing:0.02em}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:10px 24px;background:rgba(39,50,72,0.95);backdrop-filter:blur(12px);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,235,210,0.06)}
+.nav-brand{font-size:13px;font-weight:600;color:var(--champagne)}
+.nav-brand span{color:var(--sienna)}
+.nav-phase{font-size:11px;color:rgba(255,235,210,0.4);letter-spacing:0.06em}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:100px 24px 60px}
+.hero-sanskrit{font-size:32px;color:var(--sienna);margin-bottom:8px;font-weight:300}
+.hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:300;line-height:1.15;margin-bottom:20px}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero-sub{font-size:16px;color:rgba(255,235,210,0.65);max-width:500px;line-height:1.7;font-weight:300}
+.hero-def{margin-top:32px;padding:20px 28px;background:var(--surface);border-radius:12px;border-left:3px solid var(--sienna);max-width:520px;text-align:left}
+.hero-def p{font-size:14px;color:rgba(255,235,210,0.7);font-weight:300;line-height:1.7}
+.hero-def strong{color:var(--champagne);font-weight:500}
+
+.section{padding:60px 24px;max-width:760px;margin:0 auto}
+.phase-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.phase-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.phase-label{font-size:11px;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,235,210,0.5)}
+.phase-title{font-size:clamp(1.3rem,3vw,1.8rem);font-weight:400;margin-bottom:12px}
+.phase-desc{font-size:15px;color:rgba(255,235,210,0.65);font-weight:300;max-width:600px;line-height:1.7;margin-bottom:20px}
+
+.timer-bar{display:flex;align-items:center;gap:12px;margin:24px 0;padding:14px 20px;background:var(--surface);border-radius:10px}
+.timer-display{font-size:28px;font-weight:300;font-variant-numeric:tabular-nums;min-width:70px}
+.timer-btns{display:flex;gap:8px}
+.timer-btn{padding:6px 16px;border:1px solid rgba(255,235,210,0.15);border-radius:999px;background:transparent;color:var(--champagne);font-size:12px;font-family:inherit;cursor:pointer;transition:all .2s}
+.timer-btn:hover{border-color:var(--teal);color:var(--teal)}
+.timer-btn.active{border-color:var(--teal);background:rgba(67,177,135,0.15);color:var(--teal)}
+.timer-label{font-size:12px;color:rgba(255,235,210,0.4);flex:1;text-align:right}
+
+.action-card{padding:20px;background:var(--surface);border-radius:12px;border:1px solid rgba(255,235,210,0.06);margin:16px 0}
+.action-card h4{font-size:13px;font-weight:500;color:var(--sienna);text-transform:lowercase;letter-spacing:0.04em;margin-bottom:8px}
+.action-card p{font-size:14px;color:rgba(255,235,210,0.7);font-weight:300;line-height:1.7}
+.action-card a{color:var(--teal);font-weight:500}
+
+.game-link{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border:1px solid var(--teal);border-radius:999px;color:var(--teal);font-size:14px;font-weight:500;text-decoration:none;transition:all .2s;margin:8px 4px}
+.game-link:hover{background:rgba(67,177,135,0.1);color:var(--teal)}
+
+.upaya-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:13px}
+.upaya-table th{text-align:left;padding:10px 14px;color:var(--sienna);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid rgba(255,235,210,0.1)}
+.upaya-table td{padding:10px 14px;border-bottom:1px solid rgba(255,235,210,0.04);color:rgba(255,235,210,0.7);font-weight:300}
+.upaya-table tr.highlight td{color:var(--champagne);font-weight:400}
+.upaya-table .form{color:var(--teal);font-weight:500}
+
+.mapping-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:2px;margin:20px 0;font-size:12px}
+.mapping-header{padding:10px;background:rgba(203,120,88,0.15);color:var(--sienna);font-weight:500;text-align:center;letter-spacing:0.04em}
+.mapping-cell{padding:12px 10px;background:var(--surface);min-height:60px;border:1px solid rgba(255,235,210,0.04);cursor:text;color:rgba(255,235,210,0.5);font-style:italic;font-size:12px;transition:border-color .2s}
+.mapping-cell:focus{outline:none;border-color:var(--sienna);color:var(--champagne);font-style:normal}
+
+.reflect-prompt{font-size:16px;color:rgba(255,235,210,0.6);font-style:italic;text-align:center;max-width:480px;margin:24px auto;line-height:1.7}
+
+.divider{width:40px;height:1px;background:rgba(255,235,210,0.1);margin:48px auto}
+
+.footer{padding:32px 24px;text-align:center;border-top:1px solid rgba(255,235,210,0.06);margin-top:60px}
+.footer p{font-size:11px;color:rgba(255,235,210,0.25)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">winded<span>.</span>vertigo</div>
+  <div class="nav-phase" id="navPhase">whirlpool · block 2 · toys meet thresholds</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-sanskrit">उपाय</div>
+  <h1>upaya meets <em>threshold</em></h1>
+  <p class="hero-sub">upaya (उपाय) — skillful means. a buddhist pedagogical principle: adapt the teaching to the learner. the right tool, at the right moment, for the right person. not a formula — a posture of responsiveness.</p>
+  <div class="hero-def">
+    <p><strong>our application:</strong> we've taken the principle of upaya and applied it to how we sequence toys and threshold concepts. the four pairings below are a winded.vertigo design framework <em>inspired by</em> upaya — not traditional buddhist categories. the tradition gives us the principle; the pairings are ours.</p>
+  </div>
+</section>
+
+<!-- ═══ ROUND 1: PRIMER ═══ -->
+<section class="section" id="round1">
+  <div class="phase-header">
+    <div class="phase-dot" style="background:var(--sienna)"></div>
+    <div class="phase-label">round 1 · 12 min</div>
+  </div>
+  <div class="phase-title">the primer — toy first, threshold after</div>
+  <p class="phase-desc">the toy builds intuition before the concept lands. you play before you think. the body arrives ready.</p>
+
+  <div class="action-card">
+    <h4>step 1 · play the toy (3 min)</h4>
+    <p>open rhythm.lab on your device. no instructions. just make a beat. toggle cells. move the tempo slider. feel it.</p>
+  </div>
+  <a href="https://windedvertigo.com/harbour/rhythm-lab" target="_blank" class="game-link">open rhythm.lab toy ↗</a>
+
+  <div id="timer1" class="timer-bar">
+    <div class="timer-display" id="timer1display">3:00</div>
+    <div class="timer-btns">
+      <button class="timer-btn" onclick="startTimer('timer1display',180)">start</button>
+      <button class="timer-btn" onclick="stopTimer()">stop</button>
+    </div>
+    <div class="timer-label">make a beat</div>
+  </div>
+
+  <div class="action-card">
+    <h4>pause · one word (1 min)</h4>
+    <p>what did you just learn? what do you know now that you didn't before you started tapping?</p>
+  </div>
+
+  <div class="action-card">
+    <h4>step 2 · cross the threshold (5 min)</h4>
+    <p>now open raft.house → music → rhythm.lab. start a session. this time you're not building a pattern — you're performing, layering, subdividing, finding a groove <em>together</em>.</p>
+  </div>
+  <a href="https://windedvertigo.com/harbour/raft-house" target="_blank" class="game-link">open raft.house ↗</a>
+
+  <div id="timer2" class="timer-bar">
+    <div class="timer-display" id="timer2display">5:00</div>
+    <div class="timer-btns">
+      <button class="timer-btn" onclick="startTimer('timer2display',300)">start</button>
+      <button class="timer-btn" onclick="stopTimer()">stop</button>
+    </div>
+    <div class="timer-label">cross the threshold</div>
+  </div>
+
+  <p class="reflect-prompt">how was that different? did the toy prepare you for the threshold? what did your body know from the grid that your mind used in the jam?</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ THE REVEAL ═══ -->
+<section class="section" id="reveal">
+  <div class="phase-header">
+    <div class="phase-dot" style="background:var(--teal)"></div>
+    <div class="phase-label">the reveal · 2 min</div>
+  </div>
+  <div class="phase-title">four pairings, one principle</div>
+  <p class="phase-desc">we just experienced the primer. upaya says: adapt the means to the moment. we've identified four ways to pair toys with threshold concepts — our design vocabulary for that adaptation.</p>
+
+  <table class="upaya-table">
+    <thead>
+      <tr><th>upaya</th><th>form</th><th>when</th><th>what it does</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight"><td class="form">primer</td><td>toy → threshold</td><td>before</td><td>builds intuition. the body arrives ready.</td></tr>
+      <tr><td class="form">debrief</td><td>threshold → toy</td><td>after</td><td>processes the struggle through play. makes the abstract concrete.</td></tr>
+      <tr><td class="form">embedded</td><td>toy = threshold</td><td>during</td><td>the play IS the concept. no separation.</td></tr>
+      <tr><td class="form">curiosity funnel</td><td>toy → … → threshold</td><td>anytime</td><td>start playing, discover the concept without being told.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ ROUND 2: DEBRIEF ═══ -->
+<section class="section" id="round2">
+  <div class="phase-header">
+    <div class="phase-dot" style="background:var(--redwood)"></div>
+    <div class="phase-label">round 2 · 8 min</div>
+  </div>
+  <div class="phase-title">the debrief — threshold first, toy after</div>
+  <p class="phase-desc">the toy processes what just happened. you think before you play. the hands make sense of what the mind just crossed.</p>
+
+  <div class="action-card">
+    <h4>step 1 · cross first (4 min)</h4>
+    <p>back to raft.house rhythm.lab. fresh session. no warm-up. jump in. layer. subdivide. groove. feel individual contributions becoming emergent rhythm.</p>
+  </div>
+  <a href="https://windedvertigo.com/harbour/raft-house" target="_blank" class="game-link">open raft.house ↗</a>
+
+  <div id="timer3" class="timer-bar">
+    <div class="timer-display" id="timer3display">4:00</div>
+    <div class="timer-btns">
+      <button class="timer-btn" onclick="startTimer('timer3display',240)">start</button>
+      <button class="timer-btn" onclick="stopTimer()">stop</button>
+    </div>
+    <div class="timer-label">threshold first</div>
+  </div>
+
+  <div class="action-card">
+    <h4>step 2 · debrief with the toy (4 min)</h4>
+    <p>back to the <a href="https://windedvertigo.com/harbour/rhythm-lab" target="_blank">rhythm.lab grid</a>. same 4×4. but this time, use it to <em>debrief</em> — reconstruct what the group just created. lay out the pattern you heard. the grid becomes a reflection tool, not a creation tool.</p>
+  </div>
+  <a href="https://windedvertigo.com/harbour/rhythm-lab" target="_blank" class="game-link">open rhythm.lab toy ↗</a>
+
+  <div id="timer4" class="timer-bar">
+    <div class="timer-display" id="timer4display">4:00</div>
+    <div class="timer-btns">
+      <button class="timer-btn" onclick="startTimer('timer4display',240)">start</button>
+      <button class="timer-btn" onclick="stopTimer()">stop</button>
+    </div>
+    <div class="timer-label">debrief through the toy</div>
+  </div>
+
+  <p class="reflect-prompt">what's different about using the toy to process vs using it to create? how does the order change what you hear?</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══ MAPPING ═══ -->
+<section class="section" id="mapping">
+  <div class="phase-header">
+    <div class="phase-dot" style="background:var(--champagne)"></div>
+    <div class="phase-label">close · 5 min</div>
+  </div>
+  <div class="phase-title">mapping the harbour</div>
+  <p class="phase-desc">now that we've felt two forms of upaya in our bodies: which harbour apps are toys? which are threshold experiences? and which pairings should we be designing?</p>
+
+  <div class="mapping-grid">
+    <div class="mapping-header">threshold</div>
+    <div class="mapping-header">toy pairing</div>
+    <div class="mapping-header">upaya</div>
+    <div class="mapping-header">why</div>
+
+    <div class="mapping-cell" contenteditable="true" data-placeholder="bias.lens">bias.lens</div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="creaseworks?">creaseworks?</div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="embedded">embedded</div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="fold-unfold IS the bias reveal">fold-unfold IS the bias reveal</div>
+
+    <div class="mapping-cell" contenteditable="true" data-placeholder="rhythm.lab">rhythm.lab</div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="rhythm.lab toy">rhythm.lab toy</div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="primer">primer</div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="we just felt this">we just felt this</div>
+
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+    <div class="mapping-cell" contenteditable="true" data-placeholder="…"></div>
+  </div>
+
+  <p class="reflect-prompt">we don't need to fill every row. we need the team to feel that the sequence matters — that upaya is the design principle, not the individual app.</p>
+</section>
+
+<footer class="footer">
+  <p>winded.vertigo · whirlpool block 2 · 03 june 2026 · upaya: skillful means</p>
+</footer>
+
+<script>
+let timerInterval;
+function startTimer(displayId, seconds) {
+  stopTimer();
+  let remaining = seconds;
+  const display = document.getElementById(displayId);
+  function update() {
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    display.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    if (remaining <= 0) { stopTimer(); display.style.color = '#43b187'; }
+    remaining--;
+  }
+  update();
+  timerInterval = setInterval(update, 1000);
+}
+function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+</script>
+</body>
+</html>

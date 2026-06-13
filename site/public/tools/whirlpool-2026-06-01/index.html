@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>whirlpool — 01 june 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--cadet:#273248;--redwood:#b15043;--sienna:#cb7858;
+--champagne:#ffebd2;--teal:#43b187;--white:#ffffff;
+--surface:#1e2738;--crease:#cb7858;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--cadet);color:var(--champagne);line-height:1.6;letter-spacing:0.02em;overflow-x:hidden}
+a{color:#93c5fd;text-decoration:none;transition:color .2s}
+a:hover{color:var(--champagne)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+
+/* ── nav ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:12px 24px;background:rgba(39,50,72,0.92);backdrop-filter:blur(12px);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,235,210,0.08)}
+.nav-brand{font-size:14px;font-weight:700;color:var(--white);letter-spacing:-0.01em}
+.nav-brand span{color:var(--sienna)}
+.nav-links{display:flex;gap:20px}
+.nav-links a{font-size:12px;font-weight:500;color:rgba(255,235,210,0.7);text-transform:lowercase;letter-spacing:0.05em}
+.nav-links a:hover{color:var(--champagne)}
+@media(max-width:640px){.nav-links{display:none}}
+
+/* ── hero ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 30% 20%,rgba(67,177,135,0.08) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(203,120,88,0.06) 0%,transparent 50%)}
+.hero-label{font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,235,210,0.5);margin-bottom:16px;position:relative}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:300;line-height:1.1;margin-bottom:24px;position:relative}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero-sub{font-size:18px;color:rgba(255,235,210,0.7);max-width:520px;line-height:1.7;position:relative;font-weight:300}
+.hero-date{margin-top:40px;font-size:13px;color:rgba(255,235,210,0.4);letter-spacing:0.08em;position:relative}
+
+/* ── wave divider ── */
+.wave{width:100%;height:80px;position:relative;overflow:hidden}
+.wave svg{position:absolute;bottom:0;width:100%;height:80px}
+
+/* ── sections ── */
+.section{padding:80px 24px;max-width:800px;margin:0 auto}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:var(--sienna);margin-bottom:12px}
+.section h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:400;margin-bottom:16px;line-height:1.3}
+.section p{color:rgba(255,235,210,0.75);font-weight:300;margin-bottom:16px}
+.section-divider{width:40px;height:1px;background:rgba(255,235,210,0.15);margin:60px auto}
+
+/* ── breathing circle ── */
+.breathe-container{display:flex;flex-direction:column;align-items:center;gap:24px;padding:48px 0}
+.breathe-ring{width:180px;height:180px;border-radius:50%;border:2px solid rgba(67,177,135,0.3);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:border-color .3s}
+.breathe-ring.active{border-color:var(--teal)}
+.breathe-dot{width:12px;height:12px;border-radius:50%;background:var(--teal);transition:transform 4s ease-in-out,opacity 4s ease-in-out}
+.breathe-ring.inhale .breathe-dot{transform:scale(10);opacity:0.15}
+.breathe-ring.exhale .breathe-dot{transform:scale(1);opacity:1}
+.breathe-label{font-size:14px;color:rgba(255,235,210,0.5);min-height:20px;transition:opacity .5s}
+.breathe-prompt{font-size:15px;color:rgba(255,235,210,0.6);font-style:italic;text-align:center;max-width:400px}
+.breathe-btn{padding:10px 28px;border:1px solid rgba(255,235,210,0.2);border-radius:999px;background:transparent;color:var(--champagne);font-size:13px;font-family:inherit;cursor:pointer;letter-spacing:0.04em;transition:all .2s}
+.breathe-btn:hover{border-color:var(--teal);color:var(--teal)}
+
+/* ── team cards ── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:32px 0}
+.team-card{background:var(--surface);border:1px solid rgba(255,235,210,0.06);border-radius:12px;padding:20px;transition:border-color .2s}
+.team-card:hover{border-color:rgba(67,177,135,0.3)}
+.team-name{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--champagne)}
+.team-role{font-size:12px;color:rgba(255,235,210,0.5);text-transform:lowercase;letter-spacing:0.04em;margin-bottom:10px}
+.team-desc{font-size:13px;color:rgba(255,235,210,0.6);line-height:1.6;font-weight:300}
+
+/* ── harbour grid ── */
+.harbour-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:32px 0}
+.harbour-tile{background:var(--surface);border:1px solid rgba(255,235,210,0.06);border-radius:10px;padding:16px;text-align:center;transition:all .25s;cursor:pointer;text-decoration:none;display:block;position:relative;overflow:hidden}
+.harbour-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;opacity:0.7}
+.harbour-tile:hover{border-color:rgba(255,235,210,0.15);transform:translateY(-2px)}
+.harbour-tile .app-name{font-size:14px;font-weight:500;color:var(--champagne);margin-bottom:4px}
+.harbour-tile .app-tag{font-size:11px;color:rgba(255,235,210,0.45);letter-spacing:0.03em}
+
+/* ── creaseworks interactive ── */
+.crease-container{margin:32px 0}
+.crease-phases{display:flex;gap:4px;margin-bottom:24px}
+.crease-phase{flex:1;padding:10px;text-align:center;font-size:12px;font-weight:500;letter-spacing:0.04em;border-radius:8px;background:var(--surface);color:rgba(255,235,210,0.4);cursor:pointer;border:1px solid transparent;transition:all .3s}
+.crease-phase.active{color:var(--champagne);border-color:var(--crease);background:rgba(203,120,88,0.1)}
+.crease-phase.completed{color:var(--teal);border-color:rgba(67,177,135,0.3)}
+.crease-stage{min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px}
+.crease-stage h3{font-size:20px;font-weight:400}
+.crease-stage p{font-size:14px;color:rgba(255,235,210,0.6);text-align:center;max-width:460px;line-height:1.7;font-weight:300}
+.crease-textarea{width:100%;max-width:500px;min-height:120px;background:var(--surface);border:1px solid rgba(255,235,210,0.1);border-radius:10px;padding:16px;color:var(--champagne);font-family:inherit;font-size:14px;line-height:1.7;resize:vertical;letter-spacing:0.02em}
+.crease-textarea:focus{outline:none;border-color:var(--crease)}
+.crease-textarea::placeholder{color:rgba(255,235,210,0.25)}
+.crease-next{padding:12px 32px;border:1px solid var(--crease);border-radius:999px;background:transparent;color:var(--crease);font-size:13px;font-family:inherit;cursor:pointer;letter-spacing:0.04em;transition:all .2s;margin-top:8px}
+.crease-next:hover{background:var(--crease);color:var(--cadet)}
+.crease-fold-visual{width:100%;max-width:400px;height:120px;position:relative;perspective:800px;margin:8px 0}
+.crease-paper{width:100%;height:100%;background:var(--surface);border:1px solid rgba(203,120,88,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;padding:16px;font-size:13px;color:rgba(255,235,210,0.5);font-style:italic;transition:transform 1.5s ease-in-out;transform-origin:center center;text-align:center;line-height:1.5}
+.crease-paper.folded{transform:rotateX(85deg) scaleY(0.15);opacity:0.6}
+.crease-paper.unfolded{transform:rotateX(0deg) scaleY(1);opacity:1}
+
+/* ── narrative arc ── */
+.arc-steps{display:flex;flex-direction:column;gap:12px;margin:32px 0}
+.arc-step{display:flex;align-items:flex-start;gap:16px;padding:16px;background:var(--surface);border-radius:10px;border:1px solid rgba(255,235,210,0.04)}
+.arc-num{width:28px;height:28px;border-radius:50%;border:1px solid rgba(67,177,135,0.4);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--teal);flex-shrink:0;margin-top:2px}
+.arc-text{font-size:14px;color:rgba(255,235,210,0.7);font-weight:300;line-height:1.6}
+.arc-text strong{color:var(--champagne);font-weight:500}
+
+/* ── footer ── */
+.footer{padding:40px 24px;text-align:center;border-top:1px solid rgba(255,235,210,0.06);margin-top:80px}
+.footer p{font-size:12px;color:rgba(255,235,210,0.3)}
+
+/* ── scroll reveal ── */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="https://windedvertigo.com" class="nav-brand">winded<span>.</span>vertigo</a>
+  <div class="nav-links">
+    <a href="#breathe">breathe</a>
+    <a href="#honour">honour</a>
+    <a href="#harbour">harbour</a>
+    <a href="#creaseworks">creaseworks</a>
+    <a href="#arc">look ahead</a>
+  </div>
+</nav>
+
+<!-- ════════════ HERO ════════════ -->
+<section class="hero">
+  <div class="hero-label">whirlpool — celebration edition</div>
+  <h1>we <em>landed</em>.</h1>
+  <p class="hero-sub">five weeks. five sessions. 250+ educators. one harbour in the water. today we celebrate — and we play.</p>
+  <div class="hero-date">monday, 01 june 2026 · 9–10:30am PT</div>
+</section>
+
+<!-- ════════════ BREATHE ════════════ -->
+<section class="section" id="breathe">
+  <div class="reveal">
+    <div class="section-label">opening · 5 min</div>
+    <h2>breathe.</h2>
+    <p>no agenda review. no updates. just arrive. take a breath together, then share one word for how you feel now that the series is over and the harbour is in the water.</p>
+  </div>
+  <div class="breathe-container reveal">
+    <div class="breathe-ring" id="breatheRing" onclick="toggleBreathe()">
+      <div class="breathe-dot" id="breatheDot"></div>
+    </div>
+    <div class="breathe-label" id="breatheLabel">tap to begin</div>
+    <button class="breathe-btn" onclick="toggleBreathe()" id="breatheBtn">begin breathing</button>
+  </div>
+  <div class="section-divider"></div>
+</section>
+
+<!-- ════════════ HONOUR ════════════ -->
+<section class="section" id="honour">
+  <div class="reveal">
+    <div class="section-label">honouring the series · 15 min</div>
+    <h2>every person shaped this.</h2>
+    <p>the PRME pedagogy certificate series 2026 was a team effort. before we look at anything on screen, let's name what each person brought.</p>
+  </div>
+  <div class="team-grid reveal">
+    <div class="team-card">
+      <div class="team-name">maria</div>
+      <div class="team-role">curriculum architect</div>
+      <div class="team-desc">designed the entire pedagogical architecture. five sessions of facilitation guides, activities, miro boards, the regenerative practices catalogue. held the educational integrity from first draft to final session.</div>
+    </div>
+    <div class="team-card">
+      <div class="team-name">jamie</div>
+      <div class="team-role">narrative spine</div>
+      <div class="team-desc">gave us the arc that held everything together — from naming reality to becoming the movement. that arc is now the framework for our final report. the intellectual spine of what we built.</div>
+    </div>
+    <div class="team-card">
+      <div class="team-name">lamis</div>
+      <div class="team-role">storyteller</div>
+      <div class="team-desc">came into the sessions, felt the room, and brought the storytelling lens we'll need for the report and comms. an eye for narrative in real time none of us can replicate.</div>
+    </div>
+    <div class="team-card">
+      <div class="team-name">payton</div>
+      <div class="team-role">visual identity</div>
+      <div class="team-desc">the graphics, the harbour identity, the polish packets, the lines.become.loops refinements. made everything look like winded.vertigo. the brand is alive because of you.</div>
+    </div>
+    <div class="team-card">
+      <div class="team-name">garrett</div>
+      <div class="team-role">platform + tools</div>
+      <div class="team-desc">the apps, the platform, the harbour infrastructure, the AI tools participants used live. it worked. it held.</div>
+    </div>
+    <div class="team-card">
+      <div class="team-name">aaron + marietta</div>
+      <div class="team-role">support + presence</div>
+      <div class="team-desc">illustrations, technical support, presence. you showed up.</div>
+    </div>
+  </div>
+  <p class="reveal" style="font-style:italic;color:rgba(255,235,210,0.5);text-align:center;font-size:14px;margin-top:16px">what did someone else contribute that hasn't been named?</p>
+  <div class="section-divider"></div>
+</section>
+
+<!-- ════════════ HARBOUR ════════════ -->
+<section class="section" id="harbour">
+  <div class="reveal">
+    <div class="section-label">harbour show & tell · 15 min</div>
+    <h2>it's in the water.</h2>
+    <p>the harbour launched on may 28. this is the first time the whole team sees the platform together. browse the piers. see what shipped. celebrate what's real.</p>
+  </div>
+  <div class="harbour-grid reveal" id="harbourGrid"></div>
+  <div style="text-align:center;margin-top:24px" class="reveal">
+    <a href="https://windedvertigo.com/harbour" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border:1px solid var(--teal);border-radius:999px;color:var(--teal);font-size:14px;font-weight:500;letter-spacing:0.03em;transition:all .2s">
+      open the harbour ↗
+    </a>
+  </div>
+  <div class="section-divider"></div>
+</section>
+
+<!-- ════════════ CREASEWORKS ════════════ -->
+<section class="section" id="creaseworks">
+  <div class="reveal">
+    <div class="section-label">creaseworks · 25 min</div>
+    <h2>find. fold. unfold. find again.</h2>
+    <p>we play. together. on screen. write a raw thought from the series — a memory, a moment that surprised you. then crease it. compress. unfold. see what emerged.</p>
+  </div>
+  <div class="crease-container reveal">
+    <div class="crease-phases">
+      <div class="crease-phase active" data-phase="0">find</div>
+      <div class="crease-phase" data-phase="1">fold</div>
+      <div class="crease-phase" data-phase="2">unfold</div>
+      <div class="crease-phase" data-phase="3">find again</div>
+    </div>
+    <div id="creaseStage" class="crease-stage">
+      <!-- populated by JS -->
+    </div>
+  </div>
+  <div class="section-divider"></div>
+</section>
+
+<!-- ════════════ NARRATIVE ARC ════════════ -->
+<section class="section" id="arc">
+  <div class="reveal">
+    <div class="section-label">look ahead · 10 min</div>
+    <h2>the final report.</h2>
+    <p>two weeks left on the PRME 2026 contract. the big remaining deliverable: a report that tells PRME what happened, what we learned, and what it means. the framework is jamie's narrative arc.</p>
+  </div>
+  <div class="arc-steps reveal">
+    <div class="arc-step">
+      <div class="arc-num">1</div>
+      <div class="arc-text"><strong>naming the reality</strong> — why business education must transform</div>
+    </div>
+    <div class="arc-step">
+      <div class="arc-num">2</div>
+      <div class="arc-text"><strong>what's possible</strong> — the pedagogy of play, the invitation</div>
+    </div>
+    <div class="arc-step">
+      <div class="arc-num">3</div>
+      <div class="arc-text"><strong>why PRME, why play</strong> — the partnership thesis</div>
+    </div>
+    <div class="arc-step">
+      <div class="arc-num">4</div>
+      <div class="arc-text"><strong>revealing biases</strong> — what happened when faculty hit the curriculum</div>
+    </div>
+    <div class="arc-step">
+      <div class="arc-num">5</div>
+      <div class="arc-text"><strong>shifting culture</strong> — permission and justification for institutional change</div>
+    </div>
+    <div class="arc-step">
+      <div class="arc-num">6</div>
+      <div class="arc-text"><strong>field-level change</strong> — from individual sessions to systemic patterns</div>
+    </div>
+    <div class="arc-step">
+      <div class="arc-num">7</div>
+      <div class="arc-text"><strong>becoming the movement</strong> — participants as leaders, not recipients</div>
+    </div>
+  </div>
+  <p class="reveal" style="font-size:14px;color:rgba(255,235,210,0.5);text-align:center;margin-top:16px">draft before PRME global forum · late june 2026</p>
+  <div class="section-divider"></div>
+</section>
+
+<!-- ════════════ CLOSING BREATHE ════════════ -->
+<section class="section" id="close">
+  <div class="reveal">
+    <div class="section-label">closing · 5 min</div>
+    <h2>one more breath.</h2>
+    <p class="breathe-prompt">what's one thing you want to carry forward from PPCS into whatever comes next?</p>
+  </div>
+  <div class="breathe-container reveal">
+    <div class="breathe-ring" id="breatheRing2" onclick="toggleBreathe2()">
+      <div class="breathe-dot" id="breatheDot2"></div>
+    </div>
+    <div class="breathe-label" id="breatheLabel2">tap to begin</div>
+  </div>
+  <p class="reveal" style="font-size:14px;color:rgba(255,235,210,0.4);text-align:center;margin-top:32px;font-style:italic">go around. no discussion. just listen. end on time. honour the landing.</p>
+</section>
+
+<footer class="footer">
+  <p>winded.vertigo · whirlpool 01 june 2026 · built with care by garrett + claude</p>
+</footer>
+
+<script>
+// ── harbour grid ──
+const apps = [
+  {name:"vertigo.vault",tag:"learning activities",accent:"#43b187",href:"/harbour/vertigo-vault"},
+  {name:"crease.works",tag:"creative playdates",accent:"#cb7858",href:"/harbour/creaseworks"},
+  {name:"lines.become.loops",tag:"systems thinking",accent:"#6ee7b7",href:"/harbour/lines-become-loops"},
+  {name:"depth.chart",tag:"assessment generator",accent:"#7dd3fc",href:"/harbour/depth-chart"},
+  {name:"values.auction",tag:"live values game",accent:"#fbbf24",href:"/harbour/values-companion"},
+  {name:"co.rubric",tag:"rubric co-design",accent:"#93c5fd",href:"/harbour/co-rubric-companion"},
+  {name:"regenerative.library",tag:"open practice library",accent:"#a8c97c",href:"/harbour/regenerative-practices-catalogue"},
+  {name:"read.the.room",tag:"a quiet game of interpretation",accent:"#c084fc",href:"/harbour/read-the-room"},
+  {name:"cuts.catalogue",tag:"editorial pacing tool",accent:"#fb923c",href:"/harbour/cuts-catalogue"},
+  {name:"deep.deck",tag:"conversation cards",accent:"#fcd34d",href:"/harbour/deep-deck"},
+  {name:"raft.house",tag:"group learning",accent:"#58cbb2",href:"/harbour/raft-house"},
+  {name:"mirror.log",tag:"reflection journal",accent:"#d5d2ff",href:"/harbour/mirror-log"},
+];
+const grid=document.getElementById('harbourGrid');
+apps.forEach(a=>{
+  const el=document.createElement('a');
+  el.className='harbour-tile';
+  el.href='https://windedvertigo.com'+a.href;
+  el.target='_blank';
+  el.style.cssText=`--tile-accent:${a.accent}`;
+  el.innerHTML=`<div style="position:absolute;top:0;left:0;right:0;height:3px;background:${a.accent};opacity:0.7"></div><div class="app-name">${a.name}</div><div class="app-tag">${a.tag}</div>`;
+  grid.appendChild(el);
+});
+
+// ── breathing ──
+let breathing1=false,breathTimer1;
+function toggleBreathe(){
+  const ring=document.getElementById('breatheRing');
+  const label=document.getElementById('breatheLabel');
+  const btn=document.getElementById('breatheBtn');
+  if(breathing1){breathing1=false;clearInterval(breathTimer1);ring.className='breathe-ring';label.textContent='tap to begin';btn.textContent='begin breathing';return}
+  breathing1=true;btn.textContent='stop';ring.classList.add('active');
+  let inhaling=true;
+  function cycle(){
+    if(!breathing1)return;
+    ring.classList.toggle('inhale',inhaling);ring.classList.toggle('exhale',!inhaling);
+    label.textContent=inhaling?'breathe in…':'breathe out…';
+    inhaling=!inhaling;
+  }
+  cycle();breathTimer1=setInterval(cycle,4000);
+}
+let breathing2=false,breathTimer2;
+function toggleBreathe2(){
+  const ring=document.getElementById('breatheRing2');
+  const label=document.getElementById('breatheLabel2');
+  if(breathing2){breathing2=false;clearInterval(breathTimer2);ring.className='breathe-ring';label.textContent='tap to begin';return}
+  breathing2=true;ring.classList.add('active');
+  let inhaling=true;
+  function cycle(){
+    if(!breathing2)return;
+    ring.classList.toggle('inhale',inhaling);ring.classList.toggle('exhale',!inhaling);
+    label.textContent=inhaling?'breathe in…':'breathe out…';
+    inhaling=!inhaling;
+  }
+  cycle();breathTimer2=setInterval(cycle,4000);
+}
+
+// ── creaseworks ──
+const phases=[
+  {title:'find',desc:'write a raw thought. a memory from the series, a moment that surprised you. just get it down.',placeholder:'a moment, a memory, a surprise…',hasInput:true,timer:'3 min'},
+  {title:'fold',desc:'crease it. compress. what\'s the essential tension or insight hiding inside what you wrote?',placeholder:'the essential tension…',hasInput:true,timer:'5 min',showFold:true},
+  {title:'unfold',desc:'open it back up. what changed? what do you see now that you didn\'t see before the fold? share with the group.',placeholder:'what emerged from the crease…',hasInput:true,timer:'7 min',showUnfold:true},
+  {title:'find again',desc:'the second finding. what emerged from the crease that wasn\'t there before? name one thing.',placeholder:'one thing that wasn\'t there before…',hasInput:true,timer:'5 min'}
+];
+let currentPhase=0;
+const texts=['','','',''];
+function renderPhase(){
+  const p=phases[currentPhase];
+  const stage=document.getElementById('creaseStage');
+  document.querySelectorAll('.crease-phase').forEach((el,i)=>{
+    el.classList.toggle('active',i===currentPhase);
+    el.classList.toggle('completed',i<currentPhase);
+  });
+  let html=`<h3>${p.title}.</h3><p>${p.desc}</p>`;
+  if(p.showFold)html+=`<div class="crease-fold-visual"><div class="crease-paper folded" id="creasePaper">${texts[0]?'"'+texts[0].substring(0,60)+'…"':'your words are folding…'}</div></div>`;
+  if(p.showUnfold)html+=`<div class="crease-fold-visual"><div class="crease-paper unfolded" id="creasePaper">${texts[1]?'"'+texts[1]+'"':'the crease opens…'}</div></div>`;
+  if(p.hasInput)html+=`<textarea class="crease-textarea" placeholder="${p.placeholder}" oninput="texts[${currentPhase}]=this.value">${texts[currentPhase]}</textarea>`;
+  html+=`<div style="display:flex;align-items:center;gap:16px;margin-top:8px">`;
+  html+=`<span style="font-size:12px;color:rgba(255,235,210,0.3)">${p.timer}</span>`;
+  if(currentPhase<3)html+=`<button class="crease-next" onclick="nextPhase()">next →</button>`;
+  else html+=`<button class="crease-next" onclick="nextPhase()" style="border-color:var(--teal);color:var(--teal)">complete ✓</button>`;
+  html+=`</div>`;
+  stage.innerHTML=html;
+}
+function nextPhase(){
+  if(currentPhase<3){currentPhase++;renderPhase()}
+  else{
+    const stage=document.getElementById('creaseStage');
+    stage.innerHTML=`<h3 style="color:var(--teal)">the crease is yours.</h3><p>look at what you found. look at what you folded. look at what emerged.</p><p style="font-style:italic;color:rgba(255,235,210,0.4)">the visual artefact of the fold itself is part of the experience.</p><button class="crease-next" onclick="currentPhase=0;renderPhase()" style="margin-top:12px">start over</button>`;
+  }
+}
+renderPhase();
+
+// ── scroll reveal ──
+const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
