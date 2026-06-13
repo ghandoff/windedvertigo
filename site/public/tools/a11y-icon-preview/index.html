@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>accessibility icon preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cadet: #273248;
+    --champagne: #ffebd2;
+    --redwood: #b15043;
+    --sienna: #cb7858;
+  }
+  body {
+    background: var(--cadet);
+    color: var(--champagne);
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 40px 24px 60px;
+  }
+  h1 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: lowercase;
+    color: rgba(255,235,210,.35);
+    margin-bottom: 28px;
+  }
+  .variants {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    width: 100%;
+    max-width: 580px;
+  }
+  /* ── simulated page slice ── */
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .page-slice {
+    position: relative;
+    width: 140px;
+    height: 90px;
+    background: #1d2636;
+    border-radius: 8px;
+    overflow: visible; /* let the tab peek out */
+    flex-shrink: 0;
+    border: 1px solid rgba(255,235,210,.07);
+  }
+  /* fake content */
+  .page-slice::before {
+    content: "";
+    position: absolute;
+    top: 14px; left: 28px; right: 14px; height: 5px;
+    background: rgba(255,235,210,.1);
+    border-radius: 3px;
+  }
+  .page-slice::after {
+    content: "";
+    position: absolute;
+    top: 26px; left: 28px; right: 36px; height: 3px;
+    background: rgba(255,235,210,.06);
+    border-radius: 2px;
+    box-shadow: 0 9px 0 rgba(255,235,210,.05), 0 18px 0 rgba(255,235,210,.07);
+  }
+  /* ── base trigger shape ── */
+  .trigger {
+    position: absolute;
+    left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 32px; height: 36px;
+    background: var(--cadet);
+    border: 1px solid rgba(255,235,210,.2);
+    border-left: none;
+    border-radius: 0 9px 9px 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 3px 0 14px rgba(0,0,0,.35);
+  }
+  .trigger svg { display: block; }
+
+  /* ── label ── */
+  .label { flex: 1; }
+  .label-name {
+    font-size: .875rem; font-weight: 700;
+    color: var(--champagne);
+    text-transform: lowercase;
+    margin-bottom: 3px;
+  }
+  .label-source {
+    font-size: .7rem; font-weight: 500;
+    letter-spacing: .04em;
+    color: rgba(255,235,210,.4);
+    text-transform: lowercase;
+    margin-bottom: 5px;
+  }
+  .label-desc {
+    font-size: .75rem;
+    color: rgba(255,235,210,.5);
+    line-height: 1.55;
+    text-transform: lowercase;
+  }
+
+  /* ── divider + section ── */
+  .divider {
+    width: 100%; max-width: 580px;
+    height: 1px;
+    background: rgba(255,235,210,.07);
+    margin: 32px 0 24px;
+  }
+  .section {
+    font-size: .65rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: lowercase;
+    color: rgba(255,235,210,.28);
+    align-self: flex-start;
+    max-width: 580px; width: 100%;
+    margin-bottom: 24px;
+  }
+
+  /* ── zoom row ── */
+  .zoom-row {
+    display: flex; gap: 16px;
+    align-items: flex-end;
+    width: 100%; max-width: 580px;
+    flex-wrap: wrap;
+  }
+  .zoom-tile {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+  }
+  .zoom-btn {
+    width: 52px; height: 52px;
+    background: var(--cadet);
+    border: 1px solid rgba(255,235,210,.18);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: box-shadow .15s;
+  }
+  .zoom-btn:hover { box-shadow: 0 0 0 2px var(--champagne); }
+  .zoom-label {
+    font-size: .6rem; letter-spacing: .06em;
+    text-transform: lowercase;
+    color: rgba(255,235,210,.35);
+    text-align: center;
+    max-width: 60px;
+    line-height: 1.3;
+  }
+</style>
+</head>
+<body>
+
+<h1>accessibility icon — standard icon library comparison</h1>
+
+<div class="variants">
+
+  <!-- ── 0. CURRENT ────────────────────────────────── -->
+  <div class="row">
+    <div class="page-slice">
+      <div class="trigger">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10.5" stroke="#ffebd2" stroke-width="1.5" opacity=".65"/>
+          <circle cx="12" cy="6.5" r="1.5" fill="#ffebd2" opacity=".65"/>
+          <path d="M9 10.5h6" stroke="#ffebd2" stroke-width="1.5" stroke-linecap="round" opacity=".65"/>
+          <path d="M12 10.5v4" stroke="#ffebd2" stroke-width="1.5" stroke-linecap="round" opacity=".65"/>
+          <path d="M10 14.5l-1.5 3M14 14.5l1.5 3" stroke="#ffebd2" stroke-width="1.5" stroke-linecap="round" opacity=".65"/>
+        </svg>
+      </div>
+    </div>
+    <div class="label">
+      <div class="label-name">current</div>
+      <div class="label-source">bespoke · thin-line sketch</div>
+      <div class="label-desc">1.5px strokes, 65% opacity circle outline. sketchy, small.</div>
+    </div>
+  </div>
+
+  <!-- ── 1. FA Universal Access ────────────────────── -->
+  <div class="row">
+    <div class="page-slice">
+      <div class="trigger">
+        <!-- FA fa-universal-access: full icon including ring, in champagne -->
+        <svg width="22" height="22" viewBox="0 0 512 512">
+          <path fill="#ffebd2" d="
+            M256 48c114.953 0 208 93.029 208 208 0 114.953-93.029 208-208 208-114.953 0-208-93.029-208-208
+            0-114.953 93.029-208 208-208m0-40C119.033 8 8 119.033 8 256s111.033 248 248 248
+            248-111.033 248-248S392.967 8 256 8zm0 56C149.961 64 64 149.961 64 256s85.961 192 192 192
+            192-85.961 192-192S362.039 64 256 64zm0 44c19.882 0 36 16.118 36 36s-16.118 36-36 36
+            -36-16.118-36-36 16.118-36 36-36zm117.741 98.023
+            c-28.712 6.779-55.511 12.748-82.14 15.807.851 101.023 12.306 123.052 25.037 155.621
+            3.617 9.26-.957 19.698-10.217 23.315-9.261 3.617-19.699-.957-23.316-10.217
+            -8.705-22.308-17.086-40.636-22.261-78.549h-9.686c-5.167 37.851-13.534 56.208-22.262 78.549
+            -3.615 9.255-14.05 13.836-23.315 10.217-9.26-3.617-13.834-14.056-10.217-23.315
+            12.713-32.541 24.185-54.541 25.037-155.621-26.629-3.058-53.428-9.027-82.141-15.807
+            -8.6-2.031-13.926-10.648-11.895-19.249s10.647-13.926 19.249-11.895
+            c96.686 22.829 124.283 22.783 220.775 0 8.599-2.03 17.218 3.294 19.249 11.895
+            2.029 8.601-3.297 17.219-11.897 19.249z
+          "/>
+        </svg>
+      </div>
+    </div>
+    <div class="label">
+      <div class="label-name">font awesome · universal-access</div>
+      <div class="label-source">fa-universal-access · the recognised web standard</div>
+      <div class="label-desc">outer ring + person figure. the same icon used on gov.uk, NHS, and most WCAG tooling sites. champagne on cadet, no inner badge — the ring is the circle.</div>
+    </div>
+  </div>
+
+  <!-- ── 2. FA style but with filled badge ─────────── -->
+  <div class="row">
+    <div class="page-slice">
+      <div class="trigger">
+        <!-- Champagne filled circle badge + cadet person (fa-style figure) -->
+        <svg width="22" height="22" viewBox="0 0 24 24">
+          <!-- Solid champagne circle -->
+          <circle cx="12" cy="12" r="11" fill="#ffebd2"/>
+          <!-- Person in cadet — same proportions as FA universal-access -->
+          <circle cx="12" cy="7.5" r="1.7" fill="#273248"/>
+          <!-- arms -->
+          <path d="M6.5 11.5h11" stroke="#273248" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- torso -->
+          <path d="M12 10.5v4.5" stroke="#273248" stroke-width="1.8" stroke-linecap="round"/>
+          <!-- legs -->
+          <path d="M12 15l-2.5 4.5" stroke="#273248" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M12 15l2.5 4.5" stroke="#273248" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="label">
+      <div class="label-name">fa universal-access · badge format</div>
+      <div class="label-source">fa-universal-access figure · social media icon treatment</div>
+      <div class="label-desc">same recognised figure, now on a solid champagne circle. cadet person on champagne badge. like the LinkedIn "in" or Twitter bird on a coloured disc.</div>
+    </div>
+  </div>
+
+  <!-- ── 3. Material accessibility (straight arms) ──── -->
+  <div class="row">
+    <div class="page-slice">
+      <div class="trigger">
+        <!-- Champagne filled circle + Material accessibility figure in cadet -->
+        <svg width="22" height="22" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="11" fill="#ffebd2"/>
+          <!-- Material `accessibility` path — person with arms horizontal, torso+legs like a T comb -->
+          <path d="M12 3.5c.83 0 1.5.67 1.5 1.5S12.83 6.5 12 6.5 10.5 5.83 10.5 5s.67-1.5 1.5-1.5z" fill="#273248"/>
+          <path d="M18.5 9H5.5v1.5h4.5V21H12v-5h0v5h2V10.5h4.5z" fill="#273248"/>
+        </svg>
+      </div>
+    </div>
+    <div class="label">
+      <div class="label-name">material icons · accessibility</div>
+      <div class="label-source">google material symbols · filled variant</div>
+      <div class="label-desc">solid T-shape person with arms horizontal. the most widely used digital accessibility icon globally. used in android, google products, thousands of apps.</div>
+    </div>
+  </div>
+
+  <!-- ── 4. Material accessibility_new (dynamic arms) ── -->
+  <div class="row">
+    <div class="page-slice">
+      <div class="trigger">
+        <!-- Champagne filled circle + Material accessibility_new figure in cadet -->
+        <svg width="22" height="22" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="11" fill="#ffebd2"/>
+          <!-- Material `accessibility_new` — arms sweep diagonally, more dynamic -->
+          <circle cx="12" cy="5.5" r="1.5" fill="#273248"/>
+          <!-- arms swept down-out like a Y -->
+          <path d="M20.5 7.5c-2.61.7-5.67 1-8.5 1s-5.89-.3-8.5-1" stroke="#273248" stroke-width="1.7" stroke-linecap="round" fill="none"/>
+          <!-- torso -->
+          <path d="M12 8.5V15" stroke="#273248" stroke-width="1.7" stroke-linecap="round"/>
+          <!-- legs slight V -->
+          <path d="M12 15l-2 5.5" stroke="#273248" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M12 15l2 5.5" stroke="#273248" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+    <div class="label">
+      <div class="label-name">material icons · accessibility_new</div>
+      <div class="label-source">google material symbols · newer variant, more dynamic</div>
+      <div class="label-desc">arms sweep outward (like a shrug or an embrace), more expressive than the horizontal bar. used in android 12+ and material design 3.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="divider"></div>
+<div class="section">zoomed — at 52px square, pick any to "select" it</div>
+
+<div class="zoom-row">
+  <!-- current -->
+  <div class="zoom-tile">
+    <div class="zoom-btn" style="opacity:.55">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10.5" stroke="#ffebd2" stroke-width="1.5"/>
+        <circle cx="12" cy="6.5" r="1.5" fill="#ffebd2"/>
+        <path d="M9 10.5h6" stroke="#ffebd2" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M12 10.5v4" stroke="#ffebd2" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M10 14.5l-1.5 3M14 14.5l1.5 3" stroke="#ffebd2" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="zoom-label">current</div>
+  </div>
+
+  <!-- FA icon (ring + figure) -->
+  <div class="zoom-tile">
+    <div class="zoom-btn">
+      <svg width="34" height="34" viewBox="0 0 512 512">
+        <path fill="#ffebd2" d="M256 48c114.953 0 208 93.029 208 208 0 114.953-93.029 208-208 208-114.953 0-208-93.029-208-208 0-114.953 93.029-208 208-208m0-40C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 56C149.961 64 64 149.961 64 256s85.961 192 192 192 192-85.961 192-192S362.039 64 256 64zm0 44c19.882 0 36 16.118 36 36s-16.118 36-36 36-36-16.118-36-36 16.118-36 36-36zm117.741 98.023c-28.712 6.779-55.511 12.748-82.14 15.807.851 101.023 12.306 123.052 25.037 155.621 3.617 9.26-.957 19.698-10.217 23.315-9.261 3.617-19.699-.957-23.316-10.217-8.705-22.308-17.086-40.636-22.261-78.549h-9.686c-5.167 37.851-13.534 56.208-22.262 78.549-3.615 9.255-14.05 13.836-23.315 10.217-9.26-3.617-13.834-14.056-10.217-23.315 12.713-32.541 24.185-54.541 25.037-155.621-26.629-3.058-53.428-9.027-82.141-15.807-8.6-2.031-13.926-10.648-11.895-19.249s10.647-13.926 19.249-11.895c96.686 22.829 124.283 22.783 220.775 0 8.599-2.03 17.218 3.294 19.249 11.895 2.029 8.601-3.297 17.219-11.897 19.249z"/>
+      </svg>
+    </div>
+    <div class="zoom-label">FA ring</div>
+  </div>
+
+  <!-- FA badge -->
+  <div class="zoom-tile">
+    <div class="zoom-btn">
+      <svg width="36" height="36" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11" fill="#ffebd2"/>
+        <circle cx="12" cy="7.5" r="1.7" fill="#273248"/>
+        <path d="M6.5 11.5h11" stroke="#273248" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 10.5v4.5" stroke="#273248" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M12 15l-2.5 4.5" stroke="#273248" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M12 15l2.5 4.5" stroke="#273248" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="zoom-label">FA badge</div>
+  </div>
+
+  <!-- Material accessibility -->
+  <div class="zoom-tile">
+    <div class="zoom-btn">
+      <svg width="36" height="36" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11" fill="#ffebd2"/>
+        <path d="M12 3.5c.83 0 1.5.67 1.5 1.5S12.83 6.5 12 6.5 10.5 5.83 10.5 5s.67-1.5 1.5-1.5z" fill="#273248"/>
+        <path d="M18.5 9H5.5v1.5h4.5V21H12v-5h0v5h2V10.5h4.5z" fill="#273248"/>
+      </svg>
+    </div>
+    <div class="zoom-label">material</div>
+  </div>
+
+  <!-- Material accessibility_new -->
+  <div class="zoom-tile">
+    <div class="zoom-btn">
+      <svg width="36" height="36" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11" fill="#ffebd2"/>
+        <circle cx="12" cy="5.5" r="1.5" fill="#273248"/>
+        <path d="M20.5 7.5c-2.61.7-5.67 1-8.5 1s-5.89-.3-8.5-1" stroke="#273248" stroke-width="1.7" stroke-linecap="round" fill="none"/>
+        <path d="M12 8.5V15" stroke="#273248" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M12 15l-2 5.5" stroke="#273248" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M12 15l2 5.5" stroke="#273248" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="zoom-label">material new</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -449,3 +449,26 @@ Bundle both into a single session titled "port infra consolidation" — the R2 b
 
 *Recording + summary:* https://www.notion.so/34fe4ee74ba48019a809c50a4eba95ee
 *Agenda:* https://www.notion.so/34fe4ee74ba481478f90c28141029068
+
+## Whirlpool actions — 2026-06-10
+
+- [ ] **Garrett** — share all transformative theory of change + PPCS report documents into the prime internal Slack channel for team access
+- [ ] **Garrett** — schedule a session to set up the GitHub repo and clone shared folders for the team (onboard Jamie + Lamis into the Claude co-work environment)
+- [ ] **Garrett** — allocate time next meeting for a deep dive into Jamie's transformative theory of change document
+- [ ] **Garrett** — book a 1-hour meeting with Lamis to finalise the Crease Works launch
+- [ ] **Jamie** — draft the transformative theory of change document and integrate it into Creaseworks
+- [ ] **Jamie** — revise the framing document to align with the transformative theory of change
+- [ ] **Jamie** — draft a wv manifesto on harbour game design
+- [ ] **Jamie** — create operational checklists derived from the TToC document to serve as a project filtering ("rag rate") mechanism
+- [ ] **Jamie** — address evidence gathering + impact assessment within the Creaseworks documentation (narrative-based evidence)
+- [ ] **Jamie + Lamis** — share GitHub account names with Garrett so he can add them to the winded.vertigo workspace
+- [ ] **Payton** — review materials for the 5 selected activities and dial in the iconography for each
+- [ ] **Payton** — ask PaM to move the UN International Day of Play social posts into "in progress"
+- [ ] **cARL** — conduct a literature review on popular/effective classroom games to identify potential competition
+- [ ] **the group** — create a Crease Works project roadmap integrating the co-design model + 3-layer (collect & connect) framework
+- [ ] **the group** — recruit children + educators from networks for user testing / feedback sessions
+- [ ] **the group** — finalise the top 3 Crease Works activities to initiate community testing
+- [ ] **the group** — develop a 'mini' (curated, facilitated) version of Crease Works aligned with the TToC
+
+*Recording + summary:* https://docs.google.com/document/d/1glIv9O_NfSFNJw19tU6gZSJqCC2AWYqwTKB1YIp3ars
+*Agenda:* https://www.notion.so/37be4ee74ba4813f83e2e8c4fa84374c

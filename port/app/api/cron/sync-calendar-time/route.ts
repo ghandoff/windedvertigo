@@ -46,10 +46,17 @@ async function getCalendarOwnerEmail(accessToken: string): Promise<string | null
 // ── Google Calendar REST API ──────────────────────────────
 
 async function getGoogleAccessToken(): Promise<string | null> {
-  const { GOOGLE_CALENDAR_CLIENT_ID, GOOGLE_CALENDAR_CLIENT_SECRET, GOOGLE_CALENDAR_REFRESH_TOKEN } =
-    process.env;
+  // Secret-name fallback (#232 drift): the wv-port worker carries the
+  // consolidated GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET, not the
+  // GOOGLE_CALENDAR_* pair that .env.example documents. The refresh token has
+  // NO safe fallback — a gmail-scoped token won't carry calendar scope — so
+  // GOOGLE_CALENDAR_REFRESH_TOKEN must be present on the worker (or this sync
+  // moved onto the gcal service account; see note in the handler).
+  const clientId = process.env.GOOGLE_CALENDAR_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CALENDAR_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_CALENDAR_REFRESH_TOKEN;
 
-  if (!GOOGLE_CALENDAR_CLIENT_ID || !GOOGLE_CALENDAR_CLIENT_SECRET || !GOOGLE_CALENDAR_REFRESH_TOKEN) {
+  if (!clientId || !clientSecret || !refreshToken) {
     return null;
   }
 
@@ -57,9 +64,9 @@ async function getGoogleAccessToken(): Promise<string | null> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      client_id: GOOGLE_CALENDAR_CLIENT_ID,
-      client_secret: GOOGLE_CALENDAR_CLIENT_SECRET,
-      refresh_token: GOOGLE_CALENDAR_REFRESH_TOKEN,
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
       grant_type: "refresh_token",
     }),
   });

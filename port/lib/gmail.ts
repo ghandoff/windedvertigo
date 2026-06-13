@@ -57,13 +57,32 @@ async function refreshAccessToken(clientId: string, clientSecret: string, refres
   return data.access_token;
 }
 
+/**
+ * Resolve the OAuth client credential pair for personal-inbox refresh-token
+ * flows. The wv-port Cloudflare worker carries the consolidated
+ * GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET secrets; .env.example documents the
+ * GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET names. Prefer the gmail-specific names
+ * where present, fall back to the google pair. Mirrors the fallback established
+ * in #232 for the opsy email scanner so the data crons stop 500ing on the
+ * post-Vercel-migration secret-name drift.
+ */
+function resolveGoogleOAuthClient(): { clientId?: string; clientSecret?: string } {
+  return {
+    clientId: process.env.GMAIL_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GMAIL_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET,
+  };
+}
+
 /** Access token for the main Garrett inbox (GMAIL_REFRESH_TOKEN). */
 export async function getGmailAccessToken(): Promise<string> {
-  const { GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
-  if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-    throw new Error("Gmail credentials not configured (GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN)");
+  const { clientId, clientSecret } = resolveGoogleOAuthClient();
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error(
+      "Gmail credentials not configured (need GMAIL_REFRESH_TOKEN + (GMAIL_ or GOOGLE_)CLIENT_ID/SECRET)",
+    );
   }
-  return refreshAccessToken(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN);
+  return refreshAccessToken(clientId, clientSecret, refreshToken);
 }
 
 /**
@@ -71,21 +90,28 @@ export async function getGmailAccessToken(): Promise<string> {
  * Impersonates RFP_GMAIL_USER (default: lamis@windedvertigo.com) so the scanner
  * can read the opportunities@ forwarded inbox without touching any personal inbox.
  *
- * Requires GOOGLE_SA_RFP_SCANNER env var (compact JSON of the service account key).
- * Falls back to Garrett's refresh token if the SA key is not configured.
+ * Prefers GOOGLE_SA_RFP_SCANNER (compact JSON of the dedicated scanner SA key).
+ * On the wv-port worker that secret is absent, so we fall back to the worker's
+ * gcal/gdocs service account (GOOGLE_SERVICE_ACCOUNT_JSON) — this only succeeds
+ * if that SA's domain-wide delegation grants the gmail.modify scope for the
+ * impersonated subject; otherwise the token exchange throws (handled upstream).
+ * Final fallback is Garrett's OAuth refresh token (works only if userId=me).
  */
 export async function getRfpGmailAccessToken(): Promise<string> {
-  const saKeyJson = process.env.GOOGLE_SA_RFP_SCANNER;
+  const saKeyJson = process.env.GOOGLE_SA_RFP_SCANNER ?? process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   if (saKeyJson) {
     const subject = getRfpGmailUser();
     return getServiceAccountAccessToken(saKeyJson, subject);
   }
   // Fallback: Garrett's OAuth refresh token (works only if userId=me)
-  const { GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
-  if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-    throw new Error("RFP Gmail credentials not configured (GOOGLE_SA_RFP_SCANNER or GMAIL_REFRESH_TOKEN)");
+  const { clientId, clientSecret } = resolveGoogleOAuthClient();
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error(
+      "RFP Gmail credentials not configured (GOOGLE_SA_RFP_SCANNER / GOOGLE_SERVICE_ACCOUNT_JSON, or GMAIL_REFRESH_TOKEN + (GMAIL_ or GOOGLE_)CLIENT_ID/SECRET)",
+    );
   }
-  return refreshAccessToken(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN);
+  return refreshAccessToken(clientId, clientSecret, refreshToken);
 }
 
 /**
