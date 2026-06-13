@@ -1,8 +1,8 @@
 /**
  * Opsy's monitored-service registry.
  *
- * Phase 1 ships tier 1 (core platform) only — tiers 2-4 (data layer, external
- * services, security/compliance) land in phase 2. Thresholds come from
+ * All four tiers are live (deployed 2026-06-11). Tier 1 runs every 5 min;
+ * tiers 2/3/4 run on 15/30/1440 min crons. Thresholds come from
  * docs/opsy/posture.md §"what Opsy monitors". URLs verified live 2026-06-11.
  */
 
@@ -71,7 +71,9 @@ export const SERVICES: MonitoredService[] = [
     platform: "harbour",
     tier: 1,
     kind: "http",
-    url: "https://windedvertigo.com/harbour/creaseworks",
+    // /api/health is an edge route that returns immediately without DB calls,
+    // so we get worker availability without Neon latency spikes as false positives.
+    url: "https://windedvertigo.com/harbour/creaseworks/api/health",
     amberMs: 2000,
   },
 

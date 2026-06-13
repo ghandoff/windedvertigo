@@ -6,7 +6,7 @@ import { CollabTypewriter } from "@/components/collab-variants/collab-typewriter
 import { CollabTide } from "@/components/collab-variants/collab-tide";
 import { fetchSiteContent } from "@/lib/notion";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "collab mockups — winded.vertigo lab",

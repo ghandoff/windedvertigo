@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { fetchSiteContent } from "@/lib/notion";
 import type { SiteSection } from "@/lib/notion";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "what. – winded.vertigo",

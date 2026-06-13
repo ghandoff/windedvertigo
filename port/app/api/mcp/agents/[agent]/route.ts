@@ -246,30 +246,171 @@ async function callOpsy(name: string, a: Record<string, unknown>, token: string)
   return { text: `unknown tool: ${name}`, isError: true };
 }
 
+// ---- Fin (CFO) ----
+const FIN_TOOLS: ToolDef[] = [
+  {
+    name: "fin_briefing",
+    description:
+      "Load Fin's full financial state AND refresh live data. When called, perform these steps in order: (1) call QBO MCP tools — profit_loss_generator for current month + YTD, qbo_accounting_get_balance_sheet, qbo_accounting_get_ap_aging_summary, qbo_accounting_get_ar_aging_summary; (2) call Gusto MCP — list_payrolls for the most recent completed run; (3) search Gmail for financial emails in last 7 days (bills, invoices, tax notices, TaxDome messages, ADP alerts); (4) call fin_store_snapshot with all collected data; (5) fetch /api/fin/briefing to get open items + upcoming deadlines + recent decisions; (6) return a structured summary: cash position, month P&L, AP/AR snapshot, last payroll, and action-required items sorted by urgency. If QBO or Gusto MCPs are unavailable, note which are missing and return cached snapshot data from /api/fin/briefing instead.",
+    inputSchema: { type: "object", properties: {}, required: [] },
+  },
+  {
+    name: "fin_store_snapshot",
+    description:
+      "Persist financial snapshots collected during fin_briefing. Call after fetching QBO + Gusto data. Each key in the payload maps to a snapshot_type: p_and_l, balance_sheet, ap_aging, ar_aging, payroll. Include period_label (e.g. 'June 2026') and fetched_at (ISO timestamp).",
+    inputSchema: {
+      type: "object",
+      properties: {
+        p_and_l: { type: "object", description: "QBO P&L data (profit_loss_generator response)" },
+        balance_sheet: { type: "object", description: "QBO balance sheet data" },
+        ap_aging: { type: "object", description: "QBO AP aging summary" },
+        ar_aging: { type: "object", description: "QBO AR aging summary" },
+        payroll: { type: "object", description: "Gusto most recent payroll run" },
+        period_label: { ...STR, description: "Human-readable period label (e.g. 'June 2026')" },
+        fetched_at: { ...STR, description: "ISO timestamp when data was fetched" },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "fin_log_item",
+    description:
+      "Log a financial action item — a bill, invoice, tax notice, deadline, bank alert, TaxDome message, renewal, or other item that requires garrett's attention.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: { type: "string", enum: ["bill", "invoice", "tax_notice", "deadline", "bank_alert", "taxdome_message", "renewal", "other"], description: "Item type" },
+        title: { ...STR, description: "Clear description of the item" },
+        source: { ...STR, description: "Where it came from (e.g. 'gmail', 'QBO', 'ADP')" },
+        amount_cents: { type: "number", description: "Amount in cents (optional)" },
+        due_date: { ...STR, description: "Due date YYYY-MM-DD (optional)" },
+        notes: { ...STR, description: "Additional context (optional)" },
+      },
+      required: ["type", "title"],
+    },
+  },
+  {
+    name: "fin_log_decision",
+    description:
+      "Log a financial decision from the current conversation — a payment authorised, a tax strategy confirmed, a subscription cancelled, a rollover decision made.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        decision: { ...STR, description: "The decision made" },
+        context: { ...STR, description: "Why this decision was made (optional)" },
+        amount_cents: { type: "number", description: "Dollar amount involved in cents (optional)" },
+        category: { ...STR, description: "Category (e.g. 'tax', 'payroll', 'subscription', 'retirement')" },
+        logged_by: { ...STR, description: "Who made the decision (default: garrett)" },
+      },
+      required: ["decision"],
+    },
+  },
+  {
+    name: "fin_update_memory",
+    description:
+      "Update a key in Fin's working state memory. Use when financial state changes — adviser notes, open items status, pending deadlines resolved.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { ...STR, description: "Memory key (e.g. 'open-items-note')" },
+        value: { ...STR, description: "New value" },
+        updated_by: { ...STR, description: "Who made the update (e.g. 'garrett')" },
+      },
+      required: ["key", "value", "updated_by"],
+    },
+  },
+];
+
+async function callFin(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
+  if (name === "fin_briefing") {
+    const d = (await apiFetch("/api/fin/briefing", token)) as {
+      snapshots: Record<string, unknown>;
+      open_items: Array<{ title: string; type: string; due_date?: string | null; amount_cents?: number | null }>;
+      upcoming_deadlines: Array<{ vendor: string; description: string; next_expected?: string | null }>;
+      recent_decisions: Array<{ decision: string; created_at: string }>;
+      last_fetched_at: string | null;
+      open_items_count: number;
+    };
+    const lines: string[] = [];
+    lines.push(`# Fin briefing (cached — last fetched: ${d.last_fetched_at?.slice(0, 16) ?? "never"} UTC)`);
+    lines.push("_run fin_briefing in cowork with QBO + Gusto MCPs connected for live data_");
+    lines.push("");
+    lines.push(`## action required (${d.open_items_count} open)`);
+    if (!d.open_items.length) lines.push("_none — all clear_");
+    for (const i of d.open_items.slice(0, 10)) {
+      const due = i.due_date ? ` · due ${i.due_date}` : "";
+      const amt = i.amount_cents ? ` · $${(i.amount_cents / 100).toFixed(2)}` : "";
+      lines.push(`- **[${i.type}]** ${i.title}${due}${amt}`);
+    }
+    lines.push("");
+    lines.push("## upcoming 30 days");
+    if (!d.upcoming_deadlines.length) lines.push("_nothing scheduled_");
+    for (const p of d.upcoming_deadlines.slice(0, 8)) {
+      lines.push(`- **${p.vendor}** — ${p.description}${p.next_expected ? ` (${p.next_expected})` : ""}`);
+    }
+    lines.push("");
+    lines.push("## recent decisions");
+    if (!d.recent_decisions.length) lines.push("_none logged yet_");
+    for (const dec of d.recent_decisions.slice(0, 5)) {
+      lines.push(`- ${dec.created_at.slice(0, 10)}: ${dec.decision}`);
+    }
+    return { text: lines.join("\n") };
+  }
+  if (name === "fin_store_snapshot") {
+    const payload: Record<string, unknown> = {};
+    for (const k of ["p_and_l", "balance_sheet", "ap_aging", "ar_aging", "payroll", "period_label", "fetched_at"]) {
+      if (a[k] !== undefined) payload[k] = a[k];
+    }
+    const d = (await apiFetch("/api/fin/briefing", token, { method: "POST", body: JSON.stringify(payload) })) as { upserted: string[]; count: number };
+    return { text: `snapshots stored: ${d.upserted.join(", ")} (${d.count} total)` };
+  }
+  if (name === "fin_log_item") {
+    const d = (await apiFetch("/api/fin/items", token, {
+      method: "POST",
+      body: JSON.stringify({ type: a.type, title: a.title, source: a.source || undefined, amount_cents: a.amount_cents || undefined, due_date: a.due_date || undefined, notes: a.notes || undefined }),
+    })) as { id: string; title: string; type: string };
+    return { text: `item logged (id: ${d.id}) — [${d.type}] ${d.title}` };
+  }
+  if (name === "fin_log_decision") {
+    const d = (await apiFetch("/api/fin/decisions", token, {
+      method: "POST",
+      body: JSON.stringify({ decision: a.decision, context: a.context || undefined, amount_cents: a.amount_cents || undefined, category: a.category || undefined, logged_by: a.logged_by || "garrett" }),
+    })) as { id: string };
+    return { text: `decision logged (id: ${d.id})` };
+  }
+  if (name === "fin_update_memory") {
+    const d = (await apiFetch("/api/fin/memory", token, { method: "POST", body: JSON.stringify({ key: a.key, value: a.value, updated_by: a.updated_by }) })) as { key: string };
+    return { text: `memory updated: ${d.key}` };
+  }
+  return { text: `unknown tool: ${name}`, isError: true };
+}
+
 const AGENTS: Record<string, AgentSpec> = {
   mo: { serverName: "mo-memory", title: "Mo (CMO) memory", instructions: "Mo is winded.vertigo's chief marketing officer. Call cmo_briefing silently at session start to load persistent memory; log decisions as they're made.", tools: MO_TOOLS, call: callMo },
   pam: { serverName: "pam-memory", title: "PaM memory", instructions: "PaM is winded.vertigo's project + momentum manager. Call pam_briefing silently at session start; create/update commitments and log decisions as they happen.", tools: PAM_TOOLS, call: callPam },
   carl: { serverName: "carl-memory", title: "cARL memory", instructions: "cARL is winded.vertigo's research agent. Call carl_briefing at session start; search the library before researching, and add findings as they're synthesised.", tools: CARL_TOOLS, call: callCarl },
   opsy: { serverName: "opsy-memory", title: "Opsy (ops) memory", instructions: "Opsy is winded.vertigo's operations + systems intelligence agent. Call opsy_briefing silently at session start; run health checks on demand, search incident history before diagnosing, and log incidents and decisions as they happen.", tools: OPSY_TOOLS, call: callOpsy },
+  fin: { serverName: "fin-memory", title: "Fin (CFO) memory", instructions: "Fin is winded.vertigo's CFO agent — personal + business finances for garrett. Call fin_briefing silently at session start (it orchestrates QBO + Gusto + Gmail MCPs and returns a live financial summary); log items and decisions as they surface.", tools: FIN_TOOLS, call: callFin },
 };
 AGENTS.cmo = AGENTS.mo; // alias
 
-// ── combined connector: all three agents behind one URL (the OAuth resource) ──
-// Cowork adds ONE custom connector (/api/mcp/agents/all) and gets all 14 tools.
+// ── combined connector: all five agents behind one URL (the OAuth resource) ──
+// Cowork adds ONE custom connector (/api/mcp/agents/all) and gets all tools.
 // Each call routes to the right agent by tool-name prefix.
 async function callAll(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
   if (name.startsWith("cmo_")) return callMo(name, a, token);
   if (name.startsWith("pam_")) return callPam(name, a, token);
   if (name.startsWith("carl_")) return callCarl(name, a, token);
   if (name.startsWith("opsy_")) return callOpsy(name, a, token);
+  if (name.startsWith("fin_")) return callFin(name, a, token);
   return { text: `unknown tool: ${name}`, isError: true };
 }
 AGENTS.all = {
   serverName: "wv-agents",
   title: "winded.vertigo agents",
   instructions:
-    "Mo, PaM, cARL, and Opsy in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL), opsy_* = infrastructure ops (Opsy). Call the *_briefing tools at session start to load shared memory.",
-  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS, ...OPSY_TOOLS],
+    "Mo, PaM, cARL, Opsy, and Fin in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL), opsy_* = infrastructure ops (Opsy), fin_* = CFO / finances (Fin). Call the *_briefing tools at session start to load shared memory.",
+  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS, ...OPSY_TOOLS, ...FIN_TOOLS],
   call: callAll,
 };
 

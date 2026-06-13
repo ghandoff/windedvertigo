@@ -13,6 +13,9 @@ import {
   type NavSection,
 } from "./nav-config";
 import { UserBlock } from "./user-block";
+import { useUser } from "./user-provider";
+
+const OWNER_EMAIL = "garrett@windedvertigo.com";
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   const isActive = isNavItemActive(item.href, pathname);
@@ -32,11 +35,14 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
-function CollapsibleSection({ section, pathname }: { section: NavSection; pathname: string }) {
-  const hasActiveChild = section.items.some((item) =>
+function CollapsibleSection({ section, pathname, ownerEmail }: { section: NavSection; pathname: string; ownerEmail: string | undefined }) {
+  const visibleItems = section.items.filter((item) => !item.ownerOnly || ownerEmail === OWNER_EMAIL);
+  const hasActiveChild = visibleItems.some((item) =>
     isNavItemActive(item.href, pathname),
   );
   const [open, setOpen] = useState(section.defaultOpen || hasActiveChild);
+
+  if (visibleItems.length === 0) return null;
 
   return (
     <div>
@@ -54,7 +60,7 @@ function CollapsibleSection({ section, pathname }: { section: NavSection; pathna
       </button>
       {open && (
         <div className="space-y-0.5">
-          {section.items.map((item) => (
+          {visibleItems.map((item) => (
             <NavLink key={item.href} item={item} pathname={pathname} />
           ))}
         </div>
@@ -65,6 +71,7 @@ function CollapsibleSection({ section, pathname }: { section: NavSection; pathna
 
 export function Sidebar() {
   const pathname = usePathname();
+  const user = useUser();
 
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-sidebar text-white">
@@ -88,6 +95,7 @@ export function Sidebar() {
             key={section.title}
             section={section}
             pathname={pathname}
+            ownerEmail={user?.email}
           />
         ))}
         <div className="border-t border-sidebar-border pt-2 mt-2 space-y-0.5">

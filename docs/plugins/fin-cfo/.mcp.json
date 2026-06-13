@@ -1,0 +1,7 @@
+{
+  "fin-memory": {
+    "type": "http",
+    "url": "https://port.windedvertigo.com/api/mcp/agents/fin",
+    "headers": { "Authorization": "Bearer ${WV_AGENT_TOKEN}" }
+  }
+}

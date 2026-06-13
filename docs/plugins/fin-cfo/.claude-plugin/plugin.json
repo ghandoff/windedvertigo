@@ -1,0 +1,8 @@
+{
+  "name": "fin-cfo",
+  "version": "1.0.0",
+  "description": "Fin — winded.vertigo's CFO agent. live financial briefings via QBO + Gusto + Gmail, persistent action-item tracking, and decision memory.",
+  "author": {
+    "name": "winded.vertigo"
+  }
+}

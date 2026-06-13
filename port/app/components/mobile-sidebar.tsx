@@ -18,20 +18,28 @@ import {
   type NavSection,
 } from "./nav-config";
 import { UserBlock } from "./user-block";
+import { useUser } from "./user-provider";
+
+const OWNER_EMAIL = "garrett@windedvertigo.com";
 
 function SectionGroup({
   section,
   pathname,
   onNavigate,
+  ownerEmail,
 }: {
   section: NavSection;
   pathname: string;
   onNavigate: () => void;
+  ownerEmail: string | undefined;
 }) {
-  const hasActiveChild = section.items.some((item) =>
+  const visibleItems = section.items.filter((item) => !item.ownerOnly || ownerEmail === OWNER_EMAIL);
+  const hasActiveChild = visibleItems.some((item) =>
     isNavItemActive(item.href, pathname),
   );
   const [open, setOpen] = useState(section.defaultOpen || hasActiveChild);
+
+  if (visibleItems.length === 0) return null;
 
   return (
     <div>
@@ -49,7 +57,7 @@ function SectionGroup({
       </button>
       {open && (
         <div className="space-y-0.5">
-          {section.items.map((item) => {
+          {visibleItems.map((item) => {
             const isActive = isNavItemActive(item.href, pathname);
             return (
               <Link
@@ -77,6 +85,7 @@ function SectionGroup({
 export function MobileSidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const user = useUser();
 
   return (
     <div className="md:hidden flex h-14 items-center px-4 border-b bg-sidebar text-white">
@@ -104,6 +113,7 @@ export function MobileSidebar() {
                 section={section}
                 pathname={pathname}
                 onNavigate={() => setOpen(false)}
+                ownerEmail={user?.email}
               />
             ))}
             <div className="border-t border-sidebar-border pt-2 mt-2 space-y-0.5">
