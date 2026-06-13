@@ -1,6 +1,6 @@
 /**
  * Fin Box invoice scan cron — daily 8am UTC via CRON_TABLE.
- * Polls the BOCS contractor Box folder for new invoice PDFs from Maria / Lamis.
+ * Polls the Box contractor Box folder for new invoice PDFs from Maria / Lamis.
  */
 
 import { NextRequest } from "next/server";

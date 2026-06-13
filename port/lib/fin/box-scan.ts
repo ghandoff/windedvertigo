@@ -1,5 +1,5 @@
 /**
- * Fin Box invoice scan — polls BOCS contractor invoice folders for new PDFs
+ * Fin Box invoice scan — polls Box contractor invoice folders for new PDFs
  * uploaded by Maria or Lamis, then creates fin_items from them.
  *
  * Auth: Box developer token stored as CF secret BOX_DEV_TOKEN.
@@ -24,7 +24,7 @@ const BOX_API = "https://api.box.com/2.0";
 
 const INVOICE_FOLDERS = [
   { id: "302532645163", label: "Maria Altamirano Gonzalez" },
-  { id: "302530801909", label: "Sabra, Lamis" },
+  { id: "302530801909", label: "Lamis Sabra" },
 ];
 
 const LOOKBACK_DAYS = 45;
@@ -93,15 +93,15 @@ async function classifyInvoice(
   if (!apiKey) return null;
 
   const client = new Anthropic({ apiKey });
-  const prompt = `Extract invoice details from a Box file uploaded by a BOCS contractor. Return JSON only.
+  const prompt = `Extract invoice details from a Box file uploaded by a Box contractor. Return JSON only.
 
 File name: ${filename}
-Uploaded by: ${uploaderName} (BOCS contractor for winded.vertigo collective)
+Uploaded by: ${uploaderName} (Box contractor for winded.vertigo collective)
 File date: ${modifiedAt.slice(0, 10)}
 
 Return this exact JSON shape:
 {
-  "title": "BOCS — <uploader first name> — <month year> invoice (max 100 chars)",
+  "title": "Box — <uploader first name> — <month year> invoice (max 100 chars)",
   "amount_cents": number or null (dollars × 100 — extract from filename if visible, else null),
   "due_date": "YYYY-MM-DD" or null,
   "notes": "one sentence — include filename for traceability"

@@ -274,11 +274,11 @@ export default async function FinancesPage() {
                       <span className="tabular-nums font-semibold text-right">{fmtUsd(safeNum(pd?.company_debit_cents))}</span>
                       <span className="tabular-nums font-semibold text-right">{fmtUsd(safeNum(pd?.ytd_company_debit_cents))}</span>
                     </div>
-                    {/* BOCS contractors */}
+                    {/* Box contractors */}
                     {contractors.length > 0 && (
                       <>
                         <div className="px-4 py-1.5 border-t border-border text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                          contractors (bocs)
+                          contractors (box)
                         </div>
                         {contractors.map((c, i) => (
                           <div key={i} className="px-4 py-2 border-t border-border flex items-center justify-between text-sm">

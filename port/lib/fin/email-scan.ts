@@ -8,7 +8,7 @@
  *      Haiku classifies each; financial items land in fin_items.
  *
  *   2. INVOICE ATTACHMENTS — any email with a PDF attachment whose subject
- *      contains "invoice" or "factura" in the last 7 days. These are BOCS
+ *      contains "invoice" or "factura" in the last 7 days. These are Box
  *      contractor invoices (Maria, Lamis). For each:
  *        a. Download the PDF via Gmail Attachment API
  *        b. Upload to Google Drive (GOOGLE_DRIVE_INVOICE_FOLDER_ID)
@@ -267,7 +267,7 @@ export async function scanFinancialEmails(): Promise<FinEmailScanResult> {
     }
   }
 
-  // ── pass 2: invoice PDF attachments (BOCS contractors) ───────────────────
+  // ── pass 2: invoice PDF attachments (Box contractors) ───────────────────
   const folderId = process.env.GOOGLE_DRIVE_INVOICE_FOLDER_ID;
 
   let invoiceMsgs: { id: string; threadId: string }[] = [];
