@@ -20,8 +20,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const result = await scanBoxInvoices();
+    if (result.token_missing) {
+      console.warn("[cron/fin-box-scan] BOX_DEV_TOKEN missing — set it via: wrangler secret put BOX_DEV_TOKEN");
+    }
     console.log(
-      `[cron/fin-box-scan] folder=${result.folder_id} seen=${result.seen} captured=${result.already_captured} created=${result.created} skipped=${result.skipped} errors=${result.errors.length}`,
+      `[cron/fin-box-scan] folders=${result.folders_scanned.join(",")} seen=${result.seen} captured=${result.already_captured} created=${result.created} skipped=${result.skipped} errors=${result.errors.length}`,
     );
     return json(result);
   } catch (err) {
