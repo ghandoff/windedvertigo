@@ -12,13 +12,14 @@
  * Super-user-only (Budget C preview).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import RoleRoute from '@/components/RoleRoute';
+import { useAuth } from '@/lib/useAuth';
 import { CLAIM_AUTHORITY_REGIONS } from '@/lib/pcs-config';
 
 // ─── Color palette ────────────────────────────────────────────────────────────
@@ -312,14 +313,234 @@ function RegulatoryReadinessCard({ claims, totalClaimCount, productCount }) {
   );
 }
 
+// ─── Compliance Attribute Matrix ─────────────────────────────────────────────
+
+const COMPLIANCE_STATUS_PILL = {
+  yes:         { bg: 'border-green-200 bg-green-50',  text: 'text-green-700',  label: '✓' },
+  no:          { bg: 'border-red-200 bg-red-50',      text: 'text-red-600',    label: '✗' },
+  conditional: { bg: 'border-amber-200 bg-amber-50',  text: 'text-amber-700',  label: '~' },
+  unknown:     { bg: 'border-gray-100 bg-white',      text: 'text-gray-300',   label: '·' },
+};
+
+function ComplianceMatrix({ ingredientId, attributes, canEdit, onUpdate }) {
+  const [editing, setEditing] = useState(null);
+  const [editStatus, setEditStatus] = useState('unknown');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (attr) => {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/pcs/ingredients/${ingredientId}/compliance`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attribute: attr, status: editStatus }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || res.statusText);
+      }
+      const { attribute: updated } = await res.json();
+      onUpdate(attr, updated);
+      setEditing(null);
+    } catch (err) {
+      alert(`Save failed: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!attributes) {
+    return <p className="text-xs text-gray-400 italic">Compliance data unavailable — run migration 021 to enable.</p>;
+  }
+
+  const attrKeys = Object.keys(attributes);
+
+  return (
+    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+      {attrKeys.map(attr => {
+        const rec = attributes[attr] || {};
+        const status = rec.status || 'unknown';
+        const pill = COMPLIANCE_STATUS_PILL[status] || COMPLIANCE_STATUS_PILL.unknown;
+        const isEditing = editing === attr;
+
+        return (
+          <div
+            key={attr}
+            onClick={() => {
+              if (!canEdit || isEditing) return;
+              setEditing(attr);
+              setEditStatus(status);
+            }}
+            className={`rounded-lg border p-2 text-center transition-colors ${pill.bg} ${canEdit && !isEditing ? 'cursor-pointer hover:border-gray-300' : ''}`}
+            title={canEdit && !isEditing ? `Click to edit ${attr}` : attr}
+          >
+            {isEditing ? (
+              <div className="space-y-1" onClick={e => e.stopPropagation()}>
+                <select
+                  value={editStatus}
+                  onChange={e => setEditStatus(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded px-1 py-0.5 bg-white"
+                  autoFocus
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                  <option value="conditional">Conditional</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleSave(attr)}
+                    disabled={saving}
+                    className="flex-1 text-xs bg-pacific-500 text-white rounded px-1 py-0.5 disabled:opacity-50"
+                  >
+                    {saving ? '…' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => setEditing(null)}
+                    className="text-xs text-gray-400 hover:text-gray-600 px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <span className={`inline-block text-sm font-bold ${pill.text}`}>{pill.label}</span>
+                <p className="text-xs text-gray-600 mt-0.5 leading-tight">{attr}</p>
+              </>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── AI Research Chat Panel ───────────────────────────────────────────────────
+
+function AiChatPanel({ ingredientId, ingredientName, open, onClose, messages, input, onInputChange, onSend, sending }) {
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (open && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, open]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      onSend();
+    }
+  };
+
+  if (!open) return null;
+
+  const suggestionPrompts = [
+    `What dose of ${ingredientName} is needed to support sleep?`,
+    `Which claims for ${ingredientName} are FDA-applicable?`,
+    `What's the evidence quality for ${ingredientName} cardiovascular claims?`,
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/20" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-white shadow-xl flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-pacific-200 bg-pacific-600 text-white">
+          <div>
+            <p className="font-semibold text-sm">AI Research Assistant</p>
+            <p className="text-xs text-pacific-200">{ingredientName} · Nordic PCS data only</p>
+          </div>
+          <button onClick={onClose} className="text-pacific-200 hover:text-white text-lg leading-none ml-4">✕</button>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="px-4 py-2 bg-amber-50 border-b border-amber-100">
+          <p className="text-xs text-amber-700">
+            Responses are grounded in Nordic's PCS claims and SQR-RCT scored evidence — not the web.
+          </p>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {messages.length === 0 && (
+            <div className="text-center py-6">
+              <p className="text-sm text-gray-500 mb-3">Ask about {ingredientName}</p>
+              <div className="space-y-1.5 text-left">
+                {suggestionPrompts.map(q => (
+                  <button
+                    key={q}
+                    onClick={() => onInputChange(q)}
+                    className="w-full text-left text-xs text-pacific-600 hover:text-pacific-800 bg-pacific-50 hover:bg-pacific-100 border border-pacific-100 rounded px-3 py-2 transition-colors"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-sm rounded-lg px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
+                msg.role === 'user'
+                  ? 'bg-pacific-600 text-white'
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {msg.content || (sending && i === messages.length - 1
+                  ? <span className="text-gray-400 italic text-xs">Thinking…</span>
+                  : null)}
+              </div>
+            </div>
+          ))}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        <div className="p-4 border-t border-gray-200 bg-white">
+          <div className="flex gap-2 items-end">
+            <textarea
+              value={input}
+              onChange={e => onInputChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={`Ask about ${ingredientName}…`}
+              rows={2}
+              className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-pacific-400"
+            />
+            <button
+              onClick={onSend}
+              disabled={!input.trim() || sending}
+              className="bg-pacific-600 hover:bg-pacific-700 text-white text-sm font-medium px-4 py-2 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {sending ? '…' : '→'}
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Enter to send · Shift+Enter for new line</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main content ─────────────────────────────────────────────────────────────
 
 function IngredientDashboardContent() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [region, setRegion] = useState('');
+
+  // Phase 3 — Compliance attributes
+  const [compliance, setCompliance] = useState(null);
+  const [complianceLoading, setComplianceLoading] = useState(false);
+
+  // Phase 4 — AI Research Chat
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatSending, setChatSending] = useState(false);
 
   const load = useCallback((reg) => {
     setLoading(true);
@@ -331,6 +552,63 @@ function IngredientDashboardContent() {
   }, [id]);
 
   useEffect(() => { load(region); }, [load, region]);
+
+  // Fetch compliance attributes once on mount
+  useEffect(() => {
+    if (!id) return;
+    setComplianceLoading(true);
+    fetch(`/api/pcs/ingredients/${id}/compliance`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setCompliance(d?.attributes || null); setComplianceLoading(false); })
+      .catch(() => setComplianceLoading(false));
+  }, [id]);
+
+  const sendChatMessage = async () => {
+    const text = chatInput.trim();
+    if (!text || chatSending) return;
+    const userMsg = { role: 'user', content: text };
+    const assistantMsg = { role: 'assistant', content: '' };
+    setChatMessages(prev => [...prev, userMsg, assistantMsg]);
+    setChatInput('');
+    setChatSending(true);
+    try {
+      const res = await fetch('/api/pcs/ai-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...chatMessages, userMsg],
+          context: { ingredientId: id },
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      while (!done) {
+        const { value, done: d } = await reader.read();
+        done = d;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          setChatMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              content: updated[updated.length - 1].content + chunk,
+            };
+            return updated;
+          });
+        }
+      }
+    } catch (err) {
+      setChatMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { role: 'assistant', content: `Error: ${err.message}` };
+        return updated;
+      });
+    } finally {
+      setChatSending(false);
+    }
+  };
 
   if (loading && !data) {
     return <div className="flex items-center justify-center py-20 text-gray-400 text-sm">Loading…</div>;
@@ -476,6 +754,24 @@ function IngredientDashboardContent() {
           </div>
         )}
 
+        {/* Phase 3 — Compliance Attribute Matrix */}
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Compliance Attributes</h2>
+          {complianceLoading ? (
+            <p className="text-xs text-gray-400 italic">Loading…</p>
+          ) : (
+            <ComplianceMatrix
+              ingredientId={id}
+              attributes={compliance}
+              canEdit={user?.capabilities?.includes('pcs.taxonomy:edit')}
+              onUpdate={(attr, updated) => setCompliance(prev => ({
+                ...prev,
+                [attr]: updated,
+              }))}
+            />
+          )}
+        </div>
+
         {/* Products table */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Form(s) Used by Each Product</h2>
@@ -528,6 +824,19 @@ function IngredientDashboardContent() {
             </div>
           )}
         </div>
+
+        {/* Phase 4 — AI Research Chat */}
+        <AiChatPanel
+          ingredientId={id}
+          ingredientName={ingredient.canonicalName}
+          open={chatOpen}
+          onClose={() => setChatOpen(false)}
+          messages={chatMessages}
+          input={chatInput}
+          onInputChange={setChatInput}
+          onSend={sendChatMessage}
+          sending={chatSending}
+        />
 
         {/* Claims with Package A dose range bars */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -590,6 +899,15 @@ function IngredientDashboardContent() {
             </div>
           )}
         </div>
+
+        {/* Phase 4 — Floating AI chat button */}
+        <button
+          onClick={() => setChatOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-pacific-600 hover:bg-pacific-700 text-white text-sm font-medium px-4 py-3 rounded-full shadow-lg transition-colors"
+        >
+          <span>✦</span>
+          <span>Ask AI</span>
+        </button>
       </div>
     </div>
   );
