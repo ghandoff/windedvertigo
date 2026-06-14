@@ -86,10 +86,14 @@ function LandingContent() {
   // Detect ?error=magic-link-invalid from the verify redirect.
   const magicLinkError = searchParams?.get('error') === 'magic-link-invalid';
 
+  // If ?redirect= is present and safe (starts with /), use it post-login.
+  const redirectParam = searchParams?.get('redirect') || '';
+  const safeRedirect = redirectParam.startsWith('/') ? redirectParam : '/welcome';
+
   // Wave 7.2 Phase 3 — all successful logins route through /welcome, which
   // reads the user's roles and renders a role-aware destination picker.
   // Reviewer-only users are silently deep-linked inside /welcome itself.
-  if (!loading && user) { router.push('/welcome'); return null; }
+  if (!loading && user) { router.push(safeRedirect); return null; }
 
   // Reset mode and state when audience tab changes.
   const handleAudienceChange = (key) => {
@@ -111,7 +115,7 @@ function LandingContent() {
         router.push('/reset-password');
         return;
       }
-      router.push('/welcome');
+      router.push(safeRedirect);
     }
     catch (err) { setError(err.message); }
     finally { setSubmitting(false); }
@@ -122,10 +126,12 @@ function LandingContent() {
     setMagicError('');
     setMagicSubmitting(true);
     try {
+      const body = { email: magicEmail };
+      if (redirectParam) body.redirect = redirectParam;
       const res = await fetch('/api/auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: magicEmail }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
