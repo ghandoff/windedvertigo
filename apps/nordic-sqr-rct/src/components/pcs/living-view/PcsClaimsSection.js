@@ -190,6 +190,7 @@ function Bucket3ATable({ rows, canEdit, user, onRequestReview, onClaimUpdated })
                     rows={3}
                     displayClassName="text-sm text-gray-800"
                   />
+                  <AicsBadge claim={local} />
                 </div>
                 <dl className="mt-2 divide-y divide-gray-100">
                   <ClaimFieldRow label="Status">
@@ -305,6 +306,7 @@ function Bucket3ATable({ rows, canEdit, user, onRequestReview, onClaimUpdated })
                         rows={2}
                         displayClassName="text-sm text-gray-800"
                       />
+                      <AicsBadge claim={local} />
                     </Td>
                     <Td>
                       <InlineField
@@ -414,6 +416,7 @@ function Bucket3BTable({ rows, canEdit, onClaimUpdated }) {
                   </Td>
                   <Td className="whitespace-normal">
                     <InlineField value={local.claim || ''} onSave={makeSaveFn('claim')} canEdit={canEdit} fieldName="claim text" variant="textarea" rows={2} displayClassName="text-sm text-gray-800" />
+                    <AicsBadge claim={local} />
                   </Td>
                   <Td>
                     <InlineField value={local.claimStatus || ''} onSave={makeSaveFn('claimStatus')} canEdit={canEdit} fieldName="claim status" variant="select" options={CLAIM_STATUSES} displayClassName="text-sm text-gray-700" emptyLabel="—" />
@@ -458,6 +461,7 @@ function Bucket3CTable({ rows, canEdit, onClaimUpdated }) {
                   </Td>
                   <Td className="whitespace-normal">
                     <InlineField value={local.claim || ''} onSave={makeSaveFn('claim')} canEdit={canEdit} fieldName="claim text" variant="textarea" rows={2} displayClassName="text-sm text-gray-700" />
+                    <AicsBadge claim={local} />
                   </Td>
                   <Td>
                     <InlineField value={local.minDoseMg ?? ''} onSave={makeSaveFn('minDoseMg')} canEdit={canEdit} fieldName="min dose" variant="number" displayClassName="text-sm font-mono" emptyLabel="—" />
@@ -472,6 +476,44 @@ function Bucket3CTable({ rows, canEdit, onClaimUpdated }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+// ── AICS provenance badge ─────────────────────────────────────────────────────
+// Shows whether a claim is tied to an AICS canonical claim (green) or still
+// floating with no confirmed mapping (amber). 'NO_MATCH' means a reviewer
+// explicitly confirmed there is no corresponding AICS claim (red — compliance gap).
+
+function AicsBadge({ claim }) {
+  if (!claim) return null;
+  const src = claim.sourceAicsClaimId;
+  const matched = claim.matchedAicsClaimId;
+
+  if (src) {
+    return (
+      <span title="Propagated directly from an approved AICS claim" className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
+        ✓ from AICS
+      </span>
+    );
+  }
+  if (matched && matched !== 'NO_MATCH') {
+    return (
+      <span title="Manually confirmed match to an AICS claim" className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
+        ✓ AICS matched
+      </span>
+    );
+  }
+  if (matched === 'NO_MATCH') {
+    return (
+      <span title="Reviewer confirmed: no matching AICS claim exists — compliance gap" className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
+        ✗ no AICS claim
+      </span>
+    );
+  }
+  return (
+    <span title="Not yet mapped to an AICS claim — review in Claim Backfill" className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">
+      ◑ unmatched
+    </span>
   );
 }
 
