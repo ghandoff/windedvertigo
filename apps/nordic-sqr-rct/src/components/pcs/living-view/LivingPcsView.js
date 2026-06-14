@@ -364,6 +364,9 @@ export default function LivingPcsView({ viewPayload, onEdited }) {
               (prev ?? payloadClaims).map(c => c.id === updated.id ? updated : c)
             );
           }}
+          onClaimAdded={(newClaim) => {
+            setLocalClaims(prev => [...(prev ?? payloadClaims), newClaim]);
+          }}
         />
       </SectionAnchor>
 

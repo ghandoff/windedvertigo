@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import PcsTable from '../PcsTable';
 import InlineField from '@/components/pcs/InlineField';
 import { CLAIM_BUCKETS, CLAIM_STATUSES } from '@/lib/pcs-config';
@@ -19,6 +19,7 @@ import { CLAIM_BUCKETS, CLAIM_STATUSES } from '@/lib/pcs-config';
  *   user            — current user (for requestedBy on delete requests)
  *   onRequestReview — (claim) => void; opens BackfillSideSheet
  *   onClaimUpdated  — (updatedClaim) => void; parent replaces claim in state
+ *   onClaimAdded    — (newClaim) => void; parent appends new claim to state
  */
 export default function PcsClaimsSection({
   claims = [],
@@ -28,8 +29,11 @@ export default function PcsClaimsSection({
   user,
   onRequestReview,
   onClaimUpdated,
+  onClaimAdded,
 }) {
   const [tab, setTab] = useState('3A');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [customClaimOpen, setCustomClaimOpen] = useState(false);
 
   const bucketed = useMemo(() => {
     const map = { '3A': [], '3B': [], '3C': [] };
@@ -103,6 +107,48 @@ export default function PcsClaimsSection({
           <Bucket3CTable rows={bucketed['3C']} canEdit={canEdit} onClaimUpdated={onClaimUpdated} />
         )}
       </div>
+
+      {/* Add claim action bar — only for writers */}
+      {canEdit && version?.id && (
+        <div className="border-t border-gray-100 pt-3 space-y-2">
+          {!pickerOpen && !customClaimOpen && (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="text-xs px-3 py-1.5 rounded-md bg-pacific-600 text-white font-medium hover:bg-pacific-700 transition"
+              >
+                + Add from AICS
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomClaimOpen(true)}
+                className="text-xs px-3 py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 transition"
+              >
+                Request custom claim
+              </button>
+            </div>
+          )}
+
+          {pickerOpen && (
+            <AicsClaimPicker
+              versionId={version.id}
+              targetBucket={tab}
+              onClose={() => setPickerOpen(false)}
+              onAdded={(claim) => { setPickerOpen(false); if (onClaimAdded) onClaimAdded(claim); }}
+            />
+          )}
+
+          {customClaimOpen && (
+            <CustomClaimRequestForm
+              versionId={version.id}
+              targetBucket={tab}
+              user={user}
+              onClose={() => setCustomClaimOpen(false)}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -614,6 +660,225 @@ function ClaimDeleteButton({ claim, user }) {
           Cancel
         </button>
       </div>
+    </form>
+  );
+}
+
+// ── AICS Claim Picker ─────────────────────────────────────────────────────────
+//
+// Fetches approved AICS claims for this product's ingredients and lets the
+// researcher pick one to add directly to this version's claims table.
+
+function AicsClaimPicker({ versionId, targetBucket, onClose, onAdded }) {
+  const [groups, setGroups] = useState(null); // null = loading
+  const [filter, setFilter] = useState('');
+  const [saving, setSaving] = useState(null); // claimId being added
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/pcs/aics/claims-for-product?versionId=${encodeURIComponent(versionId)}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(setGroups)
+      .catch(() => setGroups([]));
+  }, [versionId]);
+
+  const filterLower = filter.toLowerCase();
+  const filtered = groups
+    ? groups.map(g => ({
+        ...g,
+        claims: g.claims.filter(c =>
+          !filter ||
+          (c.claimText || '').toLowerCase().includes(filterLower) ||
+          g.ingredientName.toLowerCase().includes(filterLower)
+        ),
+      })).filter(g => g.claims.length > 0)
+    : [];
+
+  async function addClaim(group, claim) {
+    setSaving(claim.id);
+    setError(null);
+    try {
+      const res = await fetch('/api/pcs/claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          claim: claim.claimText,
+          pcsVersionId: versionId,
+          claimBucket: targetBucket,
+          sourceAicsClaimId: claim.id,
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+      onAdded(json);
+    } catch (e) {
+      setError(e.message);
+      setSaving(null);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-pacific-200 bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2 bg-pacific-50 border-b border-pacific-200">
+        <span className="text-xs font-semibold text-pacific-800">
+          Add from AICS — {targetBucket} claims
+        </span>
+        <button type="button" onClick={onClose} className="text-xs text-pacific-600 hover:text-pacific-800">
+          Cancel
+        </button>
+      </div>
+
+      {groups === null ? (
+        <p className="text-xs text-gray-400 px-4 py-3">Loading AICS claims…</p>
+      ) : groups.length === 0 ? (
+        <div className="px-4 py-3 space-y-1">
+          <p className="text-xs text-gray-500">No approved AICS claims found for this product&apos;s ingredients.</p>
+          <p className="text-xs text-gray-400">
+            Ensure this version has formula lines with ingredient names that match AICS documents,
+            and that those AICS documents are in &quot;Approved&quot; status.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-gray-100 max-h-72 overflow-y-auto">
+          {/* Search filter */}
+          <div className="px-3 py-2 bg-gray-50">
+            <input
+              type="text"
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              placeholder="Filter by ingredient or claim text…"
+              className="w-full text-xs rounded border border-gray-200 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-pacific-300"
+            />
+          </div>
+
+          {filtered.length === 0 && filter ? (
+            <p className="text-xs text-gray-400 px-4 py-3 italic">No matches for &ldquo;{filter}&rdquo;</p>
+          ) : filtered.map(group => (
+            <div key={`${group.aicsDocId}-${group.ingredientName}`} className="px-3 py-2 space-y-1">
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                {group.ingredientName}
+                <span className="ml-1.5 font-mono text-gray-400">{group.aicsDocAicsId}</span>
+              </p>
+              {group.claims.map(claim => (
+                <div key={claim.id} className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-800 leading-snug">{claim.claimText}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      {[
+                        claim.minDose ? `≥${claim.minDose}${claim.minDoseUnit || ''}` : null,
+                        claim.ageGroup,
+                        claim.grade ? `Grade ${claim.grade}` : null,
+                      ].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addClaim(group, claim)}
+                    disabled={saving === claim.id}
+                    className="flex-shrink-0 text-[11px] px-2 py-0.5 rounded bg-pacific-100 text-pacific-700 hover:bg-pacific-200 disabled:opacity-50 transition font-medium"
+                  >
+                    {saving === claim.id ? '…' : 'Add'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+      {error && (
+        <p className="text-xs text-red-600 px-4 py-2 border-t border-red-100 bg-red-50">{error}</p>
+      )}
+    </div>
+  );
+}
+
+// ── Custom Claim Request Form ─────────────────────────────────────────────────
+//
+// Lets researchers propose a new claim that isn't in the AICS library yet.
+// Posts to /api/pcs/requests (not /api/pcs/claims) — the claim is NOT added
+// immediately; it goes through RA review first.
+
+function CustomClaimRequestForm({ versionId, targetBucket, user, onClose }) {
+  const [claimText, setClaimText] = useState('');
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!claimText.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/pcs/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request: claimText.trim(),
+          requestType: 'Claim',
+          requestNotes: reason.trim() || null,
+          specificField: `/api/pcs/claims (versionId: ${versionId}, bucket: ${targetBucket})`,
+          requestedBy: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || user?.alias || 'unknown',
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setSubmitted(true);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 space-y-2">
+        <p className="text-xs font-medium text-green-800">
+          Custom claim request submitted. An RA will review and add the claim if approved.
+        </p>
+        <p className="text-xs text-green-700 italic">&ldquo;{claimText}&rdquo;</p>
+        <button type="button" onClick={onClose} className="text-xs text-green-600 hover:underline">
+          Done
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-gray-700">Request custom claim</p>
+        <button type="button" onClick={onClose} className="text-xs text-gray-400 hover:text-gray-600">
+          Cancel
+        </button>
+      </div>
+      <textarea
+        autoFocus
+        value={claimText}
+        onChange={e => setClaimText(e.target.value)}
+        placeholder="Proposed claim text (required)"
+        rows={2}
+        className="w-full text-xs rounded border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pacific-300"
+      />
+      <textarea
+        value={reason}
+        onChange={e => setReason(e.target.value)}
+        placeholder="Reason / context (optional)"
+        rows={1}
+        className="w-full text-xs rounded border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-pacific-300"
+      />
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <p className="text-[10px] text-gray-400">
+        This claim will NOT be added immediately — it goes to the RA queue for approval.
+      </p>
+      <button
+        type="submit"
+        disabled={submitting || !claimText.trim()}
+        className="text-xs px-3 py-1 rounded bg-pacific-600 text-white font-medium hover:bg-pacific-700 disabled:opacity-50 transition"
+      >
+        {submitting ? 'Submitting…' : 'Submit request'}
+      </button>
     </form>
   );
 }

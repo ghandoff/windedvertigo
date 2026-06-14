@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import InlineField from '@/components/pcs/InlineField';
 import { AI_UNITS } from '@/lib/pcs-config';
@@ -183,13 +183,11 @@ function FormulaLineCard({ line, canEdit, ingredientOptions, allIngredients, mak
       </header>
       <dl>
         <FieldRow label="AI Form">
-          <InlineField
-            value={local.aiForm || ''}
-            onSave={makeSaveFn(local.id, 'aiForm')}
-            onSaved={handleSaved('aiForm')}
+          <AiFormField
+            line={local}
             canEdit={canEdit}
-            fieldName="AI form"
-            placeholder="e.g. cholecalciferol"
+            makeSaveFn={makeSaveFn}
+            onSaved={handleSaved}
             displayClassName="text-sm text-gray-900"
           />
         </FieldRow>
@@ -319,15 +317,13 @@ function FormulaLineRow({ line, canEdit, ingredientOptions, allIngredients, make
         />
       </Td>
 
-      {/* AI Form */}
+      {/* AI Form — dropdown from ingredient forms DB when canonical is linked */}
       <Td className="min-w-[100px]">
-        <InlineField
-          value={local.aiForm || ''}
-          onSave={makeSaveFn(local.id, 'aiForm')}
-          onSaved={handleSaved('aiForm')}
+        <AiFormField
+          line={local}
           canEdit={canEdit}
-          fieldName="AI form"
-          placeholder="e.g. cholecalciferol"
+          makeSaveFn={makeSaveFn}
+          onSaved={handleSaved}
           displayClassName="text-sm text-gray-900"
         />
       </Td>
@@ -447,6 +443,188 @@ function FormulaLineRow({ line, canEdit, ingredientOptions, allIngredients, make
         )}
       </Td>
     </tr>
+  );
+}
+
+// ── AI Form field — shows dropdown when canonical ingredient is linked ────────
+//
+// When no canonical ingredient is set: falls back to free-text InlineField.
+// When a canonical is linked: fetches available forms on edit-open and renders
+// a dropdown. "Other (free text)" lets the user type a custom form name instead.
+
+function AiFormField({ line, canEdit, makeSaveFn, onSaved, displayClassName = 'text-sm text-gray-900' }) {
+  const [open, setOpen] = useState(false);
+  const [forms, setForms] = useState(null); // null = not yet loaded
+  const [loadingForms, setLoadingForms] = useState(false);
+  const [useOther, setUseOther] = useState(false);
+  const [otherText, setOtherText] = useState(line.aiForm || '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const hasCanonical = !!line.activeIngredientCanonicalId;
+
+  // Fetch forms lazily when the user opens the editor
+  useEffect(() => {
+    if (!open || !hasCanonical || forms !== null) return;
+    setLoadingForms(true);
+    fetch(`/api/pcs/ingredients/${line.activeIngredientCanonicalId}/forms`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setForms(Array.isArray(data) ? data : []))
+      .catch(() => setForms([]))
+      .finally(() => setLoadingForms(false));
+  }, [open, hasCanonical, line.activeIngredientCanonicalId, forms]);
+
+  // No canonical ingredient: simple free-text field
+  if (!hasCanonical) {
+    return (
+      <InlineField
+        value={line.aiForm || ''}
+        onSave={makeSaveFn(line.id, 'aiForm')}
+        onSaved={onSaved('aiForm')}
+        canEdit={canEdit}
+        fieldName="AI form"
+        placeholder="e.g. cholecalciferol"
+        displayClassName={displayClassName}
+      />
+    );
+  }
+
+  async function saveFormSelection(form) {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/pcs/formula-lines/${line.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fieldPath: 'activeIngredientFormCanonicalId', value: form.id }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+      onSaved('activeIngredientFormCanonicalId')(json);
+      setOpen(false);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveOtherText() {
+    if (!otherText.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/pcs/formula-lines/${line.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fieldPath: 'aiForm', value: otherText.trim() }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+      onSaved('aiForm')(json);
+      setOpen(false);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="flex items-center gap-1 group">
+        <span className={displayClassName || 'text-sm text-gray-900'}>
+          {line.aiForm || <span className="text-gray-400 italic text-xs">No form set</span>}
+        </span>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={() => { setOpen(true); setUseOther(false); setError(null); }}
+            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-pacific-600 transition-opacity ml-1"
+            title="Edit AI form"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
+            </svg>
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {loadingForms ? (
+        <span className="text-xs text-gray-400">Loading forms…</span>
+      ) : useOther ? (
+        <div className="space-y-1">
+          <input
+            autoFocus
+            type="text"
+            value={otherText}
+            onChange={e => setOtherText(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') saveOtherText();
+              if (e.key === 'Escape') setOpen(false);
+            }}
+            placeholder="Enter custom form name"
+            className="w-full text-xs rounded border border-gray-300 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-pacific-400"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={saveOtherText}
+              disabled={saving || !otherText.trim()}
+              className="text-xs px-2 py-0.5 rounded bg-pacific-600 text-white hover:bg-pacific-700 disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button type="button" onClick={() => setUseOther(false)} className="text-xs text-gray-500 hover:text-gray-700">
+              ← Back
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {forms && forms.length > 0 ? (
+            <ul className="text-xs divide-y divide-gray-100 border border-gray-200 rounded max-h-40 overflow-y-auto bg-white shadow-sm">
+              {forms.map(f => (
+                <li key={f.id}>
+                  <button
+                    type="button"
+                    onClick={() => saveFormSelection(f)}
+                    disabled={saving}
+                    className="w-full text-left px-2 py-1.5 hover:bg-pacific-50 hover:text-pacific-800 transition disabled:opacity-50"
+                  >
+                    {f.formName}
+                    {f.isDefault ? <span className="ml-1.5 text-[10px] text-green-600">default</span> : null}
+                  </button>
+                </li>
+              ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setUseOther(true)}
+                  className="w-full text-left px-2 py-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition italic"
+                >
+                  Other (free text)…
+                </button>
+              </li>
+            </ul>
+          ) : (
+            <p className="text-xs text-gray-400">No forms on file for this ingredient.{' '}
+              <button type="button" onClick={() => setUseOther(true)} className="text-pacific-600 hover:underline not-italic">
+                Enter free text
+              </button>
+            </p>
+          )}
+          <button type="button" onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:text-gray-600">
+            Cancel
+          </button>
+        </div>
+      )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
+    </div>
   );
 }
 
