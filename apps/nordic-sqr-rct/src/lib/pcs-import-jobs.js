@@ -387,7 +387,22 @@ export async function createJob({
 
   if (shouldWriteToPostgresFirst()) {
     const preId = crypto.randomUUID();
+    // Only include columns that exist in the pcs_import_jobs Postgres table.
+    // Rich fields (batchId, pdfUrl, contentHash, diffReport, etc.) are
+    // Notion-only until a future schema extension adds TEXT columns for them.
+    // updateJob already uses this same selective-columns pattern correctly.
     const stubRow = {
+      id: preId,
+      pcsId: pcsId || '',
+      status: initialStatus,
+      error: error || '',
+    };
+    await writePostgresFirst('pcs_import_jobs', stubRow, IMPORT_JOBS_PG_COLUMN_MAP, () =>
+      notion.pages.create({ parent: { database_id: PCS_DB.importJobs }, properties })
+    );
+    // Return the full shape callers expect (with the rich fields) even though
+    // only the slim Postgres subset was persisted.
+    return {
       id: preId,
       jobId,
       status: initialStatus,
@@ -396,23 +411,13 @@ export async function createJob({
       pcsId: pcsId || '',
       existingDocId: existingDocId || '',
       conflictAction: conflictAction || 'skip',
-      extractedData: '',
-      createdDocumentId: '',
-      resultCounts: '',
-      warnings: warnings || '',
-      error: error || '',
-      retryCount: 0,
       batchId: batchId || '',
       ownerEmail: ownerEmail || null,
       contentHash: contentHash || '',
       promptVersion: promptVersion || '',
-      notificationSent: false,
-      diffReport: null,
+      error: error || '',
+      warnings: warnings || '',
     };
-    await writePostgresFirst('pcs_import_jobs', stubRow, IMPORT_JOBS_PG_COLUMN_MAP, () =>
-      notion.pages.create({ parent: { database_id: PCS_DB.importJobs }, properties })
-    );
-    return stubRow;
   }
   const page = await notion.pages.create({
     parent: { database_id: PCS_DB.importJobs },
