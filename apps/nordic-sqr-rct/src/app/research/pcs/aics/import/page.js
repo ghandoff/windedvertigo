@@ -224,41 +224,73 @@ export default function AicsImportPage() {
         <h1 className="text-2xl font-bold text-gray-900">Batch Import AICS Documents</h1>
         <p className="mt-1 text-sm text-gray-500">
           Import up to {MAX_BATCH} AICS documents at once — with nested versions and claims.
-          Documents are created sequentially to stay within Notion API limits.
         </p>
       </div>
 
-      {/* Success results */}
+      {/* Import results */}
       {results && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-5 py-4 space-y-3">
-          <p className="text-sm font-semibold text-green-900">
-            Import complete — {results.created?.length || 0} document{results.created?.length !== 1 ? 's' : ''} created
-            {results.errors?.length > 0 ? `, ${results.errors.length} error${results.errors.length !== 1 ? 's' : ''}` : ''}.
-          </p>
-          {results.errors?.length > 0 && (
-            <ul className="text-xs text-red-700 space-y-1">
-              {results.errors.map((e, i) => (
-                <li key={i}>
-                  <span className="font-mono">{e.aicsId || `item ${e.index}`}</span>
-                  {e.context ? ` (${e.context})` : ''}: {e.error}
-                </li>
-              ))}
-            </ul>
+        <div className="space-y-3">
+          {/* Success card — always shown when at least one document was created */}
+          {(results.created?.length > 0) && (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-5 py-4 space-y-3">
+              <p className="text-sm font-semibold text-green-900">
+                {results.created.length} document{results.created.length !== 1 ? 's' : ''} imported successfully.
+              </p>
+              <div className="flex gap-3">
+                <Link
+                  href="/research/pcs/aics"
+                  className="text-xs text-green-700 underline hover:text-green-900 transition"
+                >
+                  View AICS Library
+                </Link>
+                <button
+                  onClick={() => setResults(null)}
+                  className="text-xs text-gray-500 hover:text-gray-700 transition"
+                >
+                  Import another batch
+                </button>
+              </div>
+            </div>
           )}
-          <div className="flex gap-3">
-            <Link
-              href="/research/pcs/aics"
-              className="text-xs text-green-700 underline hover:text-green-900 transition"
-            >
-              View AICS Library
-            </Link>
-            <button
-              onClick={() => setResults(null)}
-              className="text-xs text-gray-500 hover:text-gray-700 transition"
-            >
-              Import another batch
-            </button>
-          </div>
+
+          {/* Error card — shown separately when there were partial failures */}
+          {results.errors?.length > 0 && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 space-y-2">
+              <p className="text-sm font-semibold text-amber-900">
+                {results.errors.length} item{results.errors.length !== 1 ? 's' : ''} could not be imported
+                {results.created?.length > 0 ? ' (the rest succeeded)' : ''}.
+              </p>
+              <ul className="text-xs text-amber-800 space-y-1">
+                {results.errors.map((e, i) => (
+                  <li key={i}>
+                    <span className="font-mono font-medium">{e.aicsId || `item ${e.index}`}</span>
+                    {e.context ? ` (${e.context})` : ''}: {e.error}
+                  </li>
+                ))}
+              </ul>
+              {results.created?.length === 0 && (
+                <button
+                  onClick={() => setResults(null)}
+                  className="text-xs text-amber-700 underline hover:text-amber-900 transition"
+                >
+                  Try again
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Nothing at all created and no detailed errors */}
+          {results.created?.length === 0 && !results.errors?.length && (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
+              <p className="text-sm text-gray-600">No documents were imported.</p>
+              <button
+                onClick={() => setResults(null)}
+                className="mt-2 text-xs text-gray-500 underline hover:text-gray-700 transition"
+              >
+                Try again
+              </button>
+            </div>
+          )}
         </div>
       )}
 

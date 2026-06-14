@@ -55,6 +55,7 @@ function parsePostgresRow(row) {
     totalEPAandDHA: row.total_epa_and_dha ?? null,
     totalOmega6: row.total_omega6 ?? null,
     totalOmega9: row.total_omega9 ?? null,
+    sourceType: row.source_type || null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
   };
@@ -92,6 +93,7 @@ function parsePage(page) {
     totalEPAandDHA: p[P.totalEPAandDHA]?.number ?? null,
     totalOmega6: p[P.totalOmega6]?.number ?? null,
     totalOmega9: p[P.totalOmega9]?.number ?? null,
+    sourceType: p[P.sourceType]?.select?.name || null,
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };
@@ -277,6 +279,9 @@ export async function createVersion(fields) {
   if (fields.supersedesId) {
     properties[P.supersedes] = { relation: [{ id: fields.supersedesId }] };
   }
+  if (fields.sourceType) {
+    properties[P.sourceType] = { select: { name: fields.sourceType } };
+  }
   Object.assign(properties, laurenTemplateProps(fields));
 
   if (shouldWriteToPostgresFirst()) {
@@ -309,6 +314,7 @@ export async function createVersion(fields) {
       totalEPAandDHA: fields.totalEPAandDHA ?? null,
       totalOmega6: fields.totalOmega6 ?? null,
       totalOmega9: fields.totalOmega9 ?? null,
+      sourceType: fields.sourceType || null,
     };
     await writePostgresFirst('pcs_versions', stubRow, VERSIONS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.versions }, properties }));
     return stubRow;

@@ -691,10 +691,26 @@ export async function createAicsVersion(docId, fields) {
 
   if (shouldWriteToAicsPostgresFirst()) {
     const preId = crypto.randomUUID();
+
+    // The FK column aics_document_id references aics_documents.id (Postgres UUID),
+    // not the Notion page ID that callers pass as docId. Look up the UUID first.
+    let pgDocId = null;
+    let pgDocNotionId = docId;
+    try {
+      const sb = await getPcsSupabase();
+      const { data } = await sb
+        .from('aics_documents')
+        .select('id')
+        .eq('notion_page_id', docId)
+        .maybeSingle();
+      pgDocId = data?.id || null;
+    } catch { /* pgDocId stays null — FK insert will surface the error clearly */ }
+
     const stubRow = {
       id: preId,
       version: fields.version,
-      aicsDocumentId: docId,
+      aicsDocumentId: pgDocId,        // UUID FK → aics_documents.id
+      aicsDocumentNotionId: pgDocNotionId, // TEXT column for Notion page ID
       isLatest: fields.isLatest || false,
       effectiveDate: fields.effectiveDate || null,
       changeDescription: fields.changeDescription || '',

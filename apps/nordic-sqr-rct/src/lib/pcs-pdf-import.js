@@ -614,6 +614,7 @@ export async function commitExtraction(data, existingDocId = null) {
       version: ver.version,
       pcsDocumentId: result.documentId,
       isLatest: true,
+      sourceType: 'pdf-import',
       ...versionFields,
     });
     result.versionId = created.id;
