@@ -74,6 +74,9 @@ function parsePostgresRow(row) {
     confidence: row.confidence ?? null,
     authorityRegions: row.authority_regions ?? [],
     sourceAicsClaimId: row.source_aics_claim_id || null,
+    // Migration 022 — AICS-scoped backfill review
+    matchedAicsClaimId: row.matched_aics_claim_id || null,
+    aicsMatchConfidence: row.aics_match_confidence ?? null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
   };
@@ -374,6 +377,8 @@ export async function updateClaim(id, fields) {
       multi_select: (fields.authorityRegions || []).map(name => ({ name })),
     };
   }
+  // Migration 022 — AICS-scoped backfill: Postgres-only fields, no Notion property.
+  // writePostgresFirst picks them up from the stubRow via CLAIMS_PG_COLUMN_MAP auto-snake_case.
   // 2026-05-07 — Phase B: stub row carries only the fields being updated;
   // notionShapeToPgRow strips undefined so the upsert only touches changed columns.
   if (shouldWriteToPostgresFirst()) {

@@ -55,14 +55,19 @@ function PcsEvidence() {
       key: 'name',
       label: 'Name',
       render: (val, row) => (
-        <Link
-          href={`/research/pcs/evidence/${row.id}`}
-          className="max-w-[300px] inline-block truncate font-medium text-pacific-600 hover:underline"
-          title={val}
-          onClick={e => e.stopPropagation()}
-        >
-          {val}
-        </Link>
+        <div className="flex items-center gap-1.5 max-w-[300px]">
+          {row.visibility === 'nordic-private' && (
+            <span title="Nordic Proprietary — not shared with external reviewers" className="flex-shrink-0 text-xs">🔒</span>
+          )}
+          <Link
+            href={`/research/pcs/evidence/${row.id}`}
+            className="truncate font-medium text-pacific-600 hover:underline"
+            title={val}
+            onClick={e => e.stopPropagation()}
+          >
+            {val}
+          </Link>
+        </div>
       ),
     },
     {

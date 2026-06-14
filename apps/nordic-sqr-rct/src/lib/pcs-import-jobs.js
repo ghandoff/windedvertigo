@@ -210,21 +210,9 @@ export async function getJob(id) {
  * @returns {Promise<object[]>} Matching jobs.
  */
 export async function getJobsByStatus(status, limit = 10) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_import_jobs')
-        .select('*')
-        .eq('status', status)
-        .order('notion_created_at', { ascending: true })
-        .limit(limit);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-import-jobs] Postgres byStatus failed, falling back to Notion: ${err.message}`);
-    }
-  }
+  // Always reads from Notion — the Postgres schema does not store pdfUrl,
+  // batchId, pdfFilename, or other fields the extraction pipeline requires.
+  // Postgres reads are reserved for the UI display path (getAllJobs/getJob).
   const res = await notion.databases.query({
     database_id: PCS_DB.importJobs,
     page_size: Math.min(limit, 100),
@@ -260,22 +248,11 @@ export async function getJobsByBatch(batchId) {
  * @returns {Promise<object[]>} Stale jobs.
  */
 export async function getStaleJobs(status, olderThan, limit = 10) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_import_jobs')
-        .select('*')
-        .eq('status', status)
-        .lt('notion_last_edited_at', olderThan.toISOString())
-        .order('notion_last_edited_at', { ascending: true })
-        .limit(limit);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-import-jobs] Postgres staleJobs failed, falling back to Notion: ${err.message}`);
-    }
-  }
+  // Always reads from Notion — Notion's last_edited_time is updated whenever
+  // any property changes, making it an accurate staleness signal. The Postgres
+  // notion_last_edited_at column is NULL for Postgres-first created jobs
+  // (writePostgresFirst doesn't set it), so NULL < cutoff always returns no
+  // rows in SQL, causing stuck jobs to be invisible to the stale sweep.
   const res = await notion.databases.query({
     database_id: PCS_DB.importJobs,
     page_size: Math.min(limit, 100),
@@ -510,7 +487,9 @@ export async function updateJob(id, fields) {
   if (shouldWriteToPostgresFirst()) {
     // Only update the Postgres columns we have. The full Notion update still
     // runs async for extractedData, diffReport, batchId, etc.
-    const pgFields = { id };
+    // lastEditedTime is always updated so getStaleJobs can detect stuck jobs
+    // even when Notion's async update hasn't fired yet.
+    const pgFields = { id, lastEditedTime: new Date().toISOString() };
     if (fields.status !== undefined) pgFields.status = fields.status;
     if (fields.error !== undefined) pgFields.error = fields.error;
     if (fields.pcsId !== undefined) pgFields.pcsId = fields.pcsId;

@@ -355,6 +355,8 @@ export default function AicsDetailPage() {
         {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} claims={claims} setClaims={setClaims} canEdit={can(user, 'aics.claims:edit')} /> : null}
       </div>
 
+      {doc.aiName ? <PcsCoveragePanel doc={doc} /> : null}
+
       {!canEdit ? (
         <p className="text-xs text-gray-400 text-right">
           Read-only view — RA, admin, and super-users can edit this AICS doc.
@@ -370,6 +372,112 @@ export default function AicsDetailPage() {
             setPropagatedClaimIds(prev => new Set([...prev, modalClaim.id]));
           }}
         />
+      )}
+    </div>
+  );
+}
+
+// ─── PCS Coverage Panel ─────────────────────────────────────────────────────
+
+function PcsCoveragePanel({ doc }) {
+  const [coverage, setCoverage] = useState(null);
+  const [coverageLoading, setCoverageLoading] = useState(false);
+
+  useEffect(() => {
+    if (!doc?.aiName) return;
+    setCoverageLoading(true);
+    fetch(`/api/pcs/aics-backfill?ingredient=${encodeURIComponent(doc.aiName)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { setCoverage(data); setCoverageLoading(false); })
+      .catch(() => setCoverageLoading(false));
+  }, [doc?.aiName]);
+
+  if (coverageLoading) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">PCS Coverage</h2>
+        <div className="animate-pulse space-y-2">
+          <div className="h-2 bg-gray-200 rounded w-full" />
+          <div className="h-4 bg-gray-100 rounded w-1/3" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!coverage) return null;
+
+  const { groups = [] } = coverage;
+
+  const counts = {};
+  let totalInstances = 0;
+  for (const g of groups) {
+    counts[g.status] = (counts[g.status] || 0) + 1;
+    totalInstances += (g.instances?.length || 1);
+  }
+
+  const STATUS_META = [
+    { key: 'pending',          label: 'Ready to review', textCls: 'text-pacific-700', bgCls: 'bg-pacific-50',  icon: '●' },
+    { key: 'low-confidence',   label: 'Low confidence',  textCls: 'text-amber-700',   bgCls: 'bg-amber-50',    icon: '◑' },
+    { key: 'unmatched',        label: 'No AICS match',   textCls: 'text-red-700',     bgCls: 'bg-red-50',      icon: '⚠' },
+    { key: 'no-aics',          label: 'Pending AICS',    textCls: 'text-gray-600',    bgCls: 'bg-gray-50',     icon: '·' },
+  ];
+
+  const iconFor = (status) => STATUS_META.find(s => s.key === status)?.icon || '·';
+  const iconClsFor = (status) => {
+    const m = STATUS_META.find(s => s.key === status);
+    return m ? m.textCls : 'text-gray-400';
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">PCS Coverage</h2>
+        {groups.length > 0 && (
+          <Link
+            href={`/research/pcs/aics-backfill?ingredient=${encodeURIComponent(doc.aiName)}`}
+            className="text-xs text-pacific-600 hover:text-pacific-800 font-medium"
+          >
+            Review unmapped claims →
+          </Link>
+        )}
+      </div>
+
+      {groups.length === 0 ? (
+        <p className="text-sm text-green-700 flex items-center gap-1.5">
+          <span className="text-green-500 text-base">✓</span>
+          All PCS claims for {doc.aiName} have been mapped to AICS claims.
+        </p>
+      ) : (
+        <>
+          <p className="text-xs text-gray-500 mb-3">
+            {groups.length} claim group{groups.length !== 1 ? 's' : ''} await review —&nbsp;
+            {totalInstances} PCS claim instance{totalInstances !== 1 ? 's' : ''} total
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            {STATUS_META.filter(m => counts[m.key]).map(({ key, label, textCls, bgCls }) => (
+              <div key={key} className={`rounded-lg px-3 py-2 ${bgCls}`}>
+                <div className={`text-xl font-bold ${textCls}`}>{counts[key]}</div>
+                <div className={`text-xs ${textCls} opacity-80`}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="divide-y divide-gray-50">
+            {groups.slice(0, 8).map((g) => (
+              <div key={g.key} className="flex items-start gap-2 text-xs py-1.5">
+                <span className={`mt-0.5 shrink-0 font-mono ${iconClsFor(g.status)}`}>{iconFor(g.status)}</span>
+                <span className="text-gray-700 flex-1 min-w-0 truncate">{g.claimText}</span>
+                <span className="text-gray-400 shrink-0 whitespace-nowrap">
+                  {g.instances?.length || 1}×
+                </span>
+              </div>
+            ))}
+            {groups.length > 8 && (
+              <p className="text-xs text-gray-400 text-center pt-2">+{groups.length - 8} more</p>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

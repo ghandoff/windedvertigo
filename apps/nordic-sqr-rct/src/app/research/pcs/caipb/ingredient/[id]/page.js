@@ -20,6 +20,7 @@ import {
 } from 'recharts';
 import RoleRoute from '@/components/RoleRoute';
 import { useAuth } from '@/lib/useAuth';
+import { can } from '@/lib/auth/capabilities';
 import { CLAIM_AUTHORITY_REGIONS } from '@/lib/pcs-config';
 
 // ─── Color palette ────────────────────────────────────────────────────────────
@@ -536,6 +537,40 @@ function IngredientDashboardContent() {
   const [compliance, setCompliance] = useState(null);
   const [complianceLoading, setComplianceLoading] = useState(false);
 
+  // Phase 2 — Dossier export
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExportDossier() {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const res = await fetch('/api/pcs/export/dossier', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredientId: id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const disposition = res.headers.get('Content-Disposition') || '';
+      const filenameMatch = disposition.match(/filename="([^"]+)"/);
+      a.download = filenameMatch?.[1] || `Dossier-${id}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(`Export failed: ${err.message}`);
+    } finally {
+      setExporting(false);
+    }
+  }
+
   // Phase 4 — AI Research Chat
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
@@ -662,23 +697,35 @@ function IngredientDashboardContent() {
               {ingredient.standardUnit && <span>Standard unit: {ingredient.standardUnit}</span>}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-500">Region</label>
-            <select
-              value={region}
-              onChange={e => setRegion(e.target.value)}
-              className="text-sm border border-gray-300 rounded px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-pacific-400"
-            >
-              <option value="">All regions</option>
-              {CLAIM_AUTHORITY_REGIONS.map(r => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-            {region && (
-              <button onClick={() => setRegion('')} className="text-xs text-gray-400 hover:text-gray-600 underline">
-                Clear
+          <div className="flex items-center gap-3 flex-wrap">
+            {can(user, 'pcs.dossier:export') && (
+              <button
+                onClick={handleExportDossier}
+                disabled={exporting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-pacific-600 hover:bg-pacific-700 text-white rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {exporting && <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+                {exporting ? 'Generating…' : 'Export Dossier'}
               </button>
             )}
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500">Region</label>
+              <select
+                value={region}
+                onChange={e => setRegion(e.target.value)}
+                className="text-sm border border-gray-300 rounded px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-pacific-400"
+              >
+                <option value="">All regions</option>
+                {CLAIM_AUTHORITY_REGIONS.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              {region && (
+                <button onClick={() => setRegion('')} className="text-xs text-gray-400 hover:text-gray-600 underline">
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

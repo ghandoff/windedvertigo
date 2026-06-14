@@ -66,6 +66,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
   const [searched, setSearched] = useState(false);
   const [attaching, setAttaching] = useState({});
   const [attached, setAttached] = useState({});
+  const [visibility, setVisibility] = useState('shared');
 
   // 2026-05-05 — When the sidebar Evidence button is clicked while we're
   // already on /pcs/evidence, Next.js Link is a no-op (same path). The
@@ -120,7 +121,7 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
       const res = await fetch('/api/pcs/evidence/save-from-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(hit),
+        body: JSON.stringify({ ...hit, visibility }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
@@ -193,6 +194,19 @@ export default function ArticleSearchPanel({ canAttach, onAttached }) {
           {loading ? 'Searching…' : 'Search'}
         </button>
       </form>
+
+      {/* Visibility toggle — applies to all articles saved from this search session */}
+      <label className="flex items-center gap-2 cursor-pointer w-fit select-none">
+        <input
+          type="checkbox"
+          checked={visibility === 'nordic-private'}
+          onChange={e => setVisibility(e.target.checked ? 'nordic-private' : 'shared')}
+          className="w-4 h-4 rounded border-gray-300 text-pacific-600 focus:ring-pacific-500"
+        />
+        <span className="text-xs text-gray-600">
+          🔒 Save as <span className="font-medium text-gray-800">Nordic Proprietary</span> (private — not shared with external reviewers)
+        </span>
+      </label>
 
       {/* Provider stats line */}
       {providers.length > 0 ? (
