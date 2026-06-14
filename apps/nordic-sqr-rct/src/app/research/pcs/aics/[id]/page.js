@@ -17,11 +17,172 @@
  * crashing on the API error.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { can } from '@/lib/auth/capabilities';
+
+// ─── Propagation modal ──────────────────────────────────────────────────────
+
+function PropagateModal({ aicsDocId, claim, onClose, onSuccess }) {
+  const [step, setStep] = useState('loading'); // loading | preview | done | error
+  const [preview, setPreview] = useState(null);
+  const [working, setWorking] = useState(false);
+  const [result, setResult] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/pcs/aics/${aicsDocId}/claims/${claim.id}/propagate?dryRun=true`, {
+      method: 'POST',
+    })
+      .then(async (res) => {
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+        setPreview(body);
+        setStep('preview');
+      })
+      .catch((err) => {
+        setErrorMsg(err.message);
+        setStep('error');
+      });
+  }, [aicsDocId, claim.id]);
+
+  async function handleConfirm() {
+    setWorking(true);
+    try {
+      const res = await fetch(`/api/pcs/aics/${aicsDocId}/claims/${claim.id}/propagate`, {
+        method: 'POST',
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+      setResult(body);
+      setStep('done');
+      if (typeof onSuccess === 'function') onSuccess(body);
+    } catch (err) {
+      setErrorMsg(err.message);
+      setStep('error');
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div
+        className="bg-white rounded-xl shadow-2xl w-full max-w-xl mx-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-900">Propagate claim to PCS documents</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+
+        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto">
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
+            <span className="font-medium text-gray-500 text-xs uppercase block mb-1">Claim being propagated</span>
+            {claim.claimText || <span className="italic text-gray-400">(no claim text)</span>}
+            {claim.minDose !== null && claim.minDose !== undefined && (
+              <span className="block mt-1 text-xs text-gray-500">
+                Min dose: {claim.minDose} {claim.minDoseUnit || 'mg'}
+              </span>
+            )}
+          </div>
+
+          {step === 'loading' && (
+            <p className="text-sm text-gray-500 py-4 text-center">Finding qualifying products…</p>
+          )}
+
+          {step === 'error' && (
+            <div className="text-sm text-red-600 py-2">
+              <span className="font-medium">Error: </span>{errorMsg}
+            </div>
+          )}
+
+          {step === 'preview' && preview && (
+            <>
+              <p className="text-sm text-gray-600 mb-3">
+                This will push the claim to{' '}
+                <span className="font-semibold text-gray-900">
+                  {preview.count} product{preview.count !== 1 ? 's' : ''}
+                </span>
+                {preview.ingredient && (
+                  <span className="text-gray-500"> containing {preview.ingredient.name}</span>
+                )}.
+              </p>
+              {preview.count === 0 && (
+                <p className="text-sm text-amber-700 bg-amber-50 rounded-lg p-3">
+                  No qualifying products found — either no formula lines meet the dose threshold, or all matching products already have this claim.
+                </p>
+              )}
+              {preview.documents?.length > 0 && (
+                <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 text-sm">
+                  {preview.documents.map((d) => (
+                    <div key={d.pcsDocumentId} className="px-4 py-2.5 flex items-center justify-between">
+                      <span className="text-gray-600 text-xs font-mono truncate max-w-[200px]">{d.pcsDocumentId}</span>
+                      <span className="text-gray-500 text-xs">
+                        {d.currentVersion || '—'} → <span className="text-green-700 font-medium">{d.newVersion}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {preview.skipped?.length > 0 && (
+                <p className="text-xs text-gray-400 mt-3">
+                  {preview.skipped.length} product{preview.skipped.length !== 1 ? 's' : ''} already have this claim.
+                </p>
+              )}
+            </>
+          )}
+
+          {step === 'done' && result && (
+            <div className="text-center py-4">
+              <div className="text-4xl mb-3">✓</div>
+              <p className="text-base font-semibold text-gray-900">
+                Propagated to {result.propagated} product{result.propagated !== 1 ? 's' : ''}
+              </p>
+              {result.errors?.length > 0 && (
+                <p className="text-sm text-red-600 mt-2">{result.errors.length} failed — check logs</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+          {step === 'done' ? (
+            <button
+              onClick={onClose}
+              className="px-4 py-1.5 text-sm font-medium rounded-md bg-pacific-600 text-white hover:bg-pacific-700"
+            >
+              Close
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={onClose}
+                disabled={working}
+                className="px-4 py-1.5 text-sm font-medium rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              {step === 'preview' && preview?.count > 0 && (
+                <button
+                  onClick={handleConfirm}
+                  disabled={working}
+                  className="px-4 py-1.5 text-sm font-medium rounded-md bg-pacific-600 text-white hover:bg-pacific-700 disabled:opacity-50"
+                >
+                  {working ? 'Propagating…' : `Confirm — push to ${preview.count} product${preview.count !== 1 ? 's' : ''}`}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 const TABS = [
   { key: 'cover',         label: 'Cover'         },
@@ -41,6 +202,8 @@ export default function AicsDetailPage() {
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(null);
   const [activeTab, setActiveTab] = useState('cover');
+  const [modalClaim, setModalClaim] = useState(null);
+  const [propagatedClaimIds, setPropagatedClaimIds] = useState(new Set());
 
   const handleApiError = useCallback((err) => {
     const msg = err?.message || '';
@@ -180,7 +343,15 @@ export default function AicsDetailPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         {activeTab === 'cover' ? <CoverTab doc={doc} versions={versions} /> : null}
         {activeTab === 'raw-materials' ? <RawMaterialsTab doc={doc} /> : null}
-        {activeTab === 'claims' ? <ClaimsTab claims={claims} /> : null}
+        {activeTab === 'claims' ? (
+          <ClaimsTab
+            claims={claims}
+            canEdit={canEdit}
+            aicsDocId={id}
+            onPropagate={setModalClaim}
+            propagatedClaimIds={propagatedClaimIds}
+          />
+        ) : null}
         {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} claims={claims} setClaims={setClaims} canEdit={can(user, 'aics.claims:edit')} /> : null}
       </div>
 
@@ -189,6 +360,17 @@ export default function AicsDetailPage() {
           Read-only view — RA, admin, and super-users can edit this AICS doc.
         </p>
       ) : null}
+
+      {modalClaim && (
+        <PropagateModal
+          aicsDocId={id}
+          claim={modalClaim}
+          onClose={() => setModalClaim(null)}
+          onSuccess={(result) => {
+            setPropagatedClaimIds(prev => new Set([...prev, modalClaim.id]));
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -274,55 +456,80 @@ function RawMaterialsTab({ doc }) {
   );
 }
 
-function ClaimsTab({ claims }) {
+function ClaimsTab({ claims, canEdit = false, aicsDocId, onPropagate, propagatedClaimIds }) {
   if (!claims || claims.length === 0) {
     return <p className="text-sm text-gray-400 text-center py-8">No claims on this AICS yet.</p>;
   }
   return (
     <div className="space-y-3">
-      <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
-        Claims & Minimum Dose by Demographic
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
+          Claims & Minimum Dose by Demographic
+        </h2>
+        {canEdit && (
+          <p className="text-xs text-gray-500">Authorized claims can be pushed to qualifying PCS documents.</p>
+        )}
+      </div>
       <p className="text-xs text-gray-500">
-        Each row is one claim × demographic pairing. Grade encodes substantiation strength (A = strong, B = adequate, C = limited).
+        Grade encodes substantiation strength (A = strong, B = adequate, C = limited).
       </p>
       <ul className="divide-y divide-gray-200">
-        {claims.map((c) => (
-          <li key={c.id} className="py-3">
-            <div className="flex items-start gap-3">
-              <div className="shrink-0">
-                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
-                  c.grade === 'A' ? 'bg-green-100 text-green-800'
-                    : c.grade === 'B' ? 'bg-blue-100 text-blue-800'
-                    : c.grade === 'C' ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {c.grade || '—'}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-gray-900">{c.claimText}</p>
-                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                  {c.benefitCategory ? <span>{c.benefitCategory}</span> : null}
-                  {c.ageGroup ? <span>· {c.ageGroup}</span> : null}
-                  {c.sex ? <span>· {c.sex}</span> : null}
-                  {c.minDose ? (
-                    <span className="font-medium text-gray-700">
-                      · Min dose: {c.minDose}{c.minDoseUnit ? ` ${c.minDoseUnit}` : ''}
-                      {c.minDoseSecondary ? ` (${c.minDoseSecondary}${c.minDoseSecondaryUnit ? ` ${c.minDoseSecondaryUnit}` : ''})` : ''}
-                    </span>
-                  ) : null}
-                  {c.fdaDsheaDisclaimerRequired ? <span>· Requires FDA/DSHEA disclaimer</span> : null}
-                </div>
-              </div>
-              {c.claimStatus ? (
+        {claims.map((c) => {
+          const alreadyDone = propagatedClaimIds?.has(c.id);
+          return (
+            <li key={c.id} className="py-3">
+              <div className="flex items-start gap-3">
                 <div className="shrink-0">
-                  <span className="text-[10px] uppercase tracking-wider text-gray-500">{c.claimStatus}</span>
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                    c.grade === 'A' ? 'bg-green-100 text-green-800'
+                      : c.grade === 'B' ? 'bg-blue-100 text-blue-800'
+                      : c.grade === 'C' ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {c.grade || '—'}
+                  </span>
                 </div>
-              ) : null}
-            </div>
-          </li>
-        ))}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-900">{c.claimText}</p>
+                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                    {c.benefitCategory ? <span>{c.benefitCategory}</span> : null}
+                    {c.ageGroup ? <span>· {c.ageGroup}</span> : null}
+                    {c.sex ? <span>· {c.sex}</span> : null}
+                    {c.minDose ? (
+                      <span className="font-medium text-gray-700">
+                        · Min dose: {c.minDose}{c.minDoseUnit ? ` ${c.minDoseUnit}` : ''}
+                        {c.minDoseSecondary ? ` (${c.minDoseSecondary}${c.minDoseSecondaryUnit ? ` ${c.minDoseSecondaryUnit}` : ''})` : ''}
+                      </span>
+                    ) : null}
+                    {c.fdaDsheaDisclaimerRequired ? <span>· Requires FDA/DSHEA disclaimer</span> : null}
+                  </div>
+                </div>
+                <div className="shrink-0 flex items-center gap-3">
+                  {c.claimStatus ? (
+                    <span className={`text-[10px] uppercase tracking-wider font-medium ${
+                      c.claimStatus === 'Authorized' ? 'text-green-600'
+                        : c.claimStatus === 'Pending' ? 'text-amber-600'
+                        : c.claimStatus === 'Rejected' ? 'text-red-500'
+                        : 'text-gray-400'
+                    }`}>{c.claimStatus}</span>
+                  ) : null}
+                  {canEdit && c.claimStatus === 'Authorized' && (
+                    alreadyDone ? (
+                      <span className="text-xs text-green-600 font-medium">Propagated ✓</span>
+                    ) : (
+                      <button
+                        onClick={() => onPropagate && onPropagate(c)}
+                        className="text-xs px-2.5 py-1 rounded-md bg-pacific-50 text-pacific-700 hover:bg-pacific-100 border border-pacific-200 font-medium whitespace-nowrap"
+                      >
+                        Propagate →
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

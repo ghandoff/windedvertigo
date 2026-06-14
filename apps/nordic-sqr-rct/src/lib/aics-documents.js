@@ -112,6 +112,8 @@ function parsePostgresAicsDocumentRow(row) {
     archived: row.archived || false,
     templateVersion: row.template_version || null,
     templateSignals: row.template_signals || '',
+    demographic: row.demographic || null,
+    assignedReviewerIds: row.assigned_reviewer_ids || [],
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
   };
@@ -208,6 +210,8 @@ function parseAicsDocumentPage(page) {
     archived: p[PD.archived]?.checkbox || false,
     templateVersion: p[PD.templateVersion]?.select?.name || null,
     templateSignals: (p[PD.templateSignals]?.rich_text || []).map(t => t.plain_text).join(''),
+    demographic: p[PD.demographic]?.select?.name || null,
+    assignedReviewerIds: (p[PD.assignedReviewers]?.relation || []).map(r => r.id),
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };
@@ -249,7 +253,7 @@ export async function getAicsDocument(id) {
  * @param {string} [opts.cursor]   Notion `start_cursor` for pagination
  * @param {string} [opts.status]   exact match on raReviewStatus (e.g. 'Pending RA Review')
  */
-export async function listAicsDocuments({ limit = 100, cursor, status } = {}) {
+export async function listAicsDocuments({ limit = 100, cursor, status, demographic, assignedReviewerId } = {}) {
   // Phase 2: try Postgres first when the flag is on. Postgres doesn't support
   // Notion-style cursors; the full result set is returned up to `limit` rows
   // sorted by aics_id. Falls back to Notion on any error.
@@ -261,14 +265,14 @@ export async function listAicsDocuments({ limit = 100, cursor, status } = {}) {
         .select('*')
         .order('aics_id', { ascending: true })
         .limit(Math.min(limit, 1000));
-      if (status) {
-        q = q.eq('ra_review_status', status);
-      }
+      if (status) q = q.eq('ra_review_status', status);
+      if (demographic) q = q.eq('demographic', demographic);
+      if (assignedReviewerId) q = q.contains('assigned_reviewer_ids', [assignedReviewerId]);
       const { data, error } = await q;
       if (error) throw error;
       return {
         items: (data || []).map(parsePostgresAicsDocumentRow),
-        nextCursor: null, // Postgres path returns all matching rows in one shot
+        nextCursor: null,
       };
     } catch (err) {
       console.warn(`[aics-documents] Postgres listAicsDocuments failed, falling back to Notion: ${err.message}`);
@@ -289,12 +293,25 @@ export async function listAicsDocuments({ limit = 100, cursor, status } = {}) {
     sorts: [{ property: PD.aicsId, direction: 'ascending' }],
   };
   if (cursor) query.start_cursor = cursor;
-  if (status) {
-    query.filter = { property: PD.raReviewStatus, select: { equals: status } };
-  }
+
+  // Build compound filter for status + demographic
+  const filters = [];
+  if (status) filters.push({ property: PD.raReviewStatus, select: { equals: status } });
+  if (demographic) filters.push({ property: PD.demographic, select: { equals: demographic } });
+  if (filters.length === 1) query.filter = filters[0];
+  if (filters.length > 1) query.filter = { and: filters };
+
   const res = await notion.databases.query(query);
+  let items = res.results.map(parseAicsDocumentPage);
+
+  // Contractor scoping: filter in JS since Notion multi-relation filter
+  // requires the exact page id which is available post-parse.
+  if (assignedReviewerId) {
+    items = items.filter(d => d.assignedReviewerIds.includes(assignedReviewerId));
+  }
+
   return {
-    items: res.results.map(parseAicsDocumentPage),
+    items,
     nextCursor: res.has_more ? res.next_cursor : null,
   };
 }

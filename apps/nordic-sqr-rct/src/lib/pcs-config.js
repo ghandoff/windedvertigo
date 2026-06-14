@@ -606,6 +606,14 @@ export const PROPS = {
     archived:         'Archived',
     templateVersion:  'Template version',
     templateSignals:  'Template classification signals',
+    // AICS Broadcasting (2026-06-13) — document-level demographic label so
+    // "Omega-3 Adults" and "Omega-3 Children" are distinct filterable docs.
+    // Notion property must be added manually by admin before this is deployed.
+    demographic:      'Demographic',        // select — matches DEMOGRAPHICS constant
+    // Contractor reviewer assignment — multi-relation back to Reviewers DB.
+    // When a user has only the aics-reviewer role, list + detail endpoints
+    // filter to only docs where their reviewer ID appears here.
+    assignedReviewers: 'Assigned Reviewers', // relation (multi)
   },
   aicsVersions: {
     version:           'Version',           // title — 'v0.1', 'v1.0'

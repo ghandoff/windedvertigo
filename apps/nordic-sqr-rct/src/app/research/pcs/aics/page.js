@@ -22,6 +22,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { can } from '@/lib/auth/capabilities';
+import { DEMOGRAPHICS } from '@/lib/pcs-config';
 import PcsTable from '@/components/pcs/PcsTable';
 
 export default function AicsLibraryPage() {
@@ -36,14 +37,16 @@ function AicsLibrary() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const statusFilter = searchParams.get('status');
+  const demographicFilter = searchParams.get('demographic');
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [configError, setConfigError] = useState(null);
 
   useEffect(() => {
-    const url = statusFilter
-      ? `/api/pcs/aics?status=${encodeURIComponent(statusFilter)}`
-      : '/api/pcs/aics';
+    const params = new URLSearchParams();
+    if (statusFilter) params.set('status', statusFilter);
+    if (demographicFilter) params.set('demographic', demographicFilter);
+    const url = params.toString() ? `/api/pcs/aics?${params}` : '/api/pcs/aics';
     fetch(url)
       .then(async (res) => {
         if (!res.ok) {
@@ -80,6 +83,14 @@ function AicsLibrary() {
 
   const canCreate = can(user, 'aics.documents:create');
 
+  function buildHref(status, demographic) {
+    const params = new URLSearchParams();
+    if (status) params.set('status', status);
+    if (demographic) params.set('demographic', demographic);
+    const qs = params.toString();
+    return qs ? `/research/pcs/aics?${qs}` : '/research/pcs/aics';
+  }
+
   const columns = [
     {
       key: 'aicsId',
@@ -92,6 +103,15 @@ function AicsLibrary() {
     },
     { key: 'aiNameText', label: 'Active Ingredient' },
     { key: 'classification', label: 'Classification' },
+    {
+      key: 'demographic',
+      label: 'Demographic',
+      render: (val) => val ? (
+        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+          {val}
+        </span>
+      ) : '—',
+    },
     {
       key: 'raReviewStatus',
       label: 'RA review',
@@ -152,13 +172,13 @@ function AicsLibrary() {
         </div>
       </div>
 
-      {/* Filter chips */}
+      {/* Status filter chips */}
       <div className="flex flex-wrap gap-2">
         {[
-          { label: 'All', href: '/research/pcs/aics', match: !statusFilter },
-          { label: 'Pending RA Review', href: '/research/pcs/aics?status=Pending+RA+Review', match: statusFilter === 'Pending RA Review' },
-          { label: 'Approved', href: '/research/pcs/aics?status=Approved', match: statusFilter === 'Approved' },
-          { label: 'Archived', href: '/research/pcs/aics?status=Archived', match: statusFilter === 'Archived' },
+          { label: 'All', href: buildHref(null, demographicFilter), match: !statusFilter },
+          { label: 'Pending RA Review', href: buildHref('Pending RA Review', demographicFilter), match: statusFilter === 'Pending RA Review' },
+          { label: 'Approved', href: buildHref('Approved', demographicFilter), match: statusFilter === 'Approved' },
+          { label: 'Archived', href: buildHref('Archived', demographicFilter), match: statusFilter === 'Archived' },
         ].map((chip) => (
           <Link
             key={chip.label}
@@ -170,6 +190,31 @@ function AicsLibrary() {
             }`}
           >
             {chip.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* Demographic filter chips */}
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href={buildHref(statusFilter, null)}
+          className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+            !demographicFilter ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All demographics
+        </Link>
+        {DEMOGRAPHICS.map((demo) => (
+          <Link
+            key={demo}
+            href={buildHref(statusFilter, demo)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+              demographicFilter === demo
+                ? 'bg-blue-600 text-white'
+                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+            }`}
+          >
+            {demo}
           </Link>
         ))}
       </div>

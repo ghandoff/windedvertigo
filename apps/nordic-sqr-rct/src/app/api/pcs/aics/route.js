@@ -8,12 +8,23 @@ export async function GET(request) {
   const auth = await requireCapability(request, 'aics.documents:read', { route: '/api/pcs/aics' });
   if (auth.error) return auth.error;
 
+  const { user } = auth;
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status') || undefined;
+  const demographic = searchParams.get('demographic') || undefined;
   const cursor = searchParams.get('cursor') || undefined;
   const limit = Number(searchParams.get('limit') || 100);
 
-  const result = await listAicsDocuments({ limit, cursor, status });
+  // AICS Broadcasting: contractors see only their assigned documents.
+  const isAicsReviewerOnly =
+    Array.isArray(user?.roles) &&
+    user.roles.includes('aics-reviewer') &&
+    !user.roles.some(r => ['ra', 'researcher', 'admin', 'super-user'].includes(r));
+
+  const result = await listAicsDocuments({
+    limit, cursor, status, demographic,
+    assignedReviewerId: isAicsReviewerOnly ? user.reviewerId : undefined,
+  });
   return NextResponse.json(result);
 }
 
