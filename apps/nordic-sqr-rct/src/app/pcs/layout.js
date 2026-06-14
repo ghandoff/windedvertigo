@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from '@/lib/useAuth';
 import { ToastProvider } from '@/components/Toast';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -54,7 +54,10 @@ function PcsWorkspaceShell({ children }) {
       }
     : null;
 
-  const sidebarRole = canOverride && overrideRole ? overrideRole : baseRole;
+  const resolvedRole = canOverride && overrideRole ? overrideRole : baseRole;
+  const sidebarRoleRef = useRef(null);
+  if (resolvedRole) sidebarRoleRef.current = resolvedRole;
+  const sidebarRole = sidebarRoleRef.current;
 
   // Mobile drawer state — driven by the WorkspaceShell hamburger.
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);

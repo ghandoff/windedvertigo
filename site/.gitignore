@@ -5,6 +5,7 @@
 creaseworks/
 creaseworks-project/
 .vercel
+.env
 .env*.local
 .open-next/
 .wrangler/

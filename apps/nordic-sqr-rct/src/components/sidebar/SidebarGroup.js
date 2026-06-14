@@ -4,9 +4,9 @@
  * Wave 7.4 preview — collapsible group primitive.
  *
  * Open/closed state persists to `localStorage` under
- * `sidebarGroup:${groupKey}`. The key is intentionally NOT scoped by
- * role — collapse preferences are per-viewer, not per-role (and the preview
- * role switcher shouldn't reset Garrett's Authoring default).
+ * `sidebarGroup:${role}:${groupKey}`. The key is scoped by role so that
+ * collapsing a group while previewing as "researcher" doesn't affect the
+ * super-user's own layout when switching back.
  *
  * Server-render safe: the first paint uses `defaultOpen`; `useEffect`
  * reads localStorage after mount and updates. No hydration mismatch
@@ -19,24 +19,24 @@ import styles from './sidebar-preview.module.css';
 
 const STORAGE_PREFIX = 'sidebarGroup:';
 
-export default function SidebarGroup({ group, counts = null, countsLoading = false }) {
+export default function SidebarGroup({ group, role = 'researcher', counts = null, countsLoading = false }) {
   const [open, setOpen] = useState(group.defaultOpen ?? true);
 
   useEffect(() => {
     try {
-      const stored = window.localStorage.getItem(STORAGE_PREFIX + group.key);
+      const stored = window.localStorage.getItem(`${STORAGE_PREFIX}${role}:${group.key}`);
       if (stored === 'open') setOpen(true);
       else if (stored === 'closed') setOpen(false);
     } catch {
       // localStorage may throw in private mode; ignore.
     }
-  }, [group.key]);
+  }, [group.key, role]);
 
   const toggle = () => {
     setOpen((prev) => {
       const next = !prev;
       try {
-        window.localStorage.setItem(STORAGE_PREFIX + group.key, next ? 'open' : 'closed');
+        window.localStorage.setItem(`${STORAGE_PREFIX}${role}:${group.key}`, next ? 'open' : 'closed');
       } catch {
         // ignore
       }
