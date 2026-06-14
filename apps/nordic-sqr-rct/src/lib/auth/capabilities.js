@@ -128,6 +128,10 @@ export const CAPABILITIES = Object.freeze({
   'aics.documents:create': 'aics.documents:create',
   'aics.claims:read': 'aics.claims:read',
   'aics.claims:edit': 'aics.claims:edit',
+  // AICS Broadcasting (2026-06-13) — contractor reviewers submit approve/reject
+  // decisions on individual AICS claims. Scoped separately from edit so
+  // contractors cannot change claim text, only record their verdict.
+  'aics.claims:review': 'aics.claims:review',
 
   // Budget C Preview — Marketing Intelligence Interface.
   // Super-user-only until Budget C (Addendum B) payment clears.
@@ -310,6 +314,16 @@ export const ROLE_CAPABILITY_MAP = Object.freeze({
   'ra': Object.freeze([...RA_CAPS]),
   'admin': Object.freeze([...ADMIN_CAPS]),
   'super-user': Object.freeze([...SUPER_USER_CAPS]),
+
+  // AICS Broadcasting (2026-06-13) — scoped contractor role.
+  // Can only see AICS documents explicitly assigned to them (enforced in
+  // listAicsDocuments + getAicsDocument). Cannot edit claim text, create
+  // AICS documents, or trigger propagation — read + review only.
+  'aics-reviewer': Object.freeze([
+    'aics.documents:read',
+    'aics.claims:read',
+    'aics.claims:review',
+  ]),
 
   // Legacy aliases (pre-7.1.4 Notion role values).
   'pcs': Object.freeze([...RESEARCHER_CAPS]),

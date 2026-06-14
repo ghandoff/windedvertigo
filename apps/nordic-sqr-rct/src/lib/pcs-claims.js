@@ -73,6 +73,7 @@ function parsePostgresRow(row) {
     certaintyRating: row.certainty_rating || null,
     confidence: row.confidence ?? null,
     authorityRegions: row.authority_regions ?? [],
+    sourceAicsClaimId: row.source_aics_claim_id || null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
   };
@@ -458,6 +459,7 @@ export async function createClaim(fields) {
       claimPrefixId: fields.claimPrefixId || null,
       coreBenefitId: fields.coreBenefitId || null,
       confidence: fields.confidence ?? null,
+      sourceAicsClaimId: fields.sourceAicsClaimId || null,
     };
     await writePostgresFirst(
       'pcs_claims',
@@ -475,6 +477,8 @@ export async function createClaim(fields) {
   });
   invalidateClaimsCache();
   const parsed = parsePage(page);
+  // sourceAicsClaimId is Postgres-only (no Notion property); inject before mirror.
+  if (fields.sourceAicsClaimId) parsed.sourceAicsClaimId = fields.sourceAicsClaimId;
   await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
   return parsed;
 }

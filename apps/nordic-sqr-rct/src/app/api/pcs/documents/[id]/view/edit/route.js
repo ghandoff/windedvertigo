@@ -35,6 +35,7 @@ import {
   createVersion,
   updateVersion,
 } from '@/lib/pcs-versions';
+import { bumpVersion } from '@/lib/version-utils';
 
 const TABLE1_ALLOWED_FIELDS = new Set([
   'productName',
@@ -74,17 +75,6 @@ function cloneTable1Fields(v) {
   };
 }
 
-function bumpVersion(current) {
-  if (!current) return 'v1.1';
-  const m = /^v?(\d+)\.(\d+)$/.exec(current.trim());
-  if (m) {
-    const major = Number(m[1]);
-    const minor = Number(m[2]) + 1;
-    return `v${major}.${minor}`;
-  }
-  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  return `${current}+e${stamp}`;
-}
 
 export async function POST(request, { params }) {
   const auth = await requireCapability(request, 'pcs.documents:edit', { route: '/api/pcs/documents/[id]/view/edit' });
