@@ -187,8 +187,10 @@ async function runExtractPhase(job, log) {
 
     // Preflight: cheap Haiku classifier to catch non-PCS uploads before
     // burning $0.25 on full Sonnet extraction. Fail-open on error.
+    // Skip preflight for DOCX — Word docs are manually curated by the
+    // team and have a different visual structure the classifier may reject.
     const preflightWarnings = [];
-    try {
+    if (mimeType !== MIME_DOCX) try {
       const pf = await preflightCheckPdf(buf, job.pdfFilename || 'import', { mimeType });
       if (pf?.isPcs === false && pf.confidence > 0.8) {
         // Strong "not a PCS" signal → skip the expensive extract

@@ -371,16 +371,17 @@ function ImportsDashboard({ user }) {
                 <th className="px-3 py-2 text-left">Prompt v</th>
                 <th className="px-3 py-2 text-left">Template</th>
                 <th className="px-3 py-2 text-left">Retry</th>
+                <th className="px-3 py-2 text-left">Uploaded</th>
                 <th className="px-3 py-2 text-left">Updated</th>
                 <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loadingJobs && jobs.length === 0 && (
-                <tr><td colSpan={10} className="px-3 py-6 text-center text-gray-400">Loading…</td></tr>
+                <tr><td colSpan={11} className="px-3 py-6 text-center text-gray-400">Loading…</td></tr>
               )}
               {!loadingJobs && jobs.length === 0 && (
-                <tr><td colSpan={10} className="px-3 py-6 text-center text-gray-400">No jobs yet.</td></tr>
+                <tr><td colSpan={11} className="px-3 py-6 text-center text-gray-400">No jobs yet.</td></tr>
               )}
               {jobs.map(job => (
                 <JobRow
@@ -793,6 +794,49 @@ function StageCard({ onStaged }) {
   );
 }
 
+// Pipeline stages in order — used to derive the 4-dot progress indicator.
+const PIPELINE_STAGES = ['queued', 'extracting', 'extracted', 'committing', 'committed'];
+const PIPELINE_STAGE_IDX = Object.fromEntries(PIPELINE_STAGES.map((s, i) => [s, i]));
+
+function StatusCell({ status, error }) {
+  const stageIdx = PIPELINE_STAGE_IDX[status] ?? -1;
+  const inPipeline = stageIdx >= 0;
+
+  // For terminal non-committed states, show badge only.
+  if (!inPipeline) {
+    const skipReason = status === 'skipped' && error
+      ? error.replace(/^Pre-flight:\s*/i, '')
+      : null;
+    return (
+      <span
+        className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] || 'bg-gray-100 text-gray-700'}`}
+        title={skipReason || undefined}
+      >
+        {status || 'unknown'}
+        {skipReason && ' ⓘ'}
+      </span>
+    );
+  }
+
+  // In-pipeline: show 4-dot progress indicator.
+  // Dots: queued=1, extracting=2, extracted/committing=3, committed=4
+  const filledCount = stageIdx === 0 ? 1 : stageIdx === 1 ? 2 : stageIdx <= 3 ? 3 : 4;
+  const dotColor = status === 'committed' ? 'bg-green-500' : 'bg-pacific-500';
+  return (
+    <span className="inline-flex items-center gap-1" title={status}>
+      {[0, 1, 2, 3].map(i => (
+        <span
+          key={i}
+          className={`inline-block h-2 w-2 rounded-full ${i < filledCount ? dotColor : 'bg-gray-200'}`}
+        />
+      ))}
+      <span className={`ml-1 text-xs ${STATUS_STYLES[status] ? '' : 'text-gray-500'}`} style={{ fontSize: '10px' }}>
+        {status}
+      </span>
+    </span>
+  );
+}
+
 function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersion, onToggle, onRetry, onCancel }) {
   let counts = null;
   if (job.resultCounts) {
@@ -822,9 +866,7 @@ function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersio
             : <span className="text-gray-400">—</span>
         }</td>
         <td className="px-3 py-2">
-          <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[job.status] || 'bg-gray-100 text-gray-700'}`}>
-            {job.status || 'unknown'}
-          </span>
+          <StatusCell status={job.status} error={job.error} />
         </td>
         <td className="px-3 py-2 text-xs">
           {counts
@@ -851,6 +893,7 @@ function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersio
           })()}
         </td>
         <td className="px-3 py-2 text-xs">{job.retryCount ?? 0}</td>
+        <td className="px-3 py-2 text-xs text-gray-500">{formatRelative(job.createdTime)}</td>
         <td className="px-3 py-2 text-xs text-gray-500">{formatRelative(job.lastEditedTime)}</td>
         <td className="px-3 py-2 text-xs">
           <div className="flex items-center gap-2">
@@ -871,7 +914,7 @@ function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersio
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={10} className="bg-gray-50 px-3 py-3">
+          <td colSpan={11} className="bg-gray-50 px-3 py-3">
             <JobDetail job={job} detail={detail} />
           </td>
         </tr>
