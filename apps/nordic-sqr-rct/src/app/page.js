@@ -72,10 +72,10 @@ function LandingContent() {
   const [magicSubmitting, setMagicSubmitting] = useState(false);
   const [magicError, setMagicError] = useState('');
 
-  // Login mode — defaults to magic link for all audiences post-CF migration.
-  // Password auth remains accessible via the "use a password instead" toggle.
+  // Login mode — Nordic team members default to password; external reviewers
+  // default to magic link (they rarely have passwords set).
   // 'magic' | 'password'
-  const [loginMode, setLoginMode] = useState('magic');
+  const [loginMode, setLoginMode] = useState('password');
 
   // Audience tab — defaults to 'nordic' since the primary users of this
   // platform are Nordic team members. External reviewers are a secondary
@@ -94,8 +94,8 @@ function LandingContent() {
   // Reset mode and state when audience tab changes.
   const handleAudienceChange = (key) => {
     setAudience(key);
-    // Both audiences use magic link by default post-CF migration.
-    setLoginMode('magic');
+    // Nordic team defaults to password; external reviewers default to magic link.
+    setLoginMode(key === 'nordic' ? 'password' : 'magic');
     setError('');
     setMagicError('');
     setMagicSent(false);
@@ -337,8 +337,8 @@ function LandingContent() {
                           <span className="font-semibold">Need access?</span> Nordic team accounts are provisioned by the platform admin. Contact your manager or email <a href="mailto:garrett@windedvertigo.com" className="text-pacific underline">garrett@windedvertigo.com</a>.
                         </p>
                         <p className="text-xs text-gray-400 mt-2">
-                          <span className="font-medium">First time?</span>{' '}
-                          Use &ldquo;Send a sign-in link instead&rdquo; — no password needed. A link will arrive at your Nordic Naturals email within a minute.
+                          <span className="font-medium">No password yet?</span>{' '}
+                          Use &ldquo;Send a sign-in link instead&rdquo; below the sign-in button — a one-click link will arrive at your Nordic Naturals email within a minute.
                         </p>
                       </>
                     )}

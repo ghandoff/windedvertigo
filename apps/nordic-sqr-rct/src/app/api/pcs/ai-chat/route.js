@@ -93,7 +93,7 @@ export async function POST(request) {
 
   if (!LLM_API_KEY) {
     return NextResponse.json(
-      { error: 'LLM_API_KEY not configured — add ANTHROPIC_API_KEY to Vercel env vars' },
+      { error: 'LLM_API_KEY not configured — add it as a wrangler secret (wrangler secret put LLM_API_KEY)' },
       { status: 500 }
     );
   }

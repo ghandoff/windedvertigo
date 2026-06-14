@@ -26,6 +26,7 @@ import { getOpenRequests } from '@/lib/pcs-requests';
 import { getAllLabels } from '@/lib/pcs-labels';
 import { getAllJobs } from '@/lib/pcs-import-jobs';
 import { getAllIntakeRows } from '@/lib/label-intake-queue';
+import { listAicsDocuments } from '@/lib/aics-documents';
 
 // 2026-05-05 — Phase 3 Bundle 2 perf. Sidebar badge counts are
 // fetched on every page navigation; this is the single most-hit
@@ -106,6 +107,16 @@ async function fetchImportsSection() {
   }
 }
 
+async function fetchAicsSection() {
+  try {
+    const { items } = await listAicsDocuments({ status: 'Pending RA Review', limit: 200 });
+    return { pendingRaReview: items.length };
+  } catch (err) {
+    console.error('[sidebar/counts] aics sub-fetch failed:', err?.message || err);
+    return null;
+  }
+}
+
 async function fetchLabelImportsSection() {
   try {
     const rows = await getAllIntakeRows();
@@ -140,14 +151,15 @@ export async function GET(request) {
   }
 
   // Run sub-fetches in parallel; each handles its own errors.
-  const [requests, drift, imports, labelImports] = await Promise.all([
+  const [requests, drift, imports, labelImports, aics] = await Promise.all([
     fetchRequestsSection(),
     fetchDriftSection(),
     fetchImportsSection(),
     fetchLabelImportsSection(),
+    fetchAicsSection(),
   ]);
 
-  const payload = { requests, drift, imports, labelImports };
+  const payload = { requests, drift, imports, labelImports, aics };
   cache.set(cacheKey, { ts: Date.now(), payload });
 
   return NextResponse.json(payload, {

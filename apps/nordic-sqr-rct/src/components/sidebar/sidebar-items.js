@@ -125,7 +125,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
       {
         key: 'aics',
         label: 'AICS Library',
-        defaultOpen: false,
+        defaultOpen: true,
         items: [
           { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
           { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
@@ -175,7 +175,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
       {
         key: 'aics',
         label: 'AICS Library',
-        defaultOpen: false,
+        defaultOpen: true,
         items: [
           { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
           { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
@@ -235,7 +235,7 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
       {
         key: 'aics',
         label: 'AICS Library',
-        defaultOpen: false,
+        defaultOpen: true,
         items: [
           { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
           { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
