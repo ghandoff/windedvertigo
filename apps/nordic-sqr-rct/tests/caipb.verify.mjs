@@ -19,6 +19,14 @@
  */
 
 import { CLAIM_AUTHORITY_REGIONS } from '../src/lib/pcs-config.js';
+import { can } from '../src/lib/auth/capabilities.js';
+import { ROLE_SETS } from '../src/lib/auth/has-any-role.js';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const readSrc = (rel) => readFileSync(resolve(__appRoot, rel), 'utf8');
 
 // ─── Inline pure functions mirrored from the CAIPB API routes ────────────────
 
@@ -272,6 +280,114 @@ test('benefit aggregation does not mutate input rows', () => {
   const before = rows.length;
   aggregateBenefitCategories(rows);
   assertEqual(rows.length, before, 'input must not be mutated');
+});
+
+// ─── 6. Benefit-dashboard product aggregation (version → document join) ───────
+console.log('\nBenefit product aggregation:');
+
+/** Mirror of the product join in /api/pcs/caipb/benefit/[id]/route.js */
+function aggregateBenefitProducts(claimRows, versionById, documentById) {
+  const map = new Map();
+  for (const row of claimRows) {
+    if (!row.pcsVersionId) continue;
+    const version = versionById[row.pcsVersionId];
+    const doc = version?.pcsDocumentId ? documentById[version.pcsDocumentId] : null;
+    const key = doc?.id || `version:${row.pcsVersionId}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        id: doc?.id || null,
+        name: doc?.finishedGoodName || doc?.pcsId || null,
+        pcsId: doc?.pcsId || null,
+        claimCount: 0,
+      });
+    }
+    map.get(key).claimCount++;
+  }
+  return [...map.values()].sort((a, b) => b.claimCount - a.claimCount);
+}
+
+const VERSIONS = { v1: { id: 'v1', pcsDocumentId: 'd1' }, v2: { id: 'v2', pcsDocumentId: 'd1' }, v3: { id: 'v3', pcsDocumentId: 'd2' } };
+const DOCS = { d1: { id: 'd1', finishedGoodName: 'Sleep Plus', pcsId: 'PCS-001' }, d2: { id: 'd2', finishedGoodName: 'Calm Caps', pcsId: 'PCS-002' } };
+
+test('resolves product name + id from version → document', () => {
+  const result = aggregateBenefitProducts([{ pcsVersionId: 'v1' }], VERSIONS, DOCS);
+  assertEqual(result.length, 1);
+  assertEqual(result[0].id, 'd1');
+  assertEqual(result[0].name, 'Sleep Plus');
+  assertEqual(result[0].pcsId, 'PCS-001');
+});
+
+test('two versions of the same document collapse into one product', () => {
+  const rows = [{ pcsVersionId: 'v1' }, { pcsVersionId: 'v2' }];
+  const result = aggregateBenefitProducts(rows, VERSIONS, DOCS);
+  assertEqual(result.length, 1, 'v1+v2 share document d1');
+  assertEqual(result[0].claimCount, 2);
+});
+
+test('unresolved version is not dropped (fallback key, null id)', () => {
+  const result = aggregateBenefitProducts([{ pcsVersionId: 'ghost' }], VERSIONS, DOCS);
+  assertEqual(result.length, 1);
+  assertEqual(result[0].id, null);
+  assertEqual(result[0].claimCount, 1);
+});
+
+test('products sorted by claimCount descending', () => {
+  const rows = [{ pcsVersionId: 'v3' }, { pcsVersionId: 'v1' }, { pcsVersionId: 'v1' }];
+  const result = aggregateBenefitProducts(rows, VERSIONS, DOCS);
+  assertEqual(result[0].id, 'd1', 'd1 (2) before d2 (1)');
+});
+
+// ─── 7. Backfill editor gate (role enforcement) ──────────────────────────────
+console.log('\nBackfill editor gate:');
+
+for (const role of ['researcher', 'ra', 'admin', 'super-user']) {
+  test(`${role} holds pcs.claims:edit (can backfill authority regions)`, () => {
+    assertTrue(can({ roles: [role] }, 'pcs.claims:edit'), `${role} must hold pcs.claims:edit`);
+  });
+}
+
+for (const role of ['reviewer', 'pcs-readonly']) {
+  test(`${role} is denied pcs.claims:edit`, () => {
+    assertTrue(!can({ roles: [role] }, 'pcs.claims:edit'), `${role} must NOT hold pcs.claims:edit`);
+  });
+}
+
+test('PCS_WRITERS includes super-user (editor visible to the god role)', () => {
+  assertTrue(ROLE_SETS.PCS_WRITERS.includes('super-user'), 'super-user must see write controls');
+});
+
+// ─── 8. Audited authority-regions write path (source guard) ──────────────────
+console.log('\nAudited authority-regions write path:');
+
+const claimRouteSrc = readSrc('src/app/api/pcs/claims/[id]/route.js');
+const claimsLibSrc = readSrc('src/lib/pcs-claims.js');
+
+test('claim PATCH routes authorityRegions through audited updateClaimField', () => {
+  assertTrue(claimRouteSrc.includes('updateClaimField'), 'route must use updateClaimField');
+  assertTrue(/fieldPath:\s*['"]authorityRegions['"]/.test(claimRouteSrc), 'authorityRegions routed via updateClaimField');
+});
+
+test('authorityRegions is excluded from the non-audited bulk updateClaim', () => {
+  assertTrue(/const\s*\{\s*authorityRegions\s*,\s*\.\.\.rest\s*\}/.test(claimRouteSrc), 'authorityRegions split out of bulk write');
+});
+
+test('updateClaimField allowlist + coercion include authorityRegions', () => {
+  assertTrue(claimsLibSrc.includes("'authorityRegions',"), 'present in ALLOWED set');
+  assertTrue(claimsLibSrc.includes("case 'authorityRegions':"), 'coercion + payload case present');
+});
+
+// ─── 9. Dashboard enrichment (source guard) ──────────────────────────────────
+console.log('\nDashboard enrichment:');
+
+test('ingredient product table surfaces PCS doc version', () => {
+  const src = readSrc('src/app/api/pcs/caipb/ingredient/[id]/route.js');
+  assertTrue(/pcsVersion:\s*version\?\.version/.test(src), 'pcsVersion surfaced from version record');
+});
+
+test('benefit route joins versions + documents to label products', () => {
+  const src = readSrc('src/app/api/pcs/caipb/benefit/[id]/route.js');
+  assertTrue(src.includes('getAllVersions') && src.includes('getAllDocuments'), 'version/document join imported');
+  assertTrue(src.includes('finishedGoodName'), 'product name surfaced on benefit products');
 });
 
 // ─── Summary ──────────────────────────────────────────────────────────────────

@@ -833,7 +833,8 @@ function IngredientDashboardContent() {
                     <th className="pb-1.5 pr-4 font-medium">AI Form</th>
                     <th className="pb-1.5 pr-4 font-medium">FM PLM#</th>
                     <th className="pb-1.5 pr-4 font-medium">Dose</th>
-                    <th className="pb-1.5 font-medium">PCS Doc</th>
+                    <th className="pb-1.5 pr-4 font-medium">PCS Doc</th>
+                    <th className="pb-1.5 font-medium">Version</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -855,7 +856,7 @@ function IngredientDashboardContent() {
                           ? `${p.amountPerServing}${p.amountUnit ? ` ${p.amountUnit}` : ''}`
                           : <span className="text-gray-300 italic">—</span>}
                       </td>
-                      <td className="py-1.5">
+                      <td className="py-1.5 pr-4">
                         {p.pcsDocumentId ? (
                           <Link href={`/research/pcs/documents/${p.pcsDocumentId}`} className="text-gray-400 hover:text-pacific-600 text-xs">
                             {p.pcsId || 'View'}
@@ -863,6 +864,9 @@ function IngredientDashboardContent() {
                         ) : (
                           <span className="text-gray-300 italic">—</span>
                         )}
+                      </td>
+                      <td className="py-1.5 text-gray-600 font-mono">
+                        {p.pcsVersion ? `v${p.pcsVersion}` : <span className="text-gray-300 italic">—</span>}
                       </td>
                     </tr>
                   ))}
