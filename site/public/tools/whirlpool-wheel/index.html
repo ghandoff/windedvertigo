@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>the whirlpool · winded.vertigo</title>
+<style>
+  :root{
+    --ink:#26215c; --muted:#5f5e5a; --line:rgba(38,33,92,.18);
+    --bg:#faf8f2; --card:#ffffff; --seed:#cfd0c6; --grow:#639922;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100%; padding:2rem 1rem; gap:1.25rem; text-align:center;
+  }
+  h1{font-size:1.15rem; font-weight:600; margin:0; letter-spacing:.02em}
+  .sub{font-size:.9rem; color:var(--muted); margin:-.5rem 0 0}
+  .stage{position:relative; width:320px; height:320px}
+  #confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:5}
+  #pointer{position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:12px solid transparent; border-right:12px solid transparent;
+    border-top:20px solid var(--ink); z-index:3}
+  #wheel{width:320px; height:320px; border-radius:50%; border:1px solid var(--line);
+    transition:transform 4s cubic-bezier(.17,.67,.21,1); position:relative}
+  .num{position:absolute; width:28px; height:28px; border-radius:50%; background:#fff;
+    color:var(--ink); font-size:.85rem; font-weight:600; display:flex; align-items:center;
+    justify-content:center; transform:translate(-50%,-50%); box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  #spin{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:84px; height:84px; border-radius:50%; background:#fff; border:1px solid var(--line);
+    cursor:pointer; font:inherit; font-weight:600; font-size:.9rem; color:var(--ink);
+    transition:transform .1s}
+  #spin:active{transform:translate(-50%,-50%) scale(.95)}
+  #seeds{display:flex; gap:10px; font-size:1.4rem; line-height:1}
+  .seed{filter:grayscale(1) opacity(.45); transition:filter .4s, transform .4s}
+  .seed.on{filter:none; transform:scale(1.2)}
+  #card{width:100%; max-width:560px; min-height:104px; background:var(--card);
+    border:1px solid var(--line); border-radius:16px; padding:1.1rem 1.3rem}
+  #card .head{display:flex; align-items:center; justify-content:center; gap:.5rem;
+    font-size:1.05rem; font-weight:600; margin-bottom:.35rem}
+  #card p{margin:0; color:var(--muted); font-size:.95rem; line-height:1.6}
+  #card a{display:inline-block; margin-top:.6rem; color:var(--grow); font-weight:600; text-decoration:none}
+  #card a:hover{text-decoration:underline}
+  footer{font-size:.75rem; color:var(--muted)}
+</style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <h1>🌀 the whirlpool</h1>
+  <p class="sub">monday whirlpool — the breather edition · spin to move through the agenda</p>
+
+  <div class="stage">
+    <div id="pointer"></div>
+    <div id="wheel"></div>
+    <button id="spin" aria-label="spin the whirlpool">spin</button>
+  </div>
+
+  <div id="seeds"></div>
+  <div id="card"><p>spin the whirlpool to begin — eight beats, no sprint, all joy.</p></div>
+  <footer>made by PaM for winded.vertigo · 2026-06-15</footer>
+
+<script>
+(function(){
+  var beats=[
+    {n:1,t:"🫧 one-word check-in",p:"go round the circle. one word for how you're arriving. (lamis is allowed to cheat.)"},
+    {n:2,t:"🎮 creaseworks mini — live playtest",p:"play it together. collect & connect, find first. drop aesthetic feedback for garrett.",link:"https://windedvertigo.com/harbour/creaseworks-mini",celebrate:true},
+    {n:3,t:"🌱 celebrate: the amna contract",p:"our first new partner — signed. relive the WOHOOOOOOOO moment.",celebrate:true},
+    {n:4,t:"🏆 the win montage",p:"rapid-fire: ppcs delivered, harbour launched, four agents live, jamie's canon doc, conferences site shipped.",celebrate:true},
+    {n:5,t:"🥞 first-pancake share",p:"each share one rough, imperfect, proud-of-it-anyway thing. it's literally the philosophy."},
+    {n:6,t:"🪁 play break",p:"five minutes of actual play. day of play was thursday — let's honour it."},
+    {n:7,t:"🧭 the gentle look-ahead",p:"one sentence each: creaseworks full launch, ppcs report final mile, nordic, conferences. no assignments today."},
+    {n:8,t:"🙏 gratitude lap",p:"close the circle. one shout-out each.",celebrate:true}
+  ];
+  var colors=["#85B7EB","#5DCAA5","#97C459","#EF9F27","#F0997B","#ED93B1","#AFA9EC","#B4B2A9"];
+  var seg=360/beats.length;
+  var wheel=document.getElementById('wheel'), card=document.getElementById('card'),
+      seeds=document.getElementById('seeds'), spinBtn=document.getElementById('spin');
+
+  wheel.style.background="conic-gradient("+beats.map(function(b,i){return colors[i]+" "+(i*seg)+"deg "+((i+1)*seg)+"deg";}).join(",")+")";
+  beats.forEach(function(b,i){
+    var a=(i*seg+seg/2)*Math.PI/180, r=116, x=160+r*Math.sin(a), y=160-r*Math.cos(a);
+    var d=document.createElement('div'); d.className='num'; d.textContent=b.n;
+    d.style.left=x+'px'; d.style.top=y+'px'; wheel.appendChild(d);
+    var s=document.createElement('span'); s.className='seed'; s.textContent='🌱'; s.id='seed'+i; seeds.appendChild(s);
+  });
+
+  var cv=document.getElementById('confetti'), ctx=cv.getContext('2d');
+  function size(){cv.width=innerWidth;cv.height=innerHeight;} size(); addEventListener('resize',size);
+  function confetti(){
+    var cols=colors, P=[]; for(var i=0;i<110;i++){P.push({x:innerWidth/2,y:innerHeight*0.4,vx:(Math.random()-0.5)*11,vy:Math.random()*-11-3,g:0.32,s:5+Math.random()*6,c:cols[i%cols.length],r:Math.random()*6});}
+    var t0=Date.now();(function f(){var el=Date.now()-t0;ctx.clearRect(0,0,cv.width,cv.height);
+      P.forEach(function(p){p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.globalAlpha=Math.max(0,1-el/1800);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s);ctx.restore();});
+      if(el<1800)requestAnimationFrame(f);else ctx.clearRect(0,0,cv.width,cv.height);})();
+  }
+
+  var visited={},rot=0,busy=false;
+  function reveal(i){
+    var b=beats[i];
+    card.innerHTML='<div class="head">'+b.t+'</div><p>'+b.p+'</p>'+(b.link?'<a href="'+b.link+'" target="_blank" rel="noopener">open creaseworks mini ↗</a>':'');
+    if(!visited[i]){visited[i]=true;var s=document.getElementById('seed'+i);s.classList.add('on');setTimeout(function(){s.style.transform='scale(1)';},400);}
+    if(b.celebrate)confetti();
+    if(Object.keys(visited).length===beats.length){setTimeout(function(){card.innerHTML='<div class="head">🎊 all eight beats — that’s a whirlpool</div><p>go forth and breathe. 🌱</p>';confetti();},900);}
+  }
+  function spin(){
+    if(busy)return;
+    var rem=beats.map(function(_,i){return i;}).filter(function(i){return !visited[i];});
+    var pool=rem.length?rem:beats.map(function(_,i){return i;});
+    var target=pool[Math.floor(Math.random()*pool.length)];
+    busy=true;
+    var desired=(360-(target*seg+seg/2)), cur=((rot%360)+360)%360, delta=(desired-cur+360)%360;
+    rot+=360*5+delta; wheel.style.transform='rotate('+rot+'deg)';
+    setTimeout(function(){busy=false;reveal(target);},4100);
+  }
+  spinBtn.addEventListener('click',spin);
+})();
+</script>
+</body>
+</html>
