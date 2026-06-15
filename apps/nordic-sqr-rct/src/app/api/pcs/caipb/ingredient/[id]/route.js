@@ -61,6 +61,7 @@ export async function GET(request, { params }) {
       amountUnit: line.amountUnit || null,
       ingredientSource: line.ingredientSource || null,
       pcsVersionId: line.pcsVersionId || null,
+      pcsVersion: version?.version || null,
       pcsDocumentId: doc?.id || version?.pcsDocumentId || null,
       pcsId: doc?.pcsId || null,
       finishedGoodName: doc?.finishedGoodName || null,

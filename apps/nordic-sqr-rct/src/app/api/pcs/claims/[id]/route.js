@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { requireCapability } from '@/lib/auth/require-capability';
-import { getClaim, updateClaim } from '@/lib/pcs-claims';
+import { getClaim, updateClaim, updateClaimField } from '@/lib/pcs-claims';
 import {
   CLAIM_STATUSES, CLAIM_BUCKETS,
   HETEROGENEITY, PUBLICATION_BIAS, FUNDING_BIAS, PRECISION,
@@ -95,12 +95,40 @@ export async function PATCH(request, { params }) {
     }
   }
 
+  // Authority/region applicability is a regulatory-compliance decision, so it
+  // is routed through the audited single-field path (updateClaimField → mutate)
+  // which records who set it and when in the PCS Revisions log. Other inline
+  // fields keep their existing (non-audited) bulk write.
+  const { authorityRegions, ...rest } = fields;
+  const actor = {
+    email: auth.user?.email || auth.user?.alias || 'unknown@nordic-sqr-rct',
+    roles: Array.isArray(auth.user?.roles) && auth.user.roles.length > 0 ? auth.user.roles : [],
+  };
+
   try {
-    const claim = await updateClaim(id, fields);
+    let claim = null;
+    if (Object.keys(rest).length > 0) {
+      claim = await updateClaim(id, rest);
+    }
+    if (authorityRegions !== undefined) {
+      claim = await updateClaimField({
+        id,
+        fieldPath: 'authorityRegions',
+        value: authorityRegions,
+        actor,
+        reason: 'Authority/region applicability set via Claims editor',
+      });
+    }
+    if (claim === null) {
+      claim = await getClaim(id);
+    }
     revalidatePath('/api/pcs/claims');
     return NextResponse.json(claim);
   } catch (err) {
     console.error('Claim PATCH error:', err);
+    if (err?.code === 'invalid-value' || err?.code === 'field-not-allowed') {
+      return NextResponse.json({ error: err.message, code: err.code }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Failed to update claim' }, { status: 500 });
   }
 }

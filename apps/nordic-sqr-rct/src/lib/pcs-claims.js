@@ -5,7 +5,7 @@
  * canonical claims, and wording variants.
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES, CLAIM_STATUSES, CLAIM_BUCKETS } from './pcs-config.js';
+import { PCS_DB, PROPS, REVISION_ENTITY_TYPES, CLAIM_STATUSES, CLAIM_BUCKETS, CLAIM_AUTHORITY_REGIONS } from './pcs-config.js';
 import { notion } from './notion.js';
 import {
   computeCanonicalClaimKeyForSpec,
@@ -514,6 +514,7 @@ export async function updateClaimField({ id, fieldPath, value, actor, reason }) 
     'minDoseMg',
     'maxDoseMg',
     'notes',
+    'authorityRegions',
   ]);
   if (!ALLOWED.has(fieldPath)) {
     const err = new Error(`updateClaimField: fieldPath "${fieldPath}" is not editable via this endpoint.`);
@@ -565,6 +566,19 @@ export async function updateClaimField({ id, fieldPath, value, actor, reason }) 
       coerced = value ? String(value) : null;
       break;
     }
+    case 'authorityRegions': {
+      // Multi-select of regulatory authorities a claim is valid under.
+      // Empty array is valid (clears the field / "not yet assessed").
+      if (!Array.isArray(value)) {
+        throw Object.assign(new Error('authorityRegions must be an array'), { code: 'invalid-value' });
+      }
+      const invalid = value.filter(r => !CLAIM_AUTHORITY_REGIONS.includes(r));
+      if (invalid.length > 0) {
+        throw Object.assign(new Error(`Unknown authority regions: ${invalid.join(', ')}`), { code: 'invalid-value' });
+      }
+      coerced = value;
+      break;
+    }
     default:
       break;
   }
@@ -579,6 +593,7 @@ export async function updateClaimField({ id, fieldPath, value, actor, reason }) 
     case 'minDoseMg':     updatePayload.minDoseMg = coerced; break;
     case 'maxDoseMg':     updatePayload.maxDoseMg = coerced; break;
     case 'claimPrefix':   updatePayload.claimPrefixId = coerced; break;
+    case 'authorityRegions': updatePayload.authorityRegions = coerced; break;
   }
 
   return mutate({

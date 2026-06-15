@@ -1,5 +1,28 @@
 # Tasks
 
+## Nordic — CAIPB Audit + Fixes (2026-06-15) — feat/caipb-audit-fixes
+
+Branch cut from `main`. The CAIPB dashboards + multi-region editor were already built/merged to main (`6bb161a`); this branch audits them vs spec §4.5/§4.6 and fixes the gaps. No rebuild.
+
+### Material fix — audited authority_regions edit
+- [x] **`src/lib/pcs-claims.js`** — `updateClaimField()` allowlist + coercion now include `authorityRegions` (array, subset of `CLAIM_AUTHORITY_REGIONS`).
+- [x] **`PATCH /api/pcs/claims/[id]`** — routes `authorityRegions` through audited `updateClaimField()` → `mutate()` → PCS Revisions (captures actor + before/after). Was a raw `updateClaim()` with no audit. Other inline fields keep their existing path.
+
+### Minor fixes
+- [x] **Ingredient dashboard** — surfaces PCS doc **version** (`pcsVersion`) in the per-product table (spec wants "PCS doc ID + version"). API + page.
+- [x] **Benefit dashboard** — benefit API joins version→document → labeled products `{id,name,pcsId,claimCount}` (dedupes versions); page now renders a Products stat + "Products Supporting This Benefit" panel (previously products were not rendered at all).
+- [x] **`src/lib/auth/has-any-role.js`** — added `super-user` to `PCS_WRITERS` + `PCS_ANY` so a pure super-user sees the editor (server already allowed it).
+
+### Tests
+- [x] **`tests/caipb.verify.mjs`** — extended 22 → **38**: benefit product aggregation, backfill editor gate (role enforcement), PCS_WRITERS super-user, audited-path + enrichment source guards. `verify:all` green.
+
+### Pending
+- [ ] **Push to Garrett for review**: `feat/caipb-audit-fixes`. **Do NOT push to main**.
+- [ ] **Pre-existing lint** (not introduced here): `benefit/[id]/page.js:228` set-state-in-effect; `ingredient/[id]/page.js:462` unescaped entity. Both on main already.
+- [ ] **`authority_regions` data** still empty by design — Research team populates via the now-audited editor.
+
+---
+
 ## Nordic — CAIPB Dashboards + Authority Regions Editor (2026-06-13) — feat/caipb-dashboards
 
 Branch cut from `main` (which includes the merged governance-persistence-and-multiregion work).
