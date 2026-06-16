@@ -1,0 +1,320 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PPCS 2026 — Engagement Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<!-- Resolve relative asset + /api/metrics URLs against the deploy subpath, so the
+     page works whether loaded with or without the trailing slash. The Worker strips
+     this prefix, so the same href also works on the *.workers.dev origin. -->
+<base href="/portfolio/ppcs-2026-impact/">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--ink:#1e3250;--mut:#6b7a90;--line:#e6ebf2;--bg:#f6f8fb;--card:#fff;--accent:#2f6fb0;--accent2:#7aa8d6;--warm:#e0a23c;--good:#3a9b6e;--bad:#c0584b;}
+*{box-sizing:border-box}body{margin:0;font-family:Roboto,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:28px 32px;background:linear-gradient(120deg,#1e3250,#2f6fb0);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+header h1{margin:0 0 4px;font-size:22px}header p{margin:0;opacity:.85;font-size:13px}
+header .titles{min-width:0}
+header .brand{flex:0 0 auto}
+header .brand img{height:52px;width:auto;display:block}
+@media(max-width:640px){header .brand img{height:40px}}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 32px 60px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:20px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpi .n{font-size:26px;font-weight:700}.kpi .l{font-size:12px;color:var(--mut);margin-top:2px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.card h2{margin:0 0 2px;font-size:15px}.card .sub{font-size:12px;color:var(--mut);margin-bottom:12px}
+.full{grid-column:1/-1}
+canvas{max-height:300px}
+.note{background:#fff7e9;border:1px solid #f0dcb4;border-radius:10px;padding:14px 16px;font-size:13px;color:#6a5526;margin-top:8px}
+.note b{color:#8a6a1e}
+.callout{background:#eef6f0;border:1px solid #cfe6d8;border-left:4px solid #3a9b6e;border-radius:10px;padding:14px 16px;font-size:13.5px;color:#2e5a45;margin:0 0 18px}
+.callout b{color:#1f7a52}
+.tip{display:flex;align-items:center;gap:8px;background:#eef3fa;border:1px solid #d6e3f2;border-radius:999px;padding:8px 16px;font-size:12.5px;color:#3a5a80;margin:4px 0 18px;width:fit-content}
+.tip svg{flex:0 0 auto}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+small{color:var(--mut)}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:100;font-size:15px;color:var(--mut)}
+#loading svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#error-banner{display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px 16px;margin:20px 0;font-size:13px;color:#991b1b}
+</style>
+<div id="loading">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2f6fb0" stroke-width="2" stroke-linecap="round">
+    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+  </svg>
+  loading dashboard data…
+</div>
+<header>
+  <div class="titles">
+    <h1>PRME Pedagogy Certificate Series 2026 — Engagement Dashboard</h1>
+    <p>Asynchronous onboarding + five weeks · 10 live webinars (9am &amp; 6pm cohorts) · prepared by winded.vertigo · figures updated live</p>
+  </div>
+  <div class="brand"><img src="prme_logo_short_white.png" alt="PRME"></div>
+</header>
+<div class="wrap">
+
+  <div id="error-banner"></div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n" id="k-regs">—</div><div class="l">Unique registrants</div></div>
+    <div class="kpi"><div class="n" id="k-attends">—</div><div class="l">Unique live attendees</div></div>
+    <div class="kpi"><div class="n" id="k-rate">—</div><div class="l">Overall live show-rate</div></div>
+    <div class="kpi"><div class="n" id="k-commons">—</div><div class="l">Commons contributions</div></div>
+    <div class="kpi"><div class="n" id="k-authors">—</div><div class="l">Commons authors</div></div>
+    <div class="kpi"><div class="n" id="k-poll">—</div><div class="l">Intro-poll respondents</div></div>
+    <div class="kpi"><div class="n" id="k-survey">—</div><div class="l">Feedback survey responses</div></div>
+    <div class="kpi"><div class="n" id="k-cert">—</div><div class="l">Certificate applications</div></div>
+  </div>
+
+  <div class="tip" role="note">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3a5a80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>
+    <span><b>tip:</b> click any legend label to hide or show that layer — useful for isolating a single series.</span>
+  </div>
+
+  <div class="grid">
+    <div class="card"><h2>Weekly registration vs. attendance</h2><div class="sub" id="funnel-sub">Show-rate vs. the healthy-webinar band (40–60%) and the expected attrition curve</div><canvas id="funnel"></canvas></div>
+    <div class="card"><h2>Cohort reach: 9am vs 6pm</h2><div class="sub">Live attendees per session by cohort</div><canvas id="cohort"></canvas></div>
+  </div>
+
+  <div class="card full"><h2>PRME Commons engagement by week</h2><div class="sub" id="commons-sub">Posts, comments, and replies</div><canvas id="commons"></canvas></div>
+
+  <div class="callout" id="depth-callout">
+    <b>Volume falls, depth holds.</b> The decline above is reach (fewer people), not engagement. Per the panels below, the participants who stay contribute just as much every week, keep clearing the 3-contribution requirement, and their posts spark <em>more</em> discussion as the series goes on.
+  </div>
+
+  <div class="grid">
+    <div class="card"><h2>Discussion quality by week</h2><div class="sub">Share of posts that drew at least one reply (thread liveliness) and responses generated per post</div><canvas id="quality"></canvas></div>
+    <div class="card"><h2>Sustained commitment by week</h2><div class="sub">Contributions per active author, and the share meeting the 3-contribution certificate requirement</div><canvas id="commit"></canvas></div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><h2>Sentiment across the arc</h2><div class="sub">Mean VADER compound (chat + Commons, cleaned); higher = more positive</div><canvas id="sent"></canvas></div>
+    <div class="card"><h2>PRIME design principles (prevalence)</h2><div class="sub">% of corpus units evidencing each principle — indicative first pass</div><canvas id="prime"></canvas></div>
+  </div>
+
+  <div class="card full"><h2>Theme prevalence by week — the arc diagonal</h2><div class="sub">% of each week's discussion units tagged to each deductive theme; each theme peaks in its intended week (indicative first pass)</div><canvas id="themes"></canvas></div>
+
+  <!-- ── Participant baseline ── -->
+  <div class="callout" style="margin-top:8px">
+    <b>Who arrived.</b> Participants entered the series with <b>low PRME familiarity (avg 2.6 / 5)</b> but <b>moderate–high teaching confidence (avg 3.6 / 5)</b>. Most already used active or mixed pedagogies; the series had a clear job — deepen PRME literacy without having to build teaching confidence from scratch.
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>Teaching approach at entry</h2>
+      <div class="sub">Self-reported at onboarding (intro poll, n=<span id="poll-n">—</span>)</div>
+      <canvas id="approach"></canvas>
+    </div>
+    <div class="card">
+      <h2>Motivation for joining</h2>
+      <div class="sub">Primary reason selected at onboarding</div>
+      <canvas id="motivation"></canvas>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>PRME familiarity at entry</h2>
+      <div class="sub">1 = not at all familiar → 5 = very familiar · avg <span id="avg-fam">—</span> / 5</div>
+      <canvas id="familiarity"></canvas>
+    </div>
+    <div class="card">
+      <h2>Teaching confidence at entry</h2>
+      <div class="sub">1 = not confident → 5 = very confident · avg <span id="avg-conf">—</span> / 5</div>
+      <canvas id="confidence"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Certificate participation scaffold ── -->
+  <div class="card full">
+    <h2>Certificate participation</h2>
+    <div class="sub">Certificate of Practice (attendance + reflection) · Certificate of Applied Practice (open through Dec 2026)</div>
+    <div class="kpis" style="margin:12px 0 4px">
+      <div class="kpi"><div class="n" id="k-cert2">—</div><div class="l">Certificate applications submitted</div></div>
+      <div class="kpi"><div class="n" id="k-cert-pct">—</div><div class="l">% of eligible attendees applied</div></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--mut);margin:4px 0 0">Certificate data comes from the PPCS Evidencing Google Form. Export responses to CSV and run <code>bash scripts/refresh_d1.sh</code> to populate these figures.</p>
+  </div>
+
+  <div class="note">
+    <b>Reading notes &amp; caveats.</b> Live show-rate excludes on-demand viewing (recordings served most no-shows). The <b>healthy-webinar band</b> (40–60%) is the typical registrant-to-attendee range for a strong standalone webinar; the <b>expected-attrition curve</b> is week-1 show-rate decayed ≈12%/session — the series stayed at or above it every week. 9am cohorts out-registered 6pm ~2.4:1 (time-zone reach). Sentiment and thematic/PRIME coding are <b>indicative first-pass</b> results pending human adjudication. <b>Certificate figures are pending</b> (Certificate of Applied Practice open through Dec 2026). Intro-poll data: 148 responses from the MindShift Missions Google Sheet, 130 matched to the participant spine by email (88%); 18 rows retained with <code>participant_id = NULL</code> for manual resolution.
+  </div>
+  <p><small>Source: PPCS2026_engagement.db → Cloudflare D1 · winded.vertigo. Engagement = attendance + Zoom chat + PRME Commons + Qualtrics feedback + Miro (aggregate). Individual-level linkage: attendance/chat ~100%, Commons ~98% by name, survey 82% of named respondents.</small></p>
+</div>
+
+<script type="module">
+const wk = ["Week 1","Week 2","Week 3","Week 4","Week 5"];
+const C  = ["#2f6fb0","#7aa8d6","#3a9b6e","#e0a23c","#c0584b"];
+Chart.defaults.font.family = "Roboto,sans-serif";
+Chart.defaults.color = "#6b7a90";
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+
+function fmt(n) { return n == null ? "—" : n.toLocaleString(); }
+
+async function init() {
+  let D;
+  try {
+    const res = await fetch("api/metrics");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    D = await res.json();
+    if (D.error) throw new Error(D.error);
+  } catch (err) {
+    document.getElementById("loading").style.display = "none";
+    const banner = document.getElementById("error-banner");
+    banner.style.display = "block";
+    banner.textContent = "Could not load live data: " + err.message + ". Refresh to retry.";
+    return;
+  }
+
+  // ── KPIs
+  const k = D.kpis || {};
+  const p = D.poll  || {};
+  document.getElementById("k-regs").textContent    = fmt(k.unique_registrants);
+  document.getElementById("k-attends").textContent = fmt(k.unique_attendees);
+  document.getElementById("k-rate").textContent    = k.show_rate != null ? k.show_rate + "%" : "—";
+  document.getElementById("k-commons").textContent = fmt(k.commons_contributions);
+  document.getElementById("k-authors").textContent = fmt(k.commons_authors);
+  document.getElementById("k-poll").textContent    = fmt(p.n);
+  document.getElementById("k-survey").textContent  = fmt(k.survey_n);
+  document.getElementById("k-cert").textContent    = k.cert_applied_n != null ? fmt(k.cert_applied_n) : "pending";
+
+  // ── Baseline poll section
+  if (p.n) {
+    document.getElementById("poll-n").textContent  = p.n;
+    document.getElementById("avg-fam").textContent = p.avg_prme_familiarity != null ? p.avg_prme_familiarity.toFixed(1) : "—";
+    document.getElementById("avg-conf").textContent= p.avg_confidence       != null ? p.avg_confidence.toFixed(1)       : "—";
+    document.getElementById("k-cert2").textContent = k.cert_applied_n != null ? fmt(k.cert_applied_n) : "pending";
+    if (k.cert_applied_n != null && k.unique_attendees) {
+      document.getElementById("k-cert-pct").textContent = Math.round(100 * k.cert_applied_n / k.unique_attendees) + "%";
+    }
+
+    const ap = p.approach || {};
+    new Chart(approach, { type:"bar",
+      data:{ labels:["mix of lecture\n& activities","primarily\nactive/experiential","experimenting\nwith new methods","primarily\nlecture-based"],
+             datasets:[{ data:[ap.mix||0, ap.active||0, ap.experimenting||0, ap.lecture||0],
+               backgroundColor:["#2f6fb0","#3a9b6e","#7aa8d6","#cfe0f0"] }]},
+      options:{ indexAxis:"y", responsive:true, plugins:{legend:{display:false}},
+                scales:{ x:{ max:100, title:{display:true,text:"% of respondents"} }}}});
+
+    const mv = p.motivation || {};
+    new Chart(motivation, { type:"bar",
+      data:{ labels:["improve my\nteaching practice","explore new\npedagogical approaches","earn a\ncertificate","connect with\npeers globally"],
+             datasets:[{ data:[mv.improve_practice||0, mv.explore_pedagogy||0, mv.earn_cert||0, mv.connect_peers||0],
+               backgroundColor:["#2f6fb0","#7aa8d6","#e0a23c","#3a9b6e"] }]},
+      options:{ indexAxis:"y", responsive:true, plugins:{legend:{display:false}},
+                scales:{ x:{ title:{display:true,text:"respondents"} }}}});
+
+    const fd = p.familiarity_dist || {};
+    new Chart(familiarity, { type:"bar",
+      data:{ labels:["1 — not at all","2 — slightly","3 — somewhat","4 — quite","5 — very"],
+             datasets:[{ label:"respondents", data:[fd["1"]||0,fd["2"]||0,fd["3"]||0,fd["4"]||0,fd["5"]||0],
+               backgroundColor:["#c0584b","#e0a23c","#7aa8d6","#2f6fb0","#1e3250"] }]},
+      options:{ responsive:true, plugins:{legend:{display:false}},
+                scales:{ y:{ title:{display:true,text:"respondents"} }}}});
+
+    const cd = p.confidence_dist || {};
+    new Chart(confidence, { type:"bar",
+      data:{ labels:["1 — not confident","2 — slightly","3 — somewhat","4 — quite","5 — very"],
+             datasets:[{ label:"respondents", data:[cd["1"]||0,cd["2"]||0,cd["3"]||0,cd["4"]||0,cd["5"]||0],
+               backgroundColor:["#c0584b","#e0a23c","#7aa8d6","#2f6fb0","#1e3250"] }]},
+      options:{ responsive:true, plugins:{legend:{display:false}},
+                scales:{ y:{ title:{display:true,text:"respondents"} }}}});
+  }
+
+  // ── Commons subtitle
+  const ct = D.commons || [];
+  const sumPosts    = ct.reduce((a,w) => a + (w.posts    || 0), 0);
+  const sumComments = ct.reduce((a,w) => a + (w.comments || 0), 0);
+  const sumReplies  = ct.reduce((a,w) => a + (w.replies  || 0), 0);
+  document.getElementById("commons-sub").textContent =
+    `Posts, comments, and replies (${sumPosts.toLocaleString()} / ${sumComments.toLocaleString()} / ${sumReplies.toLocaleString()} total)`;
+
+  // ── Reach chart subtitle: lead with retention
+  const rb = D.reach_benchmark || { band:[40,60], expected:[] };
+  if (k.attendance_retention != null) {
+    document.getElementById("funnel-sub").textContent =
+      `Show-rate vs. the healthy-webinar band (40–60%) and expected attrition — ${k.attendance_retention}% of week-1 live attendees still attended in week 5`;
+  }
+
+  // ── Charts
+  // usePointStyle (below) makes the legend draw each series' pointStyle instead of a
+  // box — so lines show as lines (the dashed series reads as a real dashed line) and
+  // bars/area show as filled squares.
+  new Chart(funnel, { data: { labels: wk, datasets: [
+    // healthy-webinar band (40–60%), drawn behind everything
+    { type:"line", label:`healthy webinar band (${rb.band[0]}–${rb.band[1]}%)`,
+      data: wk.map(()=>rb.band[1]), yAxisID:"y1", pointStyle:"rect",
+      borderWidth:0, pointRadius:0, backgroundColor:"rgba(58,155,110,.13)", fill:"+1", order:9 },
+    { type:"line", label:"_bandlow", data: wk.map(()=>rb.band[0]), yAxisID:"y1",
+      borderWidth:0, pointRadius:0, fill:false, order:9 },
+    { type:"bar",  label:"Registrants",     data: D.weekly.map(w=>w.registrants), backgroundColor:"#cfe0f0", pointStyle:"rect", order:5 },
+    { type:"bar",  label:"Attended (live)", data: D.weekly.map(w=>w.attended),    backgroundColor:"#2f6fb0", pointStyle:"rect", order:5 },
+    { type:"line", label:`expected show-rate (≈${rb.decay_pct_per_session ?? 12}%/session decay)`,
+      data: rb.expected, yAxisID:"y1", pointStyle:"dash",
+      borderColor:"#9aa7b4", backgroundColor:"#9aa7b4", borderWidth:2, borderDash:[5,4], pointRadius:0, tension:.2, order:3 },
+    { type:"line", label:"Show-rate %", data: D.weekly.map(w=>w.rate), yAxisID:"y1", pointStyle:"line",
+      borderColor:"#e0a23c", backgroundColor:"#e0a23c", borderWidth:3, tension:.3, pointRadius:3, order:1 },
+  ]}, options:{ responsive:true,
+    plugins:{ legend:{ labels:{ usePointStyle:true, boxWidth:24, filter:(it)=> it.text !== "_bandlow" } } },
+    scales:{
+      y:  { title:{display:true,text:"people"} },
+      y1: { position:"right", min:0, max:100, grid:{drawOnChartArea:false}, title:{display:true,text:"%"} },
+  }}});
+
+  // cohort labels may be '9am'/'6pm' or '09am'/'06pm' depending on the snapshot — normalise
+  const cohortIs = (s, who) => String(s.cohort).replace(/^0/, "") === who;
+  new Chart(cohort, { type:"bar", data:{ labels:wk, datasets:[
+    { label:"9am cohort", data: D.sessions.filter(s=>cohortIs(s,"9am")).map(s=>s.attended), backgroundColor:"#2f6fb0" },
+    { label:"6pm cohort", data: D.sessions.filter(s=>cohortIs(s,"6pm")).map(s=>s.attended), backgroundColor:"#e0a23c" },
+  ]}, options:{ responsive:true, scales:{ y:{ title:{display:true,text:"live attendees"} }}}});
+
+  new Chart(commons, { type:"bar", data:{ labels:wk, datasets:[
+    { label:"Posts",    data: D.commons.map(w=>w.posts),    backgroundColor:"#1e3250" },
+    { label:"Comments", data: D.commons.map(w=>w.comments), backgroundColor:"#2f6fb0" },
+    { label:"Replies",  data: D.commons.map(w=>w.replies),  backgroundColor:"#7aa8d6" },
+  ]}, options:{ responsive:true, scales:{ x:{stacked:true}, y:{stacked:true, title:{display:true,text:"contributions"}} }}});
+
+  // ── Engagement DEPTH: quality holds while volume falls
+  const dp = D.depth || [];
+
+  // Discussion quality: % of posts answered (rising) + responses per post
+  new Chart(quality, { data:{ labels:wk, datasets:[
+    { type:"bar",  label:"Responses per post", data: dp.map(d=>d.responses_per_post), yAxisID:"y2",
+      backgroundColor:"#cfe0f0", order:3 },
+    { type:"line", label:"% of posts that drew a reply", data: dp.map(d=>d.pct_posts_answered), yAxisID:"y1",
+      borderColor:"#3a9b6e", backgroundColor:"rgba(58,155,110,.15)", fill:true, tension:.3, pointRadius:4, borderWidth:3, order:1 },
+  ]}, options:{ responsive:true, scales:{
+    y1:{ position:"left",  min:0, max:100, title:{display:true,text:"% posts answered"} },
+    y2:{ position:"right", min:0, grid:{drawOnChartArea:false}, title:{display:true,text:"responses / post"} },
+  }}});
+
+  // Sustained commitment: contributions per active author + % meeting 3+ requirement
+  new Chart(commit, { data:{ labels:wk, datasets:[
+    { type:"line", label:"Contributions per active author", data: dp.map(d=>d.per_author), yAxisID:"y1",
+      borderColor:"#2f6fb0", backgroundColor:"#2f6fb0", tension:.3, pointRadius:4, borderWidth:3, order:1 },
+    { type:"line", label:"% meeting the 3-contribution requirement", data: dp.map(d=>d.pct_meeting_3plus), yAxisID:"y2",
+      borderColor:"#e0a23c", backgroundColor:"#e0a23c", borderDash:[5,4], tension:.3, pointRadius:4, order:2 },
+  ]}, options:{ responsive:true, scales:{
+    y1:{ position:"left",  min:0, suggestedMax:8, title:{display:true,text:"contributions / author"} },
+    y2:{ position:"right", min:0, max:100, grid:{drawOnChartArea:false}, title:{display:true,text:"% meeting 3+"} },
+  }}});
+
+  new Chart(sent, { type:"line", data:{ labels:wk, datasets:[
+    { label:"Mean sentiment", data: D.sentiment,
+      borderColor:"#3a9b6e", backgroundColor:"rgba(58,155,110,.15)", fill:true, tension:.3, pointRadius:4 },
+  ]}, options:{ responsive:true, scales:{ y:{ min:0, max:.5, title:{display:true,text:"mean compound"} }}}});
+
+  new Chart(prime, { type:"bar",
+    data:{ labels: D.prime.map(p=>p.p), datasets:[{ label:"% of corpus", data: D.prime.map(p=>p.v), backgroundColor:C }]},
+    options:{ indexAxis:"y", responsive:true, plugins:{legend:{display:false}},
+              scales:{ x:{ title:{display:true,text:"% of text units"} }}}});
+
+  new Chart(themes, { type:"bar", data:{ labels:wk,
+    datasets: D.themes.map((t,i) => ({ label:t.t, data:t.d, backgroundColor:C[i] }))
+  }, options:{ responsive:true, scales:{ y:{ title:{display:true,text:"% of week's units"} }}}});
+
+  // Remove loading overlay
+  document.getElementById("loading").style.display = "none";
+}
+
+init();
+</script>
