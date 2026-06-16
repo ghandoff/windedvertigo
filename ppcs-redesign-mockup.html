@@ -95,11 +95,10 @@
 </header>
 
 <nav class="toc"><div class="wrap">
-  <a href="#reach">Reach &amp; Attendance</a>
-  <a href="#engagement">Engagement &amp; Quality</a>
   <a href="#lens">The Coding Lens</a>
   <a href="#arrived">Who Arrived</a>
-  <a href="#outcomes">Certificate Participation</a>
+  <a href="#reach">Reach &amp; Attendance</a>
+  <a href="#engagement">Engagement &amp; Quality</a>
 </div></nav>
 
 <div class="wrap">
@@ -118,51 +117,6 @@
     </div>
     <div class="tip"><b>Tip:</b> click any legend label on a chart to hide or show that layer — useful for isolating a single series.</div>
   </div>
-
-  <section class="block" id="reach">
-    <div class="block-head"><h2>Reach &amp; Attendance</h2></div>
-    <p class="block-desc">How many registered, how many showed up live, and how the two cohorts compare across the five-week arc.</p>
-    <div class="grid two">
-      <div class="card">
-        <h3>Weekly Registration vs. Attendance</h3>
-        <p class="ch-sub">Show-rate vs. the healthy-webinar band (40–60%) and the expected attrition curve</p>
-        <div class="canvas-wrap tall"><canvas id="c_reg"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Cohort Reach: 9am vs 6pm</h3>
-        <p class="ch-sub">Live attendees per session by cohort</p>
-        <div class="canvas-wrap tall"><canvas id="c_cohort"></canvas></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="block" id="engagement">
-    <div class="block-head"><h2>Engagement &amp; Quality</h2></div>
-    <p class="block-desc">Posts, comments and replies on PRME Commons — and whether the people who stayed kept contributing with depth.</p>
-    <div class="grid two">
-      <div class="card">
-        <h3>PRME Commons Engagement by Week</h3>
-        <p class="ch-sub">Posts, comments, and replies (727 / 2,596 / 1,149 total)</p>
-        <div class="canvas-wrap"><canvas id="c_commons"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Discussion Quality by Week</h3>
-        <p class="ch-sub">Share of posts that drew at least one reply, and responses generated per post</p>
-        <div class="canvas-wrap"><canvas id="c_quality"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Sustained Commitment by Week</h3>
-        <p class="ch-sub">Contributions per active author, and the share meeting the 3-contribution requirement</p>
-        <div class="canvas-wrap"><canvas id="c_commit"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Sentiment Across the Arc</h3>
-        <p class="ch-sub">Mean VADER compound (chat + Commons, cleaned); higher = more positive</p>
-        <div class="canvas-wrap"><canvas id="c_sent"></canvas></div>
-      </div>
-    </div>
-    <div class="note"><strong>Volume Falls, Depth Holds.</strong> The decline in reach (fewer people) isn't a decline in engagement. The participants who stay contribute just as much every week, keep clearing the 3-contribution requirement, and their posts spark <span class="em">more</span> discussion as the series goes on.</div>
-  </section>
 
   <section class="block" id="lens">
     <div class="block-head"><h2>The Coding Lens</h2></div>
@@ -208,14 +162,49 @@
     </div>
   </section>
 
-  <section class="block" id="outcomes">
-    <div class="block-head"><h2>Certificate Participation</h2></div>
-    <p class="block-desc">Certificate of Practice (attendance + reflection) · Certificate of Applied Practice (open through Dec 2026)</p>
-    <div class="kpis" style="grid-template-columns:repeat(2,minmax(0,320px))">
-      <div class="kpi"><img src="ppcs-icons/Certificate_Applications.svg" alt=""><div><div class="v pending">Pending</div><div class="l">Certificate Applications Submitted</div></div></div>
-      <div class="kpi"><img src="ppcs-icons/Certificate_Applications.svg" alt=""><div><div class="v pending">—</div><div class="l">% of Eligible Attendees Applied</div></div></div>
+  <section class="block" id="reach">
+    <div class="block-head"><h2>Reach &amp; Attendance</h2></div>
+    <p class="block-desc">How many registered, how many showed up live, and how the two cohorts compare across the five-week arc.</p>
+    <div class="grid two">
+      <div class="card">
+        <h3>Weekly Registration vs. Attendance</h3>
+        <p class="ch-sub">Show-rate vs. the healthy-webinar band (40–60%) and the expected attrition curve</p>
+        <div class="canvas-wrap tall"><canvas id="c_reg"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Cohort Reach: 9am vs 6pm</h3>
+        <p class="ch-sub">Live attendees per session by cohort</p>
+        <div class="canvas-wrap tall"><canvas id="c_cohort"></canvas></div>
+      </div>
     </div>
-    <div class="tip" style="background:rgba(192,88,75,.12);border-color:rgba(192,88,75,.4)">Certificate data comes from the PPCS Evidencing Google Form. Export responses to CSV and run <code style="color:#f2c4bc">bash scripts/refresh_d1.sh</code> to populate these figures.</div>
+  </section>
+
+  <section class="block" id="engagement">
+    <div class="block-head"><h2>Engagement &amp; Quality</h2></div>
+    <p class="block-desc">Posts, comments and replies on PRME Commons — and whether the people who stayed kept contributing with depth.</p>
+    <div class="grid two">
+      <div class="card">
+        <h3>PRME Commons Engagement by Week</h3>
+        <p class="ch-sub">Posts, comments, and replies (727 / 2,596 / 1,149 total)</p>
+        <div class="canvas-wrap"><canvas id="c_commons"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Discussion Quality by Week</h3>
+        <p class="ch-sub">Share of posts that drew at least one reply, and responses generated per post</p>
+        <div class="canvas-wrap"><canvas id="c_quality"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Sustained Commitment by Week</h3>
+        <p class="ch-sub">Contributions per active author, and the share meeting the 3-contribution requirement</p>
+        <div class="canvas-wrap"><canvas id="c_commit"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Sentiment Across the Arc</h3>
+        <p class="ch-sub">Mean VADER compound (chat + Commons, cleaned); higher = more positive</p>
+        <div class="canvas-wrap"><canvas id="c_sent"></canvas></div>
+      </div>
+    </div>
+    <div class="note"><strong>Volume Falls, Depth Holds.</strong> The decline in reach (fewer people) isn't a decline in engagement. The participants who stay contribute just as much every week, keep clearing the 3-contribution requirement, and their posts spark <span class="em">more</span> discussion as the series goes on.</div>
   </section>
 
   <footer class="notes">
