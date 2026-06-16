@@ -48,9 +48,11 @@ export const ROLE_SETS = Object.freeze({
   // Read-or-write PCS access (includes pcs-readonly). Matches hasPcsAccess.
   // Wave 7.1.4: added `researcher`, `ra` (new-world role names); legacy `pcs`/
   // `pcs-readonly` kept so JWTs minted before the Notion migration keep working.
-  PCS_ANY:        ['pcs', 'pcs-readonly', 'researcher', 'ra', 'admin'],
-  // PCS writers only (no readonly).
-  PCS_WRITERS:    ['pcs', 'researcher', 'ra', 'admin'],
+  PCS_ANY:        ['pcs', 'pcs-readonly', 'researcher', 'ra', 'admin', 'super-user'],
+  // PCS writers only (no readonly). `super-user` is the god role and must be
+  // able to see write controls (e.g. the authority-regions editor); the server
+  // still re-verifies every write via requireCapability.
+  PCS_WRITERS:    ['pcs', 'researcher', 'ra', 'admin', 'super-user'],
   // Internal Nordic user mix + external reviewers.
   // Wave 7.1.4: added `researcher`, `ra`, `reviewer` alongside legacy aliases.
   PCS_OR_RCT:     ['sqr-rct', 'reviewer', 'pcs', 'pcs-readonly', 'researcher', 'ra', 'admin'],

@@ -235,7 +235,7 @@ function BenefitDashboardContent() {
   }
   if (!data) return null;
 
-  const { benefitCategory, claims, ingredients, totalClaimCount } = data;
+  const { benefitCategory, claims, ingredients, products = [], totalClaimCount } = data;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -276,10 +276,14 @@ function BenefitDashboardContent() {
         </div>
 
         {/* Package C — Stat row with Claim Status Donut */}
-        <div className="grid grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-6 gap-4 mb-6">
           <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-gray-900">{ingredients.length}</div>
             <div className="text-xs text-gray-500 mt-0.5">Ingredients</div>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+            <div className="text-2xl font-bold text-gray-900">{products.length}</div>
+            <div className="text-xs text-gray-500 mt-0.5">Products</div>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
             <div className="text-2xl font-bold text-gray-900">{totalClaimCount}</div>
@@ -308,6 +312,31 @@ function BenefitDashboardContent() {
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">Regional Compliance Overview</h2>
             <RegionalComplianceGrid claims={claims} ingredients={ingredients} />
+          </div>
+        )}
+
+        {/* Products supporting this benefit */}
+        {products.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">Products Supporting This Benefit</h2>
+            <div className="flex flex-wrap gap-2">
+              {products.map((p, i) => {
+                const label = p.name || p.pcsId || 'Unnamed product';
+                const chip = (
+                  <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50">
+                    {label}
+                    <span className="text-gray-400">· {p.claimCount}</span>
+                  </span>
+                );
+                return p.id ? (
+                  <Link key={p.id} href={`/research/pcs/caipb/product/${p.id}`} className="hover:opacity-80">
+                    {chip}
+                  </Link>
+                ) : (
+                  <span key={`v${i}`} title="Product document not resolved">{chip}</span>
+                );
+              })}
+            </div>
           </div>
         )}
 
