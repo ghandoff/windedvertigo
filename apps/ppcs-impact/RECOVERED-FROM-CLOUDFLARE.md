@@ -1,3 +1,9 @@
+> **UPDATE 2026-06-16:** Source has since been **reconstructed** in this directory
+> (`src/index.js`, `wrangler.jsonc`, `assets/`, `package.json`) and the live state fully
+> backed up under `backup-2026-06-16/` (see its `RESTORE.md`). The notes below are kept
+> as the historical record of the original loss. `dist/index.js` is the recovered bundle;
+> `src/index.js` is the clean hand-rebuilt equivalent and is what now deploys.
+
 # wv-ppcs-impact — recovered from Cloudflare (NOT original source)
 
 **Why this exists:** The live Worker `wv-ppcs-impact` (last deployed 2026-06-14) was found

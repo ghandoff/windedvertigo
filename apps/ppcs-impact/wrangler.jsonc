@@ -1,0 +1,37 @@
+{
+  // wv-ppcs-impact — PPCS 2026 Engagement Dashboard worker.
+  // Reconstructed 2026-06-16. IDs verified live against the Cloudflare API on that date.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-ppcs-impact",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-01",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+
+  // Static front-end (./assets). `binding` makes assets reachable via env.ASSETS.fetch()
+  // so the worker controls routing (it does not auto-serve).
+  "assets": {
+    "directory": "./assets",
+    "binding": "ASSETS"
+  },
+
+  // D1 — holds the `metrics` table (row k='current'); see backup-2026-06-16/RESTORE.md.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wv-ppcs-impact",
+      "database_id": "a5ea2fcf-299d-494d-9580-1184fe889d8c"
+    }
+  ],
+
+  // ⚠️ VERIFY in the Cloudflare dashboard (wv-ppcs-impact → Settings → Domains & Routes)
+  // before the first deploy from this config. wv-site owns windedvertigo.com/* — this
+  // worker wins only on the more-specific path below. If the live route already exists
+  // (it does), deploying with a matching pattern is idempotent; a mismatched pattern
+  // could create a duplicate. Confirm the exact existing pattern, then keep it here.
+  "routes": [
+    { "pattern": "windedvertigo.com/portfolio/ppcs-2026-impact", "zone_name": "windedvertigo.com" },
+    { "pattern": "windedvertigo.com/portfolio/ppcs-2026-impact/*", "zone_name": "windedvertigo.com" }
+  ],
+
+  "observability": { "enabled": true }
+}

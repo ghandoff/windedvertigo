@@ -1,0 +1,373 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>PPCS 2026 — Engagement Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --prme:#1e3250; --research:#2f4378; --un:#5c92e5; --partner:#405dab;
+    --purpose:#486c37; --values:#7a9e54; --accent:#e8f0fc; --coral:#c0584b;
+    --ink:#1e3250; --mut:#6b7a90; --line:#e6ebf2; --card:#ffffff;
+    --panel:#27406a; --panel-line:#3a5689;
+    --shadow:0 1px 2px rgba(8,18,38,.18), 0 10px 30px rgba(8,18,38,.20);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html{background:var(--prme)}
+  body{margin:0;font-family:Roboto,-apple-system,"Segoe UI",sans-serif;color:var(--accent);background:transparent;-webkit-font-smoothing:antialiased}
+  a{color:var(--un);text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+  header.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--panel-line)}
+  .hero-mosaic{position:absolute;right:-50px;top:50%;transform:translateY(-50%);height:250%;opacity:.34;z-index:1;pointer-events:none}
+  .hero .wrap{padding:30px 24px 26px;position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:28px;flex-wrap:wrap}
+  .hero h1{font-size:23px;font-weight:700;letter-spacing:-.01em;margin:12px 0 7px;line-height:1.22;max-width:720px;color:#fff}
+  .hero h1 .yr{color:var(--values)}
+  .hero .sub{color:#a9bcd9;font-size:12.5px;line-height:1.5;max-width:700px}
+  .hero .lockup{display:flex;flex-direction:row;align-items:center;gap:22px;margin-top:6px}
+  .hero .lockup img.prme{height:40px;opacity:.97}
+  .hero .lockup img.cross{height:28px}
+  .hero .lockup img.vertigo{height:46px}
+  .live{display:inline-flex;align-items:center;gap:7px;background:rgba(122,158,84,.16);border:1px solid rgba(122,158,84,.4);color:#cfe3b6;padding:4px 11px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--values);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(122,158,84,.6)}70%{box-shadow:0 0 0 7px rgba(122,158,84,0)}100%{box-shadow:0 0 0 0 rgba(122,158,84,0)}}
+
+  nav.toc{position:sticky;top:0;z-index:30;background:rgba(30,50,80,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--panel-line)}
+  nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding:8px 24px}
+  nav.toc a{white-space:nowrap;font-size:12px;font-weight:600;color:#a9bcd9;padding:6px 13px}
+  nav.toc a:hover{background:rgba(92,146,229,.16);color:#fff}
+
+  .kpi-band{margin:30px 0 6px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+  .kpi{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13);padding:28px 18px 24px;box-shadow:0 12px 30px rgba(8,18,38,.16);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:flex;flex-direction:column;align-items:center;text-align:center}
+  .kpi img{width:66px;height:66px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.38))}
+  .kpi .v{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1;color:#fff}
+  .kpi .v.green{color:#9ec877}
+  .kpi .v.pending{color:#e9a99f;font-size:23px}
+  .kpi .l{font-size:12px;color:#a9bcd9;margin-top:9px;line-height:1.35;font-weight:500}
+  .tip{font-size:11.5px;color:#a9bcd9;background:rgba(92,146,229,.1);border:1px dashed var(--panel-line);padding:9px 14px;margin:24px 0 0}
+  .tip b{color:var(--un)}
+
+  section.block{margin:38px 0 0;scroll-margin-top:60px}
+  .block-head h2{font-size:17px;font-weight:700;letter-spacing:-.01em;margin:0 0 2px;color:var(--un)}
+  .block-desc{font-size:12.5px;color:#a9bcd9;margin:2px 0 14px;max-width:780px;line-height:1.5}
+  .grid{display:grid;gap:20px}
+  .grid.two{grid-template-columns:1fr 1fr}
+  .card{background:var(--card);padding:18px 18px 14px;box-shadow:var(--shadow);color:var(--ink)}
+  .card h3{font-size:14px;font-weight:600;margin:0 0 2px;color:var(--prme)}
+  .card .ch-sub{font-size:11px;color:var(--mut);margin:0 0 10px;line-height:1.4}
+  .canvas-wrap{position:relative;height:240px}
+  .canvas-wrap.tall{height:280px}
+
+  .note{background:var(--panel);border:1px solid var(--panel-line);padding:14px 17px;font-size:13px;line-height:1.6;color:#d4e0f1;margin:18px 0 0}
+  .note strong{color:#fff}
+  .note .em{color:var(--un);font-style:italic;font-weight:600}
+
+  footer.notes{margin:42px 0 60px;font-size:11.5px;color:#a9bcd9;line-height:1.6}
+  footer.notes .card{background:#22375d;color:#c7d5ec}
+  footer.notes b{color:#fff}
+  footer.notes code{background:rgba(92,146,229,.18);padding:1px 5px;color:#cfe0f1}
+  .src{margin-top:12px;font-size:11px;color:#8aa0c2}
+
+  .ribbon{position:fixed;right:-46px;top:22px;transform:rotate(45deg);background:var(--values);color:#1f3211;font-size:11px;font-weight:800;letter-spacing:.06em;padding:6px 58px;box-shadow:var(--shadow);z-index:50}
+
+  #loading{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:var(--prme);color:#a9bcd9;font-size:13px;letter-spacing:.02em}
+  #loading .spin{width:18px;height:18px;border:2px solid rgba(169,188,217,.3);border-top-color:var(--un);border-radius:50%;margin-right:11px;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #error-banner{display:none;background:rgba(192,88,75,.16);border:1px solid rgba(192,88,75,.5);color:#f2c4bc;font-size:13px;padding:12px 18px;margin:22px auto 0;max-width:1112px}
+
+  @media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)} .grid.two{grid-template-columns:1fr}}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr}}
+</style>
+
+<div id="loading"><span class="spin"></span>Loading live figures…</div>
+
+<header class="hero">
+  <img class="hero-mosaic" src="ppcs-assets/cover-mosaic.svg" alt="">
+  <div class="wrap">
+    <div>
+      <span class="live"><span class="dot"></span>figures updated live</span>
+      <h1>PRME Pedagogy Certificate Series <span class="yr">2026</span><br>End-of-Series Engagement Dashboard</h1>
+      <div class="sub">Asynchronous Onboarding · Five Weeks · 10 Live Webinars (AM &amp; PM Cohorts)<br>Prepared by winded.vertigo for UN PRME / The UN Global Compact</div>
+    </div>
+    <div class="lockup">
+      <img class="prme" src="prme_logo_short_white.png" alt="PRME">
+      <img class="cross" src="ppcs-assets/prme_cross.png" alt="×">
+      <img class="vertigo" src="ppcs-assets/vertigo_wordmark.png" alt="winded.vertigo">
+    </div>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap">
+  <a href="#lens">The Coding Lens</a>
+  <a href="#arrived">Who Arrived</a>
+  <a href="#reach">Reach &amp; Attendance</a>
+  <a href="#engagement">Engagement &amp; Quality</a>
+</div></nav>
+
+<div class="wrap">
+
+  <div id="error-banner"></div>
+
+  <div class="kpi-band">
+    <div class="kpis">
+      <div class="kpi"><img src="ppcs-icons/Unique_Registrants.svg" alt=""><div><div class="v" id="k-regs">—</div><div class="l">Unique Registrants</div></div></div>
+      <div class="kpi"><img src="ppcs-icons/Unique_Live_Attendees.svg" alt=""><div><div class="v" id="k-attends">—</div><div class="l">Unique Live Attendees</div></div></div>
+      <div class="kpi"><img src="ppcs-icons/Overall_Live_Show-Rate.svg" alt=""><div><div class="v green" id="k-rate">—</div><div class="l">Overall Live Show-Rate</div></div></div>
+      <div class="kpi"><img src="ppcs-icons/Commons_Contributions.svg" alt=""><div><div class="v" id="k-commons">—</div><div class="l">Commons Contributions</div></div></div>
+
+      <div class="kpi"><img src="ppcs-icons/Commons_Authors.svg" alt=""><div><div class="v" id="k-authors">—</div><div class="l">Commons Authors</div></div></div>
+      <div class="kpi"><img src="ppcs-icons/Intro-Poll_Respondents.svg" alt=""><div><div class="v" id="k-poll">—</div><div class="l">Intro-Poll Respondents</div></div></div>
+      <div class="kpi"><img src="ppcs-icons/Feedback_Survey_Responses.svg" alt=""><div><div class="v" id="k-survey">—</div><div class="l">Feedback Survey Responses</div></div></div>
+      <div class="kpi"><img src="ppcs-icons/Certificate_Applications.svg" alt=""><div><div class="v pending" id="k-cert">Pending</div><div class="l">Certificate Applications</div></div></div>
+    </div>
+    <div class="tip"><b>Tip:</b> click any legend label on a chart to hide or show that layer — useful for isolating a single series.</div>
+  </div>
+
+  <section class="block" id="lens">
+    <div class="block-head"><h2>The Coding Lens</h2></div>
+    <p class="block-desc">Indicative first-pass coding of the discussion corpus against design principles and the intended weekly themes.</p>
+    <div class="grid two">
+      <div class="card">
+        <h3>PRIME Design Principles (Prevalence)</h3>
+        <p class="ch-sub">% of corpus units evidencing each principle — indicative first pass</p>
+        <div class="canvas-wrap"><canvas id="c_prime"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Theme Prevalence by Week — the Arc Diagonal</h3>
+        <p class="ch-sub">% of each week's discussion units tagged to each deductive theme; each theme peaks in its intended week</p>
+        <div class="canvas-wrap"><canvas id="c_theme"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="arrived">
+    <div class="block-head"><h2>Who Arrived</h2></div>
+    <p class="block-desc">Self-reported at onboarding (intro poll, n=148). Participants entered with <strong style="color:#fff">low PRME familiarity (avg 2.6 / 5)</strong> but <strong style="color:#fff">moderate–high teaching confidence (avg 3.6 / 5)</strong> — the series had a clear job: deepen PRME literacy without building teaching confidence from scratch.</p>
+    <div class="grid two">
+      <div class="card">
+        <h3>Teaching Approach at Entry</h3>
+        <p class="ch-sub">Self-reported at onboarding (intro poll, n=148)</p>
+        <div class="canvas-wrap"><canvas id="c_approach"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Motivation for Joining</h3>
+        <p class="ch-sub">Primary reason selected at onboarding</p>
+        <div class="canvas-wrap"><canvas id="c_motiv"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>PRME Familiarity at Entry <span style="color:var(--mut);font-weight:500">· avg <span id="avg-fam">—</span> / 5</span></h3>
+        <p class="ch-sub">1 = not at all familiar → 5 = very familiar</p>
+        <div class="canvas-wrap"><canvas id="c_fam"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Teaching Confidence at Entry <span style="color:var(--mut);font-weight:500">· avg <span id="avg-conf">—</span> / 5</span></h3>
+        <p class="ch-sub">1 = not confident → 5 = very confident</p>
+        <div class="canvas-wrap"><canvas id="c_conf"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="reach">
+    <div class="block-head"><h2>Reach &amp; Attendance</h2></div>
+    <p class="block-desc">How many registered, how many showed up live, and how the two cohorts compare across the five-week arc.</p>
+    <div class="grid two">
+      <div class="card">
+        <h3>Weekly Registration vs. Attendance</h3>
+        <p class="ch-sub">Show-rate vs. the healthy-webinar band (40–60%) and the expected attrition curve</p>
+        <div class="canvas-wrap tall"><canvas id="c_reg"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Cohort Reach: 9am vs 6pm</h3>
+        <p class="ch-sub">Live attendees per session by cohort</p>
+        <div class="canvas-wrap tall"><canvas id="c_cohort"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="engagement">
+    <div class="block-head"><h2>Engagement &amp; Quality</h2></div>
+    <p class="block-desc">Posts, comments and replies on PRME Commons — and whether the people who stayed kept contributing with depth.</p>
+    <div class="grid two">
+      <div class="card">
+        <h3>PRME Commons Engagement by Week</h3>
+        <p class="ch-sub" id="commons-sub">Posts, comments, and replies</p>
+        <div class="canvas-wrap"><canvas id="c_commons"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Discussion Quality by Week</h3>
+        <p class="ch-sub">Share of posts that drew at least one reply, and responses generated per post</p>
+        <div class="canvas-wrap"><canvas id="c_quality"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Sustained Commitment by Week</h3>
+        <p class="ch-sub">Contributions per active author, and the share meeting the 3-contribution requirement</p>
+        <div class="canvas-wrap"><canvas id="c_commit"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Sentiment Across the Arc</h3>
+        <p class="ch-sub">Mean VADER compound (chat + Commons, cleaned); higher = more positive</p>
+        <div class="canvas-wrap"><canvas id="c_sent"></canvas></div>
+      </div>
+    </div>
+    <div class="note"><strong>Volume Falls, Depth Holds.</strong> The decline in reach (fewer people) isn't a decline in engagement. The participants who stay contribute just as much every week, keep clearing the 3-contribution requirement, and their posts spark <span class="em">more</span> discussion as the series goes on.</div>
+  </section>
+
+  <footer class="notes">
+    <div class="card">
+      <b>Reading Notes &amp; Caveats.</b> Live show-rate excludes on-demand viewing (recordings served most no-shows). The <b>healthy-webinar band</b> (40–60%) is the typical registrant-to-attendee range for a strong standalone webinar; the <b>expected-attrition curve</b> is week-1 show-rate decayed ≈12%/session — the series stayed at or above it every week. 9am cohorts out-registered 6pm ~2.4:1 (time-zone reach). Sentiment and thematic/PRIME coding are <b>indicative first-pass</b> results pending human adjudication. <b>Certificate figures are pending</b> (Certificate of Applied Practice open through Dec 2026). Intro-poll data: 148 responses, 130 matched to the participant spine by email (88%); 18 rows retained with <code>participant_id = NULL</code> for manual resolution.
+      <div class="src">Source: PPCS2026_engagement.db → Cloudflare D1 · winded.vertigo. Engagement = attendance + Zoom chat + PRME Commons + Qualtrics feedback + Miro (aggregate). Individual-level linkage: attendance/chat ~100%, Commons ~98% by name, survey 82% of named respondents.</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+function animateCount(el){
+  const target=parseFloat(el.dataset.target), suffix=el.dataset.suffix||'', dur=1300, t0=performance.now();
+  const ease=x=>1-Math.pow(1-x,3);
+  (function frame(now){
+    const p=Math.min((now-t0)/dur,1);
+    el.textContent=Math.round(target*ease(p)).toLocaleString('en-US')+suffix;
+    if(p<1)requestAnimationFrame(frame); else el.textContent=Math.round(target).toLocaleString('en-US')+suffix;
+  })(t0);
+}
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){animateCount(e.target);io.unobserve(e.target);}});},{threshold:.5});
+
+const C={blue:'#2f6fb0',lblue:'#7aa8d6',amber:'#e0a23c',green:'#3a9b6e',red:'#c0584b',navy:'#1e3250',blueFill:'#cfe0f1',greenFill:'#d7ece0'};
+const LIKERT=[C.red,C.amber,C.lblue,C.blue,C.navy];
+const THEMEC=[C.blue,C.amber,C.green,C.red,C.lblue];
+Chart.defaults.font.family="Roboto, sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.color='#6b7a90';
+Chart.defaults.plugins.legend.labels.usePointStyle=true;
+Chart.defaults.plugins.legend.labels.boxWidth=8;
+Chart.defaults.plugins.legend.labels.padding=12;
+const gridX={grid:{display:false},ticks:{color:'#6b7a90'}};
+const gridY={grid:{color:'#eef1f6'},ticks:{color:'#6b7a90'},border:{display:false}};
+const WK=["Week 1","Week 2","Week 3","Week 4","Week 5"];
+
+function setTile(id,val,suffix){
+  const el=document.getElementById(id);
+  if(val==null){el.textContent='—';return;}
+  if(suffix)el.dataset.suffix=suffix;
+  el.dataset.target=val;
+  io.observe(el);
+}
+
+async function init(){
+  let D;
+  try{
+    const res=await fetch('api/metrics');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    D=await res.json();
+    if(D.error) throw new Error(D.error);
+  }catch(err){
+    document.getElementById('loading').style.display='none';
+    const b=document.getElementById('error-banner');
+    b.style.display='block';
+    b.textContent='Could not load live data: '+err.message+'. Refresh to retry.';
+    return;
+  }
+
+  const k=D.kpis||{}, p=D.poll||{};
+
+  // ── Stat tiles (count up from live data)
+  setTile('k-regs',    k.unique_registrants);
+  setTile('k-attends', k.unique_attendees);
+  setTile('k-rate',    k.show_rate, '%');
+  setTile('k-commons', k.commons_contributions);
+  setTile('k-authors', k.commons_authors);
+  setTile('k-poll',    p.n);
+  setTile('k-survey',  k.survey_n);
+  const cert=document.getElementById('k-cert');
+  if(k.cert_applied_n!=null){ cert.classList.remove('pending'); setTile('k-cert', k.cert_applied_n); }
+  else { cert.textContent='Pending'; }
+
+  // ── Dynamic copy
+  if(p.avg_prme_familiarity!=null) document.getElementById('avg-fam').textContent=p.avg_prme_familiarity.toFixed(1);
+  if(p.avg_confidence!=null)       document.getElementById('avg-conf').textContent=p.avg_confidence.toFixed(1);
+  const cm=D.commons||[];
+  const sP=cm.reduce((a,w)=>a+(w.posts||0),0), sC=cm.reduce((a,w)=>a+(w.comments||0),0), sR=cm.reduce((a,w)=>a+(w.replies||0),0);
+  document.getElementById('commons-sub').textContent=
+    `Posts, comments, and replies (${sP.toLocaleString()} / ${sC.toLocaleString()} / ${sR.toLocaleString()} total)`;
+
+  const wk=WK, weekly=D.weekly||[], depth=D.depth||[], rb=D.reach_benchmark||{band:[40,60],expected:[],decay_pct_per_session:12};
+  const cohortIs=(s,who)=>String(s.cohort).replace(/^0/,'')===who;
+
+  // ── The Coding Lens
+  new Chart(c_prime,{type:'bar',data:{labels:(D.prime||[]).map(x=>x.p),datasets:[
+    {label:'% of corpus',data:(D.prime||[]).map(x=>x.v),backgroundColor:[C.blue,C.lblue,C.green,C.amber,C.red]}
+  ]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{...gridY,ticks:{callback:v=>v+'%',color:'#6b7a90'}},y:gridX},plugins:{legend:{display:false}}}});
+
+  new Chart(c_theme,{type:'bar',data:{labels:wk,datasets:(D.themes||[]).map((t,i)=>(
+    {label:t.t,data:t.d,backgroundColor:THEMEC[i%THEMEC.length]}
+  ))},options:{maintainAspectRatio:false,scales:{x:gridX,y:{...gridY,ticks:{callback:v=>v+'%',color:'#6b7a90'}}}}});
+
+  // ── Who Arrived
+  const ap=p.approach||{};
+  new Chart(c_approach,{type:'bar',data:{labels:["mix of lecture & activities","primarily active/experiential","experimenting with new methods","primarily lecture-based"],datasets:[
+    {label:'% of respondents',data:[ap.mix||0,ap.active||0,ap.experimenting||0,ap.lecture||0],backgroundColor:[C.blue,C.green,C.lblue,C.blueFill]}
+  ]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:{...gridY,max:100,ticks:{callback:v=>v+'%',color:'#6b7a90'}},y:gridX},plugins:{legend:{display:false}}}});
+
+  const mv=p.motivation||{};
+  new Chart(c_motiv,{type:'bar',data:{labels:["improve my teaching practice","explore new pedagogical approaches","earn a certificate","connect with peers globally"],datasets:[
+    {label:'respondents',data:[mv.improve_practice||0,mv.explore_pedagogy||0,mv.earn_cert||0,mv.connect_peers||0],backgroundColor:[C.blue,C.lblue,C.amber,C.green]}
+  ]},options:{indexAxis:'y',maintainAspectRatio:false,scales:{x:gridY,y:gridX},plugins:{legend:{display:false}}}});
+
+  const fd=p.familiarity_dist||{};
+  new Chart(c_fam,{type:'bar',data:{labels:["1 — not at all","2 — slightly","3 — somewhat","4 — quite","5 — very"],datasets:[
+    {label:'respondents',data:[fd['1']||0,fd['2']||0,fd['3']||0,fd['4']||0,fd['5']||0],backgroundColor:LIKERT}
+  ]},options:{maintainAspectRatio:false,scales:{x:gridX,y:gridY},plugins:{legend:{display:false}}}});
+
+  const cd=p.confidence_dist||{};
+  new Chart(c_conf,{type:'bar',data:{labels:["1 — not confident","2 — slightly","3 — somewhat","4 — quite","5 — very"],datasets:[
+    {label:'respondents',data:[cd['1']||0,cd['2']||0,cd['3']||0,cd['4']||0,cd['5']||0],backgroundColor:LIKERT}
+  ]},options:{maintainAspectRatio:false,scales:{x:gridX,y:gridY},plugins:{legend:{display:false}}}});
+
+  // ── Reach & Attendance
+  new Chart(c_reg,{data:{labels:wk,datasets:[
+    {type:'line',label:`healthy band (${rb.band[0]}–${rb.band[1]}%)`,data:wk.map(()=>rb.band[1]),yAxisID:'y1',borderColor:'rgba(58,155,110,0)',backgroundColor:'rgba(58,155,110,.10)',fill:'+1',pointRadius:0},
+    {type:'line',label:'_bandlow',data:wk.map(()=>rb.band[0]),yAxisID:'y1',borderColor:'rgba(58,155,110,0)',pointRadius:0,fill:false},
+    {type:'bar',label:'Registrants',data:weekly.map(w=>w.registrants),backgroundColor:C.blueFill,borderRadius:0,order:3},
+    {type:'bar',label:'Attended (live)',data:weekly.map(w=>w.attended),backgroundColor:C.blue,borderRadius:0,order:2},
+    {type:'line',label:`expected show-rate (≈${rb.decay_pct_per_session??12}%/wk decay)`,data:rb.expected,yAxisID:'y1',borderColor:'#9aa8bd',borderDash:[5,4],pointRadius:0,tension:.3},
+    {type:'line',label:'Show-rate %',data:weekly.map(w=>w.rate),yAxisID:'y1',borderColor:C.amber,backgroundColor:C.amber,pointRadius:3,tension:.3,borderWidth:2.5}
+  ]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{x:gridX,y:{...gridY,position:'left',title:{display:true,text:'people'}},
+      y1:{position:'right',min:0,max:100,grid:{display:false},ticks:{callback:v=>v+'%',color:'#6b7a90'},border:{display:false}}},
+    plugins:{legend:{labels:{filter:i=>i.text!=='_bandlow'}}}}});
+
+  new Chart(c_cohort,{type:'bar',data:{labels:wk,datasets:[
+    {label:'9am cohort',data:(D.sessions||[]).filter(s=>cohortIs(s,'9am')).map(s=>s.attended),backgroundColor:C.blue},
+    {label:'6pm cohort',data:(D.sessions||[]).filter(s=>cohortIs(s,'6pm')).map(s=>s.attended),backgroundColor:C.lblue}
+  ]},options:{maintainAspectRatio:false,scales:{x:gridX,y:gridY}}});
+
+  // ── Engagement & Quality
+  new Chart(c_commons,{type:'bar',data:{labels:wk,datasets:[
+    {label:'Posts',data:cm.map(w=>w.posts),backgroundColor:C.blue},
+    {label:'Comments',data:cm.map(w=>w.comments),backgroundColor:C.lblue},
+    {label:'Replies',data:cm.map(w=>w.replies),backgroundColor:C.amber}
+  ]},options:{maintainAspectRatio:false,scales:{x:gridX,y:gridY}}});
+
+  new Chart(c_quality,{data:{labels:wk,datasets:[
+    {type:'bar',label:'% of posts that drew a reply',data:depth.map(d=>d.pct_posts_answered),yAxisID:'y1',backgroundColor:C.blueFill},
+    {type:'line',label:'Responses per post',data:depth.map(d=>d.responses_per_post),yAxisID:'y',borderColor:C.amber,backgroundColor:C.amber,tension:.3,pointRadius:3,borderWidth:2.5}
+  ]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{x:gridX,y:{...gridY,position:'left',title:{display:true,text:'resp/post'}},
+      y1:{position:'right',min:0,max:100,grid:{display:false},ticks:{callback:v=>v+'%',color:'#6b7a90'},border:{display:false}}}}});
+
+  new Chart(c_commit,{data:{labels:wk,datasets:[
+    {type:'bar',label:'% meeting 3-contribution requirement',data:depth.map(d=>d.pct_meeting_3plus),yAxisID:'y1',backgroundColor:C.greenFill},
+    {type:'line',label:'Contributions per active author',data:depth.map(d=>d.per_author),yAxisID:'y',borderColor:C.green,backgroundColor:C.green,tension:.3,pointRadius:3,borderWidth:2.5}
+  ]},options:{maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    scales:{x:gridX,y:{...gridY,position:'left'},
+      y1:{position:'right',min:0,max:100,grid:{display:false},ticks:{callback:v=>v+'%',color:'#6b7a90'},border:{display:false}}}}});
+
+  new Chart(c_sent,{type:'line',data:{labels:wk,datasets:[
+    {label:'Mean sentiment',data:D.sentiment,borderColor:C.blue,backgroundColor:'rgba(47,111,176,.12)',fill:true,tension:.35,pointRadius:4,borderWidth:2.5}
+  ]},options:{maintainAspectRatio:false,scales:{x:gridX,y:{...gridY,min:0,max:.5}},plugins:{legend:{display:false}}}});
+
+  document.getElementById('loading').style.display='none';
+}
+init();
+</script>

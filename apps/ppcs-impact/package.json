@@ -1,0 +1,14 @@
+{
+  "name": "@windedvertigo/ppcs-impact",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PPCS 2026 Engagement Dashboard — Cloudflare Worker (D1 metrics API + static front-end)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}
