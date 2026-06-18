@@ -30,6 +30,9 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/carl/") ||
     pathname.startsWith("/api/opsy/") ||
     pathname.startsWith("/api/fin/") ||
+    // Voice (Vapi custom-llm) — public webhook; route enforces its own
+    // VOICE_LLM_SECRET bearer. No session cookie on inbound Vapi calls.
+    pathname.startsWith("/api/voice/") ||
     // Citation import — route enforces CMO_API_TOKEN for assistant-run backfills.
     // Scoped to /import only; the PDF serve/upload routes stay session-gated.
     pathname.startsWith("/api/bibliography/import") ||
