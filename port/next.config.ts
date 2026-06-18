@@ -47,39 +47,66 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
-    return [
+    // Strict CSP for the whole app.
+    const STRICT_CSP = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self'",
+      "img-src 'self' data: https:",
+      "connect-src 'self' https://api.notion.com https://api.anthropic.com",
+      "frame-src 'none'",
+      "frame-ancestors 'none'",
+      "worker-src 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+
+    // Relaxed CSP scoped to /voice only: the Vapi browser SDK uses Daily.co for
+    // WebRTC, which needs api.vapi.ai + *.daily.co/*.pluot.blue (https + wss),
+    // blob: workers, and an eval path for its call-machine. Kept off every
+    // other route so the strict policy still protects the rest of the app.
+    const VOICE_CSP = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self'",
+      "img-src 'self' data: https:",
+      "connect-src 'self' https://api.vapi.ai wss://api.vapi.ai https://*.vapi.ai https://*.daily.co wss://*.daily.co https://*.pluot.blue",
+      "media-src 'self' blob: mediastream:",
+      "frame-src https://*.daily.co",
+      "frame-ancestors 'none'",
+      "worker-src 'self' blob:",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ");
+
+    const securityHeaders = [
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      // microphone=(self) lets same-origin pages (e.g. /transcribe, /voice)
+      // request mic access via getUserMedia. camera + geolocation stay disabled.
+      { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
       {
-        source: "/(.*)",
-        headers: [
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // microphone=(self) lets same-origin pages (e.g. /transcribe) request mic
-          // access via getUserMedia. camera + geolocation remain disabled until we
-          // have a feature that needs them.
-          { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=()" },
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline'",
-              "font-src 'self'",
-              "img-src 'self' data: https:",
-              "connect-src 'self' https://api.notion.com https://api.anthropic.com",
-              "frame-src 'none'",
-              "frame-ancestors 'none'",
-              "worker-src 'self'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join("; "),
-          },
-        ],
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+    ];
+
+    return [
+      // Non-CSP security headers everywhere.
+      { source: "/(.*)", headers: securityHeaders },
+      // Strict CSP everywhere except /voice.
+      {
+        source: "/((?!voice).*)",
+        headers: [{ key: "Content-Security-Policy", value: STRICT_CSP }],
+      },
+      // Relaxed CSP for the voice playground only.
+      {
+        source: "/voice",
+        headers: [{ key: "Content-Security-Policy", value: VOICE_CSP }],
       },
     ];
   },
