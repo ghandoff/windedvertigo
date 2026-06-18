@@ -24,14 +24,16 @@ if (!VAPI_KEY || !SECRET) {
 const SONNET = "claude-sonnet-4-6";
 const HAIKU = "claude-haiku-4-5-20251001";
 
-// slug, display name, Vapi-native voiceId, model, greeting
+// slug, display name, Cartesia voiceId + human label, model, greeting.
+// Voices use Vapi's Cartesia provider (key added to the Vapi org). Mo and Opsy
+// are intentionally swapped per Garrett: Mo = steady/decisive, Opsy = upbeat.
 const ASSISTANTS = [
-  { slug: "pam",   name: "Pam",  voice: "Leah", model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
-  { slug: "cmo",   name: "Mo",   voice: "Jess", model: SONNET, greet: "hi, Mo here. what's on your mind?" },
-  { slug: "carl",  name: "Carl", voice: "Leo",  model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
-  { slug: "fin",   name: "Finn", voice: "Sid",  model: SONNET, greet: "hey, Finn here. want the numbers?" },
-  { slug: "opsy",  name: "Opsy", voice: "Tara", model: SONNET, greet: "hi, it's Opsy. want a status check?" },
-  { slug: "claude",name: "Claude",voice: "Kai", model: HAIKU,  greet: "hi Garrett, it's Claude. what can I help you think through?" },
+  { slug: "pam",   name: "Pam",  voice: "ec1e269e-9ca0-402f-8a18-58e0e022355a", voiceLabel: "Ariana – Kind Friend",    model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
+  { slug: "cmo",   name: "Mo",   voice: "faa75703-00e3-4a57-9955-0703001e3231", voiceLabel: "Amélie – Decisive Agent", model: SONNET, greet: "hi, Mo here. what's on your mind?" },
+  { slug: "carl",  name: "Carl", voice: "e2d48e7b-cd73-4c4c-bc1e-f232580e8709", voiceLabel: "Adrian – Explorer",      model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
+  { slug: "fin",   name: "Finn", voice: "3d808d23-cb09-4c39-8afd-528e209cba4f", voiceLabel: "Brent – Steady",         model: SONNET, greet: "hey, Finn here. want the numbers?" },
+  { slug: "opsy",  name: "Opsy", voice: "a053f6bc-7df4-40de-96d4-de026bc47ce8", voiceLabel: "Andi – Dynamic Presenter",model: SONNET, greet: "hi, it's Opsy. want a status check?" },
+  { slug: "claude",name: "Claude",voice: "df872fcd-da17-4b01-a49f-a80d7aaee95e",voiceLabel: "Cameron – Chill Companion",model: HAIKU, greet: "hi Garrett, it's Claude. what can I help you think through?" },
 ];
 
 const PREFIX = "WV Voice — "; // assistant display-name prefix in Vapi
@@ -47,7 +49,7 @@ function bodyFor(a) {
       model: a.model,
       headers: { "x-voice-secret": SECRET },
     },
-    voice: { provider: "vapi", voiceId: a.voice },
+    voice: { provider: "cartesia", voiceId: a.voice },
     transcriber: { provider: "deepgram", model: "nova-3", language: "en" },
     // 1:1 call turn-taking: respond promptly, allow barge-in interruptions.
     startSpeakingPlan: { waitSeconds: 0.4 },
@@ -83,8 +85,8 @@ for (const a of ASSISTANTS) {
     const saved = id
       ? await vapi(`/assistant/${id}`, "PATCH", body)
       : await vapi("/assistant", "POST", body);
-    results.push({ name: a.name, slug: a.slug, voice: a.voice, id: saved.id, action: id ? "updated" : "created" });
-    console.log(`✅ ${a.name.padEnd(7)} ${id ? "updated" : "created"}  id=${saved.id}  voice=${a.voice}  → ${body.model.url}`);
+    results.push({ name: a.name, slug: a.slug, voice: a.voiceLabel, id: saved.id, action: id ? "updated" : "created" });
+    console.log(`✅ ${a.name.padEnd(7)} ${id ? "updated" : "created"}  id=${saved.id}  voice=${a.voiceLabel}  → ${body.model.url}`);
   } catch (err) {
     console.log(`❌ ${a.name.padEnd(7)} ${err.message}`);
     results.push({ name: a.name, slug: a.slug, error: String(err.message) });
