@@ -55,6 +55,11 @@ function bodyFor(a) {
     startSpeakingPlan: { waitSeconds: 0.4 },
     silenceTimeoutSeconds: 30,
     maxDurationSeconds: 1800,
+    // Stage 4: end-of-call webhook saves transcript summary to agent memory.
+    serverUrl: `${BASE}/api/voice/${a.slug}/end-of-call`,
+    serverUrlSecret: SECRET,
+    // Explicit: no audio or video recordings retained anywhere.
+    artifactPlan: { recordingEnabled: false, videoRecordingEnabled: false },
   };
 }
 

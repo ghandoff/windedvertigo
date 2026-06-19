@@ -71,15 +71,37 @@ CF config complexity. To add it later: Security → WAF → Custom Rules → cre
 "skip bot/managed rules for `/api/voice/*`", then re-run `vapi-setup.mjs` with
 `VOICE_PUBLIC_BASE=https://port.windedvertigo.com`.
 
-## Next: Stage 3 and Stage 4 (CONFIRM WITH GARRETT BEFORE PROCEEDING)
+## Stage 4 — end-of-call transcript webhook (BUILT, needs deploy + vapi-setup re-run)
+
+**What was built (2026-06-19):**
+- `app/api/voice/[slug]/end-of-call/route.ts` — new webhook route.
+  1. Verifies `Authorization: Bearer <VOICE_LLM_SECRET>` (Vapi sends serverUrlSecret this way).
+  2. Ignores non-`end-of-call-report` webhook types (Vapi sends several types).
+  3. Calls Haiku to summarise the transcript → `{ summary, decisions[] }`.
+  4. Writes to each agent's Supabase table with `session_type: "voice"` (Fin uses `createFinDecision`).
+  5. Always returns 200 — even on error — so Vapi doesn't retry and create duplicate rows.
+  6. Logs a warning if `recordingUrl` is non-null (shouldn't happen, but surfaced explicitly).
+- `scripts/vapi-setup.mjs` updated — adds `serverUrl`, `serverUrlSecret`,
+  and `artifactPlan: { recordingEnabled: false, videoRecordingEnabled: false }` to every assistant.
+
+**To activate:**
+```bash
+# 1. Deploy the new route to prod
+cd port && npm run build:cf && npx wrangler deploy
+
+# 2. Push the serverUrl to Vapi (idempotent)
+export VAPI_API_KEY=... VOICE_LLM_SECRET=... VOICE_PUBLIC_BASE=https://wv-port.windedvertigo.workers.dev
+node scripts/vapi-setup.mjs
+```
+
+**To verify:** make a short test call → check the agent's decisions tab on
+port.windedvertigo.com (or query `pam_decisions` where `session_type='voice'`).
+
+## Next: Stage 3 (CONFIRM WITH GARRETT BEFORE PROCEEDING — PAID)
 
 - **Stage 3 (PAID):** Provision 1 US phone number per assistant via Vapi API.
   Cost: ~$2/mo per number × 6 = ~$12/mo. Run: `node scripts/vapi-setup.mjs --provision-numbers`.
   _Confirm with Garrett before running — this charges the Vapi account._
-- **Stage 4:** End-of-call webhook → save call transcript to each agent's Supabase memory.
-  Webhook URL: `POST /api/voice/{slug}/end-of-call` (to be built). Vapi config:
-  `serverUrl` on each assistant. `recordingEnabled:false` already set on web calls.
-  Still needs to be confirmed on telephony assistants.
 
 ## Key facts / IDs
 
