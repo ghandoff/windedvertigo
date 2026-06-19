@@ -22,7 +22,6 @@
  */
 
 import { NextRequest } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { error } from "@/lib/api-helpers";
 import { getAssistant, modelFor } from "@/lib/voice/assistants";
 import {
@@ -120,39 +119,9 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ slug: string }> },
 ) {
+  if (!verifyVoiceCaller(req)) return error("unauthorized", 401);
+
   const { slug } = await ctx.params;
-  // Diagnostic: prove whether Vapi's request reaches the worker (vs being
-  // blocked at the Cloudflare edge), and which auth header it carries.
-  console.log(
-    `[VOICE-HIT] slug=${slug} ua="${(req.headers.get("user-agent") ?? "?").slice(0, 48)}" ` +
-      `auth=${!!req.headers.get("authorization")} xvs=${!!req.headers.get("x-voice-secret")}`,
-  );
-  // Durable hit-log to KV (tail is unreliable on this cron-noisy worker). Lets
-  // us confirm whether Vapi's request actually reaches the worker.
-  try {
-    const env = getCloudflareContext().env as unknown as {
-      OAUTH_KV?: { put: (k: string, v: string, o?: { expirationTtl?: number }) => Promise<void> };
-    };
-    await env.OAUTH_KV?.put(
-      "voice:lasthit",
-      JSON.stringify({
-        at: new Date().toISOString(),
-        slug,
-        ua: req.headers.get("user-agent"),
-        auth: !!req.headers.get("authorization"),
-        xvs: !!req.headers.get("x-voice-secret"),
-      }),
-      { expirationTtl: 3600 },
-    );
-  } catch {
-    /* never block the call on diagnostics */
-  }
-
-  if (!verifyVoiceCaller(req)) {
-    console.warn(`[VOICE-HIT] 401 unauthorized slug=${slug}`);
-    return error("unauthorized", 401);
-  }
-
   const assistant = getAssistant(slug);
   if (!assistant) return error(`unknown voice assistant: ${slug}`, 404);
 

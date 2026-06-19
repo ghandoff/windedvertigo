@@ -12,7 +12,7 @@ Spec: `~/Projects/voice-agents-claude-code-prompt.md`. Solo pilot (Garrett only)
 - **`/voice` browser playground: live** at https://port.windedvertigo.com/voice (session-gated; PR #243). CSP fix for Vapi/Daily merged (PR #244).
 - **Currently debugging the live web call.** Two issues surfaced and are being worked:
   1. **Mic capture (client-side, flaky).** The Vapi web SDK always uses the OS default input device (no in-app picker exists). On Garrett's Mac, when the iPhone Continuity mic is active, audio is captured; otherwise some calls get `did-not-receive-customer-audio`. Mitigation shipped: a **mic-level meter** on `/voice` ("Test microphone" button) so you can confirm the default mic is live before talking. The real fix is OS-side (System Settings → Sound → Input → MacBook Pro Microphone).
-  2. **`custom-llm-llm-failed` on the custom domain.** When audio WAS captured, Vapi called our endpoint and failed with `error-providerfault-custom-llm-llm-failed`, even though `curl` to the endpoint always returns 200 and streams fast (TTFB ~0.1–0.5s). The worker tail never clearly showed Vapi's POST arriving → strong hypothesis: **Cloudflare zone bot/WAF protection is blocking Vapi's server-to-server POST** on `port.windedvertigo.com`. **Mitigation applied (UNVERIFIED):** repointed all 6 Vapi assistants' `model.url` to the **workers.dev** hostname `https://wv-port.windedvertigo.workers.dev/api/voice/{slug}` (not behind the zone WAF). Needs one clean call to confirm.
+  2. **`custom-llm-llm-failed` on the custom domain — FIXED & VERIFIED (2026-06-18).** Vapi's server-to-server POST to `port.windedvertigo.com` was being blocked by **Cloudflare zone bot/WAF protection** (curl from a residential IP always worked; Vapi's AWS POST did not, and the worker never logged the request). Fix: repointed all 6 Vapi assistants' `model.url` to the **workers.dev** hostname `https://wv-port.windedvertigo.workers.dev/api/voice/{slug}` (not behind the zone WAF). Confirmed by a successful live voice conversation with Pam. Diagnostic logging ([VOICE-HIT] + KV hit-logger) has since been removed.
 
 ## IMPORTANT: prod is ahead of git
 
@@ -20,7 +20,17 @@ The worker deployed to prod (**version `42d3f0e8`**) was built from this branch'
 working tree but was **not yet committed to main**. This branch holds that code.
 Do **not** deploy from `main` until this is merged, or you'll revert prod.
 
-## The ONE next step
+## Pam walkthrough feedback (2026-06-18)
+
+The live call worked, but Pam feels **limited — like she doesn't have access to the
+dashboard.** She only anchors to her agent-memory briefing (decisions / memory /
+commitments from Supabase), not the broader port data (projects, contacts, deals,
+RFP radar, campaigns, finances). **Top next-session enhancement:** give the voice
+agents tool-calling (the web-chat agents in `app/api/chat/route.ts` already have
+tools) or a richer briefing, so they can reference live dashboard data on a call —
+without blowing Vapi's first-token latency budget.
+
+## (Historical) verification step — DONE
 
 Do a clean end-to-end call to confirm the workers.dev fix:
 1. Open https://port.windedvertigo.com/voice (must be logged into the port). Hard-refresh.
