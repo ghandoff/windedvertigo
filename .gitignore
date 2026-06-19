@@ -13,11 +13,10 @@ node_modules/
 !.claude/skills/
 
 # Second brain — Garrett's private operational layer (tracked separately via 'brain' remote)
-# Per-developer root CLAUDE.md is gitignored (each contributor has their own).
+# Root CLAUDE.md is now committed (project-wide conventions for all contributors + Claude Code).
 # Team-shared institutional context lives in TEAM.md; team conventions in CONTRIBUTING.md.
 # Specific .brain/ files (TASKS.md, memory/handoff/*) are force-tracked via `git add -f`
 # as collision-surface infrastructure — see .brain/memory/handoff/README.md.
-CLAUDE.md
 !docs/cmo/CLAUDE.md
 .brain/
 
