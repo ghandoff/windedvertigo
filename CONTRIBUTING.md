@@ -79,7 +79,7 @@ These are the day-to-day habits that keep the multi-session, multi-collaborator 
 
 ### Starting a session
 
-Whether you're opening a local terminal, a Codespace, or claude.ai/code, glance at four things before substantive editing:
+**Fastest start: run `./scripts/wv-sync.sh`.** It fetches the remote, reports how your local copy compares to the source of truth (ahead / behind / uncommitted), and fast-forwards only when it's safe. Then glance at four things before substantive editing:
 
 1. **The SessionStart hook output.** Claude Code prints it at the top of every session (see `.claude/hooks/session-start-diagnostic.sh`): current branch + upstream, dirty file count, local-main divergence from `origin/main`, and currently open draft PRs. If you don't see it, your session predates the hook — run `git fetch && git status && gh pr list --draft --state open` manually.
 2. **The freshest two or three handoff files in [`.brain/memory/handoff/`](./.brain/memory/handoff/).** Newest-first. If you're picking up where someone left off, the handoff is the fastest way in. The format is documented in [`.brain/memory/handoff/README.md`](./.brain/memory/handoff/README.md).
@@ -98,8 +98,24 @@ Whether you're opening a local terminal, a Codespace, or claude.ai/code, glance 
 
 - **Drop a handoff file when the work warrants it.** Not every session needs one. Write a handoff when: (a) you finished something a teammate will need to know about, (b) you stopped mid-flight and want to make it easy to resume, (c) you discovered something surprising about the codebase or the system. Skip it for routine fixes. Format and naming are in [`.brain/memory/handoff/README.md`](./.brain/memory/handoff/README.md); `git add -f` the new file the first time.
 - **Mark the PR ready for review** when the work is done. If you're stopping mid-flight, leave it draft and write a one-line "where I left off" in the PR description.
-- **Don't end the day with unpushed commits on a feature branch.** Push them. The remote is the only copy your next session (or another teammate) can see.
+- **Don't end the day with unpushed commits on a feature branch.** Push them. The remote is the only copy your next session (or another teammate) can see. `./scripts/wv-handoff.sh` does this for you — it commits any WIP and pushes the branch in one step. The Stop hook (`.claude/hooks/stop-git-check.sh`) also nudges you when you have unpushed commits.
 - **For Garrett and Maria:** if the PR is ready and the actor-routing rules apply to you, squash-merge immediately. Don't queue PRs for next-day; the longer they sit, the more they drift from `main`.
+
+### Working across machines (e.g. MacBook ↔ Mac Mini) and across the Collective
+
+The cause of almost every cross-device mess is treating a machine's local folder as the source of truth. It isn't. **`origin/main` on GitHub is the only source of truth; every local clone — your MacBook, your Mac Mini, a teammate's laptop — is a disposable working copy.** Internalize that and the messes stop: whichever machine you sit at, you sync *down* from the truth, work, then sync *up* to it.
+
+Two habits cover it:
+
+1. **Pull before you start.** Run `./scripts/wv-sync.sh` (or just `git pull`) the moment you sit down. The SessionStart hook also flags drift automatically when you open a Claude Code session.
+2. **Push before you walk away** — even mid-task, even if it's ugly. Run `./scripts/wv-handoff.sh`, or `git add -A && git commit -m "wip" && git push`. A messy WIP commit that's *pushed* beats a clean working folder you can't reach from the other machine. (Not using Claude Code? The skills `/pre-mobile-handoff` and `/end-of-day-sync` do the same with extra niceties, but the script works anywhere.)
+
+Two rules that prevent the worst messes:
+
+- **Never deploy from a laptop copy.** Deploys run from CI on push to `main` (see the `deploy-*` workflows). Hand-deploying from a stale local copy is what silently reverted the live PPCS dashboard on 2026-06-17. Push, and let CI ship it.
+- **Don't park work-in-progress on `main`** — it auto-deploys some apps. Use a branch (`git switch -c wip/...`); it travels between machines through GitHub just the same.
+
+When two machines diverge anyway (both committed to the same branch separately), `git pull --rebase` reconciles it. If it reports conflicts, stop and ask — don't force.
 
 ### Working without an engineering background (Payton, Lamis, future collaborators)
 
