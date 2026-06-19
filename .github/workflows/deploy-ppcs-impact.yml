@@ -1,0 +1,70 @@
+name: deploy ppcs-impact
+
+# Single source of truth for the live PPCS 2026 Engagement Dashboard
+# (Cloudflare Worker `wv-ppcs-impact`, served at
+# windedvertigo.com/portfolio/ppcs-2026-impact).
+#
+# Push to main that touches apps/ppcs-impact/** → auto-deploys. That means
+# "merged = live" for every device and teammate. DO NOT hand-deploy from a
+# laptop: a stale local copy can silently revert the live styling (this is
+# exactly what happened 2026-06-17). Edit → commit → push, and let CI ship it.
+#
+# Scope: deploys worker code + static assets ONLY. It does NOT touch the D1
+# `metrics` table — the dashboard numbers live in D1 and are updated separately
+# (see apps/ppcs-impact/backup-2026-06-16/RESTORE.md for the D1 details).
+#
+# Requires repo secret CLOUDFLARE_API_TOKEN (template: "Edit Cloudflare Workers"
+# + D1 Edit). Account id is public (it's in every wrangler.jsonc in the repo).
+# ⚠️ That shared token has been stale since 2026-05 — until it's rotated, the
+# deploy step fails at auth (harmless: wrangler never ships on a bad token, so
+# live is untouched). Rotating it also unblocks the nordic / values-auction CI.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/ppcs-impact/**"
+      - ".github/workflows/deploy-ppcs-impact.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ppcs-impact
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: "097c92553b268f8360b74f625f6d980a"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: deploy to cloudflare workers
+        working-directory: apps/ppcs-impact
+        run: npx wrangler@4 deploy
+
+      - name: smoke check (brand build + live data)
+        run: |
+          sleep 15
+          base="https://windedvertigo.com/portfolio/ppcs-2026-impact"
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /tmp/body -w "%{http_code}" "$base/")
+            echo "attempt ${i}: page HTTP ${code}"
+            if [ "$code" = "200" ] && grep -q "hero-mosaic" /tmp/body && grep -q "ppcs-icons/" /tmp/body; then
+              mcode=$(curl -sS -o /dev/null -w "%{http_code}" "$base/api/metrics")
+              echo "  api/metrics: HTTP ${mcode}"
+              if [ "$mcode" = "200" ]; then
+                echo "✓ brand build is live and serving D1 metrics"
+                exit 0
+              fi
+            fi
+            sleep 10
+          done
+          echo "::error::deploy ran but the brand build did not confirm within ~65s (stale-style revert or CDN lag?)"
+          exit 1
