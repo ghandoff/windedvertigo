@@ -7,16 +7,21 @@
  *
  * Flow per turn:
  *   1. Resolve the assistant from the slug.
- *   2. Load its live briefing (TTL-cached) + build a cached system prompt from
- *      posture + spoken-delivery rules (static prefix) and the briefing.
+ *   2. Load its live briefing (TTL-cached, enriched with projects/deals/milestones)
+ *      + build a cached system prompt from posture + spoken-delivery rules.
  *   3. Call Anthropic (dedicated voice key, prompt caching on the static prefix).
- *   4. Stream the reply back as OpenAI `chat.completion.chunk` SSE — the shape
- *      Vapi expects — then `data: [DONE]`.
+ *      If the agent calls a tool (read-only lookup), execute it server-side and
+ *      make a second Anthropic call with the result. Max 1 tool call per turn.
+ *   4. Stream the final reply back as OpenAI `chat.completion.chunk` SSE —
+ *      the shape Vapi expects — then `data: [DONE]`.
+ *
+ * Tool-use latency: text turns start streaming immediately (zero added latency).
+ * Tool turns buffer while the tool runs (~50-100ms Supabase + Anthropic second
+ * call) — the agent hears ~1-1.5s dead air for a specific data lookup, which is
+ * normal on a phone call. Max 1 tool call per turn enforces this bound.
  *
  * Non-streaming requests (stream:false) return a single OpenAI completion JSON,
- * which the local smoke test and curl can use. No tools on the voice path:
- * voice is converse-only; the transcript is persisted by the end-of-call
- * webhook (Stage 4), keeping per-turn latency low.
+ * which the local smoke test and curl can use.
  *
  * No runtime dependency on pocket-prompts. Self-contained in the port.
  */
@@ -30,6 +35,7 @@ import {
   buildBriefingSuffix,
 } from "@/lib/voice/prompt";
 import { getVoiceAnthropic } from "@/lib/voice/anthropic";
+import { getVoiceTools, executeVoiceTool } from "@/lib/voice/tools";
 
 const MAX_TOKENS = 1024; // spoken replies are short
 const BRIEFING_DEADLINE_MS = 1200; // cap briefing assembly so first-token stays fast
@@ -162,6 +168,7 @@ export async function POST(
   const id = `chatcmpl-${Date.now()}`;
   const created = Math.floor(Date.now() / 1000);
   const stream = body.stream !== false; // default to streaming (Vapi)
+  const voiceTools = getVoiceTools(assistant.slug);
 
   // ── Non-streaming path (smoke test / curl) ──────────────────────────────
   if (!stream) {
@@ -171,6 +178,8 @@ export async function POST(
         max_tokens: MAX_TOKENS,
         system,
         messages,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(voiceTools.length ? { tools: voiceTools as any } : {}),
       });
       const text = resp.content
         .map((b) => (b.type === "text" ? b.text : ""))
@@ -207,6 +216,13 @@ export async function POST(
   }
 
   // ── Streaming path (OpenAI SSE for Vapi) ────────────────────────────────
+  //
+  // Tool-use detection via the first content_block_start event:
+  // - type=text  → stream deltas directly (zero added latency, the common case).
+  // - type=tool_use → buffer the tool input; execute server-side; make a second
+  //   streaming Anthropic call with the result; then stream that reply.
+  //
+  // Max 1 tool call per turn (didCallTool guard) keeps dead air bounded.
   const encoder = new TextEncoder();
   const sse = new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -221,23 +237,89 @@ export async function POST(
           system,
           messages,
           stream: true,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(voiceTools.length ? { tools: voiceTools as any } : {}),
         });
 
+        let currentBlockType: "text" | "tool_use" | null = null;
+        let toolName = "";
+        let toolUseId = "";
+        let toolInputJson = "";
+        let didCallTool = false;
+
         for await (const event of anthropicStream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta" &&
-            event.delta.text
+          if (event.type === "content_block_start") {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const block = event.content_block as any;
+            currentBlockType = block.type;
+            if (currentBlockType === "tool_use") {
+              toolName = String(block.name ?? "");
+              toolUseId = String(block.id ?? "");
+              toolInputJson = "";
+            }
+          } else if (event.type === "content_block_delta") {
+            if (currentBlockType === "text" &&
+                event.delta.type === "text_delta" &&
+                event.delta.text) {
+              send(openAiChunk(id, created, model, { content: event.delta.text }, null));
+            } else if (currentBlockType === "tool_use") {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const d = event.delta as any;
+              if (d.type === "input_json_delta") toolInputJson += d.partial_json ?? "";
+            }
+          } else if (
+            event.type === "message_delta" &&
+            event.delta.stop_reason === "tool_use" &&
+            !didCallTool
           ) {
-            send(
-              openAiChunk(
-                id,
-                created,
-                model,
-                { content: event.delta.text },
-                null,
-              ),
+            // Tool call complete — execute and stream a second Anthropic response.
+            didCallTool = true;
+            let toolInput: Record<string, unknown> = {};
+            try { toolInput = JSON.parse(toolInputJson || "{}"); } catch { /* keep {} */ }
+
+            const toolResult = await executeVoiceTool(toolName, toolInput).catch(
+              () => "(tool lookup failed)",
             );
+
+            // Build tool_result message and get the agent's final reply.
+            const messagesWithTool = [
+              ...messages,
+              {
+                role: "assistant" as const,
+                content: [{
+                  type: "tool_use" as const,
+                  id: toolUseId,
+                  name: toolName,
+                  input: toolInput,
+                }],
+              },
+              {
+                role: "user" as const,
+                content: [{
+                  type: "tool_result" as const,
+                  tool_use_id: toolUseId,
+                  content: toolResult,
+                }],
+              },
+            ];
+
+            const secondStream = await anthropic.messages.create({
+              model,
+              max_tokens: MAX_TOKENS,
+              system,
+              messages: messagesWithTool,
+              stream: true,
+            });
+
+            for await (const e2 of secondStream) {
+              if (
+                e2.type === "content_block_delta" &&
+                e2.delta.type === "text_delta" &&
+                e2.delta.text
+              ) {
+                send(openAiChunk(id, created, model, { content: e2.delta.text }, null));
+              }
+            }
           }
         }
 

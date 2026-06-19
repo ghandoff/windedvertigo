@@ -1,6 +1,6 @@
 # Voice pilot — handoff (resume here)
 
-_Last updated: 2026-06-18. Branch: `fix/voice-llm-reachability`._
+_Last updated: 2026-06-18. Branch: `main` (all merged)._
 
 Self-contained Vapi phone/voice channel for the 6 agents, built in `port/`
 (Next.js → Cloudflare Worker `wv-port` → Supabase). No pocket-prompts dependency.
@@ -8,55 +8,78 @@ Spec: `~/Projects/voice-agents-claude-code-prompt.md`. Solo pilot (Garrett only)
 
 ## Status
 
-- **Stage 1 (endpoints) + Stage 2 (6 Vapi assistants): DONE and merged to main** (PRs #242, #243).
+- **Stage 1 (endpoints) + Stage 2 (6 Vapi assistants): DONE and merged** (PRs #242, #243).
 - **`/voice` browser playground: live** at https://port.windedvertigo.com/voice (session-gated; PR #243). CSP fix for Vapi/Daily merged (PR #244).
-- **Currently debugging the live web call.** Two issues surfaced and are being worked:
-  1. **Mic capture (client-side, flaky).** The Vapi web SDK always uses the OS default input device (no in-app picker exists). On Garrett's Mac, when the iPhone Continuity mic is active, audio is captured; otherwise some calls get `did-not-receive-customer-audio`. Mitigation shipped: a **mic-level meter** on `/voice` ("Test microphone" button) so you can confirm the default mic is live before talking. The real fix is OS-side (System Settings → Sound → Input → MacBook Pro Microphone).
-  2. **`custom-llm-llm-failed` on the custom domain — FIXED & VERIFIED (2026-06-18).** Vapi's server-to-server POST to `port.windedvertigo.com` was being blocked by **Cloudflare zone bot/WAF protection** (curl from a residential IP always worked; Vapi's AWS POST did not, and the worker never logged the request). Fix: repointed all 6 Vapi assistants' `model.url` to the **workers.dev** hostname `https://wv-port.windedvertigo.workers.dev/api/voice/{slug}` (not behind the zone WAF). Confirmed by a successful live voice conversation with Pam. Diagnostic logging ([VOICE-HIT] + KV hit-logger) has since been removed.
+- **Live voice call confirmed working** — successful conversation with Pam (2026-06-18). PR #245 merged.
+- **WAF/hostname fix**: Vapi assistants' `model.url` points to the **workers.dev** hostname
+  (`https://wv-port.windedvertigo.workers.dev/api/voice/{slug}`) to bypass CF zone WAF.
+  Custom-domain URL still works on non-WAF paths but isn't used for voice.
+- **Stage 2.5 — dashboard context (THIS SESSION, 2026-06-18):** Enriched briefings + voice tools. See below.
 
-## IMPORTANT: prod is ahead of git
+## Stage 2.5 — dashboard context (this session)
 
-The worker deployed to prod (**version `42d3f0e8`**) was built from this branch's
-working tree but was **not yet committed to main**. This branch holds that code.
-Do **not** deploy from `main` until this is merged, or you'll revert prod.
+**Problem (Pam walkthrough feedback):** Pam felt limited — she only anchored to
+agent-memory (decisions/commitments from Supabase), not the live dashboard (projects,
+deals, campaigns, milestones).
 
-## Pam walkthrough feedback (2026-06-18)
+**What was built (not yet deployed):**
 
-The live call worked, but Pam feels **limited — like she doesn't have access to the
-dashboard.** She only anchors to her agent-memory briefing (decisions / memory /
-commitments from Supabase), not the broader port data (projects, contacts, deals,
-RFP radar, campaigns, finances). **Top next-session enhancement:** give the voice
-agents tool-calling (the web-chat agents in `app/api/chat/route.ts` already have
-tools) or a richer briefing, so they can reference live dashboard data on a call —
-without blowing Vapi's first-token latency budget.
+### 1. Enriched briefings (`lib/voice/briefing.ts`)
+All new Supabase queries run in parallel with existing ones (inside `Promise.all`),
+so they add virtually no latency. Each has a `.catch(() => "_unavailable_")` guard.
 
-## (Historical) verification step — DONE
+- **PaM briefing**: now includes active projects, upcoming milestones (30 days),
+  open BD deals — fetched in parallel with existing memory/commitments.
+- **Mo briefing**: now includes open BD deals and active campaigns.
+- Fin/Opsy/Carl/Claude: unchanged (Fin already has financial data; Opsy has ops data).
 
-Do a clean end-to-end call to confirm the workers.dev fix:
-1. Open https://port.windedvertigo.com/voice (must be logged into the port). Hard-refresh.
-2. Click **Test microphone** → confirm the bar turns green / moves when you speak. If flat, switch the input device in macOS Sound settings.
-3. **Talk to Pam** → let her greet → ask a question → she should **answer out loud**.
-4. Verify on the backend:
-   - **KV hit-logger** (durable proof Vapi reached the worker):
-     `cd port && npx wrangler kv key get --namespace-id 267a63db1d4f4789a25b2cae406b6948 "voice:lasthit"`
-     (a fresh timestamp = Vapi's request reached the worker.)
-   - **Vapi call result:** `curl -s "https://api.vapi.ai/call?limit=1" -H "Authorization: Bearer $VAPI_API_KEY" | python3 -m json.tool | grep endedReason`
-     — success looks like `customer-ended-call`, not `custom-llm-llm-failed`.
+### 2. Server-side voice tools (`lib/voice/tools.ts` — new file)
+Read-only Anthropic tools that run entirely on our server (Vapi never sees them):
 
-### If the call works
-- Remove the diagnostic cruft from `app/api/voice/[slug]/chat/completions/route.ts`:
-  the `[VOICE-HIT]` `console.log` and the **KV hit-logger** block + the
-  `getCloudflareContext` import. Rebuild + deploy.
-- Decide hostname: keep **workers.dev** (simplest), OR move `model.url` back to
-  the custom domain and add a **Cloudflare WAF skip rule** for `/api/voice/*`
-  (Security → WAF → custom rule: skip Bot Fight / managed rules for that path).
-  Re-run `vapi-setup.mjs` with the chosen `VOICE_PUBLIC_BASE`.
-- Then resume the staged plan: **Stage 3 = provision phone numbers (PAID — confirm with Garrett first)**, **Stage 4 = end-of-call transcript→memory webhook** (`recordingEnabled:false` already shipped on `/voice` web calls; still need it on the assistants/telephony + the transcript-save webhook).
+| Tool | Slugs | What it does |
+|------|-------|-------------|
+| `lookup_projects` | pam, carl | Search active projects by name keyword |
+| `lookup_deals` | pam, cmo, fin | Search open BD deals by name keyword |
 
-### If the call still fails with custom-llm-llm-failed even on workers.dev
-- The KV `voice:lasthit` will tell you whether Vapi reached the worker at all.
-  - No fresh KV entry → request still not arriving → it's transport/network, not our code. Re-examine Vapi's outbound (does it actually append `/chat/completions`? is it hitting a different host?).
-  - Fresh KV entry present but call failed → it IS reaching us; inspect the streaming response handling / Vapi's SSE expectations.
+**Latency design:** Tools are detected via the first `content_block_start` event type
+in the streaming loop. Text turns start flowing immediately (zero added latency).
+Tool turns add ~1-1.5s of dead air (Anthropic tool-detect → Supabase query →
+second Anthropic streaming call) — acceptable for a specific data lookup. Max 1 tool
+call per turn is enforced.
+
+### 3. Route changes (`app/api/voice/[slug]/chat/completions/route.ts`)
+The streaming loop now handles `content_block_start type=tool_use` events, buffers the
+tool input JSON, executes the tool, then starts a second streaming Anthropic call.
+
+**To deploy:** `cd port && npm run build:cf && npx wrangler deploy`
+(Smoke-test secrets not on this laptop — run from Mac Mini or pull wrangler secrets.)
+
+## IMPORTANT: secrets needed on this machine
+
+The voice pilot secrets are NOT in this laptop's `.env.local`:
+- `VOICE_ANTHROPIC_API_KEY` — copy from Mac Mini `.env.local` or `wrangler secret list`
+- `VOICE_LLM_SECRET` — same
+- `VAPI_API_KEY` — same
+
+Run `npx wrangler secret list` on a machine with Cloudflare auth to see them.
+The build works without secrets; smoke test and deploy need them.
+
+## Hostname decision (priority 2)
+
+**Recommendation: keep workers.dev for now.** A WAF skip rule would work but adds
+CF config complexity. To add it later: Security → WAF → Custom Rules → create rule
+"skip bot/managed rules for `/api/voice/*`", then re-run `vapi-setup.mjs` with
+`VOICE_PUBLIC_BASE=https://port.windedvertigo.com`.
+
+## Next: Stage 3 and Stage 4 (CONFIRM WITH GARRETT BEFORE PROCEEDING)
+
+- **Stage 3 (PAID):** Provision 1 US phone number per assistant via Vapi API.
+  Cost: ~$2/mo per number × 6 = ~$12/mo. Run: `node scripts/vapi-setup.mjs --provision-numbers`.
+  _Confirm with Garrett before running — this charges the Vapi account._
+- **Stage 4:** End-of-call webhook → save call transcript to each agent's Supabase memory.
+  Webhook URL: `POST /api/voice/{slug}/end-of-call` (to be built). Vapi config:
+  `serverUrl` on each assistant. `recordingEnabled:false` already set on web calls.
+  Still needs to be confirmed on telephony assistants.
 
 ## Key facts / IDs
 
@@ -91,8 +114,9 @@ node scripts/vapi-setup.mjs
 
 ## Architecture pointers
 
-- `app/api/voice/[slug]/chat/completions/route.ts` — OpenAI-compatible streaming endpoint (one route, all slugs). Has a 1.2s briefing timeout guard + diagnostic logging (to remove).
-- `lib/voice/briefing.ts` — **in-process** briefing assembly (replaced the old worker-to-itself HTTP call; that HTTP hop was a latency suspect, now eliminated).
+- `app/api/voice/[slug]/chat/completions/route.ts` — OpenAI-compatible streaming endpoint (one route, all slugs). 1.2s briefing timeout guard. Streaming loop handles `content_block_start type=tool_use` for server-side tool execution (max 1 tool call/turn).
+- `lib/voice/briefing.ts` — **in-process** briefing assembly. Enriched with active projects, open deals, upcoming milestones (PaM), and campaigns (Mo) via parallel Supabase queries.
+- `lib/voice/tools.ts` — **NEW** read-only voice tools (`lookup_projects`, `lookup_deals`). Per-slug assignment + server-side executor.
 - `lib/voice/prompt.ts` — system-prompt builder + TTL-cached `fetchVoiceBriefing` → `buildVoiceBriefing`.
 - `lib/voice/assistants.ts` — registry + Fin/Opsy postures.
 - `app/voice/page.tsx` — the `/voice` playground (mic meter + `recordingEnabled:false`).

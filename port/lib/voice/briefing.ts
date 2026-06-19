@@ -29,18 +29,82 @@ import {
   getRecentDecisions,
   getFinMemory,
 } from "@/lib/fin-data";
+import { getProjectsFromSupabase } from "@/lib/supabase/projects";
+import { getDealsFromSupabase } from "@/lib/supabase/deals";
+import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
+import { supabase } from "@/lib/supabase/client";
 import type { VoiceSlug } from "./assistants";
+
+// ── shared dashboard snapshot helpers ────────────────────────────────────────
+// All helpers are fail-open: an error returns "" so the briefing continues.
+
+const ACTIVE_PROJECT_STATUSES = new Set([
+  "in queue", "in progress", "under review", "suspended",
+]);
+
+async function activeProjectsText(): Promise<string> {
+  const { data } = await getProjectsFromSupabase({ archive: false }, { pageSize: 20 });
+  const live = data.filter(p => ACTIVE_PROJECT_STATUSES.has(p.status));
+  if (!live.length) return "_none_";
+  return live.slice(0, 10).map(p => {
+    const end = p.timeline?.end ? ` (due ${p.timeline.end})` : "";
+    return `- [${p.status}] ${p.project}${end}`;
+  }).join("\n");
+}
+
+async function openDealsText(): Promise<string> {
+  const deals = await getDealsFromSupabase();
+  const open = deals.filter(d => d.stage !== "lost");
+  if (!open.length) return "_none_";
+  return open.slice(0, 8).map(d => {
+    const val = d.value != null && d.value > 0
+      ? ` — $${Math.round(d.value).toLocaleString("en-US")}`
+      : "";
+    return `- [${d.stage}] ${d.deal}${val}`;
+  }).join("\n");
+}
+
+async function upcomingMilestonesText(): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10);
+  const in30 = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
+    .from("milestones")
+    .select("milestone, milestone_status, end_date")
+    .gte("end_date", today)
+    .lte("end_date", in30)
+    .neq("milestone_status", "done")
+    .eq("archive", false)
+    .order("end_date", { ascending: true })
+    .limit(8);
+  if (error || !data?.length) return "_none_";
+  return (data as { milestone: string; milestone_status: string | null; end_date: string }[])
+    .map(m => `- ${m.milestone} — ${m.milestone_status ?? "not started"} (due ${m.end_date})`)
+    .join("\n");
+}
+
+async function activeCampaignsText(): Promise<string> {
+  const campaigns = await getCampaignsFromSupabase("active");
+  if (!campaigns.length) return "_none_";
+  return campaigns.slice(0, 5).map(c => {
+    const end = c.endDate?.start ? ` (ends ${c.endDate.start})` : "";
+    return `- [${c.type}] ${c.name}${end}`;
+  }).join("\n");
+}
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 // ── pam ─────────────────────────────────────────────────────────────────────
 async function pamBriefing(): Promise<string> {
   const t = today();
-  const [decisions, memory, activeRaw, overdueRaw] = await Promise.all([
+  const [decisions, memory, activeRaw, overdueRaw, projects, milestones, deals] = await Promise.all([
     getPamDecisions({ days: 14 }),
     getPamMemory(),
     getPamCommitments({ due_after: t }),
     getPamCommitments({ due_before: t }),
+    activeProjectsText().catch(() => "_unavailable_"),
+    upcomingMilestonesText().catch(() => "_unavailable_"),
+    openDealsText().catch(() => "_unavailable_"),
   ]);
   const active = activeRaw.filter((c) => !["done", "parked"].includes(c.status));
   const overdue = overdueRaw.filter(
@@ -52,13 +116,22 @@ async function pamBriefing(): Promise<string> {
   lines.push("## working state");
   for (const m of memory) lines.push(`- ${m.key}: ${m.value}`);
   lines.push("");
+  lines.push("## active projects");
+  lines.push(projects);
+  lines.push("");
+  lines.push("## upcoming milestones (30 days)");
+  lines.push(milestones);
+  lines.push("");
+  lines.push("## bd pipeline (open deals)");
+  lines.push(deals);
+  lines.push("");
   if (overdue.length) {
-    lines.push("## overdue");
+    lines.push("## overdue commitments");
     for (const c of overdue) lines.push(`- ${c.who}: ${c.what} (due ${c.due_date})${c.blocker ? ` — blocked: ${c.blocker}` : ""}`);
     lines.push("");
   }
   if (blocked.length) {
-    lines.push("## blocked");
+    lines.push("## blocked commitments");
     for (const c of blocked) lines.push(`- ${c.who}: ${c.what} — ${c.blocker ?? "blocker not specified"}`);
     lines.push("");
   }
@@ -78,9 +151,18 @@ async function pamBriefing(): Promise<string> {
 
 // ── cmo (Mo) ────────────────────────────────────────────────────────────────
 async function cmoBriefing(): Promise<string> {
-  const [decisions, memory] = await Promise.all([getCmoDecisions({ days: 14 }), getCmoMemory()]);
+  const [decisions, memory, deals, campaigns] = await Promise.all([
+    getCmoDecisions({ days: 14 }),
+    getCmoMemory(),
+    openDealsText().catch(() => "_unavailable_"),
+    activeCampaignsText().catch(() => "_unavailable_"),
+  ]);
   const lines: string[] = ["# Mo briefing", "", "## working state"];
   for (const m of memory) lines.push(`- ${m.key}: ${m.value}`);
+  lines.push("", "## bd pipeline (open deals)");
+  lines.push(deals);
+  lines.push("", "## active campaigns");
+  lines.push(campaigns);
   lines.push("", "## recent conversations (14 days)");
   if (!decisions.length) lines.push("_none yet_");
   else for (const d of decisions) {
