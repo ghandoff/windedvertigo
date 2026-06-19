@@ -31,7 +31,7 @@ import { getLatestSocialMetric } from "@/lib/marketing/social-metrics";
 import { sendDmByEmail } from "@/lib/slack";
 import { auth } from "@/lib/auth";
 
-const STRATEGY_FORM_URL = "https://port.windedvertigo.com/strategy?tab=pipeline";
+const STRATEGY_FORM_URL = "https://port.windedvertigo.com/mo?tab=pipeline";
 const STALE_DAYS = 7;
 // Recipients of the nudge. Garrett is bcc'd so he sees the same nag and can
 // fill numbers in himself if Payton's slammed. Easy to extend later — add
@@ -115,7 +115,7 @@ function buildBlocks(stale: PlatformStatus[]) {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `head to <${STRATEGY_FORM_URL}|/strategy → pipeline tab>, click the platform tile, hit *update count*. quick.`,
+        text: `head to <${STRATEGY_FORM_URL}|/mo → pipeline tab>, click the platform tile, hit *update count*. quick.`,
       },
     },
     {

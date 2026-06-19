@@ -50,7 +50,7 @@ echo 'PASTE_COOKIE_VALUE_HERE' | npx wrangler secret put SUBSTACK_COOKIE</pre>
 </div>
 
 <p class="meta">substack rotates session cookies — expect to redo this every few months. when you do, re-run step 2 only.</p>
-<p>then: <a href="/strategy">/strategy</a> → click "sync now".</p>
+<p>then: <a href="/mo">/mo</a> → click "sync now".</p>
 </body></html>`;
 
   return new NextResponse(html, {

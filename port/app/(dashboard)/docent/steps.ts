@@ -499,7 +499,7 @@ export const STEPS: Step[] = [
         { kind: 'heading', text: 'the three agents' },
         {
           kind: 'paragraph',
-          text: "**Mo** — chief marketing officer. strategy, brand, pipeline, campaigns. brain lives in `docs/cmo/`; dashboard at `/strategy` (see the \"Mo's log\" tab).",
+          text: "**Mo** — chief marketing officer. strategy, brand, pipeline, campaigns. brain lives in `docs/cmo/`; dashboard at `/mo` (see the \"Mo's log\" tab).",
         },
         {
           kind: 'paragraph',
@@ -540,7 +540,7 @@ export const STEPS: Step[] = [
         { kind: 'heading', text: 'two ways to reach them' },
         {
           kind: 'paragraph',
-          text: "**the port (browser — zero setup):** sign in at port.windedvertigo.com and chat with them in the sidebar on `/strategy` (Mo), `/pam` (PaM), and `/carl` (cARL). they auto-load the shared memory and persona — nothing to install. they can *think and log* (record decisions, commitments, findings) but can't browse the live web or create documents. the port also hosts **`/bibliography`** — the citation library plus an article-retrieval (scholarly search) tool, open to any signed-in member.",
+          text: "**the port (browser — zero setup):** sign in at port.windedvertigo.com and chat with them in the sidebar on `/mo` (Mo), `/pam` (PaM), and `/carl` (cARL). they auto-load the shared memory and persona — nothing to install. they can *think and log* (record decisions, commitments, findings) but can't browse the live web or create documents. the port also hosts **`/bibliography`** — the citation library plus an article-retrieval (scholarly search) tool, open to any signed-in member.",
         },
         {
           kind: 'paragraph',

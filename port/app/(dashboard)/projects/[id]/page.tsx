@@ -177,10 +177,10 @@ function StrategicContextCard({ projectId }: { projectId: string }) {
               strategic context
             </CardTitle>
             <Link
-              href="/strategy?tab=distribution"
+              href="/mo?tab=distribution"
               className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"
             >
-              ← strategy
+              ← mo
             </Link>
           </div>
         </CardHeader>

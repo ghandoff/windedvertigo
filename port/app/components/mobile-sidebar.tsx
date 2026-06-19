@@ -72,7 +72,14 @@ function SectionGroup({
                 )}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.badge === "agent" && (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 shrink-0"
+                    title="agent"
+                    aria-label="agent"
+                  />
+                )}
               </Link>
             );
           })}
@@ -116,27 +123,36 @@ export function MobileSidebar() {
                 ownerEmail={user?.email}
               />
             ))}
-            <div className="border-t border-sidebar-border pt-2 mt-2 space-y-0.5">
-              {BOTTOM_ITEMS.map((item) => {
-                const isActive = isNavItemActive(item.href, pathname);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-white/15 text-white"
-                        : "text-white/70 hover:bg-white/10 hover:text-white"
-                    )}
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </div>
+            {BOTTOM_ITEMS.length > 0 && (
+              <div className="border-t border-sidebar-border pt-2 mt-2 space-y-0.5">
+                {BOTTOM_ITEMS.map((item) => {
+                  const isActive = isNavItemActive(item.href, pathname);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-white/15 text-white"
+                          : "text-white/70 hover:bg-white/10 hover:text-white"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="flex-1">{item.label}</span>
+                      {item.badge === "agent" && (
+                        <span
+                          className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 shrink-0"
+                          title="agent"
+                          aria-label="agent"
+                        />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </nav>
           <UserBlock />
         </SheetContent>

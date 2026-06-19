@@ -73,7 +73,7 @@ echo 'IG_BUSINESS_ID'    | npx wrangler secret put META_IG_USER_ID</pre>
 
 <div class="step">
 <h2>step 5 — sync</h2>
-<p>head back to <a href="/strategy">/strategy</a> and click "sync now" in the targets card. fb + instagram engagement will populate on the next sync (or this one).</p>
+<p>head back to <a href="/mo">/mo</a> and click "sync now" in the targets card. fb + instagram engagement will populate on the next sync (or this one).</p>
 </div>
 
 <p class="meta">if any scope is denied, your meta app probably needs review. for personal accounts admining a page, basic scopes generally work without review. for full insights data you may need to submit for "advanced access" on <code>pages_read_engagement</code>.</p>
