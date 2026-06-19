@@ -22,6 +22,7 @@
  */
 
 import { NextRequest } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { error } from "@/lib/api-helpers";
 import { getAssistant, modelFor } from "@/lib/voice/assistants";
 import {
@@ -32,6 +33,7 @@ import {
 import { getVoiceAnthropic } from "@/lib/voice/anthropic";
 
 const MAX_TOKENS = 1024; // spoken replies are short
+const BRIEFING_DEADLINE_MS = 1200; // cap briefing assembly so first-token stays fast
 
 /**
  * Verify the Vapi custom-llm caller. When VOICE_LLM_SECRET is set we accept the
@@ -118,9 +120,39 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ slug: string }> },
 ) {
-  if (!verifyVoiceCaller(req)) return error("unauthorized", 401);
-
   const { slug } = await ctx.params;
+  // Diagnostic: prove whether Vapi's request reaches the worker (vs being
+  // blocked at the Cloudflare edge), and which auth header it carries.
+  console.log(
+    `[VOICE-HIT] slug=${slug} ua="${(req.headers.get("user-agent") ?? "?").slice(0, 48)}" ` +
+      `auth=${!!req.headers.get("authorization")} xvs=${!!req.headers.get("x-voice-secret")}`,
+  );
+  // Durable hit-log to KV (tail is unreliable on this cron-noisy worker). Lets
+  // us confirm whether Vapi's request actually reaches the worker.
+  try {
+    const env = getCloudflareContext().env as unknown as {
+      OAUTH_KV?: { put: (k: string, v: string, o?: { expirationTtl?: number }) => Promise<void> };
+    };
+    await env.OAUTH_KV?.put(
+      "voice:lasthit",
+      JSON.stringify({
+        at: new Date().toISOString(),
+        slug,
+        ua: req.headers.get("user-agent"),
+        auth: !!req.headers.get("authorization"),
+        xvs: !!req.headers.get("x-voice-secret"),
+      }),
+      { expirationTtl: 3600 },
+    );
+  } catch {
+    /* never block the call on diagnostics */
+  }
+
+  if (!verifyVoiceCaller(req)) {
+    console.warn(`[VOICE-HIT] 401 unauthorized slug=${slug}`);
+    return error("unauthorized", 401);
+  }
+
   const assistant = getAssistant(slug);
   if (!assistant) return error(`unknown voice assistant: ${slug}`, 404);
 
@@ -135,7 +167,14 @@ export async function POST(
   const model = modelFor(assistant);
 
   // Build the system prompt: cached static prefix + live briefing suffix.
-  const briefing = await fetchVoiceBriefing(assistant);
+  // Bound the briefing assembly so the first token is never gated on a slow
+  // cold turn (Vapi fails the custom-llm turn if first-token is too slow). On
+  // timeout we proceed without live memory; the in-flight build still warms the
+  // cache, so the next turn in the call has full context. Fail-open.
+  const briefing = await Promise.race([
+    fetchVoiceBriefing(assistant),
+    new Promise<string>((resolve) => setTimeout(() => resolve(""), BRIEFING_DEADLINE_MS)),
+  ]);
   const staticPrefix = buildStaticSystemPrefix(assistant);
   const briefingSuffix = buildBriefingSuffix(briefing);
 
