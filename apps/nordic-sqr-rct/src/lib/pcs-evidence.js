@@ -16,6 +16,7 @@ import {
 // 2026-05-06 — column-name overrides for evidence's Notion → Postgres
 // mirror. Most fields follow camelCase → snake_case; these don't.
 // 2026-05-16 — pdf analytics fields added (Postgres-only, not in Notion).
+// 2026-06-14 — visibility field added (Budget C Phase 5, migration 021 column).
 const EVIDENCE_PG_COLUMN_MAP = {
   pdf: 'pdf_url',
   pdfSource: 'pdf_source',
@@ -121,6 +122,7 @@ function parsePostgresRow(row) {
     safetyDemographicFilterRaw: row.safety_demographic_filter_raw || '',
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
+    visibility: row.visibility || 'shared',
   };
 }
 
@@ -160,6 +162,7 @@ function parsePage(page) {
     safetyDemographicFilterRaw: (p[P.safetyDemographicFilter]?.rich_text || []).map(t => t.plain_text).join(''),
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
+    visibility: 'shared', // Notion has no visibility field; default shared for all Notion-sourced rows
   };
 }
 
@@ -620,6 +623,7 @@ export async function createEvidence(fields) {
       pdfRetrievedAt: fields.pdfRetrievedAt || null,
       pdfPlatformRetrieved: fields.pdfPlatformRetrieved || false,
       publisherCostUsd: fields.publisherCostUsd ?? estimatePublisherCost(fields.doi),
+      visibility: fields.visibility || 'shared',
     };
     await writePostgresFirst(
       'pcs_evidence',

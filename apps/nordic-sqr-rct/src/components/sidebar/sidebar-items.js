@@ -87,8 +87,19 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
         defaultOpen: true,
         items: [
           { key: 'requests',         label: 'Requests',                  href: '/research/pcs/requests', badgeKey: 'requests.withResearch' },
-          { key: 'backfill-review',  label: 'Claim Mapping Review',      href: '/research/pcs/canonical-claims/backfill-review' },
-          { key: 'research-quality', label: 'Research Quality',          href: '/research/pcs/research-quality' },
+          { key: 'backfill-review',       label: 'Claim Mapping Review', href: '/research/pcs/canonical-claims/backfill-review' },
+          { key: 'aics-backfill-review',  label: 'AICS Claim Backfill',  href: '/research/pcs/aics-backfill' },
+          { key: 'research-quality',      label: 'Research Quality',     href: '/research/pcs/research-quality' },
+        ],
+      },
+      {
+        key: 'aics',
+        label: 'AICS Library',
+        defaultOpen: true,
+        items: [
+          { key: 'aics-list',             label: 'All AICS Docs',      href: '/research/pcs/aics' },
+          { key: 'aics-pending',          label: 'Pending RA Review',  href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-backfill-review2', label: 'Claim Backfill',     href: '/research/pcs/aics-backfill' },
         ],
       },
     ],
@@ -125,10 +136,12 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
       {
         key: 'aics',
         label: 'AICS Library',
-        defaultOpen: false,
+        defaultOpen: true,
         items: [
-          { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
-          { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-list',             label: 'All AICS Docs',      href: '/research/pcs/aics' },
+          { key: 'aics-pending',          label: 'Pending RA Review',  href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-review',           label: 'Claim Review',       href: '/research/pcs/aics/review' },
+          { key: 'aics-backfill-review',  label: 'Claim Backfill',     href: '/research/pcs/aics-backfill' },
         ],
       },
       {
@@ -175,10 +188,12 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
       {
         key: 'aics',
         label: 'AICS Library',
-        defaultOpen: false,
+        defaultOpen: true,
         items: [
-          { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
-          { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-list',             label: 'All AICS Docs',      href: '/research/pcs/aics' },
+          { key: 'aics-pending',          label: 'Pending RA Review',  href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-review',           label: 'Claim Review',       href: '/research/pcs/aics/review' },
+          { key: 'aics-backfill-review',  label: 'Claim Backfill',     href: '/research/pcs/aics-backfill' },
         ],
       },
       {
@@ -235,10 +250,12 @@ export const SIDEBAR_LAYOUTS = Object.freeze({
       {
         key: 'aics',
         label: 'AICS Library',
-        defaultOpen: false,
+        defaultOpen: true,
         items: [
-          { key: 'aics-list',    label: 'All AICS Docs',     href: '/research/pcs/aics' },
-          { key: 'aics-pending', label: 'Pending RA Review', href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-list',             label: 'All AICS Docs',      href: '/research/pcs/aics' },
+          { key: 'aics-pending',          label: 'Pending RA Review',  href: '/research/pcs/aics?status=pending', badgeKey: 'aics.pendingRaReview' },
+          { key: 'aics-review',           label: 'Claim Review',       href: '/research/pcs/aics/review' },
+          { key: 'aics-backfill-review',  label: 'Claim Backfill',     href: '/research/pcs/aics-backfill' },
         ],
       },
       {

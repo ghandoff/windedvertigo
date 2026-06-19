@@ -88,7 +88,10 @@ export async function POST(request) {
 
     // Build the full verify URL using the request's origin.
     const origin = request.headers.get('origin') || request.nextUrl?.origin || '';
-    const verifyUrl = `${origin}/api/auth/magic-link/verify?token=${encodeURIComponent(token)}`;
+    const redirectPath = (body?.redirect && typeof body.redirect === 'string' && body.redirect.startsWith('/'))
+      ? body.redirect : null;
+    const verifyUrl = `${origin}/api/auth/magic-link/verify?token=${encodeURIComponent(token)}`
+      + (redirectPath ? `&redirect=${encodeURIComponent(redirectPath)}` : '');
 
     // Send the email. On Resend error we log but still return success so the
     // UX copy ("if that address is on file...") stays consistent.

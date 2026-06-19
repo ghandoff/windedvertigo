@@ -93,6 +93,7 @@ export default function RoleAwareSidebar({
               <SidebarGroup
                 key={group.key}
                 group={group}
+                role={role}
                 counts={counts}
                 countsLoading={countsLoading}
               />

@@ -72,10 +72,10 @@ function LandingContent() {
   const [magicSubmitting, setMagicSubmitting] = useState(false);
   const [magicError, setMagicError] = useState('');
 
-  // Login mode — defaults to magic link for all audiences post-CF migration.
-  // Password auth remains accessible via the "use a password instead" toggle.
+  // Login mode — Nordic team members default to password; external reviewers
+  // default to magic link (they rarely have passwords set).
   // 'magic' | 'password'
-  const [loginMode, setLoginMode] = useState('magic');
+  const [loginMode, setLoginMode] = useState('password');
 
   // Audience tab — defaults to 'nordic' since the primary users of this
   // platform are Nordic team members. External reviewers are a secondary
@@ -86,16 +86,20 @@ function LandingContent() {
   // Detect ?error=magic-link-invalid from the verify redirect.
   const magicLinkError = searchParams?.get('error') === 'magic-link-invalid';
 
+  // If ?redirect= is present and safe (starts with /), use it post-login.
+  const redirectParam = searchParams?.get('redirect') || '';
+  const safeRedirect = redirectParam.startsWith('/') ? redirectParam : '/welcome';
+
   // Wave 7.2 Phase 3 — all successful logins route through /welcome, which
   // reads the user's roles and renders a role-aware destination picker.
   // Reviewer-only users are silently deep-linked inside /welcome itself.
-  if (!loading && user) { router.push('/welcome'); return null; }
+  if (!loading && user) { router.push(safeRedirect); return null; }
 
   // Reset mode and state when audience tab changes.
   const handleAudienceChange = (key) => {
     setAudience(key);
-    // Both audiences use magic link by default post-CF migration.
-    setLoginMode('magic');
+    // Nordic team defaults to password; external reviewers default to magic link.
+    setLoginMode(key === 'nordic' ? 'password' : 'magic');
     setError('');
     setMagicError('');
     setMagicSent(false);
@@ -111,7 +115,7 @@ function LandingContent() {
         router.push('/reset-password');
         return;
       }
-      router.push('/welcome');
+      router.push(safeRedirect);
     }
     catch (err) { setError(err.message); }
     finally { setSubmitting(false); }
@@ -122,10 +126,12 @@ function LandingContent() {
     setMagicError('');
     setMagicSubmitting(true);
     try {
+      const body = { email: magicEmail };
+      if (redirectParam) body.redirect = redirectParam;
       const res = await fetch('/api/auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: magicEmail }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -337,8 +343,8 @@ function LandingContent() {
                           <span className="font-semibold">Need access?</span> Nordic team accounts are provisioned by the platform admin. Contact your manager or email <a href="mailto:garrett@windedvertigo.com" className="text-pacific underline">garrett@windedvertigo.com</a>.
                         </p>
                         <p className="text-xs text-gray-400 mt-2">
-                          <span className="font-medium">First time?</span>{' '}
-                          Use &ldquo;Send a sign-in link instead&rdquo; — no password needed. A link will arrive at your Nordic Naturals email within a minute.
+                          <span className="font-medium">No password yet?</span>{' '}
+                          Use &ldquo;Send a sign-in link instead&rdquo; below the sign-in button — a one-click link will arrive at your Nordic Naturals email within a minute.
                         </p>
                       </>
                     )}

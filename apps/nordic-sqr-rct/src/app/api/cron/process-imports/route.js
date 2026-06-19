@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * Vercel Cron entry point for the PCS import worker. Authenticated via
  * the CRON_SECRET bearer token that Vercel injects on cron requests.
  *
- * Runs one batch tick (sweep stale, extract up to 3, commit up to 3) with
+ * Runs one batch tick (sweep stale, extract up to 6, commit up to 6) with
  * a 13-minute wall-clock budget so the function returns cleanly before
  * Vercel's 15-minute cron ceiling.
  */
@@ -24,7 +24,7 @@ export async function GET(request) {
   const start = Date.now();
   try {
     const stats = await runBatch({
-      limit: 3,
+      limit: 6,
       deadlineMs: start + 780_000,
       log: (line) => console.log('[cron:process-imports]', line),
     });

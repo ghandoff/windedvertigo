@@ -204,6 +204,9 @@ export default function AicsDetailPage() {
   const [activeTab, setActiveTab] = useState('cover');
   const [modalClaim, setModalClaim] = useState(null);
   const [propagatedClaimIds, setPropagatedClaimIds] = useState(new Set());
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
+  const [deleteStatus, setDeleteStatus] = useState(null); // null | 'submitting' | 'sent' | 'error'
 
   const handleApiError = useCallback((err) => {
     const msg = err?.message || '';
@@ -283,6 +286,27 @@ export default function AicsDetailPage() {
 
   const canEdit = can(user, 'aics.documents:edit');
 
+  async function submitDeleteRequest() {
+    if (!deleteReason.trim()) return;
+    setDeleteStatus('submitting');
+    try {
+      const res = await fetch('/api/pcs/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request: `Delete request: AICS Document — ${doc.aicsId || id}`,
+          requestType: 'Delete',
+          requestNotes: deleteReason.trim(),
+          specificField: `/research/pcs/aics/${id}`,
+        }),
+      });
+      if (!res.ok) throw new Error(`${res.status}`);
+      setDeleteStatus('sent');
+    } catch {
+      setDeleteStatus('error');
+    }
+  }
+
   return (
     <div className="space-y-5">
       {/* Breadcrumb + header */}
@@ -311,8 +335,51 @@ export default function AicsDetailPage() {
             {doc.approvedDate ? (
               <span className="text-gray-500">Approved {doc.approvedDate}</span>
             ) : null}
+            {canEdit && deleteStatus !== 'sent' && (
+              <button
+                type="button"
+                onClick={() => setDeleteOpen(o => !o)}
+                className="ml-2 text-xs text-red-500 hover:text-red-700 transition"
+              >
+                {deleteOpen ? 'Cancel' : 'Request deletion'}
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Inline delete request form */}
+        {deleteOpen && deleteStatus !== 'sent' && (
+          <div className="mt-3 rounded-lg border border-red-100 bg-red-50 px-4 py-3 space-y-2">
+            <p className="text-xs font-medium text-red-800">
+              Deletion requires admin approval. A notification will be sent to Sharon / admin for review.
+            </p>
+            <textarea
+              value={deleteReason}
+              onChange={e => setDeleteReason(e.target.value)}
+              placeholder="Reason for deletion (required)"
+              rows={2}
+              className="w-full text-xs rounded border border-red-200 bg-white px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-red-300"
+            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={submitDeleteRequest}
+                disabled={!deleteReason.trim() || deleteStatus === 'submitting'}
+                className="text-xs px-3 py-1 rounded bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition"
+              >
+                {deleteStatus === 'submitting' ? 'Submitting…' : 'Submit request'}
+              </button>
+              {deleteStatus === 'error' && (
+                <span className="text-xs text-red-600">Failed to submit — please try again.</span>
+              )}
+            </div>
+          </div>
+        )}
+        {deleteStatus === 'sent' && (
+          <div className="mt-2 rounded-lg border border-green-100 bg-green-50 px-4 py-2 text-xs text-green-800">
+            Deletion request submitted. Sharon and the admin team have been notified.
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -355,6 +422,8 @@ export default function AicsDetailPage() {
         {activeTab === 'regulatory' ? <RegulatoryTab doc={doc} claims={claims} setClaims={setClaims} canEdit={can(user, 'aics.claims:edit')} /> : null}
       </div>
 
+      {doc.aiName ? <PcsCoveragePanel doc={doc} /> : null}
+
       {!canEdit ? (
         <p className="text-xs text-gray-400 text-right">
           Read-only view — RA, admin, and super-users can edit this AICS doc.
@@ -370,6 +439,112 @@ export default function AicsDetailPage() {
             setPropagatedClaimIds(prev => new Set([...prev, modalClaim.id]));
           }}
         />
+      )}
+    </div>
+  );
+}
+
+// ─── PCS Coverage Panel ─────────────────────────────────────────────────────
+
+function PcsCoveragePanel({ doc }) {
+  const [coverage, setCoverage] = useState(null);
+  const [coverageLoading, setCoverageLoading] = useState(false);
+
+  useEffect(() => {
+    if (!doc?.aiName) return;
+    setCoverageLoading(true);
+    fetch(`/api/pcs/aics-backfill?ingredient=${encodeURIComponent(doc.aiName)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { setCoverage(data); setCoverageLoading(false); })
+      .catch(() => setCoverageLoading(false));
+  }, [doc?.aiName]);
+
+  if (coverageLoading) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3">PCS Coverage</h2>
+        <div className="animate-pulse space-y-2">
+          <div className="h-2 bg-gray-200 rounded w-full" />
+          <div className="h-4 bg-gray-100 rounded w-1/3" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!coverage) return null;
+
+  const { groups = [] } = coverage;
+
+  const counts = {};
+  let totalInstances = 0;
+  for (const g of groups) {
+    counts[g.status] = (counts[g.status] || 0) + 1;
+    totalInstances += (g.instances?.length || 1);
+  }
+
+  const STATUS_META = [
+    { key: 'pending',          label: 'Ready to review', textCls: 'text-pacific-700', bgCls: 'bg-pacific-50',  icon: '●' },
+    { key: 'low-confidence',   label: 'Low confidence',  textCls: 'text-amber-700',   bgCls: 'bg-amber-50',    icon: '◑' },
+    { key: 'unmatched',        label: 'No AICS match',   textCls: 'text-red-700',     bgCls: 'bg-red-50',      icon: '⚠' },
+    { key: 'no-aics',          label: 'Pending AICS',    textCls: 'text-gray-600',    bgCls: 'bg-gray-50',     icon: '·' },
+  ];
+
+  const iconFor = (status) => STATUS_META.find(s => s.key === status)?.icon || '·';
+  const iconClsFor = (status) => {
+    const m = STATUS_META.find(s => s.key === status);
+    return m ? m.textCls : 'text-gray-400';
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">PCS Coverage</h2>
+        {groups.length > 0 && (
+          <Link
+            href={`/research/pcs/aics-backfill?ingredient=${encodeURIComponent(doc.aiName)}`}
+            className="text-xs text-pacific-600 hover:text-pacific-800 font-medium"
+          >
+            Review unmapped claims →
+          </Link>
+        )}
+      </div>
+
+      {groups.length === 0 ? (
+        <p className="text-sm text-green-700 flex items-center gap-1.5">
+          <span className="text-green-500 text-base">✓</span>
+          All PCS claims for {doc.aiName} have been mapped to AICS claims.
+        </p>
+      ) : (
+        <>
+          <p className="text-xs text-gray-500 mb-3">
+            {groups.length} claim group{groups.length !== 1 ? 's' : ''} await review —&nbsp;
+            {totalInstances} PCS claim instance{totalInstances !== 1 ? 's' : ''} total
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            {STATUS_META.filter(m => counts[m.key]).map(({ key, label, textCls, bgCls }) => (
+              <div key={key} className={`rounded-lg px-3 py-2 ${bgCls}`}>
+                <div className={`text-xl font-bold ${textCls}`}>{counts[key]}</div>
+                <div className={`text-xs ${textCls} opacity-80`}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="divide-y divide-gray-50">
+            {groups.slice(0, 8).map((g) => (
+              <div key={g.key} className="flex items-start gap-2 text-xs py-1.5">
+                <span className={`mt-0.5 shrink-0 font-mono ${iconClsFor(g.status)}`}>{iconFor(g.status)}</span>
+                <span className="text-gray-700 flex-1 min-w-0 truncate">{g.claimText}</span>
+                <span className="text-gray-400 shrink-0 whitespace-nowrap">
+                  {g.instances?.length || 1}×
+                </span>
+              </div>
+            ))}
+            {groups.length > 8 && (
+              <p className="text-xs text-gray-400 text-center pt-2">+{groups.length - 8} more</p>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
@@ -428,10 +603,7 @@ function CoverTab({ doc, versions = [] }) {
   );
 }
 
-function RawMaterialsTab({ doc }) {
-  const notionUrl = doc?.id
-    ? `https://www.notion.so/${doc.id.replace(/-/g, '')}`
-    : 'https://www.notion.so';
+function RawMaterialsTab() {
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">
@@ -439,18 +611,10 @@ function RawMaterialsTab({ doc }) {
       </h2>
       <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-4">
         <p className="text-sm font-medium text-amber-900 mb-1">Read-only view</p>
-        <p className="text-xs text-amber-800 mb-3">
+        <p className="text-xs text-amber-800">
           Raw materials (FM PLM#, AI Source, AI Form) are maintained in the AICS
-          database. In-platform editing is planned for a future release.
+          database. In-platform editing is coming in a future release.
         </p>
-        <a
-          href={notionUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-amber-700 underline hover:text-amber-900 transition"
-        >
-          Open this document in Notion ↗
-        </a>
       </div>
     </div>
   );

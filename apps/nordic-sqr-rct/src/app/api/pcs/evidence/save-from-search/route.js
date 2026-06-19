@@ -46,7 +46,8 @@ export async function POST(request) {
   });
   if (auth.error) return auth.error;
 
-  const hit = await request.json();
+  const body = await request.json();
+  const { visibility, ...hit } = body || {};
   if (!hit?.title) {
     return NextResponse.json({ error: 'title is required' }, { status: 400 });
   }
@@ -98,6 +99,7 @@ export async function POST(request) {
     pdfPlatformRetrieved: pdfSource != null && pdfSource !== 'discovery',
     pdfRetrievedAt: (pdfSource != null && pdfSource !== 'discovery') ? new Date().toISOString() : undefined,
     publisherCostUsd: estimatePublisherCost(hit.doi),
+    visibility: visibility === 'nordic-private' ? 'nordic-private' : 'shared',
   });
   // 2026-05-05 — Wave 7.0.5 T8.1 hard-merge surfaces a `_wasMerged`
   // flag on the returned entry when an existing row was returned

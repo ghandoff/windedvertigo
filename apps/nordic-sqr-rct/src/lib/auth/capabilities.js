@@ -325,6 +325,16 @@ export const ROLE_CAPABILITY_MAP = Object.freeze({
     'aics.claims:review',
   ]),
 
+  // Budget C Marketing Intelligence (2026-06-14) — inert stub.
+  // Defined here so the role exists in the codebase, but no Nordic user
+  // is assigned this role until Budget C (Addendum B) payment clears.
+  // Unlock by assigning the `marketing` role to specific users via /admin/users.
+  // Do NOT add pcs.market-explorer:view to ra/researcher/admin until post-payment.
+  'marketing': Object.freeze([
+    'pcs.market-explorer:view',
+    'pcs.dossier:export',
+  ]),
+
   // Legacy aliases (pre-7.1.4 Notion role values).
   'pcs': Object.freeze([...RESEARCHER_CAPS]),
   'pcs-readonly': Object.freeze([

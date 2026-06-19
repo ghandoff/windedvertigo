@@ -21,6 +21,8 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
+    const redirectParam = searchParams.get('redirect') || '';
+    const safeRedirect = redirectParam.startsWith('/') ? redirectParam : '/research/pcs';
 
     if (!token) {
       return NextResponse.redirect(new URL(ERROR_REDIRECT, request.url));
@@ -71,7 +73,7 @@ export async function GET(request) {
     });
     const refreshToken = await signRefreshToken({ reviewerId: reviewer.id });
 
-    const response = NextResponse.redirect(new URL('/research/pcs', request.url));
+    const response = NextResponse.redirect(new URL(safeRedirect, request.url));
     const cookieBase = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

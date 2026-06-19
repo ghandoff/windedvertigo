@@ -34,7 +34,7 @@
  * AICS-0001,Vitamin D3,Vitamin,Draft
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/useAuth';
 import { can } from '@/lib/auth/capabilities';
@@ -84,13 +84,67 @@ function countItems(docs) {
 
 export default function AicsImportPage() {
   const { user } = useAuth();
-  const [mode, setMode] = useState('json');
+  const [mode, setMode] = useState('pdf');
   const [inputText, setInputText] = useState('');
   const [preview, setPreview] = useState(null);   // { docs: [...], counts: {} }
   const [parseError, setParseError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [results, setResults] = useState(null);   // { created, errors }
   const [showFormat, setShowFormat] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfExtracting, setPdfExtracting] = useState(false);
+  const [pdfBanner, setPdfBanner] = useState(null); // success message after extraction
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragOver(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f && (f.type === 'application/pdf' || f.name.endsWith('.pdf'))) {
+      setPdfFile(f);
+      setParseError(null);
+      setPdfBanner(null);
+    }
+  }
+
+  // ── PDF extraction step ─────────────────────────────────────────────────
+
+  async function handlePdfExtract() {
+    if (!pdfFile) return;
+    setPdfExtracting(true);
+    setParseError(null);
+    setPdfBanner(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', pdfFile);
+      const res = await fetch('/api/pcs/aics/import', { method: 'POST', body: fd });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+
+      // Populate the JSON textarea with the extracted doc so the user can review it
+      const jsonStr = JSON.stringify([body.doc], null, 2);
+      setInputText(jsonStr);
+      setMode('json');
+      setPreview(null);
+      const warnCount = body.warnings?.length || 0;
+      const hasAicsId = body.doc?.aicsId && body.doc.aicsId.trim() !== '';
+      const aicsIdHint = hasAicsId
+        ? `AICS ID detected as "${body.doc.aicsId}".`
+        : 'AICS ID not detected — fill in "aicsId" in the JSON before clicking Parse & Preview.';
+      setPdfBanner(
+        `Extracted from "${pdfFile.name}"${warnCount > 0 ? ` — ${warnCount} warning${warnCount !== 1 ? 's' : ''} (see below)` : ''}. ` +
+        `${aicsIdHint} Review the JSON and click "Parse & Preview".`
+      );
+      if (warnCount > 0) {
+        setParseError('Extraction warnings:\n• ' + body.warnings.join('\n• '));
+      }
+    } catch (err) {
+      setParseError(err?.message || 'PDF extraction failed.');
+    } finally {
+      setPdfExtracting(false);
+    }
+  }
 
   // ── Parse step ──────────────────────────────────────────────────────────
 
@@ -101,7 +155,7 @@ export default function AicsImportPage() {
     try {
       const text = inputText.trim();
       if (!text) throw new Error('Paste your data above before parsing.');
-      const docs = mode === 'csv' ? parseCsv(text) : parseJson(text);
+      const docs = mode === 'csv' ? parseCsv(text) : parseJson(text); // pdf mode uses JSON after extraction
       if (docs.length > MAX_BATCH) {
         throw new Error(`Too many documents (${docs.length}). Maximum is ${MAX_BATCH} per batch.`);
       }
@@ -170,74 +224,177 @@ export default function AicsImportPage() {
         <h1 className="text-2xl font-bold text-gray-900">Batch Import AICS Documents</h1>
         <p className="mt-1 text-sm text-gray-500">
           Import up to {MAX_BATCH} AICS documents at once — with nested versions and claims.
-          Documents are created sequentially to stay within Notion API limits.
         </p>
       </div>
 
-      {/* Success results */}
+      {/* Import results */}
       {results && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-5 py-4 space-y-3">
-          <p className="text-sm font-semibold text-green-900">
-            Import complete — {results.created?.length || 0} document{results.created?.length !== 1 ? 's' : ''} created
-            {results.errors?.length > 0 ? `, ${results.errors.length} error${results.errors.length !== 1 ? 's' : ''}` : ''}.
-          </p>
-          {results.errors?.length > 0 && (
-            <ul className="text-xs text-red-700 space-y-1">
-              {results.errors.map((e, i) => (
-                <li key={i}>
-                  <span className="font-mono">{e.aicsId || `item ${e.index}`}</span>
-                  {e.context ? ` (${e.context})` : ''}: {e.error}
-                </li>
-              ))}
-            </ul>
+        <div className="space-y-3">
+          {/* Success card — always shown when at least one document was created */}
+          {(results.created?.length > 0) && (
+            <div className="rounded-xl border border-green-200 bg-green-50 px-5 py-4 space-y-3">
+              <p className="text-sm font-semibold text-green-900">
+                {results.created.length} document{results.created.length !== 1 ? 's' : ''} imported successfully.
+              </p>
+              <div className="flex gap-3">
+                <Link
+                  href="/research/pcs/aics"
+                  className="text-xs text-green-700 underline hover:text-green-900 transition"
+                >
+                  View AICS Library
+                </Link>
+                <button
+                  onClick={() => setResults(null)}
+                  className="text-xs text-gray-500 hover:text-gray-700 transition"
+                >
+                  Import another batch
+                </button>
+              </div>
+            </div>
           )}
-          <div className="flex gap-3">
-            <Link
-              href="/research/pcs/aics"
-              className="text-xs text-green-700 underline hover:text-green-900 transition"
-            >
-              View AICS Library
-            </Link>
-            <button
-              onClick={() => setResults(null)}
-              className="text-xs text-gray-500 hover:text-gray-700 transition"
-            >
-              Import another batch
-            </button>
-          </div>
+
+          {/* Error card — shown separately when there were partial failures */}
+          {results.errors?.length > 0 && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 space-y-2">
+              <p className="text-sm font-semibold text-amber-900">
+                {results.errors.length} item{results.errors.length !== 1 ? 's' : ''} could not be imported
+                {results.created?.length > 0 ? ' (the rest succeeded)' : ''}.
+              </p>
+              <ul className="text-xs text-amber-800 space-y-1">
+                {results.errors.map((e, i) => (
+                  <li key={i}>
+                    <span className="font-mono font-medium">{e.aicsId || `item ${e.index}`}</span>
+                    {e.context ? ` (${e.context})` : ''}: {e.error}
+                  </li>
+                ))}
+              </ul>
+              {results.created?.length === 0 && (
+                <button
+                  onClick={() => setResults(null)}
+                  className="text-xs text-amber-700 underline hover:text-amber-900 transition"
+                >
+                  Try again
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Nothing at all created and no detailed errors */}
+          {results.created?.length === 0 && !results.errors?.length && (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
+              <p className="text-sm text-gray-600">No documents were imported.</p>
+              <button
+                onClick={() => setResults(null)}
+                className="mt-2 text-xs text-gray-500 underline hover:text-gray-700 transition"
+              >
+                Try again
+              </button>
+            </div>
+          )}
         </div>
       )}
 
       {!results && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5">
           {/* Mode toggle */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm font-medium text-gray-700">Format:</span>
             <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
-              {['json', 'csv'].map((m) => (
+              {[{ id: 'json', label: 'JSON' }, { id: 'csv', label: 'CSV' }, { id: 'pdf', label: 'Upload PDF' }].map((m) => (
                 <button
-                  key={m}
-                  onClick={() => { setMode(m); setPreview(null); setParseError(null); }}
+                  key={m.id}
+                  onClick={() => { setMode(m.id); setPreview(null); setParseError(null); setPdfBanner(null); }}
                   className={`px-4 py-1.5 font-medium transition ${
-                    mode === m
+                    mode === m.id
                       ? 'bg-pacific-600 text-white'
                       : 'bg-white text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  {m.toUpperCase()}
+                  {m.label}
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => setShowFormat((s) => !s)}
-              className="text-xs text-gray-400 hover:text-gray-600 transition underline"
-            >
-              {showFormat ? 'Hide format' : 'Show format'}
-            </button>
+            {mode !== 'pdf' && (
+              <button
+                onClick={() => setShowFormat((s) => !s)}
+                className="text-xs text-gray-400 hover:text-gray-600 transition underline"
+              >
+                {showFormat ? 'Hide format' : 'Show format'}
+              </button>
+            )}
           </div>
 
+          {/* PDF extraction success banner */}
+          {pdfBanner && (
+            <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+              {pdfBanner}
+            </div>
+          )}
+
+          {/* PDF upload UI */}
+          {mode === 'pdf' && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Upload an AICS substantiation dossier PDF. Claude will extract the ingredient name,
+                classification, demographic, and health claims — then populate the JSON editor below
+                for you to review before importing.
+              </p>
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition ${
+                  dragOver ? 'border-pacific-500 bg-pacific-50' : 'border-gray-200 hover:border-pacific-400'
+                }`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+              >
+                {pdfFile ? (
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-800">{pdfFile.name}</p>
+                    <p className="text-xs text-gray-500">{(pdfFile.size / 1024).toFixed(0)} KB</p>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setPdfFile(null); }}
+                      className="text-xs text-red-500 hover:text-red-700 transition underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-3xl text-gray-300">📄</div>
+                    <p className="text-sm text-gray-500">Click to choose a PDF, or drag and drop</p>
+                    <p className="text-xs text-gray-400">PDF files only · max 20 MB</p>
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) { setPdfFile(f); setParseError(null); setPdfBanner(null); }
+                  }}
+                />
+              </div>
+              {pdfFile && (
+                <button
+                  onClick={handlePdfExtract}
+                  disabled={pdfExtracting}
+                  className="flex items-center gap-2 px-5 py-2 bg-pacific-600 hover:bg-pacific-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {pdfExtracting && (
+                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  )}
+                  {pdfExtracting ? 'Extracting with Claude…' : 'Extract from PDF'}
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Format reference */}
-          {showFormat && (
+          {showFormat && mode !== 'pdf' && (
             <div className="rounded-lg bg-gray-50 border border-gray-100 p-4 text-xs font-mono text-gray-700 whitespace-pre overflow-x-auto">
               {mode === 'json' ? `[
   {
@@ -268,19 +425,21 @@ AICS-0002,Magnesium,Mineral,Draft`}
             </div>
           )}
 
-          {/* Input textarea */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Paste {mode.toUpperCase()} data
-            </label>
-            <textarea
-              value={inputText}
-              onChange={(e) => { setInputText(e.target.value); setPreview(null); setParseError(null); }}
-              placeholder={mode === 'json' ? '[{"aicsId": "AICS-0001", ...}]' : 'aicsId,aiName,...'}
-              rows={10}
-              className="w-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pacific-500 focus:border-transparent resize-y"
-            />
-          </div>
+          {/* Input textarea — shown for json/csv and also after PDF extraction populates it */}
+          {(mode !== 'pdf' || inputText) && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {mode === 'pdf' ? 'Extracted JSON — review and edit before importing' : `Paste ${mode.toUpperCase()} data`}
+              </label>
+              <textarea
+                value={inputText}
+                onChange={(e) => { setInputText(e.target.value); setPreview(null); setParseError(null); }}
+                placeholder={mode === 'csv' ? 'aicsId,aiName,...' : '[{"aicsId": "AICS-0001", ...}]'}
+                rows={10}
+                className="w-full px-3 py-2 text-sm font-mono border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pacific-500 focus:border-transparent resize-y"
+              />
+            </div>
+          )}
 
           {/* Parse error */}
           {parseError && (
@@ -289,8 +448,8 @@ AICS-0002,Magnesium,Mineral,Draft`}
             </div>
           )}
 
-          {/* Parse button */}
-          {!preview && (
+          {/* Parse button — shown when there's text to parse (including after PDF extraction) */}
+          {!preview && (mode !== 'pdf' || inputText) && (
             <button
               onClick={handleParse}
               className="px-5 py-2 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg transition"

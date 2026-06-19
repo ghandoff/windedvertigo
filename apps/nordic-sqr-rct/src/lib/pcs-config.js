@@ -218,6 +218,8 @@ export const PROPS = {
     totalEPAandDHA: 'Total EPA+DHA (mg)',
     totalOmega6: 'Total Omega-6 (mg)',
     totalOmega9: 'Total Omega-9 (mg)',
+    // How the version was created — used to gate Word view display
+    sourceType: 'Source type',
   },
   claims: {
     claim: 'Claim',

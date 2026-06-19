@@ -73,8 +73,8 @@ test('cv_claim_grades returns 3 rows (A/B/C)', () => {
 });
 
 // ─── Empty CV tables (populated in later phases) ────────────────────────────
-test('cv_active_ingredients returns [] until import lands', () => {
-  assertEq(getActiveIngredients().length, 0, 'active ingredients (empty)');
+test('cv_active_ingredients returns [] until import lands', async () => {
+  assertEq((await getActiveIngredients()).length, 0, 'active ingredients (empty)');
 });
 
 test('cv_ai_forms returns [] until AICS docs land', () => {
@@ -86,8 +86,8 @@ test('cv_ai_sources returns [] until AICS docs land', () => {
   assertEq(getAiSources().length, 0, 'ai sources (empty)');
 });
 
-test('cv_claim_prefixes returns [] (placeholder)', () => {
-  assertEq(getClaimPrefixes().length, 0, 'claim prefixes (empty)');
+test('cv_claim_prefixes returns [] (placeholder)', async () => {
+  assertEq((await getClaimPrefixes()).length, 0, 'claim prefixes (empty)');
 });
 
 // ─── Shape invariants ──────────────────────────────────────────────────────
@@ -120,8 +120,8 @@ test('helpers return shallow copies (mutation does not leak)', () => {
 });
 
 // ─── Bundle helper ─────────────────────────────────────────────────────────
-test('getControlledVocabBundle aggregates all 11 CV tables', () => {
-  const bundle = getControlledVocabBundle();
+test('getControlledVocabBundle aggregates all 11 CV tables', async () => {
+  const bundle = await getControlledVocabBundle();
   const expectedKeys = [
     'formatCodes', 'demographicsAge', 'demographicsSex',
     'demographicsLifestage', 'demographicsLifestyle',
@@ -142,7 +142,7 @@ test('AI_UNIT_OPTIONS exports the dose unit list (mcg/mg/IU/%DV)', () => {
 // ─── Run ───────────────────────────────────────────────────────────────────
 for (const { name, fn } of tests) {
   try {
-    fn();
+    await fn();
     console.log(`  ok  ${name}`);
     passed += 1;
   } catch (err) {

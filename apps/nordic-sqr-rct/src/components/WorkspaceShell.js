@@ -114,7 +114,7 @@ export default function WorkspaceShell({
     item => !item.writeOnly || hasPcsWriteAccess(user)
   );
 
-  const logoHref = isReviewer ? (user ? '/dashboard' : '/') : '/pcs';
+  const logoHref = isReviewer ? (user ? '/dashboard' : '/') : '/research/pcs';
   const currentPlatform = isReviewer ? 'sqr-rct' : 'pcs';
 
   return (

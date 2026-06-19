@@ -97,6 +97,18 @@ Branch cut from `feat/budget-c-and-gates-preview`. Inherits all governance persi
 - [ ] **Optional**: add Sharon to `PREVIEW_ALLOW_LIST` (single constant in `pcs-explorer.js`) when ready to let her demo herself vs. Garrett driving the demo.
 - [ ] **Budget C payment** → widen role access beyond super-user.
 
+## Whirlpool actions — 2026-06-15
+
+From the june 15 whirlpool — the "breather edition" ([notion AI meeting](https://www.notion.so/380e4ee74ba480699a04dae68e4b81fb) · [agenda](https://www.notion.so/380e4ee74ba481f28ba8d79cf5b6cf78)). A relaxed celebrate-and-look-ahead session: creaseworks mini playtest, amna contract win, and a pivot toward foundational TToC / Games Manifesto alignment. Next wednesday (june 24) becomes a workshop; garrett takes family time tue–thu.
+
+- [ ] **everyone** — read the Games Manifesto + the TToC one-pager and leave feedback (comments + voice message) in Canon by **end of day Friday**
+- [ ] **jamie** — select a non-w.v game to play + evaluate at the june 24 wednesday workshop
+- [ ] **maria + jamie** — co-design the june 24 workshop agenda (play an external game; compare embodied experience vs. an AI manifesto-criteria evaluation)
+- [ ] **garrett** — sign the nordic contract (payment expected this week)
+- [ ] **garrett** — cancel wednesday's whirlpool + take family time (cabin, tue–thu)
+- [ ] **garrett** — prepare inception materials for amna (awaiting amna's response on the next inception phase)
+- [ ] **the team** — prep for the june 24 whirlpool workshop focused on TToC / Games Manifesto alignment
+
 ## Whirlpool actions — 2026-05-20
 
 From the may 20 whirlpool ([notion AI meeting](https://www.notion.so/366e4ee74ba48035836fca89b21386d6) · [agenda](https://www.notion.so/366e4ee74ba481f79453eb7516cd3872)). T-8 days to the may 28 harbour prime+ launch. Morning debriefed the Amna intro meeting, then a harbour crawl + co.rubric companion demo.

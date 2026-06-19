@@ -364,23 +364,22 @@ function ImportsDashboard({ user }) {
                     aria-label="Select all visible"
                   />
                 </th>
-                <th className="px-3 py-2 text-left">Job ID</th>
                 <th className="px-3 py-2 text-left">PCS ID</th>
+                <th className="px-3 py-2 text-left">Uploaded</th>
+                <th className="px-3 py-2 text-left">Last activity</th>
                 <th className="px-3 py-2 text-left">Status</th>
                 <th className="px-3 py-2 text-left">Counts</th>
-                <th className="px-3 py-2 text-left">Prompt v</th>
                 <th className="px-3 py-2 text-left">Template</th>
                 <th className="px-3 py-2 text-left">Retry</th>
-                <th className="px-3 py-2 text-left">Updated</th>
                 <th className="px-3 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loadingJobs && jobs.length === 0 && (
-                <tr><td colSpan={10} className="px-3 py-6 text-center text-gray-400">Loading…</td></tr>
+                <tr><td colSpan={9} className="px-3 py-6 text-center text-gray-400">Loading…</td></tr>
               )}
               {!loadingJobs && jobs.length === 0 && (
-                <tr><td colSpan={10} className="px-3 py-6 text-center text-gray-400">No jobs yet.</td></tr>
+                <tr><td colSpan={9} className="px-3 py-6 text-center text-gray-400">No jobs yet.</td></tr>
               )}
               {jobs.map(job => (
                 <JobRow
@@ -793,6 +792,49 @@ function StageCard({ onStaged }) {
   );
 }
 
+// Pipeline stages in order — used to derive the 4-dot progress indicator.
+const PIPELINE_STAGES = ['queued', 'extracting', 'extracted', 'committing', 'committed'];
+const PIPELINE_STAGE_IDX = Object.fromEntries(PIPELINE_STAGES.map((s, i) => [s, i]));
+
+function StatusCell({ status, error }) {
+  const stageIdx = PIPELINE_STAGE_IDX[status] ?? -1;
+  const inPipeline = stageIdx >= 0;
+
+  // For terminal non-committed states, show badge only.
+  if (!inPipeline) {
+    const skipReason = status === 'skipped' && error
+      ? error.replace(/^Pre-flight:\s*/i, '')
+      : null;
+    return (
+      <span
+        className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] || 'bg-gray-100 text-gray-700'}`}
+        title={skipReason || undefined}
+      >
+        {status || 'unknown'}
+        {skipReason && ' ⓘ'}
+      </span>
+    );
+  }
+
+  // In-pipeline: show 4-dot progress indicator.
+  // Dots: queued=1, extracting=2, extracted/committing=3, committed=4
+  const filledCount = stageIdx === 0 ? 1 : stageIdx === 1 ? 2 : stageIdx <= 3 ? 3 : 4;
+  const dotColor = status === 'committed' ? 'bg-green-500' : 'bg-pacific-500';
+  return (
+    <span className="inline-flex items-center gap-1" title={status}>
+      {[0, 1, 2, 3].map(i => (
+        <span
+          key={i}
+          className={`inline-block h-2 w-2 rounded-full ${i < filledCount ? dotColor : 'bg-gray-200'}`}
+        />
+      ))}
+      <span className={`ml-1 text-xs ${STATUS_STYLES[status] ? '' : 'text-gray-500'}`} style={{ fontSize: '10px' }}>
+        {status}
+      </span>
+    </span>
+  );
+}
+
 function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersion, onToggle, onRetry, onCancel }) {
   let counts = null;
   if (job.resultCounts) {
@@ -814,26 +856,19 @@ function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersio
             aria-label={`Select ${job.jobId}`}
           />
         </td>
-        <td className="px-3 py-2 font-mono text-xs">{job.jobId}</td>
-        <td className="px-3 py-2 font-mono">{
-          /* 2026-05-04 — drop "PCS-" prefix, header already says "PCS ID" */
-          job.pcsId
+        <td className="px-3 py-2 font-mono text-sm" title={job.jobId}>
+          {job.pcsId
             ? (typeof job.pcsId === 'string' && job.pcsId.startsWith('PCS-') ? job.pcsId.slice(4) : job.pcsId)
-            : <span className="text-gray-400">—</span>
-        }</td>
+            : <span className="text-gray-400">—</span>}
+        </td>
+        <td className="px-3 py-2 text-xs text-gray-600">{formatRelative(job.createdTime)}</td>
+        <td className="px-3 py-2 text-xs text-gray-500">{formatRelative(job.lastEditedTime)}</td>
         <td className="px-3 py-2">
-          <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[job.status] || 'bg-gray-100 text-gray-700'}`}>
-            {job.status || 'unknown'}
-          </span>
+          <StatusCell status={job.status} error={job.error} />
         </td>
         <td className="px-3 py-2 text-xs">
           {counts
             ? `${counts.claims ?? 0}c · ${counts.formulaLines ?? 0}fl · ${counts.references ?? 0}r · ${counts.evidencePackets ?? 0}ev`
-            : <span className="text-gray-400">—</span>}
-        </td>
-        <td className={`px-3 py-2 text-xs font-mono ${isOutdated ? 'bg-yellow-100' : ''}`} title={isOutdated ? `Outdated — current is ${currentPromptVersion}` : undefined}>
-          {jobPromptV
-            ? (isOutdated ? `⚠️ ${jobPromptV}` : jobPromptV)
             : <span className="text-gray-400">—</span>}
         </td>
         <td className="px-2 py-2">
@@ -851,7 +886,6 @@ function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersio
           })()}
         </td>
         <td className="px-3 py-2 text-xs">{job.retryCount ?? 0}</td>
-        <td className="px-3 py-2 text-xs text-gray-500">{formatRelative(job.lastEditedTime)}</td>
         <td className="px-3 py-2 text-xs">
           <div className="flex items-center gap-2">
             <button type="button" onClick={onToggle} className="text-pacific-600 hover:underline">
@@ -871,7 +905,7 @@ function JobRow({ job, expanded, detail, selected, onSelect, currentPromptVersio
       </tr>
       {expanded && (
         <tr>
-          <td colSpan={10} className="bg-gray-50 px-3 py-3">
+          <td colSpan={9} className="bg-gray-50 px-3 py-3">
             <JobDetail job={job} detail={detail} />
           </td>
         </tr>

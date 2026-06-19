@@ -1,3 +1,5 @@
+import { getPcsSupabase } from './supabase-pcs.js';
+
 /**
  * PCS Controlled Vocabulary readers (Bundle 4 Phase 1).
  *
@@ -134,7 +136,18 @@ export function getClaimGrades() {
   return CLAIM_GRADES.map((row) => ({ ...row }));
 }
 
-export function getActiveIngredients() {
+export async function getActiveIngredients() {
+  try {
+    const sb = getPcsSupabase();
+    const { data, error } = await sb
+      .from('cv_active_ingredients')
+      .select('id, ai_name, display_name, ai_class')
+      .eq('archived', false)
+      .order('display_name');
+    if (!error && data && data.length > 0) {
+      return data.map(r => ({ id: r.id, aiName: r.ai_name, displayName: r.display_name, aiClass: r.ai_class }));
+    }
+  } catch { /* fall through */ }
   return ACTIVE_INGREDIENTS.map((row) => ({ ...row }));
 }
 
@@ -143,7 +156,6 @@ export function getActiveIngredients() {
  * @param {string} [_activeIngredientId] — unused until cv_ai_forms is seeded.
  */
 export function getAiForms(_activeIngredientId) {
-  // TODO Phase 4.2 — `WHERE active_ingredient_id = $1` once cv_ai_forms is seeded.
   return AI_FORMS.map((row) => ({ ...row }));
 }
 
@@ -151,7 +163,18 @@ export function getAiSources() {
   return AI_SOURCES.map((row) => ({ ...row }));
 }
 
-export function getClaimPrefixes() {
+export async function getClaimPrefixes() {
+  try {
+    const sb = getPcsSupabase();
+    const { data, error } = await sb
+      .from('cv_claim_prefixes')
+      .select('id, prefix_text')
+      .eq('archived', false)
+      .order('prefix_text');
+    if (!error && data && data.length > 0) {
+      return data.map(r => ({ id: r.id, prefixText: r.prefix_text }));
+    }
+  } catch { /* fall through */ }
   return CLAIM_PREFIXES.map((row) => ({ ...row }));
 }
 
@@ -159,7 +182,11 @@ export function getClaimPrefixes() {
  * Bundle helper used by the GET /api/pcs/cv route — single payload the form
  * mounts once. Keys mirror the helper names for predictable consumption.
  */
-export function getControlledVocabBundle() {
+export async function getControlledVocabBundle() {
+  const [activeIngredients, claimPrefixes] = await Promise.all([
+    getActiveIngredients(),
+    getClaimPrefixes(),
+  ]);
   return {
     formatCodes:           getFormatCodes(),
     demographicsAge:       getDemographicsAge(),
@@ -168,10 +195,10 @@ export function getControlledVocabBundle() {
     demographicsLifestyle: getDemographicsLifestyle(),
     benefitCategories:     getBenefitCategories(),
     claimGrades:           getClaimGrades(),
-    activeIngredients:     getActiveIngredients(),
+    activeIngredients,
     aiForms:               getAiForms(),
     aiSources:             getAiSources(),
-    claimPrefixes:         getClaimPrefixes(),
+    claimPrefixes,
   };
 }
 

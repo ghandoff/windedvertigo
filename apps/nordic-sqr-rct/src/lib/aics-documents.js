@@ -317,6 +317,33 @@ export async function listAicsDocuments({ limit = 100, cursor, status, demograph
 }
 
 /**
+ * Resolve an AICS document by canonical ingredient name.
+ *
+ * Matching priority:
+ *   1. Exact match (case-insensitive) on aiName
+ *   2. Substring match in either direction (e.g. "Vitamin D3" matches "Vitamin D3 (Cholecalciferol)")
+ *
+ * When multiple AICS documents cover the same ingredient at different
+ * demographics (e.g. "Vitamin D Adults" vs "Vitamin D Babies"), ALL matches
+ * are returned so the caller can pick the right one by demographic.
+ *
+ * @param {string} ingredientName — canonical ingredient name from pcs_ingredients
+ * @param {{ raReviewStatus?: string }} [opts]
+ * @returns {Promise<Array>} — matched AICS document objects, may be empty
+ */
+export async function getAicsDocumentsByIngredientName(ingredientName, opts = {}) {
+  if (!ingredientName) return [];
+  const { items } = await listAicsDocuments({ limit: 500, status: opts.raReviewStatus });
+  const needle = ingredientName.trim().toLowerCase();
+  return items.filter(doc => {
+    const hay = (doc.aiName || '').trim().toLowerCase();
+    if (!hay) return false;
+    // Exact or substring match in either direction
+    return hay === needle || hay.includes(needle) || needle.includes(hay);
+  });
+}
+
+/**
  * Build the Notion properties payload from an AICS-document field bag.
  * Shared between create + update so the field handling stays single-source.
  */
@@ -664,10 +691,26 @@ export async function createAicsVersion(docId, fields) {
 
   if (shouldWriteToAicsPostgresFirst()) {
     const preId = crypto.randomUUID();
+
+    // The FK column aics_document_id references aics_documents.id (Postgres UUID),
+    // not the Notion page ID that callers pass as docId. Look up the UUID first.
+    let pgDocId = null;
+    let pgDocNotionId = docId;
+    try {
+      const sb = await getPcsSupabase();
+      const { data } = await sb
+        .from('aics_documents')
+        .select('id')
+        .eq('notion_page_id', docId)
+        .maybeSingle();
+      pgDocId = data?.id || null;
+    } catch { /* pgDocId stays null — FK insert will surface the error clearly */ }
+
     const stubRow = {
       id: preId,
       version: fields.version,
-      aicsDocumentId: docId,
+      aicsDocumentId: pgDocId,        // UUID FK → aics_documents.id
+      aicsDocumentNotionId: pgDocNotionId, // TEXT column for Notion page ID
       isLatest: fields.isLatest || false,
       effectiveDate: fields.effectiveDate || null,
       changeDescription: fields.changeDescription || '',

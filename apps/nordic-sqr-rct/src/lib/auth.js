@@ -26,7 +26,7 @@ export const REFRESH_TOKEN_TTL = '7d';
 export const ACCESS_COOKIE = 'sqr_token';
 export const REFRESH_COOKIE = 'sqr_refresh';
 export const ACCESS_MAX_AGE = 60 * 60;              // 1h
-export const REFRESH_MAX_AGE = 60 * 60 * 24 * 7;    // 7d
+export const REFRESH_MAX_AGE = 60 * 60 * 24 * 30;   // 30d
 
 export async function signToken(payload, options = {}) {
   // Wave 7.0.7 — default shortened from 7d → 1h. Callers that explicitly

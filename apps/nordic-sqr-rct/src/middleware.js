@@ -58,7 +58,9 @@ export async function middleware(request) {
 
   const token = request.cookies.get('sqr_token')?.value;
   if (!token) {
-    return NextResponse.redirect(new URL('/', request.url));
+    const loginUrl = new URL('/', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   try {
@@ -66,7 +68,9 @@ export async function middleware(request) {
     return NextResponse.next();
   } catch {
     // Invalid or expired token — clear cookie and redirect to login
-    const response = NextResponse.redirect(new URL('/', request.url));
+    const loginUrl = new URL('/', request.url);
+    loginUrl.searchParams.set('redirect', pathname);
+    const response = NextResponse.redirect(loginUrl);
     response.cookies.delete('sqr_token');
     return response;
   }
