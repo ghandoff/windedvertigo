@@ -1,0 +1,36 @@
+# PPCS 2026 Engagement Dashboard — Cloudflare Worker + Workers Assets + D1
+# Serves the static dashboard + a live /api/metrics endpoint backed by D1.
+# Deploy:  cd wv-ppcs-impact && npx wrangler deploy
+#
+# Data model: figures are a precomputed aggregate JSON snapshot in D1
+# (db `wv-ppcs-impact`, table `metrics`, row k='current'). No Supabase, no
+# Hyperdrive, no DB password, and NO participant PII online — only aggregates.
+
+name = "wv-ppcs-impact"
+main = "src/index.js"
+compatibility_date = "2026-05-15"
+
+# Keep the *.workers.dev origin live alongside the custom-domain routes
+# (backward compatibility for the original dashboard URL).
+workers_dev = true
+
+# Custom-domain routes — serve the dashboard at windedvertigo.com/portfolio/ppcs-2026-impact.
+# These are more specific than the main site Worker's route, so they take precedence for
+# this subpath only and leave the rest of windedvertigo.com untouched.
+routes = [
+  { pattern = "windedvertigo.com/portfolio/ppcs-2026-impact", zone_name = "windedvertigo.com" },
+  { pattern = "windedvertigo.com/portfolio/ppcs-2026-impact/*", zone_name = "windedvertigo.com" },
+]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+# Run the Worker before the asset server so its base-path stripping + 308 redirect
+# always apply (otherwise an asset/SPA match could bypass the Worker for the subpath).
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wv-ppcs-impact"
+database_id = "a5ea2fcf-299d-494d-9580-1184fe889d8c"
