@@ -14,7 +14,7 @@
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   html{background:var(--prme)}
-  body{margin:0;font-family:Roboto,-apple-system,"Segoe UI",sans-serif;color:var(--accent);background:transparent;-webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:Roboto,-apple-system,"Segoe UI",sans-serif;color:var(--accent);background:transparent;-webkit-font-smoothing:antialiased;overflow-x:hidden}
   a{color:var(--un);text-decoration:none}
   .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
 
@@ -25,13 +25,14 @@
   .hero h1 .yr{color:var(--values)}
   .hero .sub{color:#a9bcd9;font-size:12.5px;line-height:1.5;max-width:700px}
   .hero .lockup{display:flex;flex-direction:row;align-items:center;gap:22px;margin-top:6px}
-  .hero .lockup img.lockup-strip{height:46px;width:auto}
+  .hero .lockup img.lockup-strip{height:46px;width:auto;max-width:100%}
   .live{display:inline-flex;align-items:center;gap:7px;background:rgba(122,158,84,.16);border:1px solid rgba(122,158,84,.4);color:#cfe3b6;padding:4px 11px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
   .live .dot{width:7px;height:7px;border-radius:50%;background:var(--values);animation:pulse 2s infinite}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(122,158,84,.6)}70%{box-shadow:0 0 0 7px rgba(122,158,84,0)}100%{box-shadow:0 0 0 0 rgba(122,158,84,0)}}
 
   nav.toc{position:sticky;top:0;z-index:30;background:rgba(30,50,80,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--panel-line)}
-  nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding:8px 24px}
+  nav.toc .wrap{display:flex;gap:6px;overflow-x:auto;padding:8px 24px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  nav.toc .wrap::-webkit-scrollbar{display:none}
   nav.toc a{white-space:nowrap;font-size:12px;font-weight:600;color:#a9bcd9;padding:6px 13px}
   nav.toc a:hover{background:rgba(92,146,229,.16);color:#fff}
 
@@ -76,6 +77,19 @@
 
   @media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)} .grid.two{grid-template-columns:1fr}}
   @media(max-width:560px){.kpis{grid-template-columns:1fr}}
+  @media(max-width:600px){
+    .wrap{padding:0 14px}
+    .hero .wrap{padding:18px 14px 16px}
+    .hero h1{font-size:19px}
+    .hero .lockup img.lockup-strip{height:34px}
+    .kpis{gap:14px}
+    .kpi{padding:16px 12px 14px}
+    .kpi img{width:48px;height:48px;margin-bottom:10px}
+    .kpi .v{font-size:24px}
+    .canvas-wrap{height:190px}
+    .canvas-wrap.tall{height:210px}
+    .card{padding:14px 14px 10px}
+  }
 </style>
 
 <div id="loading"><span class="spin"></span>Loading live figures…</div>
