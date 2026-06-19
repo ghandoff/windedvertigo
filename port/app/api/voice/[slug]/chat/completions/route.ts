@@ -32,6 +32,7 @@ import {
 import { getVoiceAnthropic } from "@/lib/voice/anthropic";
 
 const MAX_TOKENS = 1024; // spoken replies are short
+const BRIEFING_DEADLINE_MS = 1200; // cap briefing assembly so first-token stays fast
 
 /**
  * Verify the Vapi custom-llm caller. When VOICE_LLM_SECRET is set we accept the
@@ -135,7 +136,14 @@ export async function POST(
   const model = modelFor(assistant);
 
   // Build the system prompt: cached static prefix + live briefing suffix.
-  const briefing = await fetchVoiceBriefing(assistant);
+  // Bound the briefing assembly so the first token is never gated on a slow
+  // cold turn (Vapi fails the custom-llm turn if first-token is too slow). On
+  // timeout we proceed without live memory; the in-flight build still warms the
+  // cache, so the next turn in the call has full context. Fail-open.
+  const briefing = await Promise.race([
+    fetchVoiceBriefing(assistant),
+    new Promise<string>((resolve) => setTimeout(() => resolve(""), BRIEFING_DEADLINE_MS)),
+  ]);
   const staticPrefix = buildStaticSystemPrefix(assistant);
   const briefingSuffix = buildBriefingSuffix(briefing);
 
