@@ -787,7 +787,7 @@ export const AGENT_TOOLS: AgentToolDefinition[] = [
     name: "readStrategyDoc" as AgentToolName,
     description:
       "Read a section of the Q2-Q3 2026 marketing strategy — the source content " +
-      "behind port.windedvertigo.com/strategy. Returns structured data the " +
+      "behind port.windedvertigo.com/mo. Returns structured data the " +
       "agent should summarise into natural-language answers. Use to answer " +
       "questions like 'what's our positioning?', 'who's our audience?', 'what " +
       "channels are we investing in?', 'what's the Q3 timeline?', 'who owns " +

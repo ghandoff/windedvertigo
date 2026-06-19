@@ -36,9 +36,13 @@ const nextConfig: NextConfig = {
       // Phase 10: /events is now a standalone page — old redirect removed.
       // /campaigns?tab=events is handled by a server-side redirect inside campaigns/page.tsx.
       // /social redirect removed — social tab retired from campaigns page.
-      // /analytics folded into /strategy?tab=pipeline (formerly Phase 11 promotion to top-level)
-      { source: "/analytics",          destination: "/strategy?tab=pipeline", permanent: true },
-      { source: "/settings/analytics", destination: "/strategy?tab=pipeline", permanent: true },
+      // /strategy → /mo (2026-06 IA reorg: Mo's dashboard renamed for consistency
+      // with the other agent routes /pam /carl /ops /finn). Old bookmarks + the
+      // ?tab= deep-links keep working via this permanent redirect.
+      { source: "/strategy",           destination: "/mo", permanent: true },
+      // /analytics folded into /mo?tab=pipeline (formerly Phase 11 promotion to top-level)
+      { source: "/analytics",          destination: "/mo?tab=pipeline", permanent: true },
+      { source: "/settings/analytics", destination: "/mo?tab=pipeline", permanent: true },
       // Phase 11 settings refactor — ai-hub/competitors promoted to top-level
       { source: "/settings/ai", destination: "/ai-hub", permanent: true },
       { source: "/settings/competitors", destination: "/competitors", permanent: true },

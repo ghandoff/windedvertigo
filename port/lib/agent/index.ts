@@ -191,7 +191,7 @@ export async function runAgentTurn(payload: SlackEventPayload): Promise<void> {
       `- members: active w.v collective team (queryMembers)\n` +
       `- meetings: Council meetings + AI summaries (queryMeetings)\n` +
       `- meeting actions: action items extracted from meetings, filterable by owner + status (getMeetingActions)\n` +
-      `- marketing strategy: Q2-Q3 2026 strategy command centre — positioning, audience, channels, pipeline, distribution, timeline. Use readStrategyDoc(section) to read any section. CMO is Claude (AI role); sponsor is Garrett. Live at port.windedvertigo.com/strategy.\n\n` +
+      `- marketing strategy: Q2-Q3 2026 strategy command centre — positioning, audience, channels, pipeline, distribution, timeline. Use readStrategyDoc(section) to read any section. CMO is Claude (AI role); sponsor is Garrett. Live at port.windedvertigo.com/mo.\n\n` +
       `Read tools (query*/get*) return data immediately. ` +
       `Write tools (log*, create*, update*) stage an action for confirmation — ` +
       `describe the pending change to ${scope.displayName} and ask them to reply "confirm" before executing. ` +

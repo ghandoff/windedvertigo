@@ -30,7 +30,14 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
       )}
     >
       <item.icon className="h-4 w-4 shrink-0" />
-      {item.label}
+      <span className="flex-1">{item.label}</span>
+      {item.badge === "agent" && (
+        <span
+          className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 shrink-0"
+          title="agent"
+          aria-label="agent"
+        />
+      )}
     </Link>
   );
 }
@@ -98,11 +105,13 @@ export function Sidebar() {
             ownerEmail={user?.email}
           />
         ))}
-        <div className="border-t border-sidebar-border pt-2 mt-2 space-y-0.5">
-          {BOTTOM_ITEMS.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} />
-          ))}
-        </div>
+        {BOTTOM_ITEMS.length > 0 && (
+          <div className="border-t border-sidebar-border pt-2 mt-2 space-y-0.5">
+            {BOTTOM_ITEMS.map((item) => (
+              <NavLink key={item.href} item={item} pathname={pathname} />
+            ))}
+          </div>
+        )}
       </nav>
       <UserBlock />
     </aside>

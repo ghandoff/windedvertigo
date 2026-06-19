@@ -52,24 +52,24 @@ export function readStrategyDocTool(section: StrategySection): unknown {
         prme_received: PRME_RECEIVED,
         pipeline_math: PIPELINE_MATH,
         revenue_pipeline: REVENUE_PIPELINE,
-        dashboard_url: "https://port.windedvertigo.com/strategy",
+        dashboard_url: "https://port.windedvertigo.com/mo",
       };
     case "campaigns":
       return {
         campaigns: CAMPAIGNS,
         campaign_timelines: CAMPAIGN_TIMELINES,
         timeline_range: TIMELINE_RANGE,
-        dashboard_tab: "https://port.windedvertigo.com/strategy?tab=campaigns",
+        dashboard_tab: "https://port.windedvertigo.com/mo?tab=campaigns",
       };
     case "channels":
       return {
         channels: CHANNELS,
-        dashboard_tab: "https://port.windedvertigo.com/strategy?tab=channels",
+        dashboard_tab: "https://port.windedvertigo.com/mo?tab=channels",
       };
     case "audience":
       return {
         audience_segments: AUDIENCE_SEGMENTS,
-        dashboard_tab: "https://port.windedvertigo.com/strategy?tab=audience",
+        dashboard_tab: "https://port.windedvertigo.com/mo?tab=audience",
       };
     case "pipeline":
       return {
@@ -77,7 +77,7 @@ export function readStrategyDocTool(section: StrategySection): unknown {
         revenue_pipeline: REVENUE_PIPELINE,
         funnel: PIPELINE_FUNNEL,
         weekly_kpis: WEEKLY_KPIS,
-        dashboard_tab: "https://port.windedvertigo.com/strategy?tab=pipeline",
+        dashboard_tab: "https://port.windedvertigo.com/mo?tab=pipeline",
       };
     case "distribution":
       return {
@@ -85,7 +85,7 @@ export function readStrategyDocTool(section: StrategySection): unknown {
         distribution: DISTRIBUTION,
         budget: BUDGET,
         budget_total: BUDGET_TOTAL,
-        dashboard_tab: "https://port.windedvertigo.com/strategy?tab=distribution",
+        dashboard_tab: "https://port.windedvertigo.com/mo?tab=distribution",
       };
     case "timeline":
       return {
@@ -93,7 +93,7 @@ export function readStrategyDocTool(section: StrategySection): unknown {
         campaign_timelines: CAMPAIGN_TIMELINES,
         timeline_range: TIMELINE_RANGE,
         weekly_cadence: WEEKLY_CADENCE,
-        dashboard_tab: "https://port.windedvertigo.com/strategy?tab=timeline",
+        dashboard_tab: "https://port.windedvertigo.com/mo?tab=timeline",
       };
   }
 }
