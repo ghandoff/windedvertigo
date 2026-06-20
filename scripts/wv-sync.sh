@@ -36,7 +36,14 @@ echo "vs origin/${branch}: ${ahead} ahead, ${behind} behind"
 echo
 
 if   [ "$behind" -eq 0 ] && [ "$ahead" -eq 0 ]; then
-  echo "✓ in sync with the source of truth — clear to work."
+  if [ "$dirty" -gt 0 ]; then
+    echo "✓ committed history matches origin/${branch}."
+    echo "  ⚠ but ${dirty} uncommitted file(s) live ONLY on this machine — other"
+    echo "    machines and teammates can't see them. Run 'git status' to review;"
+    echo "    commit + push anything you want saved or visible elsewhere."
+  else
+    echo "✓ in sync with the source of truth — clear to work."
+  fi
 elif [ "$behind" -gt 0 ] && [ "$ahead" -eq 0 ] && [ "$dirty" -eq 0 ]; then
   echo "→ ${behind} new commit(s) on the remote, nothing local to lose. Fast-forwarding…"
   git pull --ff-only && echo "✓ now in sync — clear to work."
