@@ -30,6 +30,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/api/carl/") ||
     pathname.startsWith("/api/opsy/") ||
     pathname.startsWith("/api/fin/") ||
+    pathname.startsWith("/api/biz/") ||
     // Voice (Vapi custom-llm) — public webhook; route enforces its own
     // VOICE_LLM_SECRET bearer. No session cookie on inbound Vapi calls.
     pathname.startsWith("/api/voice/") ||

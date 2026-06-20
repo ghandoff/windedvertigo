@@ -31,6 +31,7 @@ import {
   Library,
   FileSearch,
   DollarSign,
+  Briefcase,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -79,10 +80,11 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    // Biz leads (added when /biz ships) · pipeline + relationships
+    // Biz leads · pipeline + relationships
     title: "growth",
     defaultOpen: true,
     items: [
+      { label: "biz", href: "/biz", icon: Briefcase, badge: "agent" },
       { label: "pipeline", href: "/opportunities", icon: Target },
       { label: "contacts", href: "/contacts", icon: Users },
     ],
