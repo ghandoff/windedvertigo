@@ -72,6 +72,34 @@ custom-domain routes.)
 
 ## deployment
 
+> ### ⚠️ merged ≠ deployed — the #1 recurring mistake. re-read this every time.
+>
+> **GitHub and Cloudflare are TWO SEPARATE STEPS. Doing one is not doing the other.**
+>
+> | step | what it means | how | what's true after |
+> |------|---------------|-----|-------------------|
+> | **merge to `main`** (GitHub) | code is *saved / version-controlled* | branch → PR → `gh pr merge --admin --squash` | code exists on `main`. **production still serves the OLD code.** |
+> | **deploy** (Cloudflare Worker) | the worker *actually serves the new code* | `cd <app> && npm run deploy:cf` | production now runs the new code |
+>
+> **There is NO CI that deploys `port` or `wv-site` on push to `main`.** They deploy ONLY when
+> someone runs `npm run deploy:cf` by hand. (CI auto-deploy exists ONLY for `ppcs-impact`,
+> `nordic`, `values-auction` — see `.github/workflows/`. Everything else is manual.)
+>
+> **Vocabulary — say which one you mean, every time:**
+> - "merged" / "on `main`" / "in the PR" = GitHub. Code is **saved, not live.**
+> - "deployed" / "live" / "in production" / "serving" = Cloudflare. Requires `npm run deploy:cf`.
+> - NEVER call a change "live", "shipped", or "deployed" after only merging. It is **"merged, pending deploy."**
+>
+> **Definition of done for a `port` / `wv-site` change** (don't claim done until every applicable box is ticked):
+> 1. merged to `main` ✓
+> 2. **deployed** via `npm run deploy:cf` ✓ — a production deploy needs explicit user approval; confirm it landed with the check below
+> 3. DB migration applied if the change adds one — via the **Supabase SQL editor** (`supabase db push` is unreliable in this repo: duplicate same-date migration versions collide on the `schema_migrations` PK) ✓
+> 4. if MCP agent tools changed: the user must **reconnect the agents connector in Cowork** so the client re-fetches the tool list ✓
+>
+> **Deploy-state check, any time:** `curl -s https://port.windedvertigo.com/api/version` → compare the
+> `built` timestamp to when you merged. Older than your change = **NOT deployed yet.** (`sha` is `dev`
+> on manual deploys, so use `built`, not `sha`.)
+
 - **wv-site** (this repo's `site/`) deploys to CF Workers via
   `cd site && npm run deploy:cf`. That script chains:
     `opennextjs-cloudflare build` → `node scripts/write-assets-headers.mjs` → `opennextjs-cloudflare deploy`.
