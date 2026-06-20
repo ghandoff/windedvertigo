@@ -22,6 +22,16 @@ fi
 
 dirty=$(git status --porcelain | grep -cv '^$' || true)
 if [ "$dirty" -gt 0 ]; then
+  # Be transparent about NEW (untracked, non-ignored) files before sweeping them
+  # in, so nothing unexpected gets committed. Personal configs like CLAUDE.md are
+  # gitignored and excluded automatically.
+  new=$(git ls-files --others --exclude-standard)
+  if [ -n "$new" ]; then
+    echo "including these NEW files (not previously tracked):"
+    echo "$new" | sed 's/^/    + /'
+    echo "  (gitignored files like personal CLAUDE.md are excluded automatically)"
+    echo
+  fi
   echo "committing ${dirty} changed file(s) as work-in-progress…"
   git add -A
   git commit -q -m "wip: handoff $(date '+%Y-%m-%d %H:%M')" \

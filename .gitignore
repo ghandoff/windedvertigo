@@ -17,6 +17,13 @@ node_modules/
 # Team-shared institutional context lives in TEAM.md; team conventions in CONTRIBUTING.md.
 # Specific .brain/ files (TASKS.md, memory/handoff/*) are force-tracked via `git add -f`
 # as collision-surface infrastructure — see .brain/memory/handoff/README.md.
+# CLAUDE.md is personal/per-developer by default — keep machine-specific Claude
+# instructions out of commits so they don't leak across the team or get swept up
+# by `git add -A` (e.g. wv-handoff). Shared CLAUDE.md files are force-tracked
+# (`git add -f`); the ones already committed are re-included here so they stay tracked.
+CLAUDE.md
+!/CLAUDE.md
+!apps/nordic-sqr-rct/CLAUDE.md
 !docs/cmo/CLAUDE.md
 .brain/
 
