@@ -2,18 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateRfpOpportunity, archiveRfpOpportunity } from "@/lib/notion/rfp-radar";
 import {
   setRfpInfluencedByEventIds,
-  setRfpStatus,
   setRfpEditableFields,
   getRfpOpportunityByIdFromSupabase,
-  setProposalStatus,
 } from "@/lib/supabase/rfp-opportunities";
+import { transitionRfpStatus } from "@/lib/rfp/transition";
 import { json, withNotionError } from "@/lib/api-helpers";
 import { auth } from "@/lib/auth";
-import { createRfpDeadlineEvent } from "@/lib/gcal";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { publishJob } from "@windedvertigo/job-queue";
-import type { RfpProposalJob } from "@windedvertigo/job-queue/types";
-import type { PortCfEnv } from "@/lib/cf-env";
 
 export async function GET(
   _req: NextRequest,
@@ -38,18 +32,11 @@ export async function PATCH(
   const body = await req.json();
 
   return withNotionError(async () => {
-    // Keep Supabase in sync with Notion before the Notion write — the detail
-    // page and Kanban board both read from Supabase, so any field that is only
-    // written to Notion will appear stale (showing old data) until the sync
-    // cron fires ~15 min later.
-    if (body.status !== undefined) {
-      await setRfpStatus(id, body.status);
-    }
-
     // Sync all user-editable fields (dueDate, estimatedValue, opportunityName,
     // wvFitScore, serviceMatch, category, geography, source, url, text fields,
     // debrief fields, proposalNotes). Single SQL UPDATE — runs in parallel with
-    // the influencedByEventIds write since they touch different columns.
+    // the influencedByEventIds write since they touch different columns. Status
+    // is handled by the shared transition path below.
     await Promise.all([
       setRfpEditableFields(id, {
         opportunityName:      body.opportunityName,
@@ -76,51 +63,21 @@ export async function PATCH(
         : []),
     ]);
 
+    // Writes all Notion editable fields, incl. status if present.
     const updated = await updateRfpOpportunity(id, body);
 
-    // Trigger proposal generation when an RFP moves to "pursuing" —
-    // Guard reads from Supabase (the authoritative read layer) rather than the
-    // Notion response object: Notion's proposalStatus lags Supabase by up to
-    // 15 min (sync cron cadence), so using updated.proposalStatus could allow
-    // duplicate jobs when a card is re-dragged mid-generation.
-    if (body.status === "pursuing") {
-      const freshState = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
-      const alreadyActive =
-        freshState?.proposalStatus === "ready-for-review" ||
-        freshState?.proposalStatus === "generating" ||
-        freshState?.proposalStatus === "queued";
-
-      if (!alreadyActive) {
-        const session = await auth();
-        const triggeredBy = session?.user?.email ?? "system";
-
-        // Mark as generating in both Notion and Supabase *before* returning so
-        // the UI sees it on the next router.refresh() from either source.
-        await Promise.all([
-          updateRfpOpportunity(id, { proposalStatus: "generating" }),
-          setProposalStatus(id, "generating"),
-        ]);
-        const withGenerating = { ...updated, proposalStatus: "generating" as const };
-
-        // Fire-and-forget — don't block the UI response
-        // G.2.3: CF Workers → CF Queue; Vercel canary → Inngest fallback
-        const proposalPayload: RfpProposalJob = {
-          type: "rfp/generate-proposal",
-          rfpId: id,
-          triggeredBy,
-          requestedAt: new Date().toISOString(),
-        };
-        const { env } = getCloudflareContext();
-        publishJob(env.PROPOSAL_QUEUE, proposalPayload).catch((err) => {
-          console.warn("[rfp-radar] failed to enqueue proposal job:", err);
-        });
-
-        // Auto-create a Google Calendar deadline event — fire-and-forget, never blocks
-        createRfpDeadlineEvent(updated).catch((err) => {
-          console.warn("[rfp-radar] failed to create GCal deadline event:", err);
-        });
-
-        return json(withGenerating);
+    // Status change → the ONE shared transition path (identical to the Biz path):
+    // ensures the Supabase status write + the pursuing side-effect (proposal
+    // enqueue + GCal). Notion status was just written above, so skip the redundant
+    // write. This is what makes a drag and biz_set_bid_decision behave identically.
+    if (body.status !== undefined) {
+      const session = await auth();
+      await transitionRfpStatus(id, body.status, {
+        triggeredBy: session?.user?.email ?? "system",
+        notionAlreadyWritten: true,
+      });
+      if (body.status === "pursuing") {
+        return json({ ...updated, proposalStatus: "generating" as const });
       }
     }
 

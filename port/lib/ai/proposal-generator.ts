@@ -6,7 +6,7 @@
  * Never called synchronously from an HTTP handler.
  */
 
-import { callClaude, parseJsonResponse } from "./client";
+import { callClaudeStreaming, parseJsonResponse } from "./client";
 import type { RfpOpportunity, Organization, Activity, BdAsset, BibliographyEntry, RateReference } from "@/lib/notion/types";
 import { formatRatesForPrompt } from "@/lib/notion/rate-reference";
 
@@ -236,15 +236,17 @@ export async function generateProposal(ctx: ProposalContext): Promise<ProposalDr
       : "",
   };
 
-  const result = await callClaude({
+  // Streaming path: 12k-token proposals take ~400s at 30 tok/s — past the
+  // Cloudflare subrequest limit for a single blocking fetch. Streaming
+  // (SSE) keeps the connection alive with incremental chunks instead.
+  const result = await callClaudeStreaming({
     feature: "proposal-generation",
     system: SYSTEM_PROMPT,
     userMessage: JSON.stringify(payload),
     userId: ctx.userId,
-    maxTokens: 12000,   // up from 8192 — full proposal + cover letter JSON ≈ 7–10k tokens
+    maxTokens: 12000,
     temperature: 0.3,
-    timeoutMs: 600_000, // 10 min — claude-sonnet-4-6 at 30 tok/s needs ~270s for 8k tokens;
-                        // the old 300s limit was firing at the edge on complex RFPs
+    timeoutMs: 600_000,
   });
 
   const draft = parseJsonResponse<ProposalDraft>(result.text);
