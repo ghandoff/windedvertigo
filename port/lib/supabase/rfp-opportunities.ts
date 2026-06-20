@@ -240,6 +240,35 @@ export async function getRfpOpportunityByIdFromSupabase(
   return data ? mapRowToRfpOpportunity(data as unknown as RfpOpportunityRow) : null;
 }
 
+/**
+ * Fetch all RFPs linked to a given organisation (by org Notion page id).
+ * Used by the funder profile panel to show prior bids from wv.
+ *
+ * @param orgId        Notion page id of the organisation.
+ * @param excludeRfpId Optional Notion page id of the current RFP to omit.
+ */
+export async function getRfpsByOrg(
+  orgId: string,
+  excludeRfpId?: string,
+): Promise<RfpOpportunity[]> {
+  let query = supabase
+    .from("rfp_opportunities")
+    .select(SELECT_COLS)
+    .contains("organization_ids", [orgId])
+    .order("due_date", { ascending: false, nullsFirst: false })
+    .limit(10);
+
+  if (excludeRfpId) {
+    query = query.neq("notion_page_id", excludeRfpId);
+  }
+
+  const { data, error } = await query;
+  if (error)
+    throw new Error(`[supabase/rfp-opportunities] getRfpsByOrg: ${error.message}`);
+
+  return (data as unknown as RfpOpportunityRow[]).map(mapRowToRfpOpportunity);
+}
+
 // ─── Atomic proposal-status writes ───────────────────────────────────────────
 
 /**
