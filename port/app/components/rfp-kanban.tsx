@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AlertCircle, CalendarDays, DollarSign, ExternalLink, ChevronDown, FileText, Loader2, Upload, CheckCircle2, ListChecks, Mail, Users } from "lucide-react";
+import { AlertCircle, CalendarDays, DollarSign, ExternalLink, ChevronDown, FileText, Loader2, Upload, CheckCircle2, ListChecks, Mail, Users, ThumbsUp, ThumbsDown, Clock } from "lucide-react";
 import { computeWinProbability, WinProbabilityBadge } from "./ai-win-probability";
 import { GoNoGoModal } from "./go-no-go-modal";
 import { deadlineAsPT } from "@/lib/format";
@@ -31,6 +31,12 @@ const OUTCOME_STATUSES: { value: RfpStatus; label: string }[] = [
   { value: "no-go", label: "no-go" },
   { value: "missed deadline", label: "missed deadline" },
 ];
+
+const VERDICT_CONFIG = {
+  "bid":      { label: "go",       icon: ThumbsUp,   cls: "text-green-700 bg-green-50 border-green-200" },
+  "no-bid":   { label: "pass",     icon: ThumbsDown, cls: "text-red-700 bg-red-50 border-red-200"       },
+  "deferred": { label: "watching", icon: Clock,       cls: "text-yellow-700 bg-yellow-50 border-yellow-200" },
+} as const;
 
 const FIT_COLORS: Record<string, string> = {
   "high fit": "bg-green-100 text-green-700 border-green-200",
@@ -193,6 +199,25 @@ function RfpCard({
           )}
           <WinProbabilityBadge probability={computeWinProbability(rfp)} />
         </div>
+        {rfp.bidDecision && (() => {
+          const v = VERDICT_CONFIG[rfp.bidDecision];
+          if (!v) return null;
+          const Icon = v.icon;
+          return (
+            <div className={`flex flex-col gap-0.5 px-1.5 py-1 rounded border text-[10px] ${v.cls}`}>
+              <div className="flex items-center gap-1">
+                <Icon className="h-2.5 w-2.5 shrink-0" />
+                <span className="font-medium">biz: {v.label}</span>
+                {rfp.bidDecisionScore != null && (
+                  <span className="text-[9px] opacity-70">· {rfp.bidDecisionScore}/100</span>
+                )}
+              </div>
+              {rfp.bidDecisionReason && (
+                <p className="line-clamp-1 opacity-80 leading-snug">{rfp.bidDecisionReason}</p>
+              )}
+            </div>
+          );
+        })()}
         {rfp.dueDate?.start && (
           <div className={`flex items-center gap-1.5 text-xs ${overdue ? "text-destructive" : deadlineUrgent ? "text-destructive font-medium" : "text-muted-foreground"}`}>
             <CalendarDays className="h-3 w-3" />
