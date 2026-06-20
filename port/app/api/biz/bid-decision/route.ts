@@ -8,10 +8,15 @@
 
 import { NextRequest } from "next/server";
 import { json, error } from "@/lib/api-helpers";
-import { setBidDecision } from "@/lib/supabase/rfp-opportunities";
+import { setBidDecision, setRfpStatus } from "@/lib/supabase/rfp-opportunities";
 import { createBizDecision } from "@/lib/biz-data";
 
 const VALID = new Set(["bid", "no-bid", "deferred"]);
+
+// recording a verdict also moves the card off radar: bid → pursuing,
+// no-bid → no-go. deferred stays put (it's a "watch, revisit later"). Opt out
+// with advance_status: false.
+const ADVANCE: Record<string, string | null> = { bid: "pursuing", "no-bid": "no-go", deferred: null };
 
 function verifyAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -34,6 +39,17 @@ export async function POST(req: NextRequest) {
       reason: body.reason ?? null,
       by: body.by ?? "biz",
     });
+
+    // move the card unless the caller opted out
+    let movedTo: string | null = null;
+    if (body.advance_status !== false) {
+      const target = ADVANCE[body.decision];
+      if (target) {
+        await setRfpStatus(body.rfp_id, target);
+        movedTo = target;
+      }
+    }
+
     await createBizDecision({
       decision: `${body.decision}${typeof body.score === "number" ? ` (${body.score}/100)` : ""}`,
       context: body.reason ?? undefined,
@@ -41,7 +57,7 @@ export async function POST(req: NextRequest) {
       rfp_id: body.rfp_id,
       logged_by: body.by ?? "biz",
     }).catch(() => {});
-    return json({ ok: true, rfp_id: body.rfp_id, decision: body.decision, score: body.score ?? null });
+    return json({ ok: true, rfp_id: body.rfp_id, decision: body.decision, score: body.score ?? null, moved_to: movedTo });
   } catch (err) {
     console.error("[api/biz/bid-decision] POST failed:", err);
     return error("failed to record bid decision", 500);
