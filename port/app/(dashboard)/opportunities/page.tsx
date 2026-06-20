@@ -51,6 +51,27 @@ function formatCurrency(value: number | null): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 }
 
+function formatCurrencyCompact(value: number): string {
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}m`;
+  if (value >= 1_000) return `$${Math.round(value / 1_000)}k`;
+  return `$${Math.round(value)}`;
+}
+
+/** Replicates computeWinProbability (ai-win-probability.tsx) server-side — pure formula, no API call. */
+function serverComputeWinProbability(rfp: RfpOpportunity): number {
+  let score = 30;
+  if (rfp.wvFitScore === "high fit") score += 25;
+  else if (rfp.wvFitScore === "medium fit") score += 10;
+  else if (rfp.wvFitScore === "low fit") score -= 10;
+  if (rfp.serviceMatch.length >= 3) score += 15;
+  else if (rfp.serviceMatch.length >= 1) score += 5;
+  if (rfp.status === "interviewing") score += 15;
+  else if (rfp.status === "submitted") score += 10;
+  else if (rfp.status === "pursuing") score += 5;
+  if (rfp.estimatedValue && rfp.estimatedValue > 500_000) score -= 5;
+  return Math.max(5, Math.min(95, score));
+}
+
 // ── deals board ──────────────────────────────────────────────
 
 interface BoardProps {
@@ -113,9 +134,13 @@ async function RfpBoard({ searchParams }: BoardProps) {
     .filter((r) => r.status === "won")
     .reduce((sum, r) => sum + (r.estimatedValue ?? 0), 0);
 
+  const weightedPipeline = activeRfps
+    .filter((r) => r.estimatedValue != null && r.estimatedValue > 0)
+    .reduce((sum, r) => sum + (r.estimatedValue! * serverComputeWinProbability(r)) / 100, 0);
+
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{activeRfps.length}</p>
@@ -140,6 +165,12 @@ async function RfpBoard({ searchParams }: BoardProps) {
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-green-600">{formatCurrency(wonValue)}</p>
             <p className="text-xs text-muted-foreground">revenue won</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-blue-600">{formatCurrencyCompact(weightedPipeline)}</p>
+            <p className="text-xs text-muted-foreground">weighted pipeline</p>
           </CardContent>
         </Card>
       </div>
