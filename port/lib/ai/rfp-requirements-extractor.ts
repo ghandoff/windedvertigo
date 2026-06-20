@@ -96,6 +96,8 @@ export interface ExtractRequirementsResult {
   outputTokens: number;
   costUsd: number;
   durationMs: number;
+  /** True when the input text was truncated to 8,000 chars before extraction. Always false for PDFs (document API reads full file). */
+  truncated: boolean;
 }
 
 /** Conservative cost-per-million for haiku-4-5: $0.80 input / $4 output. */
@@ -115,6 +117,7 @@ export async function extractRequirements(
   // Truncate input to ~8000 chars to bound cost. Most TORs fit comfortably; the
   // very large ones (UNICEF Global LTAS class) get the front matter + procedure
   // sections, which is where requirements live anyway.
+  const inputTruncated = opts.documentText.length > 8000;
   const trimmedText = opts.documentText.slice(0, 8000);
 
   const response = await anthropic.messages.create({
@@ -133,7 +136,7 @@ export async function extractRequirements(
     ],
   });
 
-  return buildResult(response, start);
+  return buildResult(response, start, inputTruncated);
 }
 
 export interface ExtractRequirementsFromPdfOptions {
@@ -171,10 +174,11 @@ export async function extractRequirementsFromPdf(
     ],
   });
 
-  return buildResult(response, start);
+  // PDF path uses document block API — full file is read, no truncation.
+  return buildResult(response, start, false);
 }
 
-function buildResult(response: Anthropic.Message, start: number): ExtractRequirementsResult {
+function buildResult(response: Anthropic.Message, start: number, inputTruncated: boolean): ExtractRequirementsResult {
 
   const durationMs = Date.now() - start;
   const inputTokens = response.usage.input_tokens;
@@ -208,6 +212,7 @@ function buildResult(response: Anthropic.Message, start: number): ExtractRequire
     outputTokens,
     costUsd,
     durationMs,
+    truncated: inputTruncated,
     toNewRequirements(rfpId: string): NewRequirement[] {
       return valid.map((r) => ({
         rfpId,

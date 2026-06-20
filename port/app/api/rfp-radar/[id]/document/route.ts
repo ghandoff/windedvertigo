@@ -267,6 +267,7 @@ export async function POST(
     estimatedValue: null,
   };
   let extractionError: string | null = null;
+  let requirementsTruncated = false;
 
   const pass1 = extractFromDocument(buffer, contentType, rfp.opportunityName, userId)
     .then((r) => { extraction = r; })
@@ -296,6 +297,7 @@ export async function POST(
         if (!text.trim()) return;
         result = await extractRequirements({ documentText: text, rfpName: rfp.opportunityName, rfpId: id });
       }
+      requirementsTruncated = result.truncated;
       const rows = result.toNewRequirements(id);
       if (rows.length > 0) {
         await insertRequirements(rows);
@@ -333,7 +335,7 @@ export async function POST(
     // Return partial success — file is stored, Notion update failed
     const msg = err instanceof Error ? err.message : "notion update failed";
     return NextResponse.json(
-      { ok: true, url: publicUrl, notionUpdated: false, extraction, error: `file attached, but Notion update failed: ${msg}` },
+      { ok: true, url: publicUrl, notionUpdated: false, extraction, requirementsTruncated, error: `file attached, but Notion update failed: ${msg}` },
       { status: 207 },
     );
   }
@@ -385,6 +387,7 @@ export async function POST(
     url: publicUrl,
     notionUpdated: true,
     extraction,
+    requirementsTruncated,
     proposalRetriggered: alreadyPursuing && proposalIdle,
   });
 }

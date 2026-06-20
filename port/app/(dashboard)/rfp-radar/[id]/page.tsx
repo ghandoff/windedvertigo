@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import {
   ArrowLeft, ExternalLink, CalendarDays, DollarSign,
   FileText, Mail, Users, ListChecks, MapPin, Tag, Layers, Pencil,
@@ -14,6 +15,7 @@ import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { getCoverageByRfp, type RfpCoverageRow } from "@/lib/supabase/rfp-requirements";
 import { getPortalRegistrations } from "@/lib/supabase/rfp-portal-registrations";
 import { RfpPortalTracker } from "@/app/components/rfp-portal-tracker";
+import { RfpFunderProfile } from "@/app/components/rfp-funder-profile";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -568,6 +570,13 @@ export default async function RfpDetailPage({ params }: Props) {
 
           {/* portal registrations — gates the bid on UNGM/UNICEF registration */}
           <RfpPortalTracker rfpId={id} registrations={portalRegistrations} />
+
+          {/* funder profile — org intelligence + prior bids */}
+          <Suspense fallback={
+            <div className="h-32 rounded-lg border bg-card animate-pulse" />
+          }>
+            <RfpFunderProfile rfpId={id} organizationIds={rfp.organizationIds} />
+          </Suspense>
 
           {/* metadata */}
           <Card>

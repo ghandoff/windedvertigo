@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Loader2, Upload, ExternalLink } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Loader2, Upload, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -15,12 +15,14 @@ export function RfpDocumentUpload({ rfpId, currentUrl }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadState, setUploadState] = useState<"idle" | "uploading" | "done">("idle");
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [truncationWarning, setTruncationWarning] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   // Core submit — shared between click-to-pick and drag-drop paths.
   async function handleFileSubmit(file: File) {
     setUploadState("uploading");
     setUploadError(null);
+    setTruncationWarning(false);
     const form = new FormData();
     form.append("file", file);
 
@@ -31,12 +33,13 @@ export function RfpDocumentUpload({ rfpId, currentUrl }: Props) {
       });
       // Parse response JSON regardless of status — 2xx has extraction details,
       // 4xx/5xx has an error field. Failing to parse is itself an error.
-      const data: { error?: string; ok?: boolean; notionUpdated?: boolean } = await res
+      const data: { error?: string; ok?: boolean; notionUpdated?: boolean; requirementsTruncated?: boolean } = await res
         .json()
         .catch(() => ({ error: "server returned invalid response" }));
 
       if (res.ok) {
         setUploadState("done");
+        setTruncationWarning(data.requirementsTruncated === true);
         router.refresh();
         setTimeout(() => setUploadState("idle"), 2000);
       } else {
@@ -125,6 +128,12 @@ export function RfpDocumentUpload({ rfpId, currentUrl }: Props) {
             <span>{uploadError}</span>
           </div>
         )}
+        {truncationWarning && (
+          <div className="flex items-start gap-1.5 text-xs text-yellow-700">
+            <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+            <span>compliance matrix may be incomplete — only the first ~8,000 characters were analysed. re-upload as PDF for full coverage.</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -171,6 +180,12 @@ export function RfpDocumentUpload({ rfpId, currentUrl }: Props) {
         <div className="flex items-start gap-1.5 text-xs text-destructive">
           <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
           <span>{uploadError}</span>
+        </div>
+      )}
+      {truncationWarning && (
+        <div className="flex items-start gap-1.5 text-xs text-yellow-700">
+          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+          <span>compliance matrix may be incomplete — only the first ~8,000 characters were analysed. re-upload as PDF for full coverage.</span>
         </div>
       )}
     </div>

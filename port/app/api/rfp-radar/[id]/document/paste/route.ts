@@ -177,6 +177,7 @@ export async function POST(
     estimatedValue: null,
   };
   let extractionError: string | null = null;
+  let requirementsTruncated = false;
 
   const pass1 = extractFromText(text, rfp.opportunityName, userId)
     .then((r) => { extraction = r; })
@@ -189,6 +190,7 @@ export async function POST(
     try {
       await clearExtractedRequirements(id);
       const result = await extractRequirements({ documentText: text, rfpName: rfp.opportunityName, rfpId: id });
+      requirementsTruncated = result.truncated;
       const rows = result.toNewRequirements(id);
       if (rows.length > 0) {
         await insertRequirements(rows);
@@ -225,7 +227,7 @@ export async function POST(
     console.error("[rfp/document/paste] Notion update failed:", err);
     const msg = err instanceof Error ? err.message : "notion update failed";
     return NextResponse.json(
-      { ok: true, url: publicUrl, notionUpdated: false, extraction, error: `file attached, but Notion update failed: ${msg}` },
+      { ok: true, url: publicUrl, notionUpdated: false, extraction, requirementsTruncated, error: `file attached, but Notion update failed: ${msg}` },
       { status: 207 },
     );
   }
@@ -241,5 +243,5 @@ export async function POST(
   const { env } = getCloudflareContext();
   publishJob(env.RFP_DOCUMENT_QUEUE, docPayload).catch(() => {});
 
-  return NextResponse.json({ ok: true, url: publicUrl, notionUpdated: true, extraction });
+  return NextResponse.json({ ok: true, url: publicUrl, notionUpdated: true, extraction, requirementsTruncated });
 }
