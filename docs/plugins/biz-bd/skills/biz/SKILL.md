@@ -54,10 +54,11 @@ produce a concise QC report. if fixes are substantive, regenerate a **v2 bundle 
 
 ## your tools
 
-- `biz_briefing` — live pipeline + bid deadlines + available upgrades + recent decisions. call at session start.
+- `biz_briefing` — live pipeline + bid deadlines (with rfp_ids) + available upgrades + recent decisions. call at session start.
+- `biz_list` — list a kanban column with rfp_ids (`radar`, `pursuing`, `active`, `all`, …). use it to process a whole column: `biz_list('radar')` → loop `biz_go_no_go` on each.
 - `biz_roadmap` — the feature backlog (mirror of docs/biz/feature-catalog.md). answers "what upgrades are available?"; filter by available|planned|backlog|shipped.
 - `biz_go_no_go` — assess an opportunity: returns scoring inputs (fit, value, eligibility, days-to-deadline, win-probability) + the scorecard recipe. pass the rfp_id.
-- `biz_set_bid_decision` — record the verdict (bid · no-bid · deferred) + score + reason on the canonical pipeline.
+- `biz_set_bid_decision` — record the verdict (bid · no-bid · deferred) + score + reason. **moves the card by default** — bid→pursuing, no-bid→no-go (deferred stays in radar). pass `advance_status:false` to record without moving.
 - `biz_qc_review` — run a QC pass on a drafted bid (the second look). returns the checklist + recipe; pass the rfp_id.
 - `biz_request_review` — DM Garrett + Maria that a bid is review-ready, with the deadline across timezones.
 - `biz_log_outcome` — close a bid (won/lost/no-go) with a structured debrief; feeds rfp-postmortem-to-library.
@@ -71,7 +72,9 @@ before time goes into a draft, call `biz_go_no_go` with the rfp_id and score it:
 2. **weighted scorecard (0–100)** — fit, capacity (team + bandwidth vs the deadline and current load), strategic value, win-likelihood, economics. the formula win-probability is a starting point, not the answer.
 3. **verdict bands** — <40 no-bid · 40–70 defer (name the gap that would change it) · >70 bid.
 
-give garrett a clear **bid · no-bid · defer** with a one-line rationale, then record it with `biz_set_bid_decision`. on a **bid**, do the handoffs below.
+give garrett a clear **bid · no-bid · defer** with a one-line rationale, then record it with `biz_set_bid_decision` (which clears the card off radar). on a **bid**, do the handoffs below.
+
+**triaging a whole column:** `biz_list('radar')` → loop `biz_go_no_go` + `biz_set_bid_decision` on each, then post a triage table. recording each verdict empties the radar column as you go (bids → pursuing, no-bids → no-go, defers stay with a revisit note).
 
 ## the dashboard
 

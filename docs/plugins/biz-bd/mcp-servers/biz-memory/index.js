@@ -115,7 +115,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "biz_set_bid_decision",
-      description: "Record a go/no-go verdict — writes bid_decision + score + reason on the opportunity and logs it.",
+      description: "Record a go/no-go verdict — writes bid_decision + score + reason AND moves the card off radar by default (bid→pursuing, no-bid→no-go; deferred stays). Pass advance_status:false to record only.",
       inputSchema: {
         type: "object",
         properties: {
@@ -123,9 +123,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           decision: { type: "string", enum: ["bid", "no-bid", "deferred"], description: "The verdict" },
           score: { type: "number", description: "Weighted total 0–100 (optional)" },
           reason: { type: "string", description: "One- or two-line rationale" },
+          advance_status: { type: "boolean", description: "Default true: move the card. false to record only." },
         },
         required: ["rfp_id", "decision"],
       },
+    },
+    {
+      name: "biz_list",
+      description: "List opportunities (with rfp_ids) to iterate a kanban column. status: a stage (radar|reviewing|pursuing|interviewing|submitted|won|lost|no-go), 'active', or 'all'. e.g. biz_list('radar') then biz_go_no_go on each.",
+      inputSchema: { type: "object", properties: { status: { type: "string", description: "Stage, 'active', or 'all' (default 'active')" } }, required: [] },
     },
     {
       name: "biz_log_outcome",
@@ -180,7 +186,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       lines.push(`\n## bid deadlines — next 30 days (${(d.upcoming_deadlines || []).length})`);
       if (!(d.upcoming_deadlines || []).length) lines.push("_nothing due_");
       for (const o of (d.upcoming_deadlines || []).slice(0, 10)) {
-        lines.push(`- **${o.name}** — due ${o.due_date} · ${o.status} · ${o.fit}`);
+        lines.push(`- **${o.name}** — due ${o.due_date} · ${o.status} · ${o.fit} · \`${o.id}\``);
       }
       lines.push(`\n## upgrades available — ${d.upgrades_available_count}`);
       if (!d.upgrades_available_count) lines.push("_all shipped_");
@@ -285,9 +291,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (name === "biz_set_bid_decision") {
       const d = await apiFetch("/api/biz/bid-decision", {
         method: "POST",
-        body: JSON.stringify({ rfp_id: args.rfp_id, decision: args.decision, score: args.score, reason: args.reason || undefined }),
+        body: JSON.stringify({ rfp_id: args.rfp_id, decision: args.decision, score: args.score, reason: args.reason || undefined, advance_status: args.advance_status }),
       });
-      return { content: [{ type: "text", text: `recorded: ${d.decision}${d.score != null ? ` (${d.score}/100)` : ""}` }] };
+      return { content: [{ type: "text", text: `recorded: ${d.decision}${d.score != null ? ` (${d.score}/100)` : ""}${d.moved_to ? ` → moved to ${d.moved_to}` : ""}` }] };
+    }
+
+    if (name === "biz_list") {
+      const status = args.status || "active";
+      const d = await apiFetch(`/api/biz/opportunities?status=${encodeURIComponent(status)}`);
+      const lines = [`# opportunities — ${status} (${d.count})`];
+      for (const o of d.items) {
+        lines.push(`- **${o.name}** — ${o.status} · ${o.fit}${o.value ? ` · $${Math.round(o.value).toLocaleString("en-US")}` : ""}${o.due_date ? ` · due ${o.due_date}` : ""}\n  \`rfp_id: ${o.id}\``);
+      }
+      return { content: [{ type: "text", text: lines.join("\n") }] };
     }
 
     if (name === "biz_log_outcome") {

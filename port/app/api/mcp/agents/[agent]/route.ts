@@ -478,7 +478,7 @@ const BIZ_TOOLS: ToolDef[] = [
   {
     name: "biz_set_bid_decision",
     description:
-      "Record a go/no-go verdict on the canonical pipeline. Writes bid_decision + score + reason on the opportunity and logs it. Call after biz_go_no_go scoring.",
+      "Record a go/no-go verdict on the canonical pipeline. Writes bid_decision + score + reason AND moves the card off radar by default — bid → pursuing, no-bid → no-go (deferred stays put). Pass advance_status:false to record without moving. Call after biz_go_no_go scoring.",
     inputSchema: {
       type: "object",
       properties: {
@@ -486,8 +486,21 @@ const BIZ_TOOLS: ToolDef[] = [
         decision: { type: "string", enum: ["bid", "no-bid", "deferred"], description: "The verdict" },
         score: { type: "number", description: "Weighted scorecard total 0–100 (optional)" },
         reason: { ...STR, description: "One- or two-line rationale" },
+        advance_status: { type: "boolean", description: "Default true: move the card (bid→pursuing, no-bid→no-go). Set false to record only." },
       },
       required: ["rfp_id", "decision"],
+    },
+  },
+  {
+    name: "biz_list",
+    description:
+      "List opportunities (with their rfp_ids) so you can iterate a kanban column. status: a stage (radar|reviewing|pursuing|interviewing|submitted|won|lost|no-go), 'active' (all non-terminal), or 'all'. Use this to process a whole column — e.g. biz_list('radar') then biz_go_no_go on each.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: { ...STR, description: "Stage name, 'active', or 'all' (default 'active')" },
+      },
+      required: [],
     },
   },
   {
@@ -543,7 +556,7 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
       pipeline_count: number;
       pipeline_value: number;
       by_status: Record<string, number>;
-      upcoming_deadlines: Array<{ name: string; due_date: string | null; status: string; fit: string }>;
+      upcoming_deadlines: Array<{ id: string; name: string; due_date: string | null; status: string; fit: string }>;
       upgrades_available: Array<{ feature_id: string; title: string; priority: string | null }>;
       upgrades_available_count: number;
       recent_decisions: Array<{ decision: string; created_at: string }>;
@@ -558,7 +571,7 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
     lines.push(`## bid deadlines — next 30 days (${d.upcoming_deadlines.length})`);
     if (!d.upcoming_deadlines.length) lines.push("_nothing due_");
     for (const o of d.upcoming_deadlines.slice(0, 10)) {
-      lines.push(`- **${o.name}** — due ${o.due_date} · ${o.status} · ${o.fit}`);
+      lines.push(`- **${o.name}** — due ${o.due_date} · ${o.status} · ${o.fit} · \`${o.id}\``);
     }
     lines.push("");
     lines.push(`## upgrades available — ${d.upgrades_available_count}`);
@@ -666,9 +679,20 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
   if (name === "biz_set_bid_decision") {
     const d = (await apiFetch("/api/biz/bid-decision", token, {
       method: "POST",
-      body: JSON.stringify({ rfp_id: a.rfp_id, decision: a.decision, score: a.score, reason: a.reason || undefined }),
-    })) as { decision: string; score: number | null };
-    return { text: `recorded: ${d.decision}${d.score != null ? ` (${d.score}/100)` : ""}` };
+      body: JSON.stringify({ rfp_id: a.rfp_id, decision: a.decision, score: a.score, reason: a.reason || undefined, advance_status: a.advance_status }),
+    })) as { decision: string; score: number | null; moved_to: string | null };
+    return { text: `recorded: ${d.decision}${d.score != null ? ` (${d.score}/100)` : ""}${d.moved_to ? ` → moved to ${d.moved_to}` : ""}` };
+  }
+  if (name === "biz_list") {
+    const status = (a.status as string) || "active";
+    const d = (await apiFetch(`/api/biz/opportunities?status=${encodeURIComponent(status)}`, token)) as {
+      count: number; items: Array<{ id: string; name: string; status: string; fit: string; value: number | null; due_date: string | null }>;
+    };
+    const lines: string[] = [`# opportunities — ${status} (${d.count})`];
+    for (const o of d.items) {
+      lines.push(`- **${o.name}** — ${o.status} · ${o.fit}${o.value ? ` · $${Math.round(o.value).toLocaleString("en-US")}` : ""}${o.due_date ? ` · due ${o.due_date}` : ""}\n  \`rfp_id: ${o.id}\``);
+    }
+    return { text: lines.join("\n") };
   }
   if (name === "biz_log_outcome") {
     const d = (await apiFetch("/api/biz/outcome", token, {
