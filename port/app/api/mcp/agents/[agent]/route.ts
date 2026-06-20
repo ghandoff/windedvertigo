@@ -465,7 +465,61 @@ const BIZ_TOOLS: ToolDef[] = [
       required: ["name", "summary"],
     },
   },
+  {
+    name: "biz_go_no_go",
+    description:
+      "Assess whether to pursue an opportunity. Returns the scoring inputs — opportunity facts, eligibility requirements, fit, value, days-to-deadline, a formula win-probability, and any existing decision — plus the scorecard recipe (eligibility pass/fail, then weighted fit/capacity/strategic/win-likelihood/economics → verdict bands). Pass rfp_id. After scoring, record the call with biz_set_bid_decision.",
+    inputSchema: {
+      type: "object",
+      properties: { rfp_id: { ...STR, description: "rfp_opportunities.notion_page_id to assess" } },
+      required: ["rfp_id"],
+    },
+  },
+  {
+    name: "biz_set_bid_decision",
+    description:
+      "Record a go/no-go verdict on the canonical pipeline. Writes bid_decision + score + reason on the opportunity and logs it. Call after biz_go_no_go scoring.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        rfp_id: { ...STR, description: "rfp_opportunities.notion_page_id" },
+        decision: { type: "string", enum: ["bid", "no-bid", "deferred"], description: "The verdict" },
+        score: { type: "number", description: "Weighted scorecard total 0–100 (optional)" },
+        reason: { ...STR, description: "One- or two-line rationale" },
+      },
+      required: ["rfp_id", "decision"],
+    },
+  },
+  {
+    name: "biz_log_outcome",
+    description:
+      "Close a bid (won / lost / no-go) with a structured debrief — sets the opportunity status and the what-worked / what-fell-flat / client-feedback / lessons fields, and logs it. This feeds the rfp-postmortem-to-library skill, so capture concrete, reusable lessons.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        rfp_id: { ...STR, description: "rfp_opportunities.notion_page_id" },
+        outcome: { type: "string", enum: ["won", "lost", "no-go"], description: "Final outcome" },
+        what_worked: { ...STR, description: "What worked (optional)" },
+        what_fell_flat: { ...STR, description: "What fell flat (optional)" },
+        client_feedback: { ...STR, description: "Any client/funder feedback (optional)" },
+        lessons: { ...STR, description: "Lessons for next time — concrete + reusable (optional)" },
+      },
+      required: ["rfp_id", "outcome"],
+    },
+  },
 ];
+
+// the go/no-go scorecard recipe the Cowork agent applies after biz_go_no_go returns the facts
+const GONOGO_RECIPE = [
+  "",
+  "---",
+  "## score the go/no-go",
+  "1. **eligibility (pass/fail)** — are we actually eligible? entity type, registrations, and any mandatory eligibility requirement above. if any hard requirement fails → **no-bid**, stop here.",
+  "2. **weighted scorecard (0–100)** — fit (the win-probability + wv fit are a starting point, not the answer), capacity (do we have the team + bandwidth given days-to-deadline and current pipeline load?), strategic value (sector / funder relationship / portfolio fit), win-likelihood (competition, incumbency, our differentiation), economics (value vs effort + a defensible margin — pull rates from Fin via fin_briefing if it's close).",
+  "3. **verdict bands** — <40 **no-bid** · 40–70 **defer** (name the gap that would change it) · >70 **bid**.",
+  "",
+  "then: give garrett a clear bid · no-bid · defer with a one-line rationale, and record it with `biz_set_bid_decision`. on a **bid**, hand off: push the deadline + any contributor tasks to PaM (`pam_create_commitment`), and queue the QC pass (`biz_qc_review`) once a draft exists.",
+].join("\n");
 
 // the gate-by-gate recipe the Cowork agent executes after biz_qc_review returns the facts
 const QC_RECIPE = [
@@ -586,6 +640,42 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
     })) as { sent: string[]; failed: string[] };
     const failed = d.failed.length ? ` · failed: ${d.failed.join(", ")}` : "";
     return { text: `review request DM'd to ${d.sent.join(", ") || "no one"}${failed}` };
+  }
+  if (name === "biz_go_no_go") {
+    if (!a.rfp_id) return { text: "rfp_id is required", isError: true };
+    const g = (await apiFetch(`/api/biz/go-no-go/${encodeURIComponent(String(a.rfp_id))}`, token)) as {
+      name: string; status: string; type: string; fit: string; estimated_value: number | null; due_date: string | null; days_to_deadline: number | null;
+      service_match: string[]; geography: string[]; win_probability: number;
+      eligibility: Array<{ label: string; required: boolean }>;
+      current_decision: { decision: string | null; score: number | null; reason: string | null };
+    };
+    const lines: string[] = [];
+    lines.push(`# go/no-go — ${g.name}`);
+    lines.push(`${g.type} · ${g.status} · fit: ${g.fit}${g.estimated_value ? ` · $${Math.round(g.estimated_value).toLocaleString("en-US")}` : ""}`);
+    lines.push(`deadline: ${g.due_date ?? "—"}${g.days_to_deadline != null ? ` (${g.days_to_deadline}d out)` : ""} · formula win-probability: **${g.win_probability}%**`);
+    if (g.service_match.length) lines.push(`service match: ${g.service_match.join(", ")}`);
+    if (g.geography.length) lines.push(`geography: ${g.geography.join(", ")}`);
+    lines.push("");
+    lines.push("## eligibility requirements");
+    if (!g.eligibility.length) lines.push("_none extracted — confirm eligibility from the TOR_");
+    for (const e of g.eligibility) lines.push(`- ${e.required ? "**(mandatory)** " : ""}${e.label}`);
+    if (g.current_decision.decision) lines.push(`\n_current decision on file: **${g.current_decision.decision}**${g.current_decision.score != null ? ` (${g.current_decision.score}/100)` : ""}${g.current_decision.reason ? ` — ${g.current_decision.reason}` : ""}_`);
+    lines.push(GONOGO_RECIPE);
+    return { text: lines.join("\n") };
+  }
+  if (name === "biz_set_bid_decision") {
+    const d = (await apiFetch("/api/biz/bid-decision", token, {
+      method: "POST",
+      body: JSON.stringify({ rfp_id: a.rfp_id, decision: a.decision, score: a.score, reason: a.reason || undefined }),
+    })) as { decision: string; score: number | null };
+    return { text: `recorded: ${d.decision}${d.score != null ? ` (${d.score}/100)` : ""}` };
+  }
+  if (name === "biz_log_outcome") {
+    const d = (await apiFetch("/api/biz/outcome", token, {
+      method: "POST",
+      body: JSON.stringify({ rfp_id: a.rfp_id, outcome: a.outcome, what_worked: a.what_worked, what_fell_flat: a.what_fell_flat, client_feedback: a.client_feedback, lessons: a.lessons }),
+    })) as { outcome: string };
+    return { text: `outcome recorded: ${d.outcome} — debrief saved. consider running the rfp-postmortem-to-library skill to bank the lessons.` };
   }
   return { text: `unknown tool: ${name}`, isError: true };
 }

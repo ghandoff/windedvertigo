@@ -585,6 +585,30 @@ export async function setRfpStatus(
 }
 
 /**
+ * Record a bid / no-bid / defer decision (Biz go/no-go). Writes the canonical
+ * bid_decision* columns added in 20260508_rfp_pipeline_v2. Only provided fields
+ * are updated.
+ */
+export async function setBidDecision(
+  notionPageId: string,
+  d: { decision: "bid" | "no-bid" | "deferred"; score?: number | null; reason?: string | null; by?: string | null },
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      bid_decision: d.decision,
+      bid_decision_score: d.score ?? null,
+      bid_decision_reason: d.reason ?? null,
+      bid_decision_by: d.by ?? "biz",
+      bid_decision_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    throw new Error(`[supabase/rfp-opportunities] setBidDecision: ${error.message}`);
+  }
+}
+
+/**
  * Sync all user-editable fields from the RFP edit form to Supabase.
  *
  * Called from PATCH /api/rfp-radar/[id] before the Notion write, so
