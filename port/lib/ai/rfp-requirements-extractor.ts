@@ -133,6 +133,49 @@ export async function extractRequirements(
     ],
   });
 
+  return buildResult(response, start);
+}
+
+export interface ExtractRequirementsFromPdfOptions {
+  pdfBuffer: Buffer;
+  rfpName: string;
+  rfpId: string;
+}
+
+/** PDF variant — uses Anthropic's document block API so PDFs are read natively. */
+export async function extractRequirementsFromPdf(
+  opts: ExtractRequirementsFromPdfOptions,
+): Promise<ExtractRequirementsResult> {
+  const anthropic = new Anthropic();
+  const start = Date.now();
+  const base64 = opts.pdfBuffer.toString("base64");
+
+  const response = await anthropic.messages.create({
+    model: MODEL,
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "document",
+            source: { type: "base64", media_type: "application/pdf", data: base64 },
+          } as Anthropic.DocumentBlockParam,
+          {
+            type: "text",
+            text: `RFP name: "${opts.rfpName}"\n\nExtract all requirements per the schema in the system prompt. Return ONLY the JSON array.`,
+          },
+        ],
+      },
+    ],
+  });
+
+  return buildResult(response, start);
+}
+
+function buildResult(response: Anthropic.Message, start: number): ExtractRequirementsResult {
+
   const durationMs = Date.now() - start;
   const inputTokens = response.usage.input_tokens;
   const outputTokens = response.usage.output_tokens;

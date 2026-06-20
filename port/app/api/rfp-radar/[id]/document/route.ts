@@ -16,6 +16,8 @@ import mammoth from "mammoth";
 import { uploadAsset } from "@/lib/r2/upload";
 import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { setRfpDocumentUrl } from "@/lib/supabase/rfp-opportunities";
+import { clearExtractedRequirements, insertRequirements } from "@/lib/supabase/rfp-requirements";
+import { extractRequirements, extractRequirementsFromPdf } from "@/lib/ai/rfp-requirements-extractor";
 import { recordUsage } from "@/lib/ai/usage-store";
 import { auth } from "@/lib/auth";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -255,23 +257,56 @@ export async function POST(
   // previous behaviour — an unwrapped await — produced an uncaught 500 on any
   // Claude hiccup, which the client UI swallowed silently. Garrett's "go
   // through selection but it doesn't attach" was exactly this.
+  //
+  // Pass 1: snapshot extraction (requirementsSnapshot, dueDate, estimatedValue)
+  // Pass 2: structured requirements extraction → rfp_requirements table
+  // Both run in parallel so the total latency is max(pass1, pass2).
   let extraction: ExtractionResult = {
     requirementsSnapshot: null,
     dueDate: null,
     estimatedValue: null,
   };
   let extractionError: string | null = null;
-  try {
-    extraction = await extractFromDocument(
-      buffer,
-      contentType,
-      rfp.opportunityName,
-      userId,
-    );
-  } catch (err) {
-    extractionError = err instanceof Error ? err.message : "extraction failed";
-    console.error("[rfp/document] extraction failed (file still attached):", extractionError);
-  }
+
+  const pass1 = extractFromDocument(buffer, contentType, rfp.opportunityName, userId)
+    .then((r) => { extraction = r; })
+    .catch((err) => {
+      extractionError = err instanceof Error ? err.message : "extraction failed";
+      console.error("[rfp/document] snapshot extraction failed (file still attached):", extractionError);
+    });
+
+  const pass2 = (async () => {
+    try {
+      await clearExtractedRequirements(id);
+      let result;
+      if (contentType === "application/pdf") {
+        result = await extractRequirementsFromPdf({ pdfBuffer: buffer, rfpName: rfp.opportunityName, rfpId: id });
+      } else {
+        // text/plain: decode directly. docx: re-run mammoth (fast, idempotent).
+        let text: string;
+        if (
+          contentType === "application/msword" ||
+          contentType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ) {
+          const m = await mammoth.extractRawText({ buffer }).catch(() => ({ value: "" }));
+          text = m.value;
+        } else {
+          text = buffer.toString("utf-8");
+        }
+        if (!text.trim()) return;
+        result = await extractRequirements({ documentText: text, rfpName: rfp.opportunityName, rfpId: id });
+      }
+      const rows = result.toNewRequirements(id);
+      if (rows.length > 0) {
+        await insertRequirements(rows);
+        console.log(`[rfp/document] structured extraction: ${rows.length} requirements inserted for rfp=${id}`);
+      }
+    } catch (err) {
+      console.warn("[rfp/document] structured requirements extraction failed (non-fatal):", err instanceof Error ? err.message : err);
+    }
+  })();
+
+  await Promise.all([pass1, pass2]);
 
   // Only overwrite requirementsSnapshot if the current one is sparse (< 60 chars)
   const shouldUpdateSnapshot =

@@ -17,6 +17,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { uploadAsset } from "@/lib/r2/upload";
 import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { clearExtractedRequirements, insertRequirements } from "@/lib/supabase/rfp-requirements";
+import { extractRequirements } from "@/lib/ai/rfp-requirements-extractor";
 import { recordUsage } from "@/lib/ai/usage-store";
 import { auth } from "@/lib/auth";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -166,20 +168,38 @@ export async function POST(
     );
   }
 
-  // Extract via Claude — best-effort. Identical fail-open pattern as the
-  // sibling document/route.ts: if Claude hiccups, the file still attaches.
+  // Extract via Claude — best-effort. Fail-open: file attaches even if Claude hiccups.
+  // Pass 1: snapshot (requirementsSnapshot/dueDate/estimatedValue) — parallel with
+  // Pass 2: structured requirements → rfp_requirements table (compliance matrix).
   let extraction: ExtractionResult = {
     requirementsSnapshot: null,
     dueDate: null,
     estimatedValue: null,
   };
   let extractionError: string | null = null;
-  try {
-    extraction = await extractFromText(text, rfp.opportunityName, userId);
-  } catch (err) {
-    extractionError = err instanceof Error ? err.message : "extraction failed";
-    console.error("[rfp/document/paste] extraction failed (file still attached):", extractionError);
-  }
+
+  const pass1 = extractFromText(text, rfp.opportunityName, userId)
+    .then((r) => { extraction = r; })
+    .catch((err) => {
+      extractionError = err instanceof Error ? err.message : "extraction failed";
+      console.error("[rfp/document/paste] snapshot extraction failed (file still attached):", extractionError);
+    });
+
+  const pass2 = (async () => {
+    try {
+      await clearExtractedRequirements(id);
+      const result = await extractRequirements({ documentText: text, rfpName: rfp.opportunityName, rfpId: id });
+      const rows = result.toNewRequirements(id);
+      if (rows.length > 0) {
+        await insertRequirements(rows);
+        console.log(`[rfp/document/paste] structured extraction: ${rows.length} requirements inserted for rfp=${id}`);
+      }
+    } catch (err) {
+      console.warn("[rfp/document/paste] structured requirements extraction failed (non-fatal):", err instanceof Error ? err.message : err);
+    }
+  })();
+
+  await Promise.all([pass1, pass2]);
 
   // Only overwrite requirementsSnapshot if the current one is sparse (< 60 chars)
   const shouldUpdateSnapshot =
