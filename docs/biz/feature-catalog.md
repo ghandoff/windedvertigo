@@ -65,8 +65,8 @@ only a handful are true ⬜ gaps (conflict detection, portal tracker, partner db
 
 | id | feature | status | surface | fixes | source |
 |----|---------|--------|---------|-------|--------|
-| BIZ-E1 | `biz_go_no_go`: pass/fail eligibility → weighted scorecard | 🟡 `bid_decision*` cols exist | 🤖📊 | should-we-bid, fuzzy ownership | shipley scotsman |
-| BIZ-E2 | weighted P-win + auto-verdict bands (<40 no / 40–70 conditional / >70 pursue) | 🟡 `computeWinProbability()` exists | 🤖📊 | gut-feel bids | loopio p-win, goveagle |
+| BIZ-E1 | `biz_go_no_go`: pass/fail eligibility → weighted scorecard | ✅ shipped (phase 4) | 🤖📊 | should-we-bid, fuzzy ownership | shipley scotsman |
+| BIZ-E2 | weighted P-win + auto-verdict bands (<40 no / 40–70 conditional / >70 pursue) | ✅ shipped (phase 4) | 🤖📊 | gut-feel bids | loopio p-win, goveagle |
 | BIZ-E3 | explainable fit-score breakdown (sector/region/history/budget) | 🟡 `wv_fit_score` + `decision_notes` | 📊 | opaque "high fit" | govwin smart fit |
 
 ## F. pipeline / forecast
@@ -96,7 +96,7 @@ only a handful are true ⬜ gaps (conflict detection, portal tracker, partner db
 
 | id | feature | status | surface | fixes | source |
 |----|---------|--------|---------|-------|--------|
-| BIZ-I1 | structured win/loss + pick-list reasons → methodology library | 🟡 debrief cols + postmortem skill | 🤖 | lessons not queryable | autorfp |
+| BIZ-I1 | structured win/loss + debrief → methodology library | ✅ shipped (phase 4) | 🤖 | lessons not queryable | autorfp |
 | BIZ-I2 | P-win calibration check | ⬜ | 🤖 | uncalibrated scoring | win-loss analytics |
 
 ## J. teaming / partners
@@ -110,7 +110,7 @@ only a handful are true ⬜ gaps (conflict detection, portal tracker, partner db
 
 | id | feature | status | surface | fixes | source |
 |----|---------|--------|---------|-------|--------|
-| BIZ-K1 | defensible budget range from real rates (← Fin) + margin rationale | 🟡 `rateRefs` exist, spread too wide | 🤖 | 74% spread | capture tools |
+| BIZ-K1 | defensible budget range from real rates (← Fin) + margin rationale | ✅ shipped (phase 4, fin_briefing handoff) | 🤖 | 74% spread | capture tools |
 
 ## L. discovery subscriptions (backlog, not a feature)
 

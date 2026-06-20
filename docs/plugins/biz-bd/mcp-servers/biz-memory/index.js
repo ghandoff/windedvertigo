@@ -108,8 +108,51 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["name", "summary"],
       },
     },
+    {
+      name: "biz_go_no_go",
+      description: "Assess whether to pursue an opportunity. Returns scoring inputs (facts, eligibility, fit, value, days-to-deadline, formula win-probability, existing decision) + the scorecard recipe. Pass rfp_id; record with biz_set_bid_decision.",
+      inputSchema: { type: "object", properties: { rfp_id: { type: "string", description: "rfp_opportunities.notion_page_id" } }, required: ["rfp_id"] },
+    },
+    {
+      name: "biz_set_bid_decision",
+      description: "Record a go/no-go verdict — writes bid_decision + score + reason on the opportunity and logs it.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          rfp_id: { type: "string", description: "rfp_opportunities.notion_page_id" },
+          decision: { type: "string", enum: ["bid", "no-bid", "deferred"], description: "The verdict" },
+          score: { type: "number", description: "Weighted total 0–100 (optional)" },
+          reason: { type: "string", description: "One- or two-line rationale" },
+        },
+        required: ["rfp_id", "decision"],
+      },
+    },
+    {
+      name: "biz_log_outcome",
+      description: "Close a bid (won/lost/no-go) with a structured debrief — sets status + what-worked/what-fell-flat/client-feedback/lessons, and logs it. Feeds rfp-postmortem-to-library.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          rfp_id: { type: "string", description: "rfp_opportunities.notion_page_id" },
+          outcome: { type: "string", enum: ["won", "lost", "no-go"], description: "Final outcome" },
+          what_worked: { type: "string", description: "What worked (optional)" },
+          what_fell_flat: { type: "string", description: "What fell flat (optional)" },
+          client_feedback: { type: "string", description: "Client/funder feedback (optional)" },
+          lessons: { type: "string", description: "Lessons for next time (optional)" },
+        },
+        required: ["rfp_id", "outcome"],
+      },
+    },
   ],
 }));
+
+const GONOGO_RECIPE = [
+  "", "---", "## score the go/no-go",
+  "1. **eligibility (pass/fail)** — eligible at all? if a mandatory requirement fails → no-bid, stop.",
+  "2. **weighted scorecard (0–100)** — fit (win-probability is a start, not the answer), capacity (team + bandwidth vs days-to-deadline + load), strategic value, win-likelihood (competition / differentiation), economics (value vs effort + margin; pull rates via fin_briefing if close).",
+  "3. **verdict bands** — <40 no-bid · 40–70 defer (name the gap) · >70 bid.",
+  "", "then: give a clear bid · no-bid · defer + one-line rationale, record with biz_set_bid_decision. on a bid: hand the deadline + tasks to PaM (pam_create_commitment) and queue biz_qc_review once a draft exists.",
+].join("\n");
 
 const QC_RECIPE = [
   "", "---", "## run the QC gates (your second look → version two)",
@@ -222,6 +265,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       });
       const failed = (d.failed || []).length ? ` · failed: ${d.failed.join(", ")}` : "";
       return { content: [{ type: "text", text: `review request DM'd to ${(d.sent || []).join(", ") || "no one"}${failed}` }] };
+    }
+
+    if (name === "biz_go_no_go") {
+      if (!args.rfp_id) return { content: [{ type: "text", text: "rfp_id is required" }], isError: true };
+      const g = await apiFetch(`/api/biz/go-no-go/${encodeURIComponent(String(args.rfp_id))}`);
+      const lines = [];
+      lines.push(`# go/no-go — ${g.name}`);
+      lines.push(`${g.type} · ${g.status} · fit: ${g.fit}${g.estimated_value ? ` · $${Math.round(g.estimated_value).toLocaleString("en-US")}` : ""}`);
+      lines.push(`deadline: ${g.due_date ?? "—"}${g.days_to_deadline != null ? ` (${g.days_to_deadline}d out)` : ""} · formula win-probability: **${g.win_probability}%**`);
+      lines.push("\n## eligibility requirements");
+      if (!g.eligibility.length) lines.push("_none extracted — confirm from the TOR_");
+      for (const e of g.eligibility) lines.push(`- ${e.required ? "**(mandatory)** " : ""}${e.label}`);
+      if (g.current_decision && g.current_decision.decision) lines.push(`\n_current decision on file: **${g.current_decision.decision}**_`);
+      lines.push(GONOGO_RECIPE);
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    }
+
+    if (name === "biz_set_bid_decision") {
+      const d = await apiFetch("/api/biz/bid-decision", {
+        method: "POST",
+        body: JSON.stringify({ rfp_id: args.rfp_id, decision: args.decision, score: args.score, reason: args.reason || undefined }),
+      });
+      return { content: [{ type: "text", text: `recorded: ${d.decision}${d.score != null ? ` (${d.score}/100)` : ""}` }] };
+    }
+
+    if (name === "biz_log_outcome") {
+      const d = await apiFetch("/api/biz/outcome", {
+        method: "POST",
+        body: JSON.stringify({ rfp_id: args.rfp_id, outcome: args.outcome, what_worked: args.what_worked, what_fell_flat: args.what_fell_flat, client_feedback: args.client_feedback, lessons: args.lessons }),
+      });
+      return { content: [{ type: "text", text: `outcome recorded: ${d.outcome} — debrief saved. consider the rfp-postmortem-to-library skill to bank the lessons.` }] };
     }
 
     return { content: [{ type: "text", text: `unknown tool: ${name}` }], isError: true };
