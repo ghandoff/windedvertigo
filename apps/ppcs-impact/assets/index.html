@@ -129,9 +129,9 @@
       <div class="kpi"><img src="ppcs-icons/Commons_Authors.svg" alt=""><div><div class="v" id="k-authors">—</div><div class="l">Commons Authors</div></div></div>
       <div class="kpi"><img src="ppcs-icons/Intro-Poll_Respondents.svg" alt=""><div><div class="v" id="k-poll">—</div><div class="l">Intro-Poll Respondents</div></div></div>
       <div class="kpi"><img src="ppcs-icons/Feedback_Survey_Responses.svg" alt=""><div><div class="v" id="k-survey">—</div><div class="l">Feedback Survey Responses</div></div></div>
-      <div class="kpi"><img src="ppcs-icons/Certificate_Applications.svg" alt=""><div><div class="v pending" id="k-cert">Pending</div><div class="l">Certificate Applications</div></div></div>
+      <div class="kpi"><img src="ppcs-icons/Certificate_Applications.svg" alt=""><div><div class="v" id="k-cert">—</div><div class="l">Certificate of Participation</div></div></div>
     </div>
-    <div class="tip"><b>Tip:</b> click any legend label on a chart to hide or show that layer — useful for isolating a single series.</div>
+    <div class="tip"><b>Tip:</b> click any legend label on a chart to hide or show that layer — useful for isolating a single series. · <b>Certificate of Applied Practice</b> data available December 2026 (after capstone deadline).</div>
   </div>
 
   <section class="block" id="lens">
@@ -225,7 +225,7 @@
 
   <footer class="notes">
     <div class="card">
-      <b>Reading Notes &amp; Caveats.</b> Live show-rate excludes on-demand viewing (recordings served most no-shows). The <b>healthy-webinar band</b> (40–60%) is the typical registrant-to-attendee range for a strong standalone webinar; the <b>expected-attrition curve</b> is week-1 show-rate decayed ≈12%/session — the series stayed at or above it every week. 9am cohorts out-registered 6pm ~2.4:1 (time-zone reach). Sentiment and thematic/PRIME coding are <b>indicative first-pass</b> results pending human adjudication. <b>Certificate figures are pending</b> (Certificate of Applied Practice open through Dec 2026). Intro-poll data: 148 responses, 130 matched to the participant spine by email (88%); 18 rows retained with <code>participant_id = NULL</code> for manual resolution.
+      <b>Reading Notes &amp; Caveats.</b> Live show-rate excludes on-demand viewing (recordings served most no-shows). The <b>healthy-webinar band</b> (40–60%) is the typical registrant-to-attendee range for a strong standalone webinar; the <b>expected-attrition curve</b> is week-1 show-rate decayed ≈12%/session — the series stayed at or above it every week. 9am cohorts out-registered 6pm ~2.4:1 (time-zone reach). Sentiment and thematic/PRIME coding are <b>indicative first-pass</b> results pending human adjudication. <b>Certificate of Participation: 710</b> (PRME-signatory individuals meeting the attendance and engagement threshold, confirmed by PRME Secretariat 16 Jun 2026). <b>Certificate of Applied Practice</b> data available after the capstone deadline (Dec 2026). Intro-poll data: 148 responses, 130 matched to the participant spine by email (88%); 18 rows retained with <code>participant_id = NULL</code> for manual resolution.
       <div class="src">Source: PPCS2026_engagement.db → Cloudflare D1 · winded.vertigo. Engagement = attendance + Zoom chat + PRME Commons + Qualtrics feedback + Miro (aggregate). Individual-level linkage: attendance/chat ~100%, Commons ~98% by name, survey 82% of named respondents.</div>
     </div>
   </footer>
@@ -290,8 +290,8 @@ async function init(){
   setTile('k-poll',    p.n);
   setTile('k-survey',  k.survey_n);
   const cert=document.getElementById('k-cert');
-  if(k.cert_applied_n!=null){ cert.classList.remove('pending'); setTile('k-cert', k.cert_applied_n); }
-  else { cert.textContent='Pending'; }
+  if(k.cert_participation_n!=null){ setTile('k-cert', k.cert_participation_n); }
+  else { cert.textContent='—'; }
 
   // ── Dynamic copy
   if(p.avg_prme_familiarity!=null) document.getElementById('avg-fam').textContent=p.avg_prme_familiarity.toFixed(1);
