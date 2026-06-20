@@ -11,16 +11,21 @@ import {
 import { deadlineAsPT } from "@/lib/format";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
+import { getCoverageByRfp, type RfpCoverageRow } from "@/lib/supabase/rfp-requirements";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
 import { WinProbabilityBadge, computeWinProbability } from "@/app/components/ai-win-probability";
 import { RfpDocumentUpload } from "@/app/components/rfp-document-upload";
 import { RfpReEnrichButton } from "@/app/components/rfp-re-enrich-button";
 import { RfpRegenerateButton } from "@/app/components/rfp-regenerate-button";
 import { ProposalProgressTracker } from "@/app/components/proposal-progress";
 import type { Organization } from "@/lib/notion/types";
+import type { RequirementKind } from "@/lib/supabase/rfp-requirements";
 
 export const revalidate = 60;
 
@@ -45,6 +50,23 @@ const FIT_COLORS: Record<string, string> = {
   "medium fit": "bg-yellow-100 text-yellow-700 border-yellow-200",
   "low fit": "bg-gray-100 text-gray-600 border-gray-200",
   "TBD": "bg-blue-50 text-blue-600 border-blue-200",
+};
+
+/** Colour-coded kind badge for the compliance matrix. */
+const KIND_BADGE_COLORS: Record<RequirementKind, string> = {
+  deliverable:          "bg-indigo-50 text-indigo-700 border-indigo-200",
+  eligibility:          "bg-red-50 text-red-700 border-red-200",
+  evaluation_criterion: "bg-amber-50 text-amber-700 border-amber-200",
+  admin:                "bg-gray-100 text-gray-600 border-gray-300",
+  submission:           "bg-teal-50 text-teal-700 border-teal-200",
+};
+
+const KIND_LABELS: Record<RequirementKind, string> = {
+  deliverable:          "deliverable",
+  eligibility:          "eligibility",
+  evaluation_criterion: "eval criterion",
+  admin:                "admin",
+  submission:           "submission",
 };
 
 function formatCurrency(value: number | null): string {
@@ -72,6 +94,39 @@ function daysUntil(dateStr: string | null | undefined): number | null {
   return Math.ceil((parseDateOnly(dateStr).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+/** Covered indicator cell content. */
+function CoveredIndicator({ covered, approved }: { covered: boolean; approved: boolean }) {
+  if (covered) {
+    return <span className="text-green-600 font-medium text-sm">✓</span>;
+  }
+  if (!approved) {
+    return <span className="text-muted-foreground text-sm">—</span>;
+  }
+  return <span className="text-red-500 font-medium text-sm">✗</span>;
+}
+
+/** Weighted coverage summary: X / Y requirements covered (Z% weighted). */
+function coverageSummary(rows: RfpCoverageRow[]): {
+  coveredCount: number;
+  totalCount: number;
+  weightedPct: number | null;
+} {
+  const totalCount = rows.length;
+  const coveredCount = rows.filter((r) => r.covered).length;
+
+  // Weighted coverage only when weight_pct data is present
+  const weighted = rows.filter((r) => r.weightPct !== null);
+  if (weighted.length === 0) {
+    return { coveredCount, totalCount, weightedPct: null };
+  }
+  const totalWeight = weighted.reduce((sum, r) => sum + (r.weightPct ?? 0), 0);
+  const coveredWeight = weighted
+    .filter((r) => r.covered)
+    .reduce((sum, r) => sum + (r.weightPct ?? 0), 0);
+  const weightedPct = totalWeight > 0 ? Math.round((coveredWeight / totalWeight) * 100) : 0;
+  return { coveredCount, totalCount, weightedPct };
+}
+
 export default async function RfpDetailPage({ params }: Props) {
   const { id } = await params;
 
@@ -85,12 +140,22 @@ export default async function RfpDetailPage({ params }: Props) {
       )).filter((o): o is Organization => o !== null)
     : [];
 
+  // Compliance matrix — silently skip if the view query fails (e.g. not yet migrated)
+  let coverageRows: RfpCoverageRow[] = [];
+  try {
+    coverageRows = await getCoverageByRfp(id);
+  } catch {
+    // Non-fatal: matrix simply won't render
+  }
+
   const deadlineDays = daysUntil(rfp.dueDate?.start);
   const deadlineUrgent = deadlineDays !== null && deadlineDays >= 0 && deadlineDays <= 7;
   const overdue = deadlineDays !== null && deadlineDays < 0;
   const winProbability = computeWinProbability(rfp);
 
   const hasProposalOutput = rfp.proposalDraftUrl || rfp.coverLetterUrl || rfp.teamCvsUrl || rfp.expressionOfInterestUrl || rfp.financialProposalUrl;
+
+  const { coveredCount, totalCount, weightedPct } = coverageSummary(coverageRows);
 
   return (
     <>
@@ -263,6 +328,73 @@ export default async function RfpDetailPage({ params }: Props) {
             </Card>
           )}
 
+          {/* compliance matrix — only rendered when requirements have been extracted */}
+          {coverageRows.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <CardTitle className="text-base">compliance matrix</CardTitle>
+                  <p className="text-xs text-muted-foreground shrink-0 pt-0.5">
+                    {coveredCount} / {totalCount} covered
+                    {weightedPct !== null && (
+                      <span className="ml-1">({weightedPct}% weighted)</span>
+                    )}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6 w-[110px]">kind</TableHead>
+                      <TableHead>requirement</TableHead>
+                      <TableHead className="w-[60px] text-center">weight</TableHead>
+                      <TableHead className="w-[56px] text-center">covered</TableHead>
+                      <TableHead className="w-[60px] text-center pr-6">confidence</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {coverageRows.map((row) => (
+                      <TableRow key={row.requirementId}>
+                        <TableCell className="pl-6">
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] whitespace-nowrap ${KIND_BADGE_COLORS[row.kind] ?? ""}`}
+                          >
+                            {KIND_LABELS[row.kind] ?? row.kind}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[240px]">
+                          <span
+                            className="block truncate text-sm"
+                            title={row.label}
+                          >
+                            {row.label}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center text-xs text-muted-foreground">
+                          {row.weightPct !== null ? `${row.weightPct}%` : "—"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <CoveredIndicator covered={row.covered} approved={row.approved} />
+                        </TableCell>
+                        <TableCell className="text-center text-xs text-muted-foreground pr-6">
+                          {row.extractionConfidence !== null
+                            ? `${Math.round(row.extractionConfidence * 100)}%`
+                            : "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          ) : (
+            // Empty state is intentionally omitted — the section only renders when rows exist.
+            // The upload card on the right column already prompts the user to upload the RFP document.
+            null
+          )}
+
           {/* decision notes */}
           {rfp.decisionNotes && (
             <Card>
@@ -420,6 +552,11 @@ export default async function RfpDetailPage({ params }: Props) {
               <RfpDocumentUpload rfpId={id} currentUrl={rfp.rfpDocumentUrl} />
               {!rfp.rfpDocumentUrl && rfp.url?.startsWith("http") && (
                 <RfpReEnrichButton rfpId={id} />
+              )}
+              {coverageRows.length === 0 && (
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  no requirements extracted yet — upload the rfp document to auto-extract
+                </p>
               )}
             </CardContent>
           </Card>

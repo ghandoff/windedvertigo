@@ -269,3 +269,87 @@ export async function clearExtractedRequirements(rfpId: string): Promise<number>
   if (error) throw new Error(`[rfp-requirements] clearExtracted: ${error.message}`);
   return count ?? 0;
 }
+
+// ── Coverage (compliance matrix) ─────────────────────────────────────────────
+
+/** A single row from the rfp_coverage view, enriched with weight_pct and
+ *  extraction_confidence from rfp_requirements (the view itself omits these). */
+export interface RfpCoverageRow {
+  requirementId: string;
+  rfpId: string;
+  kind: RequirementKind;
+  label: string;
+  required: boolean;
+  approved: boolean;
+  covered: boolean;
+  /** Percentage weight for evaluation_criterion rows (null for other kinds). */
+  weightPct: number | null;
+  /** AI confidence for the extraction (0–1), null if human-entered. */
+  extractionConfidence: number | null;
+}
+
+interface CoverageViewRow {
+  requirement_id: string;
+  rfp_id: string;
+  kind: string;
+  label: string;
+  required: boolean;
+  approved: boolean;
+  covered: boolean;
+}
+
+/**
+ * Fetch compliance matrix rows for one RFP.
+ *
+ * Queries the rfp_coverage view (covered/approved state) then enriches with
+ * weight_pct and extraction_confidence from rfp_requirements in a parallel
+ * call. Returns an empty array when no requirements have been extracted yet.
+ */
+export async function getCoverageByRfp(rfpId: string): Promise<RfpCoverageRow[]> {
+  const [coverageResult, reqResult] = await Promise.all([
+    supabase
+      .from("rfp_coverage")
+      .select("requirement_id, rfp_id, kind, label, required, approved, covered")
+      .eq("rfp_id", rfpId)
+      .order("kind", { ascending: true }),
+    supabase
+      .from("rfp_requirements")
+      .select("id, weight_pct, extraction_confidence")
+      .eq("rfp_id", rfpId),
+  ]);
+
+  if (coverageResult.error) {
+    throw new Error(`[rfp-requirements] getCoverage: ${coverageResult.error.message}`);
+  }
+  if (reqResult.error) {
+    throw new Error(`[rfp-requirements] getCoverage enrichment: ${reqResult.error.message}`);
+  }
+
+  // Build a lookup map for weight_pct + extraction_confidence by requirement id
+  const reqMap = new Map<string, { weightPct: number | null; extractionConfidence: number | null }>();
+  for (const r of (reqResult.data ?? []) as Array<{
+    id: string;
+    weight_pct: string | number | null;
+    extraction_confidence: string | number | null;
+  }>) {
+    reqMap.set(r.id, {
+      weightPct: toNum(r.weight_pct),
+      extractionConfidence: toNum(r.extraction_confidence),
+    });
+  }
+
+  return ((coverageResult.data ?? []) as unknown as CoverageViewRow[]).map((row) => {
+    const extra = reqMap.get(row.requirement_id);
+    return {
+      requirementId: row.requirement_id,
+      rfpId: row.rfp_id,
+      kind: row.kind as RequirementKind,
+      label: row.label,
+      required: row.required,
+      approved: row.approved,
+      covered: row.covered,
+      weightPct: extra?.weightPct ?? null,
+      extractionConfidence: extra?.extractionConfidence ?? null,
+    };
+  });
+}
