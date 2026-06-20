@@ -1,0 +1,7 @@
+{
+  "biz-memory": {
+    "type": "http",
+    "url": "https://port.windedvertigo.com/api/mcp/agents/biz",
+    "headers": { "Authorization": "Bearer ${WV_AGENT_TOKEN}" }
+  }
+}

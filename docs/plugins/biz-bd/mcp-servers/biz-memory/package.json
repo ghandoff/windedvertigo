@@ -1,0 +1,10 @@
+{
+  "name": "biz-memory-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for Biz's persistent memory — business-development agent for winded.vertigo",
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}

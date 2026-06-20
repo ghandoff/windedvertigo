@@ -1,0 +1,8 @@
+{
+  "name": "biz-bd",
+  "version": "1.0.0",
+  "description": "Biz — winded.vertigo's business-development agent. drives the RFP Lighthouse: live pipeline + bid deadlines, go/no-go + bid decision memory, and a roadmap of available upgrades.",
+  "author": {
+    "name": "winded.vertigo"
+  }
+}

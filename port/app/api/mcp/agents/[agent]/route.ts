@@ -385,12 +385,130 @@ async function callFin(name: string, a: Record<string, unknown>, token: string):
   return { text: `unknown tool: ${name}`, isError: true };
 }
 
+// ---- Biz (business development) ----
+const BIZ_TOOLS: ToolDef[] = [
+  {
+    name: "biz_briefing",
+    description:
+      "Load Biz's full business-development state: the live RFP pipeline (active opportunities with fit, value, status, deadlines from the RFP Lighthouse), raw pipeline value, bid deadlines in the next 30 days, the count of available upgrades from the roadmap, and recent BD decisions + working memory. Call silently at session start. If there are available upgrades, mention the count and offer to list them (biz_roadmap).",
+    inputSchema: { type: "object", properties: {}, required: [] },
+  },
+  {
+    name: "biz_roadmap",
+    description:
+      "List the Biz feature roadmap (mirror of docs/biz/feature-catalog.md). Use to answer 'what upgrades are available?' or to look up a feature by id. Filter by status: 'available' (not yet built — planned + backlog), 'planned', 'backlog', or 'shipped'. Default shows available upgrades.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["available", "planned", "backlog", "shipped"], description: "Which roadmap slice to return (default 'available')" },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "biz_log_decision",
+    description:
+      "Log a business-development decision from the current conversation — a go/no-go call, a decision to pursue or submit, a QC verdict, or a bid outcome. Call when the decision is made, not at the end.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        decision: { ...STR, description: "The decision made" },
+        context: { ...STR, description: "Why this decision was made (optional)" },
+        category: { ...STR, description: "Category, e.g. 'go-no-go','pursue','submit','outcome','qc' (optional)" },
+        rfp_id: { ...STR, description: "rfp_opportunities.notion_page_id this relates to (optional)" },
+        logged_by: { ...STR, description: "Who made the decision (default: garrett)" },
+      },
+      required: ["decision"],
+    },
+  },
+  {
+    name: "biz_update_memory",
+    description:
+      "Update a key in Biz's working state memory. Use when BD context changes — pipeline priorities, a funder relationship note, an open QC concern.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { ...STR, description: "Memory key (e.g. 'pipeline-note')" },
+        value: { ...STR, description: "New value" },
+        updated_by: { ...STR, description: "Who made the update (e.g. 'garrett')" },
+      },
+      required: ["key", "value", "updated_by"],
+    },
+  },
+];
+
+async function callBiz(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
+  if (name === "biz_briefing") {
+    const d = (await apiFetch("/api/biz/briefing", token)) as {
+      pipeline: Array<{ name: string; status: string; fit: string; value: number | null; due_date: string | null; proposal_status: string | null }>;
+      pipeline_count: number;
+      pipeline_value: number;
+      by_status: Record<string, number>;
+      upcoming_deadlines: Array<{ name: string; due_date: string | null; status: string; fit: string }>;
+      upgrades_available: Array<{ feature_id: string; title: string; priority: string | null }>;
+      upgrades_available_count: number;
+      recent_decisions: Array<{ decision: string; created_at: string }>;
+    };
+    const lines: string[] = [];
+    const fmtUsd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+    lines.push(`# Biz briefing`);
+    const stages = Object.entries(d.by_status).map(([s, n]) => `${s} ${n}`).join(" · ");
+    lines.push(`## pipeline — ${d.pipeline_count} active · ${fmtUsd(d.pipeline_value)} raw value`);
+    if (stages) lines.push(`_${stages}_`);
+    lines.push("");
+    lines.push(`## bid deadlines — next 30 days (${d.upcoming_deadlines.length})`);
+    if (!d.upcoming_deadlines.length) lines.push("_nothing due_");
+    for (const o of d.upcoming_deadlines.slice(0, 10)) {
+      lines.push(`- **${o.name}** — due ${o.due_date} · ${o.status} · ${o.fit}`);
+    }
+    lines.push("");
+    lines.push(`## upgrades available — ${d.upgrades_available_count}`);
+    if (!d.upgrades_available_count) lines.push("_all shipped_");
+    else {
+      for (const u of d.upgrades_available.slice(0, 5)) {
+        lines.push(`- **${u.feature_id}** ${u.title}${u.priority ? ` (${u.priority})` : ""}`);
+      }
+      if (d.upgrades_available_count > 5) lines.push(`_…and ${d.upgrades_available_count - 5} more — ask "what upgrades are available?"_`);
+    }
+    lines.push("");
+    lines.push("## recent decisions");
+    if (!d.recent_decisions.length) lines.push("_none logged yet_");
+    for (const dec of d.recent_decisions.slice(0, 5)) {
+      lines.push(`- ${dec.created_at.slice(0, 10)}: ${dec.decision}`);
+    }
+    return { text: lines.join("\n") };
+  }
+  if (name === "biz_roadmap") {
+    const slice = (a.status as string) || "available";
+    const path = slice === "available" ? "/api/biz/roadmap?available=1" : `/api/biz/roadmap?status=${encodeURIComponent(slice)}`;
+    const items = (await apiFetch(path, token)) as Array<{ feature_id: string; title: string; status: string; priority: string | null; surface: string | null; fixes: string | null }>;
+    const lines: string[] = [`# Biz roadmap — ${slice} (${items.length})`];
+    for (const i of items) {
+      lines.push(`- **${i.feature_id}** ${i.title}${i.priority ? ` · ${i.priority}` : ""}${i.surface ? ` · ${i.surface}` : ""}${i.fixes && i.fixes !== "-" ? ` — fixes: ${i.fixes}` : ""}`);
+    }
+    return { text: lines.join("\n") };
+  }
+  if (name === "biz_log_decision") {
+    const d = (await apiFetch("/api/biz/decisions", token, {
+      method: "POST",
+      body: JSON.stringify({ decision: a.decision, context: a.context || undefined, category: a.category || undefined, rfp_id: a.rfp_id || undefined, logged_by: a.logged_by || "garrett" }),
+    })) as { id: string };
+    return { text: `decision logged (id: ${d.id})` };
+  }
+  if (name === "biz_update_memory") {
+    const d = (await apiFetch("/api/biz/memory", token, { method: "POST", body: JSON.stringify({ key: a.key, value: a.value, updated_by: a.updated_by }) })) as { key: string };
+    return { text: `memory updated: ${d.key}` };
+  }
+  return { text: `unknown tool: ${name}`, isError: true };
+}
+
 const AGENTS: Record<string, AgentSpec> = {
   mo: { serverName: "mo-memory", title: "Mo (CMO) memory", instructions: "Mo is winded.vertigo's chief marketing officer. Call cmo_briefing silently at session start to load persistent memory; log decisions as they're made.", tools: MO_TOOLS, call: callMo },
   pam: { serverName: "pam-memory", title: "PaM memory", instructions: "PaM is winded.vertigo's project + momentum manager. Call pam_briefing silently at session start; create/update commitments and log decisions as they happen.", tools: PAM_TOOLS, call: callPam },
   carl: { serverName: "carl-memory", title: "cARL memory", instructions: "cARL is winded.vertigo's research agent. Call carl_briefing at session start; search the library before researching, and add findings as they're synthesised.", tools: CARL_TOOLS, call: callCarl },
   opsy: { serverName: "opsy-memory", title: "Opsy (ops) memory", instructions: "Opsy is winded.vertigo's operations + systems intelligence agent. Call opsy_briefing silently at session start; run health checks on demand, search incident history before diagnosing, and log incidents and decisions as they happen.", tools: OPSY_TOOLS, call: callOpsy },
   fin: { serverName: "fin-memory", title: "Fin (CFO) memory", instructions: "Fin is winded.vertigo's CFO agent — personal + business finances for garrett. Call fin_briefing silently at session start (it orchestrates QBO + Gusto + Gmail MCPs and returns a live financial summary); log items and decisions as they surface.", tools: FIN_TOOLS, call: callFin },
+  biz: { serverName: "biz-memory", title: "Biz (BD) memory", instructions: "Biz is winded.vertigo's business-development agent — it drives the RFP Lighthouse (intake, fit, proposals, QC). Call biz_briefing silently at session start (live pipeline + bid deadlines + available upgrades); log go/no-go and bid decisions as they're made, and surface available roadmap upgrades when relevant.", tools: BIZ_TOOLS, call: callBiz },
 };
 AGENTS.cmo = AGENTS.mo; // alias
 
@@ -403,14 +521,15 @@ async function callAll(name: string, a: Record<string, unknown>, token: string):
   if (name.startsWith("carl_")) return callCarl(name, a, token);
   if (name.startsWith("opsy_")) return callOpsy(name, a, token);
   if (name.startsWith("fin_")) return callFin(name, a, token);
+  if (name.startsWith("biz_")) return callBiz(name, a, token);
   return { text: `unknown tool: ${name}`, isError: true };
 }
 AGENTS.all = {
   serverName: "wv-agents",
   title: "winded.vertigo agents",
   instructions:
-    "Mo, PaM, cARL, Opsy, and Fin in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL), opsy_* = infrastructure ops (Opsy), fin_* = CFO / finances (Fin). Call the *_briefing tools at session start to load shared memory.",
-  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS, ...OPSY_TOOLS, ...FIN_TOOLS],
+    "Mo, PaM, cARL, Opsy, Fin, and Biz in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL), opsy_* = infrastructure ops (Opsy), fin_* = CFO / finances (Fin), biz_* = business development / RFPs (Biz). Call the *_briefing tools at session start to load shared memory.",
+  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS, ...OPSY_TOOLS, ...FIN_TOOLS, ...BIZ_TOOLS],
   call: callAll,
 };
 
