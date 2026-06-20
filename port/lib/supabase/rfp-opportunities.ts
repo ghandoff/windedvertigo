@@ -386,13 +386,39 @@ export async function upsertRfpOpportunityToSupabase(
   opp: RfpOpportunity,
   deadlineTimezone: string | null,
 ): Promise<void> {
+  // Guard: never let a Notion sync reset a triaged card back to "radar".
+  //
+  // After the transition-path fix, transitionRfpStatus writes BOTH Supabase
+  // and Notion, so the sync ordinarily reflects the correct status. This guard
+  // is defence-in-depth for the failure case: if the Notion write in
+  // transitionRfpStatus fails transiently, Notion still shows "radar" and the
+  // next hourly sync would revert Supabase to "radar". The guard intercepts
+  // exactly that case: Notion says "radar" (or null) but Supabase already has
+  // a non-radar status → keep the Supabase status.
+  //
+  // All other status updates from Notion (e.g. "radar" → "reviewing") are
+  // allowed through normally.
+  let statusToWrite: string | null = opp.status ?? null;
+  const incomingIsRadar = statusToWrite === null || statusToWrite === "radar";
+  if (incomingIsRadar) {
+    const { data: existing } = await supabase
+      .from("rfp_opportunities")
+      .select("status")
+      .eq("notion_page_id", opp.id)
+      .maybeSingle();
+    const existingStatus = (existing as { status: string | null } | null)?.status ?? null;
+    if (existingStatus && existingStatus !== "radar") {
+      statusToWrite = existingStatus; // Supabase wins — Notion's "radar" is stale
+    }
+  }
+
   const { error } = await supabase
     .from("rfp_opportunities")
     .upsert(
       {
         notion_page_id: opp.id,
         opportunity_name: opp.opportunityName ?? "",
-        status: opp.status ?? null,
+        status: statusToWrite,
         opportunity_type: opp.opportunityType ?? null,
         organization_ids: opp.organizationIds ?? [],
         estimated_value: opp.estimatedValue ?? null,

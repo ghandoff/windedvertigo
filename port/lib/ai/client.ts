@@ -63,6 +63,23 @@ interface AiCallResult {
 
 /** Call Claude and automatically track token usage. */
 export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
+  return callClaudeInternal(opts, false);
+}
+
+/**
+ * Streaming variant of callClaude — use for large completions (maxTokens > 4096)
+ * to avoid Cloudflare's connection timeout on long non-streaming fetches.
+ *
+ * Uses `anthropic.messages.stream()` so the HTTP response body arrives as SSE
+ * chunks rather than one large payload. This keeps the fetch connection alive
+ * throughout generation and avoids the ~400s wall-clock hang that kills
+ * `messages.create()` calls for 12k-token proposal outputs.
+ */
+export async function callClaudeStreaming(opts: AiCallOptions): Promise<AiCallResult> {
+  return callClaudeInternal(opts, true);
+}
+
+async function callClaudeInternal(opts: AiCallOptions, streaming: boolean): Promise<AiCallResult> {
   const modelId = opts.modelOverride ?? FEATURE_MODELS[opts.feature];
   const pricing = MODEL_PRICING[modelId];
 
@@ -80,30 +97,44 @@ export async function callClaude(opts: AiCallOptions): Promise<AiCallResult> {
   let inputTokens = 0;
   let outputTokens = 0;
   try {
-    const response = await getAnthropic().messages.create(
-      {
-        model: modelId,
-        max_tokens: opts.maxTokens ?? 1024,
-        temperature: opts.temperature ?? 0.7,
-        system: opts.system,
-        messages: [{ role: "user", content: opts.userMessage }],
-      },
-      { signal: controller.signal },
-    );
+    const requestParams = {
+      model: modelId,
+      max_tokens: opts.maxTokens ?? 1024,
+      temperature: opts.temperature ?? 0.7,
+      system: opts.system,
+      messages: [{ role: "user" as const, content: opts.userMessage }],
+    };
 
-    // Concatenate text blocks from the response.
-    text = response.content
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .filter((b: any) => b.type === "text")
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((b: any) => b.text)
-      .join("");
-    inputTokens = response.usage?.input_tokens ?? 0;
-    outputTokens = response.usage?.output_tokens ?? 0;
+    if (streaming) {
+      // Streaming path — SSE chunks keep the fetch connection alive, avoiding
+      // the Cloudflare subrequest hang for large completions (12k tokens ≈ 400s).
+      const textParts: string[] = [];
+      const stream = getAnthropic().messages.stream(requestParams, { signal: controller.signal });
+      stream.on("text", (chunk) => textParts.push(chunk));
+      const finalMsg = await stream.finalMessage();
+      text = textParts.join("") || finalMsg.content
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter((b: any) => b.type === "text")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((b: any) => b.text)
+        .join("");
+      inputTokens = finalMsg.usage?.input_tokens ?? 0;
+      outputTokens = finalMsg.usage?.output_tokens ?? 0;
+    } else {
+      const response = await getAnthropic().messages.create(requestParams, { signal: controller.signal });
+      text = response.content
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter((b: any) => b.type === "text")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((b: any) => b.text)
+        .join("");
+      inputTokens = response.usage?.input_tokens ?? 0;
+      outputTokens = response.usage?.output_tokens ?? 0;
+    }
 
     if (!text) {
       throw new Error(
-        `Anthropic returned no text content (feature=${opts.feature} model=${modelId} stop=${response.stop_reason})`,
+        `Anthropic returned no text content (feature=${opts.feature} model=${modelId})`,
       );
     }
   } finally {

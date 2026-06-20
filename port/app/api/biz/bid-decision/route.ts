@@ -8,7 +8,8 @@
 
 import { NextRequest } from "next/server";
 import { json, error } from "@/lib/api-helpers";
-import { setBidDecision, setRfpStatus } from "@/lib/supabase/rfp-opportunities";
+import { setBidDecision } from "@/lib/supabase/rfp-opportunities";
+import { transitionRfpStatus } from "@/lib/rfp/transition";
 import { createBizDecision } from "@/lib/biz-data";
 
 const VALID = new Set(["bid", "no-bid", "deferred"]);
@@ -40,12 +41,14 @@ export async function POST(req: NextRequest) {
       by: body.by ?? "biz",
     });
 
-    // move the card unless the caller opted out
+    // move the card unless the caller opted out — through the SHARED transition
+    // path (Supabase + Notion + side-effects), so a Biz decision and a board drag
+    // persist identically and survive the Notion→Supabase sync.
     let movedTo: string | null = null;
     if (body.advance_status !== false) {
       const target = ADVANCE[body.decision];
       if (target) {
-        await setRfpStatus(body.rfp_id, target);
+        await transitionRfpStatus(body.rfp_id, target, { triggeredBy: body.by ?? "biz" });
         movedTo = target;
       }
     }
