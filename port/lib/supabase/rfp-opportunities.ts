@@ -59,6 +59,9 @@ interface RfpOpportunityRow {
   lessons_for_next_time: string | null;
   proposal_notes: string | null;
   influenced_by_event_ids: string[] | null;
+  bid_decision: string | null;
+  bid_decision_score: number | null;
+  bid_decision_reason: string | null;
   created_time: string | null;
   last_edited_time: string | null;
 }
@@ -100,6 +103,9 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     proposalNotes: row.proposal_notes ?? "",
     deadlineTimezone: row.deadline_timezone ?? null,
     influencedByEventIds: row.influenced_by_event_ids ?? [],
+    bidDecision: (row.bid_decision as RfpOpportunity["bidDecision"]) ?? null,
+    bidDecisionScore: row.bid_decision_score ?? null,
+    bidDecisionReason: row.bid_decision_reason ?? null,
     createdTime: row.created_time ?? "",
     lastEditedTime: row.last_edited_time ?? "",
   };
@@ -161,6 +167,7 @@ const SELECT_COLS =
   "cover_letter_url, team_cvs_url, expression_of_interest_url, financial_proposal_url, " +
   "what_worked, what_fell_flat, client_feedback, " +
   "lessons_for_next_time, proposal_notes, influenced_by_event_ids, " +
+  "bid_decision, bid_decision_score, bid_decision_reason, " +
   "created_time, last_edited_time";
 
 /**

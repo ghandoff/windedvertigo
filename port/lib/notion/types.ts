@@ -610,6 +610,10 @@ export interface RfpOpportunity {
    * Phase 8 of the conference intelligence pipeline.
    */
   influencedByEventIds: string[];
+  /** Biz agent's go/no-go verdict. "bid" = pursue, "no-bid" = pass, "deferred" = watch. */
+  bidDecision: "bid" | "no-bid" | "deferred" | null;
+  bidDecisionScore: number | null;
+  bidDecisionReason: string | null;
   createdTime: string;
   lastEditedTime: string;
 }
