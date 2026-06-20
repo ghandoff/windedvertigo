@@ -81,8 +81,46 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["key", "value", "updated_by"],
       },
     },
+    {
+      name: "biz_qc_review",
+      description:
+        "Run a QC review on a drafted bid (a 'version two' second look). Returns the materials checklist, requirements, CV roster + currency, and submission logistics for the opportunity, plus a gate-by-gate recipe. Pass rfp_id. After running the gates, log the verdict (biz_log_decision) and call biz_request_review when review-ready.",
+      inputSchema: {
+        type: "object",
+        properties: { rfp_id: { type: "string", description: "rfp_opportunities.notion_page_id of the bid to QC" } },
+        required: ["rfp_id"],
+      },
+    },
+    {
+      name: "biz_request_review",
+      description: "DM Garrett + Maria that a bid is review-ready. Translate the deadline into Pacific time in due_local so the cutoff is obvious.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          rfp_id: { type: "string", description: "rfp_opportunities.notion_page_id (optional)" },
+          name: { type: "string", description: "Opportunity name" },
+          summary: { type: "string", description: "1–3 line summary: fit, what's ready, open flags" },
+          due_date: { type: "string", description: "Due date YYYY-MM-DD (optional)" },
+          due_local: { type: "string", description: "Deadline across timezones, e.g. '28 Jun 17:00 EAT = 07:00 PT' (optional)" },
+          review_url: { type: "string", description: "Link to the bundle (optional)" },
+          reviewers: { type: "array", items: { type: "string" }, description: "Override reviewer emails (optional)" },
+        },
+        required: ["name", "summary"],
+      },
+    },
   ],
 }));
+
+const QC_RECIPE = [
+  "", "---", "## run the QC gates (your second look → version two)",
+  "1. **materials completeness** — every baseline doc present? every submission-requirement confirmed? flag missing/unconfirmed.",
+  "2. **CV quality** — named team (Garrett, Lamis, Maria always; Payton substantive; James if curriculum) in the bundle's CVs; check the roster for stale; flag copy-pasted/identical entries across members.",
+  "3. **consistency / conflict** — pull the bundle locally, run `align-narrative-across-deliverables`; cross-check deal-page facts vs bundle vs TOR; flag contradictions.",
+  "4. **submission logistics** — confirm due date + funder timezone (translate to Pacific), submission channel (portal vs email), and that the materials checklist is complete.",
+  "5. **quality** — sections vs w.v minimums; use `inject-evidence-from-port` on thin sections.",
+  "6. **go/no-go** — verdict (go · fix-then-go · no-go) + rationale; log with `biz_log_decision`.",
+  "", "then: produce a concise QC report, regenerate a **v2 bundle locally** if needed (`rfp-proposal-from-tor`; do NOT write to Notion), and call `biz_request_review` when review-ready.",
+].join("\n");
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args = {} } = request.params;
@@ -146,6 +184,44 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         body: JSON.stringify({ key: args.key, value: args.value, updated_by: args.updated_by }),
       });
       return { content: [{ type: "text", text: `memory updated: ${d.key}` }] };
+    }
+
+    if (name === "biz_qc_review") {
+      if (!args.rfp_id) return { content: [{ type: "text", text: "rfp_id is required" }], isError: true };
+      const q = await apiFetch(`/api/biz/qc/${encodeURIComponent(String(args.rfp_id))}`);
+      const o = q.opportunity;
+      const lines = [];
+      lines.push(`# QC review — ${o.name}`);
+      lines.push(`${o.type} · ${o.status} · fit: ${o.fit}${o.estimated_value ? ` · $${Math.round(o.estimated_value).toLocaleString("en-US")}` : ""}`);
+      lines.push(`due: ${o.due_date ?? "—"}${o.deadline_timezone ? ` (${o.deadline_timezone})` : " (timezone not set — confirm)"}`);
+      if (o.rfp_document_url) lines.push(`TOR: ${o.rfp_document_url}`);
+      lines.push("\n## materials checklist");
+      for (const m of q.materials_checklist) {
+        const mark = m.present === true ? "✅" : m.present === false ? "❌ missing" : "❓ confirm manually";
+        lines.push(`- ${mark} — ${m.label}${m.basis === "submission-requirement" ? " _(funder requirement)_" : ""}`);
+      }
+      lines.push(`\n## requirements — ${q.requirements.total} extracted`);
+      lines.push(Object.entries(q.requirements.by_kind).map(([k, n]) => `${k}: ${n}`).join(" · ") || "_none extracted_");
+      if (q.requirements.unapproved_required_deliverables > 0) lines.push(`⚠️ ${q.requirements.unapproved_required_deliverables} required deliverable(s) not yet approved`);
+      lines.push("\n## CVs (canonical roster)");
+      if (!q.cvs.length) lines.push("_no CVs in collective_cv_");
+      for (const c of q.cvs) lines.push(`- ${c.current ? "🟢 current" : "🔴 stale"} — ${c.name}${c.last_verified_at ? ` (verified ${c.last_verified_at.slice(0, 10)})` : " (never verified)"}`);
+      lines.push(`\n## readiness: ${q.readiness.ready ? "✅ ready" : `⚠️ ${q.readiness.reason}`}`);
+      lines.push(QC_RECIPE);
+      return { content: [{ type: "text", text: lines.join("\n") }] };
+    }
+
+    if (name === "biz_request_review") {
+      const d = await apiFetch("/api/biz/notify-review", {
+        method: "POST",
+        body: JSON.stringify({
+          rfp_id: args.rfp_id || undefined, name: args.name, summary: args.summary,
+          due_date: args.due_date || undefined, due_local: args.due_local || undefined,
+          review_url: args.review_url || undefined, reviewers: args.reviewers || undefined,
+        }),
+      });
+      const failed = (d.failed || []).length ? ` · failed: ${d.failed.join(", ")}` : "";
+      return { content: [{ type: "text", text: `review request DM'd to ${(d.sent || []).join(", ") || "no one"}${failed}` }] };
     }
 
     return { content: [{ type: "text", text: `unknown tool: ${name}` }], isError: true };

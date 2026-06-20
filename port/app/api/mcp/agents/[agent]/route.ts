@@ -435,7 +435,52 @@ const BIZ_TOOLS: ToolDef[] = [
       required: ["key", "value", "updated_by"],
     },
   },
+  {
+    name: "biz_qc_review",
+    description:
+      "Run a QC review on a drafted bid (a 'version two' second look). Returns the structured QC inputs for the opportunity — materials checklist, requirements, CV roster + currency, submission logistics (due date + timezone, TOR, channel) — plus a gate-by-gate recipe to execute. Use after the RFP Lighthouse has drafted a bundle, before it goes to Garrett + Maria. Pass the rfp_id (rfp_opportunities.notion_page_id). After running the gates and producing the report (and regenerating a v2 locally if needed), log the verdict with biz_log_decision and, when review-ready, call biz_request_review.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        rfp_id: { ...STR, description: "rfp_opportunities.notion_page_id of the bid to QC" },
+      },
+      required: ["rfp_id"],
+    },
+  },
+  {
+    name: "biz_request_review",
+    description:
+      "DM Garrett + Maria (the default reviewers) on Slack that a bid is review-ready, so they can get eyes on it in time. Call once a QC pass is done and the bundle is ready for human review. Translate the deadline into Pacific time in due_local so the real cutoff is obvious.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        rfp_id: { ...STR, description: "rfp_opportunities.notion_page_id (optional, for logging)" },
+        name: { ...STR, description: "Opportunity name" },
+        summary: { ...STR, description: "1–3 line summary: fit, what's ready, any open flags from QC" },
+        due_date: { ...STR, description: "Bid due date YYYY-MM-DD (optional)" },
+        due_local: { ...STR, description: "Deadline phrased across timezones, e.g. '28 Jun 17:00 EAT = 07:00 PT' (optional, preferred)" },
+        review_url: { ...STR, description: "Link to the drafted bundle / Notion doc (optional)" },
+        reviewers: { ...STR_ARR, description: "Override reviewer emails (optional; defaults to Garrett + Maria)" },
+      },
+      required: ["name", "summary"],
+    },
+  },
 ];
+
+// the gate-by-gate recipe the Cowork agent executes after biz_qc_review returns the facts
+const QC_RECIPE = [
+  "",
+  "---",
+  "## run the QC gates (your second look → version two)",
+  "1. **materials completeness** — every baseline doc present? every submission-requirement (forms, registrations) confirmed? flag anything missing or unconfirmed.",
+  "2. **CV quality vs the canonical flow** — the named team (Garrett, Lamis, Maria always; Payton substantive; James if curriculum-heavy) must be in the bundle's CVs. check the roster above for who's current vs stale. pull the bundle's CVs and flag any copy-pasted / identical experience entries across members — each CV must be role-specific and differentiated.",
+  "3. **consistency / conflict** — pull the drafted bundle locally and run the `align-narrative-across-deliverables` skill. also cross-check the deal-page facts (name, value, geography, due date) against the bundle and the TOR snapshot. flag contradictions (e.g. '60 countries' vs 'Asia-Pacific', '8 weeks' vs '7 months').",
+  "4. **submission logistics** — confirm the due date + funder timezone, translate it to Pacific so the real cutoff is explicit, confirm the submission channel (portal vs email) from the opportunity/TOR links, and confirm the materials checklist is complete. portal-registration status is a manual confirm for now.",
+  "5. **quality** — check each section against w.v's minimums + specificity; use `inject-evidence-from-port` to strengthen thin or generic sections.",
+  "6. **go/no-go** — synthesise a verdict (go · fix-then-go · no-go) with a short rationale. log it with `biz_log_decision` (category 'qc' or 'go-no-go').",
+  "",
+  "then: produce a concise QC report (gate-by-gate, with concrete fixes). if fixes are substantive, regenerate a **v2 bundle locally** (use `rfp-proposal-from-tor` / targeted edits) — do NOT write to Notion. when it's review-ready, call `biz_request_review` to DM Garrett + Maria with the deadline translated across timezones.",
+].join("\n");
 
 async function callBiz(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
   if (name === "biz_briefing") {
@@ -498,6 +543,49 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
   if (name === "biz_update_memory") {
     const d = (await apiFetch("/api/biz/memory", token, { method: "POST", body: JSON.stringify({ key: a.key, value: a.value, updated_by: a.updated_by }) })) as { key: string };
     return { text: `memory updated: ${d.key}` };
+  }
+  if (name === "biz_qc_review") {
+    if (!a.rfp_id) return { text: "rfp_id is required", isError: true };
+    const q = (await apiFetch(`/api/biz/qc/${encodeURIComponent(String(a.rfp_id))}`, token)) as {
+      opportunity: { name: string; status: string; type: string; fit: string; estimated_value: number | null; due_date: string | null; deadline_timezone: string | null; opportunity_url: string | null; rfp_document_url: string | null; tor_snapshot: string | null };
+      materials_checklist: Array<{ label: string; present: boolean | null; basis: string }>;
+      requirements: { total: number; by_kind: Record<string, number>; unapproved_required_deliverables: number };
+      readiness: { ready: boolean; reason: string | null };
+      cvs: Array<{ name: string; current: boolean; last_verified_at: string | null }>;
+    };
+    const o = q.opportunity;
+    const lines: string[] = [];
+    lines.push(`# QC review — ${o.name}`);
+    lines.push(`${o.type} · ${o.status} · fit: ${o.fit}${o.estimated_value ? ` · $${Math.round(o.estimated_value).toLocaleString("en-US")}` : ""}`);
+    lines.push(`due: ${o.due_date ?? "—"}${o.deadline_timezone ? ` (${o.deadline_timezone})` : " (timezone not set — confirm)"}`);
+    if (o.rfp_document_url) lines.push(`TOR: ${o.rfp_document_url}`);
+    if (o.opportunity_url) lines.push(`source: ${o.opportunity_url}`);
+    lines.push("");
+    lines.push("## materials checklist");
+    for (const m of q.materials_checklist) {
+      const mark = m.present === true ? "✅" : m.present === false ? "❌ missing" : "❓ confirm manually";
+      lines.push(`- ${mark} — ${m.label}${m.basis === "submission-requirement" ? " _(funder requirement)_" : ""}`);
+    }
+    lines.push("");
+    lines.push(`## requirements — ${q.requirements.total} extracted`);
+    lines.push(Object.entries(q.requirements.by_kind).map(([k, n]) => `${k}: ${n}`).join(" · ") || "_none extracted_");
+    if (q.requirements.unapproved_required_deliverables > 0) lines.push(`⚠️ ${q.requirements.unapproved_required_deliverables} required deliverable(s) not yet approved`);
+    lines.push("");
+    lines.push("## CVs (canonical roster)");
+    if (!q.cvs.length) lines.push("_no CVs in collective_cv_");
+    for (const c of q.cvs) lines.push(`- ${c.current ? "🟢 current" : "🔴 stale"} — ${c.name}${c.last_verified_at ? ` (verified ${c.last_verified_at.slice(0, 10)})` : " (never verified)"}`);
+    lines.push("");
+    lines.push(`## readiness: ${q.readiness.ready ? "✅ ready" : `⚠️ ${q.readiness.reason}`}`);
+    lines.push(QC_RECIPE);
+    return { text: lines.join("\n") };
+  }
+  if (name === "biz_request_review") {
+    const d = (await apiFetch("/api/biz/notify-review", token, {
+      method: "POST",
+      body: JSON.stringify({ rfp_id: a.rfp_id || undefined, name: a.name, summary: a.summary, due_date: a.due_date || undefined, due_local: a.due_local || undefined, review_url: a.review_url || undefined, reviewers: a.reviewers || undefined }),
+    })) as { sent: string[]; failed: string[] };
+    const failed = d.failed.length ? ` · failed: ${d.failed.join(", ")}` : "";
+    return { text: `review request DM'd to ${d.sent.join(", ") || "no one"}${failed}` };
   }
   return { text: `unknown tool: ${name}`, isError: true };
 }

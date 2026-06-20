@@ -130,10 +130,13 @@ For complex relationships (theory of change, phased approach, transfer rate comp
 ## Gaps and missing info
 For each item in missingInfo, include a suggested assignee and a short action: e.g., "No budget range provided — Garrett should contact the client before finalising."
 
+## Required submission set — be exhaustive
+Read the RFP/requirements for the COMPLETE set of documents the funder requires at submission — not just the technical proposal. The standard w.v bundle is: cover letter, technical proposal, financial proposal, and team CVs (plus an expression of interest for EOI/grant submissions). If the brief requires anything beyond this — a specific funder form or template, a past-performance / similar-assignments table, a methodology annex, registration or eligibility certificates, signed declarations, a capacity statement, references, or a portal-specific document — name each one explicitly in missingInfo with an assignee and action, so nothing required is missed. Do not assume the standard bundle is complete; verify it against the brief.
+
 ## Cover letters and CVs
 - Set requiresCoverLetter to true if: the RFP/requirements explicitly ask for a cover letter, letter of interest, expression of interest, or transmittal letter — OR if this is a grant/EOI type submission where a cover letter is standard practice.
 - If requiresCoverLetter is true, write the full cover letter in the coverLetter field. Format: [Date], [Recipient name if known / "Procurement Committee"], [Organisation], Re: [RFP title/reference]. 4 paragraphs: (1) who we are and why we are submitting, (2) our understanding of the work and fit, (3) the team and our confidence in delivering, (4) next steps / contact. Sign off as Garrett Jaeger, Principal, winded.vertigo.
-- Set teamMembersForCvs to an array of first names of team members who should have CVs included (e.g., ["Garrett", "Lamis"]). Set to [] if CVs are not required.
+- Set teamMembersForCvs to an array of first names of team members who should have CVs included (e.g., ["Garrett", "Lamis"]). Set to [] if CVs are not required. Each named member's CV and relevantExperience must be role-specific and differentiated for THIS engagement — never the same boilerplate experience entries copied across people. Draw each person's distinct, relevant background; if two members would otherwise show identical experience, sharpen each to their actual contribution.
 
 Output ONLY valid JSON matching this schema (no prose outside the JSON):
 {
