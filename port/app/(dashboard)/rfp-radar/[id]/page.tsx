@@ -12,6 +12,8 @@ import { deadlineAsPT } from "@/lib/format";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { getCoverageByRfp, type RfpCoverageRow } from "@/lib/supabase/rfp-requirements";
+import { getPortalRegistrations } from "@/lib/supabase/rfp-portal-registrations";
+import { RfpPortalTracker } from "@/app/components/rfp-portal-tracker";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -147,6 +149,9 @@ export default async function RfpDetailPage({ params }: Props) {
   } catch {
     // Non-fatal: matrix simply won't render
   }
+
+  // Portal registrations — silently skip if table not yet migrated
+  const portalRegistrations = await getPortalRegistrations(id).catch(() => []);
 
   const deadlineDays = daysUntil(rfp.dueDate?.start);
   const deadlineUrgent = deadlineDays !== null && deadlineDays >= 0 && deadlineDays <= 7;
@@ -560,6 +565,9 @@ export default async function RfpDetailPage({ params }: Props) {
               )}
             </CardContent>
           </Card>
+
+          {/* portal registrations — gates the bid on UNGM/UNICEF registration */}
+          <RfpPortalTracker rfpId={id} registrations={portalRegistrations} />
 
           {/* metadata */}
           <Card>
