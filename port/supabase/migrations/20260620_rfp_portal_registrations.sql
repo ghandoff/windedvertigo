@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS rfp_portal_registrations (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT rfp_portal_registrations_status_check
-    CHECK (status IN ('registered', 'pending', 'blocked', 'not-required'))
+    CHECK (status IN ('registered', 'pending', 'blocked', 'not-required')),
+  UNIQUE (rfp_id, portal_name)
 );
 
 CREATE INDEX IF NOT EXISTS idx_rfp_portal_registrations_rfp_id
