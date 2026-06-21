@@ -10,6 +10,8 @@ import { NextRequest } from "next/server";
 import { json, error } from "@/lib/api-helpers";
 import { sendDmByEmail } from "@/lib/slack";
 import { createBizDecision } from "@/lib/biz-data";
+import { insertPamCommitment } from "@/lib/supabase/pam";
+import { setProposalReviewStage } from "@/lib/supabase/rfp-opportunities";
 
 const DEFAULT_REVIEWERS = (process.env.BIZ_REVIEW_EMAILS ?? "garrett@windedvertigo.com,maria@windedvertigo.com")
   .split(",").map((e) => e.trim()).filter(Boolean);
@@ -44,6 +46,28 @@ export async function POST(req: NextRequest) {
     (ok ? sent : failed).push(email);
   }
 
+  // advance proposal stage to human-review (best-effort)
+  if (body.rfp_id) {
+    setProposalReviewStage(body.rfp_id, "human-review", "biz", {
+      action: "advance",
+      stageFrom: "biz-review",
+    }).catch(() => {});
+  }
+
+  // create PaM commitments for each reviewer so it lands on their board
+  const commitmentIds: string[] = [];
+  if (body.rfp_id) {
+    for (const email of sent) {
+      const commitment = await insertPamCommitment({
+        who: email,
+        what: `review ${body.name} proposal draft`,
+        due_date: body.due_date ?? undefined,
+        source: "biz:notify-review",
+      }).catch(() => null);
+      if (commitment) commitmentIds.push(commitment.id);
+    }
+  }
+
   // log the hand-off (best-effort)
   await createBizDecision({
     decision: `requested review of "${body.name}"`,
@@ -53,5 +77,5 @@ export async function POST(req: NextRequest) {
     logged_by: "biz",
   }).catch(() => {});
 
-  return json({ sent, failed, reviewers }, sent.length ? 200 : 207);
+  return json({ sent, failed, reviewers, commitment_ids: commitmentIds }, sent.length ? 200 : 207);
 }
