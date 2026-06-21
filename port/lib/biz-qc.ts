@@ -8,6 +8,75 @@
 import { getRfpOpportunityByIdFromSupabase } from "./supabase/rfp-opportunities";
 import { getRequirementsByRfp, isRfpReadyForGeneration, type RequirementKind } from "./supabase/rfp-requirements";
 import { getAllCvs } from "./supabase/cv";
+import { TEAM_BIOS } from "./ai/proposal-generator";
+
+// ── CV de-duplication ─────────────────────────────────────────────────────────
+
+export interface CvDedupMatch {
+  person1: string;
+  person2: string;
+  sharedText: string; // the overlapping sentence/phrase
+}
+
+export interface CvDedupResult {
+  hasDuplicates: boolean;
+  duplicates: CvDedupMatch[];
+}
+
+/**
+ * Splits a bio into sentences: splits on ". " boundaries and keeps only
+ * sentences longer than `minLen` characters (default 80) to avoid matching
+ * short boilerplate phrases that are legitimately shared.
+ */
+function sentences(bio: string, minLen = 80): string[] {
+  return bio
+    .split(/\.\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= minLen);
+}
+
+/**
+ * Checks the bios of the given team members (first-name keys into TEAM_BIOS)
+ * for sentences longer than 80 chars that appear verbatim in more than one
+ * bio. Returns a structured result the QC agent can include in its report.
+ *
+ * Comparison is case-insensitive and strips trailing punctuation so that
+ * "She is fluent in Spanish." and "She is fluent in Spanish" both match.
+ */
+export function checkCvDedup(memberFirstNames: string[]): CvDedupResult {
+  const duplicates: CvDedupMatch[] = [];
+
+  // Build a normalised sentence → [person] map
+  const sentenceOwners = new Map<string, string[]>();
+  for (const name of memberFirstNames) {
+    const bio = TEAM_BIOS[name];
+    if (!bio) continue;
+    for (const s of sentences(bio)) {
+      const key = s.toLowerCase().replace(/[.!?]+$/, "").trim();
+      if (!sentenceOwners.has(key)) sentenceOwners.set(key, []);
+      sentenceOwners.get(key)!.push(name);
+    }
+  }
+
+  // Any sentence owned by >1 person is a duplicate
+  for (const [key, owners] of sentenceOwners) {
+    if (owners.length < 2) continue;
+    // Emit one entry per unique pair
+    for (let i = 0; i < owners.length; i++) {
+      for (let j = i + 1; j < owners.length; j++) {
+        duplicates.push({
+          person1: owners[i],
+          person2: owners[j],
+          sharedText: key,
+        });
+      }
+    }
+  }
+
+  return { hasDuplicates: duplicates.length > 0, duplicates };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface QcMaterial {
   label: string;
@@ -42,6 +111,7 @@ export interface QcInputs {
   };
   readiness: { ready: boolean; reason: string | null };
   cvs: Array<{ name: string; email: string; current: boolean; last_verified_at: string | null }>;
+  cv_dedup: CvDedupResult;
 }
 
 const EOI_TYPES = new Set(["EOI", "Grant"]);
@@ -87,6 +157,11 @@ export async function getQcInputs(rfpId: string): Promise<QcInputs | null> {
     return { name: c.memberName, email: c.memberEmail, current, last_verified_at: c.lastVerifiedAt };
   });
 
+  // ── CV de-duplication — run against the full canonical team
+  // (TEAM_BIOS keys are the five standard members; shared sentences > 80 chars
+  // would be a copy-paste error that undermines Maria's credibility concern)
+  const cvDedup = checkCvDedup(Object.keys(TEAM_BIOS));
+
   return {
     rfp_id: rfpId,
     opportunity: {
@@ -121,5 +196,6 @@ export async function getQcInputs(rfpId: string): Promise<QcInputs | null> {
     },
     readiness: { ready: readiness.ready, reason: readiness.reason },
     cvs: cvRoster,
+    cv_dedup: cvDedup,
   };
 }
