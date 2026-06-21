@@ -14,6 +14,7 @@
 import {
   Activity,
   Users,
+  Users2,
   FolderKanban,
   Megaphone,
   Target,
@@ -86,6 +87,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "biz", href: "/biz", icon: Briefcase, badge: "agent" },
       { label: "pipeline", href: "/opportunities", icon: Target },
+      { label: "partners", href: "/partners", icon: Users2 },
       { label: "contacts", href: "/contacts", icon: Users },
     ],
   },
