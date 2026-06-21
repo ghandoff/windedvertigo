@@ -17,7 +17,7 @@ import { fetchFeed } from "@/lib/rfp/rss-parser";
 import { getAllFeeds } from "@/lib/rfp/feed-sources";
 import { updateRfpFeedSource } from "@/lib/notion/rfp-feeds";
 import { ingestOpportunity } from "@/lib/ai/rfp-ingest";
-import { notifyNewRfps, type NewRfpItem } from "@/lib/rfp/notify";
+import { notifyNewRfps, notifyHighFitRfpNow, type NewRfpItem } from "@/lib/rfp/notify";
 import { json, error } from "@/lib/api-helpers";
 
 export const maxDuration = 300;
@@ -98,6 +98,16 @@ async function runPoll() {
             torStatus: outcome.torStatus,
             torUrl: outcome.torUrl,
           });
+          if (outcome.fitScore === "high fit") {
+            notifyHighFitRfpNow({
+              notionPageId: outcome.id,
+              name: outcome.triage.opportunityName,
+              dueDate: outcome.triage.dueDate,
+              estimatedValue: outcome.triage.estimatedValue,
+              url: outcome.url,
+              requirementsSnapshot: outcome.triage.requirementsSnapshot,
+            }).catch(() => {});
+          }
         } else {
           feedResult.skipped++;
           result.skipped++;
