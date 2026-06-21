@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Clock,
   Play,
@@ -13,6 +14,7 @@ import {
   NotebookPen,
   Mic,
   Loader2,
+  HelpCircle,
 } from "lucide-react";
 import {
   Popover,
@@ -51,6 +53,13 @@ import { cn } from "@/lib/utils";
 export function TopBarTools({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-2">
+      <Link
+        href="/docent"
+        className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+        title="guide"
+      >
+        <HelpCircle className="h-4 w-4" aria-hidden="true" />
+      </Link>
       <TimerButton compact={compact} />
       <AddMenu compact={compact} />
     </div>

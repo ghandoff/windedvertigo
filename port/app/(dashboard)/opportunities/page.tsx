@@ -3,6 +3,12 @@ import Link from "next/link";
 import { getDealsFromSupabase } from "@/lib/supabase/deals";
 import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { getRfpOpportunitiesFromSupabase, getRfpOpportunityByIdFromSupabase, getPortfolioStats } from "@/lib/supabase/rfp-opportunities";
+import {
+  getPartners,
+  type RfpPartner,
+  type PartnerType,
+  type PartnerRelationship,
+} from "@/lib/supabase/rfp-partners";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
@@ -11,8 +17,10 @@ import { DealKanban } from "@/app/components/deal-kanban";
 import { RfpKanban } from "@/app/components/rfp-kanban";
 import { SyncFeedsButton } from "@/app/components/sync-feeds-button";
 import { RfpHowItWorks } from "@/app/components/rfp-how-it-works";
+import { EmptyState } from "@/app/components/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Users2 } from "lucide-react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -25,6 +33,7 @@ export const revalidate = 300;
 const TABS: TabDef[] = [
   { key: "rfps", label: "RFP lighthouse" },
   { key: "deals", label: "deals" },
+  { key: "partners", label: "partners" },
 ];
 
 const RFP_TYPE_OPTIONS = [
@@ -272,6 +281,115 @@ async function RfpBoard({ searchParams }: BoardProps) {
   );
 }
 
+// ── partners tab ─────────────────────────────────────────────
+
+const PARTNER_RELATIONSHIP_STYLES: Record<PartnerRelationship, string> = {
+  known:       "border-border text-muted-foreground",
+  nda_signed:  "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+  ta_on_file:  "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800",
+  active_sub:  "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800",
+};
+
+const PARTNER_RELATIONSHIP_LABELS: Record<PartnerRelationship, string> = {
+  known:      "known",
+  nda_signed: "NDA signed",
+  ta_on_file: "TA on file",
+  active_sub: "active sub",
+};
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  "Kenya": "🇰🇪", "Uganda": "🇺🇬", "Tanzania": "🇹🇿", "Ethiopia": "🇪🇹",
+  "Rwanda": "🇷🇼", "Ghana": "🇬🇭", "Nigeria": "🇳🇬", "Senegal": "🇸🇳",
+  "Cameroon": "🇨🇲", "Côte d'Ivoire": "🇨🇮", "Malawi": "🇲🇼",
+  "Zambia": "🇿🇲", "Zimbabwe": "🇿🇼", "Mozambique": "🇲🇿",
+  "South Africa": "🇿🇦", "Egypt": "🇪🇬", "Morocco": "🇲🇦",
+  "Jordan": "🇯🇴", "Lebanon": "🇱🇧", "India": "🇮🇳", "Nepal": "🇳🇵",
+  "Bangladesh": "🇧🇩", "Philippines": "🇵🇭", "Indonesia": "🇮🇩",
+  "Vietnam": "🇻🇳", "Canada": "🇨🇦", "United States": "🇺🇸",
+  "United Kingdom": "🇬🇧", "Germany": "🇩🇪", "France": "🇫🇷",
+  "Netherlands": "🇳🇱", "Sweden": "🇸🇪", "Norway": "🇳🇴",
+  "Denmark": "🇩🇰", "Australia": "🇦🇺",
+};
+
+function PartnerCard({ partner }: { partner: RfpPartner }) {
+  const flag = COUNTRY_FLAGS[partner.country ?? ""] ?? null;
+  return (
+    <div className="rounded-lg border bg-card p-4 flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="font-medium text-sm leading-tight">{partner.name}</p>
+          {partner.country && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {flag ? `${flag} ` : ""}{partner.country}
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1 shrink-0">
+          <Badge variant="outline" className="text-xs capitalize">{partner.type}</Badge>
+          <span
+            className={`inline-flex items-center rounded-4xl border px-2 py-0.5 text-xs font-medium ${PARTNER_RELATIONSHIP_STYLES[partner.relationship]}`}
+          >
+            {PARTNER_RELATIONSHIP_LABELS[partner.relationship]}
+          </span>
+        </div>
+      </div>
+      {partner.capabilities && partner.capabilities.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {partner.capabilities.map((cap) => (
+            <span key={cap} className="inline-flex items-center rounded-4xl border border-border px-2 py-0.5 text-xs text-muted-foreground">
+              {cap}
+            </span>
+          ))}
+        </div>
+      )}
+      {(partner.contactName || partner.contactEmail) && (
+        <div className="text-xs text-muted-foreground border-t pt-2 mt-auto">
+          {partner.contactName && <span>{partner.contactName}</span>}
+          {partner.contactName && partner.contactEmail && " · "}
+          {partner.contactEmail && (
+            <a href={`mailto:${partner.contactEmail}`} className="text-accent hover:underline">
+              {partner.contactEmail}
+            </a>
+          )}
+        </div>
+      )}
+      {partner.notes && (
+        <p className="text-xs text-muted-foreground leading-relaxed border-t pt-2 line-clamp-2">
+          {partner.notes}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const PARTNER_TYPE_OPTIONS    = ["local", "international", "academic", "government"] as const;
+const PARTNER_REL_OPTIONS     = ["known", "nda_signed", "ta_on_file", "active_sub"] as const;
+
+async function PartnersContent({ type, relationship }: { type?: string; relationship?: string }) {
+  const partners = await getPartners({
+    type:         type as PartnerType | undefined,
+    relationship: relationship as PartnerRelationship | undefined,
+  }).catch((): RfpPartner[] => []);
+
+  if (partners.length === 0) {
+    return (
+      <EmptyState
+        icon={Users2}
+        title="no partners added yet"
+        description="add your first teaming partner to start building the database."
+      />
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {partners.map((p) => (
+        <PartnerCard key={p.id} partner={p} />
+      ))}
+    </div>
+  );
+}
+
 // ── main page ────────────────────────────────────────────────
 
 interface Props {
@@ -336,6 +454,26 @@ export default async function OpportunitiesPage(props: Props) {
           <RfpHowItWorks />
           <Suspense fallback={<><StatsStripSkeleton /><KanbanSkeleton columnCount={5} /></>}>
             <RfpBoard searchParams={props.searchParams} />
+          </Suspense>
+        </>
+      )}
+
+      {activeTab === "partners" && (
+        <>
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <Suspense>
+              <FilterSelect paramKey="type" placeholder="type" options={PARTNER_TYPE_OPTIONS} />
+              <FilterSelect paramKey="relationship" placeholder="relationship" options={PARTNER_REL_OPTIONS} />
+            </Suspense>
+          </div>
+          <Suspense fallback={
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="rounded-lg border bg-card p-4 h-36 animate-pulse" />
+              ))}
+            </div>
+          }>
+            <PartnersContent type={params.type} relationship={params.relationship} />
           </Suspense>
         </>
       )}

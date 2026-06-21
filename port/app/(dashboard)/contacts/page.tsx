@@ -6,18 +6,23 @@ import { PageHeader } from "@/app/components/page-header";
 import { ContactPipeline } from "@/app/components/contact-pipeline";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
+import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { KanbanSkeleton, TableSkeleton } from "@/app/components/skeletons";
 import { EmptyState } from "@/app/components/empty-state";
-import { Building2, Users } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
+import { OrgsTabFilters, OrgsTabActions, OrgsTabContent } from "./orgs-tab";
 
 export const revalidate = 300;
+
+const TABS: TabDef[] = [
+  { key: "pipeline", label: "pipeline" },
+  { key: "all", label: "all contacts" },
+  { key: "orgs", label: "organisations" },
+];
 
 const WARMTH_COLORS: Record<string, string> = {
   cold: "bg-blue-400",
@@ -139,44 +144,53 @@ async function PipelineView() {
 }
 
 export default async function ContactsPage(props: Props) {
+  const params = await props.searchParams;
+  const activeTab = TABS.some((t) => t.key === params.tab) ? params.tab! : "pipeline";
+
   return (
     <>
       <PageHeader
         title="contacts"
         description="people linked to organizations in the pipeline"
       >
-        <Link href="/organizations">
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Building2 className="h-3.5 w-3.5" />
-            organisations
-          </Button>
-        </Link>
-        <NewContactDialog />
+        {activeTab === "orgs" ? <OrgsTabActions /> : <NewContactDialog />}
       </PageHeader>
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <Suspense>
-          <SearchInput placeholder="search contacts..." />
-          <FilterSelect paramKey="contactType" placeholder="type" options={TYPE_OPTIONS} />
-          <FilterSelect paramKey="contactWarmth" placeholder="warmth" options={WARMTH_OPTIONS} />
-          <FilterSelect paramKey="relationshipStage" placeholder="stage" options={STAGE_OPTIONS} />
+
+      <Suspense>
+        <UrlTabs tabs={TABS} activeTab={activeTab} />
+      </Suspense>
+
+      {/* ── pipeline tab ──────────────────────────────────────── */}
+      {activeTab === "pipeline" && (
+        <Suspense fallback={<KanbanSkeleton columnCount={6} />}>
+          <PipelineView />
         </Suspense>
-      </div>
-      <Tabs defaultValue="pipeline">
-        <TabsList className="mb-4">
-          <TabsTrigger value="pipeline">pipeline</TabsTrigger>
-          <TabsTrigger value="all">all contacts</TabsTrigger>
-        </TabsList>
-        <TabsContent value="pipeline">
-          <Suspense fallback={<KanbanSkeleton columnCount={6} />}>
-            <PipelineView />
-          </Suspense>
-        </TabsContent>
-        <TabsContent value="all">
+      )}
+
+      {/* ── all contacts tab ──────────────────────────────────── */}
+      {activeTab === "all" && (
+        <>
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            <Suspense>
+              <SearchInput placeholder="search contacts..." />
+              <FilterSelect paramKey="contactType" placeholder="type" options={TYPE_OPTIONS} />
+              <FilterSelect paramKey="contactWarmth" placeholder="warmth" options={WARMTH_OPTIONS} />
+              <FilterSelect paramKey="relationshipStage" placeholder="stage" options={STAGE_OPTIONS} />
+            </Suspense>
+          </div>
           <Suspense fallback={<TableSkeleton columnCount={7} />}>
             <ContactsTable searchParams={props.searchParams} />
           </Suspense>
-        </TabsContent>
-      </Tabs>
+        </>
+      )}
+
+      {/* ── orgs tab ──────────────────────────────────────────── */}
+      {activeTab === "orgs" && (
+        <>
+          <OrgsTabFilters />
+          <OrgsTabContent searchParams={props.searchParams} />
+        </>
+      )}
     </>
   );
 }

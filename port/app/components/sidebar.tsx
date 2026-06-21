@@ -19,6 +19,7 @@ const OWNER_EMAIL = "garrett@windedvertigo.com";
 
 function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   const isActive = isNavItemActive(item.href, pathname);
+  const isAgent = item.badge === "agent";
   return (
     <Link
       href={item.href}
@@ -26,14 +27,16 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
         "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
         isActive
           ? "bg-white/15 text-white"
-          : "text-white/70 hover:bg-white/10 hover:text-white"
+          : isAgent
+            ? "text-white hover:bg-white/15 border-l-2 border-emerald-500/50"
+            : "text-white/70 hover:bg-white/10 hover:text-white"
       )}
     >
       <item.icon className="h-4 w-4 shrink-0" />
       <span className="flex-1">{item.label}</span>
-      {item.badge === "agent" && (
+      {isAgent && (
         <span
-          className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 shrink-0"
+          className="h-2 w-2 rounded-full bg-emerald-400 ring-1 ring-emerald-400/30 shrink-0"
           title="agent"
           aria-label="agent"
         />

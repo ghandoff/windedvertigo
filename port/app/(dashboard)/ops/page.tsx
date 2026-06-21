@@ -6,7 +6,8 @@
  * is enforced by the (dashboard) layout.
  */
 
-import { Activity } from "lucide-react";
+import { Activity, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/app/components/page-header";
 import { buildHealthRollup, getSparklineSeries, type HealthRollup, type Light } from "@/lib/opsy/rollup";
 import { SERVICES } from "@/lib/opsy/services";
@@ -296,16 +297,20 @@ export default async function OpsPage() {
             <div className="space-y-2 px-4 py-3 text-xs text-muted-foreground">
               <p>
                 opsy AI spend this month:{" "}
-                <span className="font-medium text-foreground">${opsyAiCost.toFixed(2)}</span>{" "}
-                <a href="/ai-hub" className="underline underline-offset-2 hover:text-foreground">
-                  full economics on the ai hub
-                </a>
+                <span className="font-medium text-foreground">${opsyAiCost.toFixed(2)}</span>
               </p>
               <p>
                 infrastructure spend (cloudflare, vercel, supabase): awaiting billing credentials — unlocks
                 with <code className="text-[10px]">CLOUDFLARE_API_TOKEN</code> /{" "}
                 <code className="text-[10px]">VERCEL_API_TOKEN</code> in phase 2.5.
               </p>
+              <Link
+                href="/ai-hub"
+                className="flex items-center gap-2 text-sm font-medium p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors mt-3 text-foreground"
+              >
+                <Sparkles className="h-4 w-4 text-violet-500" />
+                open AI hub
+              </Link>
             </div>
           </div>
 

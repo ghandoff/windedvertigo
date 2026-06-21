@@ -3,6 +3,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { getBdAssetsFromSupabase } from "@/lib/supabase/bd-assets";
+import {
+  listComposeDrafts,
+  CHANNEL_LABELS,
+  CHANNEL_CHAR_LIMITS,
+} from "@/lib/supabase/compose-drafts";
 import type { BdAsset } from "@/lib/notion/types";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
@@ -18,8 +23,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, PenLine, ExternalLink, FolderOpen } from "lucide-react";
+import { Plus, PenLine, ExternalLink, FolderOpen, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NewDraftForm } from "../compose/new-draft-form";
 
 export const revalidate = 300;
 
@@ -27,8 +33,8 @@ const TABS: TabDef[] = [
   { key: "campaigns", label: "campaigns" },
   { key: "email", label: "email" },
   { key: "assets", label: "assets" },
+  { key: "drafts", label: "drafts" },
   // events tab moved to /events (Phase 10 migration)
-  // social tab removed — drafts exist but workflow not in active use
 ];
 
 const CAMPAIGN_TYPE_OPTIONS = ["event-based", "recurring cadence", "one-off blast"] as const;
@@ -171,6 +177,75 @@ async function AssetsContent() {
   );
 }
 
+// ── drafts content ───────────────────────────────────────────
+
+const DRAFT_STATUS_CLASS: Record<string, string> = {
+  draft:     "text-muted-foreground bg-muted/20",
+  scheduled: "text-[#5872cb] bg-[#5872cb]/10",
+  published: "text-[#43b187] bg-[#43b187]/10",
+  failed:    "text-[#b15043] bg-[#b15043]/10",
+};
+
+function formatDraftDate(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+async function DraftsContent() {
+  const drafts = await listComposeDrafts({ limit: 100 });
+
+  return (
+    <div className="space-y-6">
+      <NewDraftForm />
+      {drafts.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+            no drafts yet. pick a channel above to start your first.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {drafts.map((d) => (
+            <Card key={d.id} className="hover:border-[#cb7858] transition-colors">
+              <CardContent className="py-3">
+                <Link href={`/compose/${d.id}`} className="flex items-start gap-3">
+                  <div className="shrink-0 mt-0.5">
+                    <Send className="h-4 w-4 text-[#5872cb]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${DRAFT_STATUS_CLASS[d.status] ?? ""}`}>
+                        {d.status}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {CHANNEL_LABELS[d.channel]} · updated {formatDraftDate(d.updatedAt)} · {d.authorEmail}
+                      </span>
+                    </div>
+                    {d.title && (
+                      <p className="text-sm text-[#273248] mt-1">{d.title}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                      {d.contentText.slice(0, 200) || <span className="italic opacity-60">(empty)</span>}
+                    </p>
+                    {CHANNEL_CHAR_LIMITS[d.channel] !== null && (
+                      <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">
+                        {d.contentText.length} / {CHANNEL_CHAR_LIMITS[d.channel]} chars
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── main page ────────────────────────────────────────────────
 
 interface Props {
@@ -195,6 +270,7 @@ export default async function CampaignsPage(props: Props) {
     campaigns: "plan, schedule, and execute multi-step outreach campaigns",
     email: "compose and send outreach emails with pre-written bespoke copy",
     assets: "case studies, decks, tools, and templates for business development",
+    drafts: "draft posts across LinkedIn · Bluesky · Substack · Meta · email",
   };
 
   return (
@@ -277,6 +353,19 @@ export default async function CampaignsPage(props: Props) {
       {activeTab === "assets" && (
         <Suspense fallback={<CardGridSkeleton />}>
           <AssetsContent />
+        </Suspense>
+      )}
+
+      {/* ── drafts tab ─────────────────────────────────────── */}
+      {activeTab === "drafts" && (
+        <Suspense fallback={
+          <div className="space-y-2">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+            ))}
+          </div>
+        }>
+          <DraftsContent />
         </Suspense>
       )}
     </>
