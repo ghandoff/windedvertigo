@@ -11,7 +11,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/app/components/page-header";
 import { supabase } from "@/lib/supabase/client";
-import { ProposalReviewActions } from "@/app/components/proposal-review-actions";
+import { ProposalReviewActionsClient as ProposalReviewActions } from "@/app/components/proposal-review-actions-client";
 
 export const metadata: Metadata = { robots: "noindex" };
 export const dynamic = "force-dynamic";
