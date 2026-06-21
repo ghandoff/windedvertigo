@@ -1,16 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Info, X, FileText, ArrowRight, Zap, Mail, Users, Eye } from "lucide-react";
 
+const LS_KEY = "rfp-how-it-works-dismissed";
+
 export function RfpHowItWorks() {
-  const [dismissed, setDismissed] = useState(false);
-  if (dismissed) return null;
+  // null = not yet hydrated (avoids SSR mismatch)
+  const [dismissed, setDismissed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setDismissed(localStorage.getItem(LS_KEY) === "1");
+  }, []);
+
+  function dismiss() {
+    localStorage.setItem(LS_KEY, "1");
+    setDismissed(true);
+  }
+
+  if (dismissed === null) return null;
+
+  if (dismissed) {
+    return (
+      <div className="mb-4">
+        <button
+          onClick={() => setDismissed(false)}
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Info className="h-3 w-3" />
+          how the kanban works →
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50/60 px-4 py-3 text-sm relative">
       <button
-        onClick={() => setDismissed(true)}
+        onClick={dismiss}
         className="absolute top-2.5 right-2.5 text-blue-400 hover:text-blue-600 transition-colors"
         aria-label="dismiss"
       >

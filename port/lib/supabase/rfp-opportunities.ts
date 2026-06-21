@@ -77,7 +77,7 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     relatedProjectIds: row.related_project_ids ?? [],
     ownerIds: row.owner_ids ?? [],
     dueDate: row.due_date ? { start: row.due_date, end: null } : null,
-    estimatedValue: row.estimated_value ?? null,
+    estimatedValue: row.estimated_value != null ? Number(row.estimated_value) : null,
     wvFitScore: (row.wv_fit_score as RfpOpportunity["wvFitScore"]) ?? "TBD",
     serviceMatch: row.service_match
       ? (row.service_match.split(",").map((s) => s.trim()) as RfpOpportunity["serviceMatch"])
@@ -648,11 +648,11 @@ export async function getPortfolioStats(): Promise<PortfolioStats> {
     if (isClosed) totalClosed++;
     if (row.status === "won") {
       wonCount++;
-      totalAwarded += row.estimated_value ?? 0;
+      totalAwarded += row.estimated_value != null ? Number(row.estimated_value) : 0;
     }
 
     // totalAsked = all terminal + submitted
-    totalAsked += row.estimated_value ?? 0;
+    totalAsked += row.estimated_value != null ? Number(row.estimated_value) : 0;
 
     // cycle time: won + lost only (no-go / submitted aren't a real cycle completion)
     if ((row.status === "won" || row.status === "lost") && row.created_time && row.last_edited_time) {
