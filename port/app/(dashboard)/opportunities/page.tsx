@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getDealsFromSupabase } from "@/lib/supabase/deals";
 import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
-import { getRfpOpportunitiesFromSupabase, getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
+import { getRfpOpportunitiesFromSupabase, getRfpOpportunityByIdFromSupabase, getPortfolioStats } from "@/lib/supabase/rfp-opportunities";
 import { PageHeader } from "@/app/components/page-header";
 import { SearchInput } from "@/app/components/search-input";
 import { FilterSelect } from "@/app/components/filter-select";
@@ -121,10 +121,10 @@ async function RfpBoard({ searchParams }: BoardProps) {
   if (params.status) filters.status = params.status;
   if (params.search) filters.search = params.search;
 
-  const { data: rfps } = await getRfpOpportunitiesFromSupabase(
-    filters,
-    { pageSize: 100 },
-  );
+  const [{ data: rfps }, portfolio] = await Promise.all([
+    getRfpOpportunitiesFromSupabase(filters, { pageSize: 100 }),
+    getPortfolioStats(),
+  ]);
 
   const activeRfps = rfps.filter((r) => ACTIVE_STATUSES.includes(r.status));
   const completedRfps = rfps.filter((r) => !ACTIVE_STATUSES.includes(r.status));
@@ -138,9 +138,13 @@ async function RfpBoard({ searchParams }: BoardProps) {
     .filter((r) => r.estimatedValue != null && r.estimatedValue > 0)
     .reduce((sum, r) => sum + (r.estimatedValue! * serverComputeWinProbability(r)) / 100, 0);
 
+  const winRateDisplay = portfolio.winRate == null
+    ? "—"
+    : `${Math.round(portfolio.winRate * 100)}%`;
+
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{activeRfps.length}</p>
@@ -171,6 +175,12 @@ async function RfpBoard({ searchParams }: BoardProps) {
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">{formatCurrencyCompact(weightedPipeline)}</p>
             <p className="text-xs text-muted-foreground">weighted pipeline</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-violet-600">{winRateDisplay}</p>
+            <p className="text-xs text-muted-foreground">win rate · {portfolio.totalClosed} closed</p>
           </CardContent>
         </Card>
       </div>
