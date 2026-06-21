@@ -4,14 +4,14 @@
  * Advances or reverts the proposal_review_stage for an RFP.
  * Auth: session (dashboard user).
  *
- * Body: { action: 'advance' | 'approve' | 'revise' | 'export', notes?: string }
- * The `by` field is inferred from the session email.
+ * Body: { action: 'advance' | 'approve' | 'revise' | 'export' | 'submit', notes?: string }
  *
  * Stage transitions:
  *   advance  v1-generated  → biz-review
  *   advance  biz-review    → human-review
  *   approve  human-review  → approved
  *   export   approved      → exported
+ *   submit   exported      → submitted
  *   revise   any           → one stage back
  */
 
@@ -21,7 +21,7 @@ import { json, error } from "@/lib/api-helpers";
 import { setProposalReviewStage } from "@/lib/supabase/rfp-opportunities";
 import { supabase } from "@/lib/supabase/client";
 
-type Action = "advance" | "approve" | "revise" | "export";
+type Action = "advance" | "approve" | "revise" | "export" | "submit";
 
 const STAGE_ORDER = [
   "v1-generated",
@@ -29,6 +29,7 @@ const STAGE_ORDER = [
   "human-review",
   "approved",
   "exported",
+  "submitted",
 ] as const;
 
 type Stage = (typeof STAGE_ORDER)[number];
@@ -41,12 +42,15 @@ function nextStage(current: Stage, action: Action): Stage | null {
     case "advance":
       if (current === "v1-generated") return "biz-review";
       if (current === "biz-review") return "human-review";
-      return null; // advance not valid past biz-review
+      return null;
     case "approve":
       if (current === "human-review") return "approved";
       return null;
     case "export":
       if (current === "approved") return "exported";
+      return null;
+    case "submit":
+      if (current === "exported") return "submitted";
       return null;
     case "revise":
       return idx > 0 ? STAGE_ORDER[idx - 1] : null;
@@ -65,11 +69,10 @@ export async function POST(
   const action: Action = body?.action;
   const notes: string | undefined = body?.notes;
 
-  if (!action || !["advance", "approve", "revise", "export"].includes(action)) {
-    return error("action must be one of: advance, approve, revise, export");
+  if (!action || !["advance", "approve", "revise", "export", "submit"].includes(action)) {
+    return error("action must be one of: advance, approve, revise, export, submit");
   }
 
-  // Read current stage
   const { data: row, error: queryErr } = await supabase
     .from("rfp_opportunities")
     .select("proposal_review_stage")
