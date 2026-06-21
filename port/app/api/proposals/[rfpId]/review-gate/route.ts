@@ -4,7 +4,7 @@
  * Advances or reverts the proposal_review_stage for an RFP.
  * Auth: session (dashboard user).
  *
- * Body: { action: 'advance' | 'approve' | 'revise' | 'export' | 'submit', notes?: string }
+ * Body: { action, notes? }
  *
  * Stage transitions:
  *   advance  v1-generated  → biz-review
@@ -13,6 +13,7 @@
  *   export   approved      → exported
  *   submit   exported      → submitted
  *   revise   any           → one stage back
+ *   jump     any           → any later stage (requires targetStage in body)
  */
 
 import { NextRequest } from "next/server";
@@ -21,7 +22,7 @@ import { json, error } from "@/lib/api-helpers";
 import { setProposalReviewStage } from "@/lib/supabase/rfp-opportunities";
 import { supabase } from "@/lib/supabase/client";
 
-type Action = "advance" | "approve" | "revise" | "export" | "submit";
+type Action = "advance" | "approve" | "revise" | "export" | "submit" | "jump";
 
 const STAGE_ORDER = [
   "v1-generated",
@@ -34,7 +35,7 @@ const STAGE_ORDER = [
 
 type Stage = (typeof STAGE_ORDER)[number];
 
-function nextStage(current: Stage, action: Action): Stage | null {
+function resolveTarget(current: Stage, action: Action, targetStage?: string): Stage | null {
   const idx = STAGE_ORDER.indexOf(current);
   if (idx === -1) return null;
 
@@ -54,8 +55,18 @@ function nextStage(current: Stage, action: Action): Stage | null {
       return null;
     case "revise":
       return idx > 0 ? STAGE_ORDER[idx - 1] : null;
+    case "jump": {
+      if (!targetStage || !(STAGE_ORDER as readonly string[]).includes(targetStage)) return null;
+      const target = targetStage as Stage;
+      const targetIdx = STAGE_ORDER.indexOf(target);
+      // must move forward (or at least not be the same stage)
+      if (targetIdx <= idx) return null;
+      return target;
+    }
   }
 }
+
+const VALID_ACTIONS: Action[] = ["advance", "approve", "revise", "export", "submit", "jump"];
 
 export async function POST(
   req: NextRequest,
@@ -68,9 +79,13 @@ export async function POST(
   const body = await req.json().catch(() => null);
   const action: Action = body?.action;
   const notes: string | undefined = body?.notes;
+  const targetStage: string | undefined = body?.targetStage;
 
-  if (!action || !["advance", "approve", "revise", "export", "submit"].includes(action)) {
-    return error("action must be one of: advance, approve, revise, export, submit");
+  if (!action || !VALID_ACTIONS.includes(action)) {
+    return error(`action must be one of: ${VALID_ACTIONS.join(", ")}`);
+  }
+  if (action === "jump" && !targetStage) {
+    return error("targetStage is required for action 'jump'");
   }
 
   const { data: row, error: queryErr } = await supabase
@@ -84,9 +99,9 @@ export async function POST(
   const current = row.proposal_review_stage as Stage | null;
   if (!current) return error("no proposal_review_stage set — generate a proposal first");
 
-  const target = nextStage(current, action);
+  const target = resolveTarget(current, action, targetStage);
   if (!target) {
-    return error(`cannot apply action '${action}' from stage '${current}'`);
+    return error(`cannot apply action '${action}' from stage '${current}'${targetStage ? ` to '${targetStage}'` : ""}`);
   }
 
   await setProposalReviewStage(rfpId, target, session.user.email, {
