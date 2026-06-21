@@ -39,10 +39,18 @@ const RFP_SOURCE_OPTIONS = [
   "Conference", "Direct Network", "Partner Referral", "Email Alert", "Manual Entry",
 ] as const;
 
-const RFP_STATUS_OPTIONS = [
-  "radar", "reviewing", "pursuing", "interviewing", "submitted",
-  "won", "lost", "no-go", "missed deadline",
-] as const;
+// "reviewing" is the DB/Notion value for the deferred state; displayed as "deferred" in the UI.
+const RFP_STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: "radar",            label: "radar"            },
+  { value: "reviewing",        label: "deferred"         },
+  { value: "pursuing",         label: "pursuing"         },
+  { value: "interviewing",     label: "interviewing"     },
+  { value: "submitted",        label: "submitted"        },
+  { value: "won",              label: "won"              },
+  { value: "lost",             label: "lost"             },
+  { value: "no-go",            label: "no-go"            },
+  { value: "missed deadline",  label: "missed deadline"  },
+];
 
 const ACTIVE_STATUSES = ["radar", "reviewing", "pursuing", "interviewing", "submitted"];
 
@@ -145,19 +153,19 @@ async function RfpBoard({ searchParams }: BoardProps) {
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-        <Card>
+        <Card title="count of live opportunities (radar / deferred / pursuing / interviewing / submitted) — excludes won, lost, no-go">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{activeRfps.length}</p>
             <p className="text-xs text-muted-foreground">active pipeline</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card title="raw unweighted sum of estimated contract value across active opportunities — a ceiling if everything won, not a forecast">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{formatCurrency(totalValue)}</p>
             <p className="text-xs text-muted-foreground">pipeline value</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card title="count of opportunities marked won">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-green-600">
               {completedRfps.filter((r) => r.status === "won").length}
@@ -165,19 +173,19 @@ async function RfpBoard({ searchParams }: BoardProps) {
             <p className="text-xs text-muted-foreground">won</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card title="sum of contract value for all opportunities marked won">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold text-green-600">{formatCurrency(wonValue)}</p>
+            <p className="text-2xl font-bold text-green-600">{formatCurrency(wonValue) || "—"}</p>
             <p className="text-xs text-muted-foreground">revenue won</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card title="sum of (estimated value × win probability) per active opportunity — the honest expected value to plan against">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">{formatCurrencyCompact(weightedPipeline)}</p>
             <p className="text-xs text-muted-foreground">weighted pipeline</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card title="won ÷ (won + lost) — percentage of decided bids that were awarded">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-violet-600">{winRateDisplay}</p>
             <p className="text-xs text-muted-foreground">win rate · {portfolio.totalClosed} closed</p>
@@ -187,8 +195,37 @@ async function RfpBoard({ searchParams }: BoardProps) {
 
       <RfpKanban opportunities={rfps} />
 
-      {completedRfps.length > 0 && (
+      {completedRfps.filter((r) => r.status === "won").length > 0 && (
         <div className="mt-8">
+          <h3 className="text-sm font-medium mb-3">🎉 wins</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+            {completedRfps
+              .filter((r) => r.status === "won")
+              .map((rfp) => (
+                <Link key={rfp.id} href={`/rfp-radar/${rfp.id}`} className="block">
+                  <Card className="hover:shadow-md transition-shadow border-green-200 bg-green-50/40 dark:bg-green-950/20">
+                    <CardContent className="p-4 space-y-1">
+                      <p className="font-medium text-sm leading-snug">{rfp.opportunityName}</p>
+                      {rfp.estimatedValue ? (
+                        <p className="text-lg font-bold text-green-700 dark:text-green-400">
+                          {formatCurrency(rfp.estimatedValue)}
+                        </p>
+                      ) : null}
+                      {rfp.dueDate?.start && (
+                        <p className="text-xs text-muted-foreground">
+                          signed {new Date(rfp.dueDate.start).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {completedRfps.length > 0 && (
+        <div className="mt-4">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">
             completed ({completedRfps.length})
           </h3>
