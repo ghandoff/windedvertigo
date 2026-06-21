@@ -191,3 +191,65 @@ export async function notifyNewRfps(
 function escapeMrkdwn(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+
+// ── immediate high-fit alert ──────────────────────────────
+
+export interface HighFitRfpAlert {
+  /** Notion page ID — used to build the port deep-link. */
+  notionPageId: string;
+  /** Human-readable opportunity name. */
+  name: string;
+  /** YYYY-MM-DD deadline if known. */
+  dueDate?: string;
+  /** USD contract value if known. */
+  estimatedValue?: number;
+  /** Canonical opportunity URL if known. */
+  url?: string;
+  /** 2–3 sentence snapshot of requirements. Truncated to 200 chars in the message. */
+  requirementsSnapshot?: string;
+}
+
+/**
+ * Post an immediate Slack ping when a newly-ingested RFP scores "high fit".
+ * Fail-open: Slack errors are logged, never thrown.
+ *
+ * Called fire-and-forget from the ingest route — do not await if you don't
+ * want the response latency to grow.
+ */
+export async function notifyHighFitRfpNow(alert: HighFitRfpAlert): Promise<void> {
+  try {
+    const base = portBaseUrl();
+    const portLink = `${base}/rfp-radar/${alert.notionPageId}`;
+
+    const dueLine = alert.dueDate
+      ? formatDueDate(alert.dueDate)
+      : "TBD";
+
+    const valueLine = alert.estimatedValue
+      ? `$${Math.round(alert.estimatedValue / 1000)}k`
+      : "unknown";
+
+    const snippet = alert.requirementsSnapshot
+      ? `\n_${escapeMrkdwn(alert.requirementsSnapshot.slice(0, 200))}${alert.requirementsSnapshot.length > 200 ? "…" : ""}_`
+      : "";
+
+    const text = [
+      `🎯 high-fit opportunity just landed`,
+      ``,
+      `*${escapeMrkdwn(alert.name)}*`,
+      `📅 Due: ${dueLine}`,
+      `💰 Value: ${valueLine}`,
+      `🔗 <${portLink}|view in port →>`,
+      snippet,
+    ]
+      .filter((line) => line !== undefined)
+      .join("\n");
+
+    const ok = await postToChannel(CHANNEL, text);
+    if (!ok) {
+      console.warn(`[rfp/notify] high-fit ping posted=false — check SLACK_BOT_TOKEN + bot is invited to ${CHANNEL}`);
+    }
+  } catch (err) {
+    console.error("[rfp/notify] notifyHighFitRfpNow unexpected error:", err);
+  }
+}

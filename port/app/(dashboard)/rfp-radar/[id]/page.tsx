@@ -14,7 +14,9 @@ import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunit
 import { getOrganizationByIdFromSupabase } from "@/lib/supabase/organizations";
 import { getCoverageByRfp, type RfpCoverageRow } from "@/lib/supabase/rfp-requirements";
 import { getPortalRegistrations } from "@/lib/supabase/rfp-portal-registrations";
+import { getMilestonesByRfp } from "@/lib/supabase/rfp-milestones";
 import { RfpPortalTracker } from "@/app/components/rfp-portal-tracker";
+import { RfpMilestoneTracker } from "@/app/components/rfp-milestone-tracker";
 import { RfpFunderProfile } from "@/app/components/rfp-funder-profile";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -154,6 +156,9 @@ export default async function RfpDetailPage({ params }: Props) {
 
   // Portal registrations — silently skip if table not yet migrated
   const portalRegistrations = await getPortalRegistrations(id).catch(() => []);
+
+  // Milestones — silently skip if table not yet migrated
+  const milestones = await getMilestonesByRfp(id).catch(() => []);
 
   const deadlineDays = daysUntil(rfp.dueDate?.start);
   const deadlineUrgent = deadlineDays !== null && deadlineDays >= 0 && deadlineDays <= 7;
@@ -567,6 +572,9 @@ export default async function RfpDetailPage({ params }: Props) {
               )}
             </CardContent>
           </Card>
+
+          {/* milestones — deadline tracker, PaM's primary bid-killer radar */}
+          <RfpMilestoneTracker rfpId={id} milestones={milestones} />
 
           {/* portal registrations — gates the bid on UNGM/UNICEF registration */}
           <RfpPortalTracker rfpId={id} registrations={portalRegistrations} />

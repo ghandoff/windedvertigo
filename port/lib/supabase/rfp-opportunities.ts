@@ -599,6 +599,80 @@ export async function resetStuckProposals(
   return (data ?? []).map((r) => r.notion_page_id as string);
 }
 
+// ─── Portfolio analytics ──────────────────────────────────────────────────────
+
+export interface PortfolioStats {
+  totalClosed: number;              // status IN ('won', 'lost', 'no-go')
+  wonCount: number;                 // status = 'won'
+  winRate: number | null;           // wonCount / totalClosed, null if 0
+  avgCycleTimeDays: number | null;  // avg days from created_time to last_edited_time for won+lost
+  totalAwarded: number;             // sum of estimated_value where status = 'won'
+  totalAsked: number;               // sum of estimated_value where status IN ('won','lost','submitted','no-go')
+}
+
+/**
+ * Compute portfolio-level win/loss analytics from the rfp_opportunities table.
+ * Fetches closed records (won, lost, no-go) plus submitted (for totalAsked)
+ * and computes all stats client-side so no DB-side aggregation is needed.
+ */
+export async function getPortfolioStats(): Promise<PortfolioStats> {
+  const { data, error } = await supabase
+    .from("rfp_opportunities")
+    .select("status, estimated_value, created_time, last_edited_time")
+    .in("status", ["won", "lost", "no-go", "submitted"]);
+
+  if (error) {
+    throw new Error(`[supabase/rfp-opportunities] getPortfolioStats: ${error.message}`);
+  }
+
+  const rows = (data ?? []) as {
+    status: string;
+    estimated_value: number | null;
+    created_time: string | null;
+    last_edited_time: string | null;
+  }[];
+
+  let totalClosed = 0;
+  let wonCount = 0;
+  let totalAwarded = 0;
+  let totalAsked = 0;
+  let cycleDaySum = 0;
+  let cycleCount = 0;
+
+  for (const row of rows) {
+    const isClosed = row.status === "won" || row.status === "lost" || row.status === "no-go";
+
+    if (isClosed) totalClosed++;
+    if (row.status === "won") {
+      wonCount++;
+      totalAwarded += row.estimated_value ?? 0;
+    }
+
+    // totalAsked = all terminal + submitted
+    totalAsked += row.estimated_value ?? 0;
+
+    // cycle time: won + lost only (no-go / submitted aren't a real cycle completion)
+    if ((row.status === "won" || row.status === "lost") && row.created_time && row.last_edited_time) {
+      const created = new Date(row.created_time).getTime();
+      const updated = new Date(row.last_edited_time).getTime();
+      const diffDays = (updated - created) / (1000 * 60 * 60 * 24);
+      if (diffDays >= 0) {
+        cycleDaySum += diffDays;
+        cycleCount++;
+      }
+    }
+  }
+
+  return {
+    totalClosed,
+    wonCount,
+    winRate: totalClosed > 0 ? wonCount / totalClosed : null,
+    avgCycleTimeDays: cycleCount > 0 ? Math.round(cycleDaySum / cycleCount) : null,
+    totalAwarded,
+    totalAsked,
+  };
+}
+
 // ─── Phase 8: ROI attribution from conferences ─────────────────────────────
 
 /**
