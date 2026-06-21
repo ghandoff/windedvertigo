@@ -7,7 +7,7 @@ import { CheckCircle, RotateCcw, Send } from "lucide-react";
 
 interface ProposalReviewActionsProps {
   rfpId: string;
-  stage: "v1-generated" | "biz-review" | "human-review" | "approved" | "exported";
+  stage: "v1-generated" | "biz-review" | "human-review" | "approved" | "exported" | "submitted";
 }
 
 export function ProposalReviewActions({ rfpId, stage }: ProposalReviewActionsProps) {
@@ -80,6 +80,21 @@ export function ProposalReviewActions({ rfpId, stage }: ProposalReviewActionsPro
       >
         <Send className="mr-1 h-3 w-3" />
         {loading === "export" ? "saving…" : "mark exported"}
+      </Button>
+    );
+  }
+
+  if (stage === "exported") {
+    return (
+      <Button
+        size="sm"
+        variant="outline"
+        className="text-xs"
+        disabled={loading === "submit"}
+        onClick={() => act("submit")}
+      >
+        <CheckCircle className="mr-1 h-3 w-3" />
+        {loading === "submit" ? "saving…" : "mark submitted"}
       </Button>
     );
   }

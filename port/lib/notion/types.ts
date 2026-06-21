@@ -620,7 +620,7 @@ export interface RfpOpportunity {
    * Tracks the human review/approval flow; separate from proposalStatus
    * (which tracks generation state only). Supabase-only — not a Notion property.
    */
-  proposalReviewStage: "v1-generated" | "biz-review" | "human-review" | "approved" | "exported" | null;
+  proposalReviewStage: "v1-generated" | "biz-review" | "human-review" | "approved" | "exported" | "submitted" | null;
   createdTime: string;
   lastEditedTime: string;
 }

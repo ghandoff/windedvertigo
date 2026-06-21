@@ -9,7 +9,7 @@
 ALTER TABLE rfp_opportunities
   ADD COLUMN IF NOT EXISTS proposal_review_stage TEXT
     CHECK (proposal_review_stage IN (
-      'v1-generated','biz-review','human-review','approved','exported'
+      'v1-generated','biz-review','human-review','approved','exported','submitted'
     ));
 
 -- Backfill: proposals already generated but not yet staged
