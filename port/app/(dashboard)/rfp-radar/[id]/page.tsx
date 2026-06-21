@@ -18,6 +18,8 @@ import { getMilestonesByRfp } from "@/lib/supabase/rfp-milestones";
 import { RfpPortalTracker } from "@/app/components/rfp-portal-tracker";
 import { RfpMilestoneTracker } from "@/app/components/rfp-milestone-tracker";
 import { RfpFunderProfile } from "@/app/components/rfp-funder-profile";
+import { RfpBudgetRates } from "@/app/components/rfp-budget-rates";
+import { RfpFitBreakdown } from "@/app/components/rfp-fit-breakdown";
 import { PageHeader } from "@/app/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -552,6 +554,9 @@ export default async function RfpDetailPage({ params }: Props) {
         {/* ── right column — 1/3 ─────────────────────── */}
         <div className="space-y-6">
 
+          {/* fit breakdown — explainable score card */}
+          <RfpFitBreakdown rfp={rfp} />
+
           {/* document upload */}
           <Card>
             <CardHeader>
@@ -584,6 +589,15 @@ export default async function RfpDetailPage({ params }: Props) {
             <div className="h-32 rounded-lg border bg-card animate-pulse" />
           }>
             <RfpFunderProfile rfpId={id} organizationIds={rfp.organizationIds} />
+          </Suspense>
+
+          {/* budget reference rates — Fin's rate card for sanity-checking the bid */}
+          <Suspense fallback={null}>
+            <RfpBudgetRates
+              funderType={rfp.opportunityType ?? undefined}
+              geography={rfp.geography?.[0] ?? undefined}
+              estimatedValue={rfp.estimatedValue ?? undefined}
+            />
           </Suspense>
 
           {/* metadata */}
