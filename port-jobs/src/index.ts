@@ -62,6 +62,7 @@ import {
   setProposalStatus,
   setProposalStep,
   setProposalUrls,
+  setProposalReviewStage,
   resetProposalToFailed,
   getRfpOpportunityByIdFromSupabase,
 } from "@/lib/supabase/rfp-opportunities";
@@ -517,6 +518,10 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     setProposalStatus(rfpId, "ready-for-review").catch((e) =>
       console.warn("[proposal] supabase status sync failed:", e),
     );
+    setProposalReviewStage(rfpId, "v1-generated", "system", {
+      action: "advance",
+      stageFrom: null,
+    }).catch((e) => console.warn("[proposal] review stage sync failed:", e));
     setProposalUrls(rfpId, {
       proposalDraftUrl: dealUrl,
       coverLetterUrl: coverLetterUrl ?? null,

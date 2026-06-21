@@ -88,10 +88,11 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     // field lives Supabase-only (Phase 8). Default to [] so consumers reading
     // an RfpOpportunity built from Notion don't see undefined.
     influencedByEventIds: [],
-    // bid_decision fields are Supabase-only — not stored in Notion
+    // bid_decision + proposal_review_stage are Supabase-only — not stored in Notion
     bidDecision: null,
     bidDecisionScore: null,
     bidDecisionReason: null,
+    proposalReviewStage: null,
     createdTime: page.created_time,
     lastEditedTime: page.last_edited_time,
   };

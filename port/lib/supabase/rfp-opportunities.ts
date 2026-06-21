@@ -62,6 +62,7 @@ interface RfpOpportunityRow {
   bid_decision: string | null;
   bid_decision_score: number | null;
   bid_decision_reason: string | null;
+  proposal_review_stage: string | null;
   created_time: string | null;
   last_edited_time: string | null;
 }
@@ -106,6 +107,7 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     bidDecision: (row.bid_decision as RfpOpportunity["bidDecision"]) ?? null,
     bidDecisionScore: row.bid_decision_score ?? null,
     bidDecisionReason: row.bid_decision_reason ?? null,
+    proposalReviewStage: (row.proposal_review_stage as RfpOpportunity["proposalReviewStage"]) ?? null,
     createdTime: row.created_time ?? "",
     lastEditedTime: row.last_edited_time ?? "",
   };
@@ -168,6 +170,7 @@ const SELECT_COLS =
   "what_worked, what_fell_flat, client_feedback, " +
   "lessons_for_next_time, proposal_notes, influenced_by_event_ids, " +
   "bid_decision, bid_decision_score, bid_decision_reason, " +
+  "proposal_review_stage, " +
   "created_time, last_edited_time";
 
 /**
@@ -683,6 +686,43 @@ export async function getPortfolioStats(): Promise<PortfolioStats> {
  * Idempotent: pass the full list of event_ids; existing values are
  * replaced. Empty array clears the link.
  */
+/**
+ * Update the human review lifecycle stage for a proposal doc.
+ * Also inserts a `proposal_review_gates` event row for the audit log.
+ * Fire-and-forget safe — logs a warning but never throws.
+ */
+export async function setProposalReviewStage(
+  notionPageId: string,
+  stage: string,
+  by?: string,
+  opts?: { action?: string; stageFrom?: string | null; notes?: string },
+): Promise<void> {
+  const { error: updateErr } = await supabase
+    .from("rfp_opportunities")
+    .update({ proposal_review_stage: stage })
+    .eq("notion_page_id", notionPageId);
+
+  if (updateErr) {
+    console.warn(`[supabase/rfp-opportunities] setProposalReviewStage: ${updateErr.message}`);
+    return;
+  }
+
+  const { error: gateErr } = await supabase
+    .from("proposal_review_gates")
+    .insert({
+      rfp_id: notionPageId,
+      stage_from: opts?.stageFrom ?? null,
+      stage_to: stage,
+      action: opts?.action ?? "advance",
+      by: by ?? null,
+      notes: opts?.notes ?? null,
+    });
+
+  if (gateErr) {
+    console.warn(`[supabase/rfp-opportunities] proposal_review_gates insert: ${gateErr.message}`);
+  }
+}
+
 export async function setRfpInfluencedByEventIds(
   rfpId: string,
   eventIds: string[],

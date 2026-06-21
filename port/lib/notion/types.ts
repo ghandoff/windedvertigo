@@ -614,6 +614,13 @@ export interface RfpOpportunity {
   bidDecision: "bid" | "no-bid" | "deferred" | null;
   bidDecisionScore: number | null;
   bidDecisionReason: string | null;
+  /**
+   * Human review lifecycle stage for generated proposal docs.
+   * Set to 'v1-generated' when proposal_status → 'ready-for-review'.
+   * Tracks the human review/approval flow; separate from proposalStatus
+   * (which tracks generation state only). Supabase-only — not a Notion property.
+   */
+  proposalReviewStage: "v1-generated" | "biz-review" | "human-review" | "approved" | "exported" | null;
   createdTime: string;
   lastEditedTime: string;
 }
