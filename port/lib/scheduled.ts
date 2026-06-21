@@ -92,6 +92,7 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/morning-digest",      hours: [9],  weekdays: [1,2,3,4,5] },
   { path: "/api/cron/sync-calendar-time",  hours: [14], weekdays: [1,2,3,4,5] },
   { path: "/api/cron/deadline-risk",       hours: [13], originalMinute: 30, weekdays: [1,2,3,4,5] },
+  { path: "/api/cron/biz-go-no-go-sweep", hours: [8],                      weekdays: [1,2,3,4,5] },
 
   // ── Monday-only ─────────────────────────────────────────────────────────────
   { path: "/api/cron/weekly-digest",    hours: [14], weekdays: [1] },
