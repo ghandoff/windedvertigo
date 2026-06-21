@@ -14,10 +14,12 @@ import { createBizDecision } from "@/lib/biz-data";
 
 const VALID = new Set(["bid", "no-bid", "deferred"]);
 
-// recording a verdict also moves the card off radar: bid → pursuing,
-// no-bid → no-go. deferred stays put (it's a "watch, revisit later"). Opt out
-// with advance_status: false.
-const ADVANCE: Record<string, string | null> = { bid: "pursuing", "no-bid": "no-go", deferred: null };
+// recording a verdict also moves the card off radar:
+//   bid      → pursuing  (pursue this one)
+//   no-bid   → no-go     (pass permanently)
+//   deferred → reviewing  ("reviewing" is the Notion status; the board displays it as "deferred")
+// Opt out with advance_status: false.
+const ADVANCE: Record<string, string | null> = { bid: "pursuing", "no-bid": "no-go", deferred: "reviewing" };
 
 function verifyAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");

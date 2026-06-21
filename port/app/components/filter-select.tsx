@@ -9,10 +9,12 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 
+type FilterOption = string | { value: string; label: string };
+
 interface FilterSelectProps {
   paramKey: string;
   placeholder: string;
-  options: readonly string[];
+  options: readonly FilterOption[];
 }
 
 export function FilterSelect({ paramKey, placeholder, options }: FilterSelectProps) {
@@ -33,7 +35,11 @@ export function FilterSelect({ paramKey, placeholder, options }: FilterSelectPro
     });
   }
 
-  const displayText = current || `All ${placeholder}`;
+  const normalised = options.map((o) =>
+    typeof o === "string" ? { value: o, label: o } : o,
+  );
+  const currentLabel = normalised.find((o) => o.value === current)?.label ?? current;
+  const displayText = current ? currentLabel : `All ${placeholder}`;
 
   return (
     <Select value={current || "__all__"} onValueChange={onChange}>
@@ -44,9 +50,9 @@ export function FilterSelect({ paramKey, placeholder, options }: FilterSelectPro
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="__all__">All {placeholder}</SelectItem>
-        {options.map((opt) => (
-          <SelectItem key={opt} value={opt}>
-            {opt}
+        {normalised.map(({ value, label }) => (
+          <SelectItem key={value} value={value}>
+            {label}
           </SelectItem>
         ))}
       </SelectContent>

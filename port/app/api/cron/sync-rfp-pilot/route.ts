@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: "no rfp opportunities found", upserted: 0 });
   }
 
-  const rows = opportunities.map((r) => ({
+  const rawRows = opportunities.map((r) => ({
     notion_page_id: r.id,
     opportunity_name: r.opportunityName ?? "",
     status: r.status ?? null,
@@ -77,6 +77,41 @@ export async function GET(req: NextRequest) {
     // never overwrite a value that triage already set
     updated_at: new Date().toISOString(),
   }));
+
+  // ── status guard ─────────────────────────────────────────────────────────
+  // This is the fix for the "cards revert to radar" bug.
+  //
+  // The upsert overwrites ALL columns, including `status`, with whatever Notion
+  // currently says.  If the Notion write in transitionRfpStatus() was slow or
+  // failed transiently, Notion still shows "radar" while Supabase already has
+  // the correct non-radar status from the immediate setRfpStatus() call.  Without
+  // this guard the sync would revert the card on every 15-minute tick.
+  //
+  // Fix: fetch all existing Supabase statuses in ONE bulk SELECT, then for any
+  // row where Notion says null/radar but Supabase already has a non-radar status,
+  // keep the Supabase status.  All other transitions (Notion non-radar → anything)
+  // pass through unchanged so legitimate Notion-side edits still win.
+  const notionIds = rawRows.map((r) => r.notion_page_id);
+  const { data: existingRows } = await supabase
+    .from("rfp_opportunities")
+    .select("notion_page_id, status")
+    .in("notion_page_id", notionIds);
+
+  const existingStatusMap = new Map<string, string | null>(
+    (existingRows ?? []).map((r) => [r.notion_page_id as string, r.status as string | null]),
+  );
+
+  const rows = rawRows.map((r) => {
+    const incomingIsRadar = !r.status || r.status === "radar";
+    if (incomingIsRadar) {
+      const current = existingStatusMap.get(r.notion_page_id);
+      if (current && current !== "radar") {
+        return { ...r, status: current }; // Supabase wins — Notion's "radar" is stale
+      }
+    }
+    return r;
+  });
+  // ─────────────────────────────────────────────────────────────────────────
 
   const { error, count } = await supabase
     .from("rfp_opportunities")

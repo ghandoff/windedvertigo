@@ -14,17 +14,24 @@ import { GoNoGoModal } from "./go-no-go-modal";
 import { deadlineAsPT } from "@/lib/format";
 import type { RfpOpportunity, RfpStatus, WvFitScore } from "@/lib/notion/types";
 
-// Active pipeline columns — shown as draggable board lanes
+// Active pipeline columns — shown as draggable board lanes.
+// "reviewing" is the Notion/DB status for the deferred column — never change the `key`
+// without a DB migration; the `label` is what the UI shows.
 const STATUS_COLUMNS: KanbanColumn[] = [
-  { key: "radar", label: "radar", color: "bg-blue-500" },
-  { key: "reviewing", label: "reviewing", color: "bg-yellow-500" },
-  { key: "pursuing", label: "pursuing", color: "bg-orange-500" },
-  { key: "interviewing", label: "interviewing", color: "bg-cyan-500" },
-  { key: "submitted", label: "submitted", color: "bg-purple-500" },
+  { key: "radar",        label: "radar",        color: "bg-blue-500"  },
+  { key: "reviewing",    label: "deferred",     color: "bg-slate-400" },
+  { key: "pursuing",     label: "pursuing",     color: "bg-orange-500"},
+  { key: "interviewing", label: "interviewing", color: "bg-cyan-500"  },
+  { key: "submitted",    label: "submitted",    color: "bg-purple-500"},
 ];
 
 // Outcome statuses available via the card dropdown (not shown as board columns)
 const ACTIVE_STATUSES: RfpStatus[] = ["radar", "reviewing", "pursuing", "interviewing", "submitted"];
+
+// Display-friendly label for pipeline statuses.  "reviewing" is stored in the DB
+// but shown to users as "deferred" everywhere in the UI.
+const STATUS_DISPLAY: Partial<Record<string, string>> = { reviewing: "deferred" };
+function statusLabel(s: string): string { return STATUS_DISPLAY[s] ?? s; }
 const OUTCOME_STATUSES: { value: RfpStatus; label: string }[] = [
   { value: "won", label: "won" },
   { value: "lost", label: "lost" },
@@ -168,7 +175,7 @@ function RfpCard({
                     className="text-xs"
                     onClick={() => onOutcome(rfp.id, s)}
                   >
-                    {s}
+                    {statusLabel(s)}
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
@@ -466,18 +473,10 @@ export function RfpKanban({ opportunities }: RfpKanbanProps) {
     async (itemId: string, newStatus: string) => {
       const rfpStatus = newStatus as RfpStatus;
 
-      // Intercept moves to "reviewing"; also intercept moves to "pursuing" when fit score
-      // is TBD or "low fit" — high/medium fit cards move directly without a gate.
-      if (rfpStatus === "reviewing") {
-        const rfp = opportunities.find((r) => r.id === itemId);
-        setPendingGoNoGo({
-          id: itemId,
-          rfpName: rfp?.opportunityName ?? itemId,
-          targetStatus: rfpStatus,
-        });
-        return;
-      }
-
+      // Intercept moves to "pursuing" when fit score is TBD or "low fit" —
+      // high/medium fit cards move directly without a gate.
+      // Note: moves to "reviewing" (deferred) are intentionally ungated — defer
+      // is a quick triage action and should not require a go/no-go score.
       if (rfpStatus === "pursuing") {
         const rfp = opportunities.find((r) => r.id === itemId);
         if (rfp && (rfp.wvFitScore === "TBD" || rfp.wvFitScore === "low fit")) {
