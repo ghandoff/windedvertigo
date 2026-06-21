@@ -6,6 +6,7 @@ import { UserProvider } from "@/app/components/user-provider";
 import { FeedbackWidget } from "@/app/components/feedback-widget";
 import { TimerProvider } from "@/app/components/timer-context";
 import { TopBarTools } from "@/app/components/top-bar-tools";
+import { PageViewLogger } from "@/app/components/page-view-logger";
 import { auth } from "@/lib/auth";
 
 export default async function DashboardLayout({
@@ -49,6 +50,7 @@ export default async function DashboardLayout({
           </main>
         </div>
         <FeedbackWidget />
+        <PageViewLogger />
       </TimerProvider>
     </UserProvider>
   );
