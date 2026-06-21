@@ -26,7 +26,7 @@ import {
   extractProcurementUrl,
 } from "@/lib/gmail";
 import { ingestOpportunity } from "@/lib/ai/rfp-ingest";
-import { notifyNewRfps, type NewRfpItem } from "@/lib/rfp/notify";
+import { notifyNewRfps, notifyHighFitRfpNow, type NewRfpItem } from "@/lib/rfp/notify";
 
 // Backfill may process 100+ emails; budget ~5s per AI triage call.
 export const maxDuration = 300;
@@ -96,6 +96,16 @@ export async function GET(req: NextRequest) {
             torStatus: outcome.torStatus,
             torUrl: outcome.torUrl,
           });
+          if (outcome.fitScore === "high fit") {
+            notifyHighFitRfpNow({
+              notionPageId: outcome.id,
+              name: outcome.triage.opportunityName,
+              dueDate: outcome.triage.dueDate,
+              estimatedValue: outcome.triage.estimatedValue,
+              url: outcome.url,
+              requirementsSnapshot: outcome.triage.requirementsSnapshot,
+            }).catch(() => {});
+          }
         } else result.skipped++;
 
         // Normal mode only: mark as read so it won't be re-processed tomorrow.
