@@ -1,9 +1,9 @@
 /**
  * /proposals — proposal documents tracker.
  *
- * Grouped-table layout (not kanban): proposals sorted by deadline,
- * grouped into three buckets — needs attention, in progress, complete.
- * Stage shown as a coloured pill; doc links as compact inline anchors.
+ * Grouped-table layout: active proposals grouped by lifecycle stage,
+ * plus a "declined / no-go" section sourced from bid_decision = 'no-bid'.
+ * "needs attention" is sorted soonest-deadline-first so priorities are obvious.
  */
 
 import type { Metadata } from "next";
@@ -34,6 +34,16 @@ interface ProposalRow {
   proposal_draft_url: string | null;
   cover_letter_url: string | null;
   team_cvs_url: string | null;
+}
+
+interface NoGoRow {
+  notion_page_id: string;
+  opportunity_name: string;
+  due_date: string | null;
+  wv_fit_score: string | null;
+  estimated_value: number | null;
+  bid_decision_reason: string | null;
+  bid_decision_score: number | null;
 }
 
 // ── stage presentation ────────────────────────────────────────────────────────
@@ -111,6 +121,15 @@ function StagePill({ stage }: { stage: Stage }) {
   );
 }
 
+function FitCell({ score }: { score: string | null }) {
+  if (!score || score === "TBD") return <span className="text-xs text-muted-foreground/40">—</span>;
+  const cls =
+    score === "high fit"   ? "text-green-600 dark:text-green-400" :
+    score === "medium fit" ? "text-yellow-600 dark:text-yellow-400" :
+    "text-muted-foreground";
+  return <span className={`text-xs ${cls}`}>{score.replace(" fit", "")}</span>;
+}
+
 function DocLinks({ draft, cover, cvs }: { draft: string | null; cover: string | null; cvs: string | null }) {
   const links = [
     { href: draft, label: "draft" },
@@ -138,7 +157,7 @@ function DocLinks({ draft, cover, cvs }: { draft: string | null; cover: string |
   );
 }
 
-// ── table ─────────────────────────────────────────────────────────────────────
+// ── active-proposals table ────────────────────────────────────────────────────
 
 function ProposalTable({ rows, group }: { rows: ProposalRow[]; group: GroupKey }) {
   const { label, emptyNote } = GROUP_META[group];
@@ -181,14 +200,7 @@ function ProposalTable({ rows, group }: { rows: ProposalRow[]; group: GroupKey }
                     {r.due_date ? <DueDateChip date={r.due_date} /> : <span className="text-xs text-muted-foreground/40">—</span>}
                   </td>
                   <td className="py-2.5 px-3">
-                    {r.wv_fit_score && r.wv_fit_score !== "TBD" ? (
-                      <span className={`text-xs ${
-                        r.wv_fit_score === "high fit"   ? "text-green-600 dark:text-green-400" :
-                        r.wv_fit_score === "medium fit" ? "text-yellow-600 dark:text-yellow-400" :
-                        "text-muted-foreground"}`}>
-                        {r.wv_fit_score.replace(" fit", "")}
-                      </span>
-                    ) : <span className="text-xs text-muted-foreground/40">—</span>}
+                    <FitCell score={r.wv_fit_score} />
                   </td>
                   <td className="py-2.5 px-3 tabular-nums">
                     {r.estimated_value !== null
@@ -221,28 +233,99 @@ function ProposalTable({ rows, group }: { rows: ProposalRow[]; group: GroupKey }
   );
 }
 
+// ── declined / no-go table ────────────────────────────────────────────────────
+
+function NoGoTable({ rows }: { rows: NoGoRow[] }) {
+  if (rows.length === 0) return null;
+
+  return (
+    <section className="space-y-2">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-sm font-semibold text-muted-foreground">declined / no-go</h2>
+        <span className="text-xs text-muted-foreground/60">{rows.length}</span>
+      </div>
+      <div className="rounded-lg border border-border overflow-hidden opacity-70">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/20">
+              <th className="py-2 px-3 text-left text-xs font-medium text-muted-foreground w-[38%]">opportunity</th>
+              <th className="py-2 px-3 text-left text-xs font-medium text-muted-foreground w-[16%]">deadline</th>
+              <th className="py-2 px-3 text-left text-xs font-medium text-muted-foreground w-[10%]">fit</th>
+              <th className="py-2 px-3 text-left text-xs font-medium text-muted-foreground w-[9%]">value</th>
+              <th className="py-2 px-3 text-left text-xs font-medium text-muted-foreground">reason</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.map((r) => (
+              <tr key={r.notion_page_id} className="hover:bg-muted/10 transition-colors">
+                <td className="py-2.5 px-3">
+                  <Link
+                    href={`/rfp-radar/${r.notion_page_id}`}
+                    className="leading-snug hover:underline underline-offset-2 line-clamp-2 text-muted-foreground"
+                  >
+                    {r.opportunity_name}
+                  </Link>
+                </td>
+                <td className="py-2.5 px-3">
+                  {r.due_date ? <DueDateChip date={r.due_date} /> : <span className="text-xs text-muted-foreground/40">—</span>}
+                </td>
+                <td className="py-2.5 px-3">
+                  <FitCell score={r.wv_fit_score} />
+                </td>
+                <td className="py-2.5 px-3 tabular-nums">
+                  {r.estimated_value !== null
+                    ? <span className="text-xs text-muted-foreground">{fmtUsd(r.estimated_value)}</span>
+                    : <span className="text-xs text-muted-foreground/40">—</span>}
+                </td>
+                <td className="py-2.5 px-3">
+                  {r.bid_decision_reason
+                    ? <span className="text-xs text-muted-foreground italic">{r.bid_decision_reason}</span>
+                    : <span className="text-xs text-muted-foreground/40">—</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 // ── page ─────────────────────────────────────────────────────────────────────
 
 export default async function ProposalsPage() {
-  const { data, error: queryErr } = await supabase
-    .from("rfp_opportunities")
-    .select(
-      "notion_page_id, opportunity_name, due_date, wv_fit_score, estimated_value, " +
-      "proposal_review_stage, proposal_draft_url, cover_letter_url, team_cvs_url",
-    )
-    .not("proposal_review_stage", "is", null)
-    .order("due_date", { ascending: true, nullsFirst: false });
+  // Run both queries in parallel — independent round-trips, no need to sequence them
+  const [activeResult, noGoResult] = await Promise.all([
+    supabase
+      .from("rfp_opportunities")
+      .select(
+        "notion_page_id, opportunity_name, due_date, wv_fit_score, estimated_value, " +
+        "proposal_review_stage, proposal_draft_url, cover_letter_url, team_cvs_url",
+      )
+      .not("proposal_review_stage", "is", null)
+      .order("due_date", { ascending: true, nullsFirst: false }),
 
-  if (queryErr) {
+    supabase
+      .from("rfp_opportunities")
+      .select(
+        "notion_page_id, opportunity_name, due_date, wv_fit_score, estimated_value, " +
+        "bid_decision_reason, bid_decision_score",
+      )
+      .eq("bid_decision", "no-bid")
+      .order("due_date", { ascending: false, nullsFirst: false }),
+  ]);
+
+  if (activeResult.error) {
     return (
       <div className="p-6">
         <PageHeader title="proposals" />
-        <p className="text-sm text-destructive mt-4">failed to load: {queryErr.message}</p>
+        <p className="text-sm text-destructive mt-4">failed to load: {activeResult.error.message}</p>
       </div>
     );
   }
 
-  const rows = (data ?? []) as unknown as ProposalRow[];
+  const rows = (activeResult.data ?? []) as unknown as ProposalRow[];
+  const noGoRows = (noGoResult.data ?? []) as unknown as NoGoRow[];
 
   const byGroup: Record<GroupKey, ProposalRow[]> = {
     attention: [],
@@ -256,7 +339,17 @@ export default async function ProposalsPage() {
     }
   }
 
+  // Sort "needs attention" by closest deadline first — overdue items (negative days)
+  // sort before upcoming ones, and null due_dates fall to the bottom.
+  byGroup.attention.sort((a, b) => {
+    if (!a.due_date && !b.due_date) return 0;
+    if (!a.due_date) return 1;
+    if (!b.due_date) return -1;
+    return a.due_date.localeCompare(b.due_date);
+  });
+
   const needsAttention = byGroup.attention.length;
+  const totalActive = rows.length;
 
   return (
     <div className="p-6 space-y-8">
@@ -264,12 +357,12 @@ export default async function ProposalsPage() {
         title="proposals"
         description={
           needsAttention > 0
-            ? `${needsAttention} doc${needsAttention !== 1 ? "s" : ""} need${needsAttention === 1 ? "s" : ""} attention · ${rows.length} total tracked`
-            : `${rows.length} proposal doc${rows.length !== 1 ? "s" : ""} tracked`
+            ? `${needsAttention} doc${needsAttention !== 1 ? "s" : ""} need${needsAttention === 1 ? "s" : ""} attention · ${totalActive} active · ${noGoRows.length} declined`
+            : `${totalActive} active · ${noGoRows.length} declined`
         }
       />
 
-      {rows.length === 0 ? (
+      {totalActive === 0 && noGoRows.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           no proposals yet — generate one from an RFP{" "}
           <Link href="/opportunities" className="underline underline-offset-2">
@@ -282,6 +375,7 @@ export default async function ProposalsPage() {
           {GROUP_ORDER.map((g) => (
             <ProposalTable key={g} group={g} rows={byGroup[g]} />
           ))}
+          <NoGoTable rows={noGoRows} />
         </div>
       )}
     </div>
