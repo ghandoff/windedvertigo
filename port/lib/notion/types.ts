@@ -521,8 +521,9 @@ export type RfpStatus =
   | "radar"
   | "reviewing"
   | "pursuing"
-  | "interviewing"
   | "submitted"
+  | "invited" // EOI accepted / invited to submit a full proposal — higher confidence than a raw submission
+  | "interviewing"
   | "won"
   | "lost"
   | "no-go"

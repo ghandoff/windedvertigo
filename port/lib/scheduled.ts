@@ -97,6 +97,9 @@ const CRON_TABLE: CronEntry[] = [
   // Keep `deals` consistent with the RFP Lighthouse: self-heal won RFPs into
   // signed linked deals + flag drift. Runs nightly (off-hours).
   { path: "/api/cron/rfp-deal-reconcile",       hours: [6] },
+  // Scan reply emails for RFP outcomes (award/rejection/invited), enqueue them
+  // to the /inbox review queue, and DM Garrett. Human approves before any write.
+  { path: "/api/cron/rfp-outcome-scan",         hours: [10] },
 
   // ── Monday-only ─────────────────────────────────────────────────────────────
   { path: "/api/cron/weekly-digest",    hours: [14], weekdays: [1] },
