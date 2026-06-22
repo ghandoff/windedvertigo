@@ -103,18 +103,11 @@ export const REVENUE_PIPELINE: PipelineRow[] = [
     timeline: "decision by july",
   },
   {
-    opportunity: "DW Akademie",
-    stage: "submitted (may 25)",
-    estValue: "€20,850 (~$22,950)",
-    probability: 40,
-    timeline: "contract start aug 2026",
-  },
-  {
     opportunity: "Amna at 10",
-    stage: "interviewed · scoping",
-    estValue: "$29,350",
-    probability: 45,
-    timeline: "scope by june",
+    stage: "signed · scoping",
+    estValue: "$25,000",
+    probability: 100,
+    timeline: "signed june 2026",
   },
   {
     opportunity: "UNICEF LTA",
@@ -915,7 +908,12 @@ export const REVENUE_PROGRESS = {
       amount: 25_000,
       status: "signed" as const,
     },
-    { client: "Additional pipeline", amount: 52_300, status: "signed" as const },
+    {
+      client: "Additional pipeline",
+      detail: "unallocated · awaiting composition",
+      amount: 52_300,
+      status: "documentation" as const,
+    },
   ],
 } as const;
 

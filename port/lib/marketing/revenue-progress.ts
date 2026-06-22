@@ -16,7 +16,12 @@
  *           revenue_tier "negotiation" → status "negotiation"
  *           revenue_tier "open"        → status "documentation"
  *   rfps:   status "interviewing"      → status "negotiation"
- *           status "pursuing"|"submitted" → status "documentation"
+ *           status "submitted"         → status "documentation"
+ *
+ * Only "submitted"/"interviewing" RFPs count toward the bar — i.e. a proposal is
+ * actually out and awaiting a decision. "pursuing" (early-radar, still deciding
+ * whether/how to bid) is excluded: it's too speculative for a progress-to-target
+ * figure and let large moonshot grants (e.g. an $8M Gates RFP) saturate the bar.
  *
  * Falls back to REVENUE_PROGRESS (hardcoded constant) on any error — the
  * caller wraps this in .catch(() => REVENUE_PROGRESS).
@@ -28,8 +33,9 @@ import { REVENUE_TARGET } from "@/lib/strategy-data";
 import type { RevenueProgressInput } from "@/lib/strategy-data";
 import type { RfpOpportunity } from "@/lib/notion/types";
 
-// Statuses that represent active, unconverted RFP pursuits worth including
-const ACTIVE_RFP_STATUSES = new Set(["pursuing", "interviewing", "submitted"]);
+// Statuses that count toward the progress-to-target bar: a proposal is out and
+// awaiting a decision. "pursuing" is deliberately excluded (early-radar/speculative).
+const ACTIVE_RFP_STATUSES = new Set(["interviewing", "submitted"]);
 
 function rfpStatusToProgressStatus(status: string): string {
   if (status === "interviewing") return "negotiation";

@@ -160,7 +160,7 @@ we tell three overlapping stories, depending on audience:
 | **PRME 2026** | active, paid | $48,285 | 100% | received |
 | **Nordic Naturals** | SOW in progress | $50,000 + retainer | 70% | signed by june 30 |
 | **IDB El Salvador** | documentation phase | $50–100k | 50% | decision by july 15 |
-| **Amna at 10** | proposal submitted (38 days, no response) | $15–30k | 20% | june or archived |
+| **Amna at 10** | signed | $25,000 | 100% | signed june 2026 |
 | **PEDAL conf + field** | pipeline (speaking, sponsorship, direct inbound) | $50–100k | 30% | july–september |
 <!-- removed 2026-05-04: LEGO/Superskills was a years-old proposal, not active. -->
 <!-- removed 2026-05-04: UNICEF — no acceptance received; re-add if status confirms. -->

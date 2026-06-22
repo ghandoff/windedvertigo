@@ -91,3 +91,9 @@ payton reported having "multiple conversations" with Mo via her cowork setup. th
 - Amna: contract signed at $25,000
 - Pipeline total: $482,500 of $500,000 (96.5% coverage)
 - Gap to target: $17,500
+
+**dashboard reconciliation (applied same day):**
+- Amna signed $25k applied to the live Supabase deal (revenue_tier=signed, stage=won) + audit event; DW Akademie confirmed absent from all live tables.
+- the $482,500 curated figure includes ~$52,300 of unallocated pipeline that has no backing deal yet. the live /strategy bar shows the *concrete* pipeline only: **$430,200 (86%), $170,000 locked (34%), $69,800 to close**.
+- fixed the live revenue bar to exclude speculative `pursuing` radar RFPs (an $8M Gates grant was saturating it at 1699%); it now counts only submitted/interviewing proposals + signed deals.
+- $482,500 is retained here and in the strategy-data.ts fallback as Mo's tracking target; the live bar is the honest concrete number.
