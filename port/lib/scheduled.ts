@@ -94,6 +94,9 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/deadline-risk",       hours: [13], originalMinute: 30, weekdays: [1,2,3,4,5] },
   { path: "/api/cron/biz-go-no-go-sweep",       hours: [8],  weekdays: [1,2,3,4,5] },
   { path: "/api/cron/proposal-review-digest",   hours: [9],  weekdays: [1,2,3,4,5] },
+  // Keep `deals` consistent with the RFP Lighthouse: self-heal won RFPs into
+  // signed linked deals + flag drift. Runs nightly (off-hours).
+  { path: "/api/cron/rfp-deal-reconcile",       hours: [6] },
 
   // ── Monday-only ─────────────────────────────────────────────────────────────
   { path: "/api/cron/weekly-digest",    hours: [14], weekdays: [1] },

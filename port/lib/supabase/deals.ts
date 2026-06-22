@@ -141,6 +141,63 @@ export async function getRevenuePipelineDeals(): Promise<Deal[]> {
 }
 
 /**
+ * Find the deal linked to an RFP opportunity (rfp_ids contains the RFP's
+ * notion_page_id). Returns null if no deal is linked yet. Powers the dedup in
+ * lib/marketing/revenue-progress.ts and the won→deal sync.
+ */
+export async function getDealByRfpId(rfpId: string): Promise<Deal | null> {
+  const { data, error } = await supabase
+    .from("deals")
+    .select(SELECT_COLS)
+    .contains("rfp_ids", [rfpId])
+    .limit(1);
+  if (error) throw new Error(`[supabase/deals] getDealByRfpId: ${error.message}`);
+  return data && data.length ? mapRowToDeal(data[0] as DealRow) : null;
+}
+
+/**
+ * Soft fallback for linking a deal to an RFP before rfp_ids is populated:
+ * match on the RFP's leading name token (e.g. "Amna", "Ubongo"). Returns a deal
+ * only when exactly one row matches, to avoid mislinking. Used by the win-sync
+ * and the one-time backfill.
+ */
+export async function findDealByName(name: string): Promise<Deal | null> {
+  const term = name.trim().split(/[\s—–\-(]/)[0];
+  if (!term || term.length < 3) return null;
+  const { data, error } = await supabase
+    .from("deals")
+    .select(SELECT_COLS)
+    .ilike("deal", `%${term}%`);
+  if (error) throw new Error(`[supabase/deals] findDealByName: ${error.message}`);
+  return data && data.length === 1 ? mapRowToDeal(data[0] as DealRow) : null;
+}
+
+/**
+ * Insert a deal_events audit row. Resolves the deal's UUID (deal_events.deal_id
+ * references deals.id) from its notion_page_id. Best-effort: logs and continues
+ * on failure so an audit hiccup never blocks the primary write.
+ */
+export async function insertDealEvent(
+  notionPageId: string,
+  event: { eventType: string; oldValue?: unknown; newValue?: unknown; note?: string },
+): Promise<void> {
+  const { data: row } = await supabase
+    .from("deals")
+    .select("id")
+    .eq("notion_page_id", notionPageId)
+    .single();
+  if (!row) return;
+  const { error } = await supabase.from("deal_events").insert({
+    deal_id: (row as { id: string }).id,
+    event_type: event.eventType,
+    old_value: (event.oldValue ?? null) as never,
+    new_value: (event.newValue ?? null) as never,
+    note: event.note ?? null,
+  });
+  if (error) console.warn(`[supabase/deals] insertDealEvent: ${error.message}`);
+}
+
+/**
  * Update only the revenue-tier fields for a deal.
  * Used by PATCH /api/deals/[id]/revenue.
  */

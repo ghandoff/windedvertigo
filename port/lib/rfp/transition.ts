@@ -24,6 +24,7 @@ import type { RfpProposalJob } from "@windedvertigo/job-queue/types";
 import type { PortCfEnv } from "@/lib/cf-env";
 import { createRfpDeadlineEvent } from "@/lib/gcal";
 import { postToChannel } from "@/lib/slack";
+import { syncWonRfpToDeal } from "@/lib/rfp/deal-sync";
 
 const PROPOSAL_ACTIVE = new Set(["ready-for-review", "generating", "queued"]);
 
@@ -51,7 +52,8 @@ export async function transitionRfpStatus(
     await updateRfpOpportunity(id, { status: status as RfpStatus }); // Notion (sync source of truth)
   }
 
-  // 1b. won → celebrate in #whirlpool (fire-and-forget)
+  // 1b. won → celebrate in #whirlpool + sync to a linked signed deal so the
+  //     opportunity flows into the /strategy revenue pipeline (fire-and-forget).
   if (status === "won") {
     const opp = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
     const name = opp?.opportunityName;
@@ -61,6 +63,14 @@ export async function transitionRfpStatus(
         ? `:tada: we won *${name}*! moving to won — great work team.`
         : `:tada: opportunity <https://port.windedvertigo.com/rfp-radar/${id}|${id}> just moved to *won*!`,
     ).catch(() => {});
+    if (opp) {
+      try {
+        const r = await syncWonRfpToDeal(id, opp, opts.triggeredBy);
+        console.log(`[transitionRfpStatus] deal ${r.action} for won RFP ${id}: ${r.dealKey}`);
+      } catch (err) {
+        console.warn("[transitionRfpStatus] syncWonRfpToDeal failed:", err);
+      }
+    }
   }
 
   // 2. pursuing → generate the proposal draft (idempotent guard against re-fires)
