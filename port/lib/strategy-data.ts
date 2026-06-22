@@ -1254,6 +1254,18 @@ export function fmt(n: number): string {
 //
 // Centralised here so a future Supabase migration only touches this helper.
 
+/** Default win-probability by confidence tier. Weights the pipeline (non-signed)
+ * portion of the revenue bar so it reflects *expected* value rather than full
+ * potential — a submitted proposal is not worth its sticker price. Signed/paid
+ * are contractually locked (1.0). Tunable by Mo as the book of business matures. */
+export const TIER_PROBABILITY = {
+  paid: 1,
+  signed: 1,
+  advanced: 0.8, // verbal commit / SOW pending
+  negotiation: 0.6, // terms moving, both sides engaged
+  open: 0.3, // proposal submitted, awaiting a decision
+} as const;
+
 export interface RevenueTiers {
   paid: number;
   signedUnpaid: number;
@@ -1264,6 +1276,8 @@ export interface RevenueTiers {
   signed: number;
   /** sum of every breakdown row, regardless of tier */
   totalBooked: number;
+  /** probability-weighted expected value: signed at full + pipeline × TIER_PROBABILITY */
+  expected: number;
   /** target − totalBooked, floored at 0 */
   gap: number;
   /** the configured target value (mirrored for convenience) */
@@ -1321,6 +1335,11 @@ export function deriveRevenueTiers(
 
   const signed = paid + signedUnpaid;
   const totalBooked = signed + advanced + negotiation + open;
+  const expected =
+    signed +
+    advanced * TIER_PROBABILITY.advanced +
+    negotiation * TIER_PROBABILITY.negotiation +
+    open * TIER_PROBABILITY.open;
   const gap = Math.max(0, progress.target - totalBooked);
 
   return {
@@ -1331,6 +1350,7 @@ export function deriveRevenueTiers(
     open,
     signed,
     totalBooked,
+    expected,
     gap,
     target: progress.target,
   };
