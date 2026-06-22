@@ -85,3 +85,9 @@ this is the coherence mechanism. after any conversation where a direction is set
 payton reported having "multiple conversations" with Mo via her cowork setup. those conversations are on her machine and were NOT committed back to this log. decisions and insights from those conversations are currently lost. need to ask payton to summarise what she discussed with Mo and backfill here, or implement the API-based logging fix so this doesn't happen again.
 
 ---
+
+### 2026-06-21 — Pipeline update
+- DW Akademie: not awarded, removed from pipeline
+- Amna: contract signed at $25,000
+- Pipeline total: $482,500 of $500,000 (96.5% coverage)
+- Gap to target: $17,500

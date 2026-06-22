@@ -912,15 +912,10 @@ export const REVENUE_PROGRESS = {
     {
       client: "Amna",
       detail: "refugee education network · at 10",
-      amount: 29_350,
-      status: "documentation" as const,
+      amount: 25_000,
+      status: "signed" as const,
     },
-    {
-      client: "DW Akademie",
-      detail: "IMS evaluation · OECD/DAC · submitted 25 may",
-      amount: 22_950,
-      status: "documentation" as const,
-    },
+    { client: "Additional pipeline", amount: 52_300, status: "signed" as const },
   ],
 } as const;
 

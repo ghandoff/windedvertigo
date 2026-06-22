@@ -120,7 +120,7 @@ function HubContent() {
         )}
 
         <div className="mt-8 text-xs text-gray-400 text-center">
-          Super-user preview · Budget C · Replaces Lauren&apos;s CAIPB Smartsheet
+          Preview — coming soon for your team · Replaces Lauren&apos;s CAIPB Smartsheet
         </div>
       </div>
     </div>

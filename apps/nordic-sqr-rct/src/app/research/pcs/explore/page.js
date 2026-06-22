@@ -337,7 +337,7 @@ function ExploreContent() {
         <div className="flex items-center gap-2 mb-1">
           <h1 className="text-2xl font-bold text-gray-900">Marketing Intelligence</h1>
           <span className="text-xs font-semibold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full uppercase tracking-wide">
-            Budget C Preview
+            Coming soon
           </span>
         </div>
         <p className="text-gray-500 text-sm max-w-2xl">
@@ -346,7 +346,7 @@ function ExploreContent() {
           SQR-RCT quality scores — hover any status badge to see the inputs.
         </p>
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5 mt-2 inline-block">
-          ⚠ Super-user preview only. Not visible to Nordic team members until Budget C payment clears.
+          Preview — coming soon for your team.
         </p>
       </div>
 
