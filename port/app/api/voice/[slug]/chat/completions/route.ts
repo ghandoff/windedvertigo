@@ -141,28 +141,37 @@ export async function POST(
   const messages = toAnthropicMessages(body.messages ?? []);
   const model = modelFor(assistant);
 
-  // Build the system prompt: cached static prefix + live briefing suffix.
+  // System-prompt assembly: cached static prefix + live briefing suffix.
   // Bound the briefing assembly so the first token is never gated on a slow
   // cold turn (Vapi fails the custom-llm turn if first-token is too slow). On
   // timeout we proceed without live memory; the in-flight build still warms the
   // cache, so the next turn in the call has full context. Fail-open.
-  const briefing = await Promise.race([
-    fetchVoiceBriefing(assistant),
-    new Promise<string>((resolve) => setTimeout(() => resolve(""), BRIEFING_DEADLINE_MS)),
-  ]);
-  const staticPrefix = buildStaticSystemPrefix(assistant);
-  const briefingSuffix = buildBriefingSuffix(briefing);
+  //
+  // IMPORTANT: in the streaming path this runs INSIDE the stream (after the
+  // first byte is flushed), so Vapi gets response headers immediately and the
+  // briefing/cold-start latency becomes inter-chunk delay rather than
+  // time-to-first-byte. Awaiting it before returning the Response is what made
+  // Vapi time out with error-providerfault-custom-llm-llm-failed.
+  const buildSystem = async () => {
+    const briefing = await Promise.race([
+      fetchVoiceBriefing(assistant),
+      new Promise<string>((resolve) => setTimeout(() => resolve(""), BRIEFING_DEADLINE_MS)),
+    ]);
+    const staticPrefix = buildStaticSystemPrefix(assistant);
+    const briefingSuffix = buildBriefingSuffix(briefing);
 
-  const system: {
-    type: "text";
-    text: string;
-    cache_control?: { type: "ephemeral" };
-  }[] = [{ type: "text", text: staticPrefix }];
-  if (briefingSuffix) system.push({ type: "text", text: briefingSuffix });
-  // Cache the whole system region (posture + briefing). The briefing is stable
-  // within a call (TTL-cached), so turns 2..N of a call hit the cache. Marking
-  // the LAST block caches everything before it too.
-  system[system.length - 1].cache_control = { type: "ephemeral" };
+    const system: {
+      type: "text";
+      text: string;
+      cache_control?: { type: "ephemeral" };
+    }[] = [{ type: "text", text: staticPrefix }];
+    if (briefingSuffix) system.push({ type: "text", text: briefingSuffix });
+    // Cache the whole system region (posture + briefing). The briefing is stable
+    // within a call (TTL-cached), so turns 2..N of a call hit the cache. Marking
+    // the LAST block caches everything before it too.
+    system[system.length - 1].cache_control = { type: "ephemeral" };
+    return system;
+  };
 
   const anthropic = getVoiceAnthropic();
   const id = `chatcmpl-${Date.now()}`;
@@ -173,6 +182,7 @@ export async function POST(
   // ── Non-streaming path (smoke test / curl) ──────────────────────────────
   if (!stream) {
     try {
+      const system = await buildSystem();
       const resp = await anthropic.messages.create({
         model,
         max_tokens: MAX_TOKENS,
@@ -228,9 +238,17 @@ export async function POST(
     async start(controller) {
       const send = (s: string) => controller.enqueue(encoder.encode(s));
       try {
-        // First chunk announces the assistant role.
+        // First chunk announces the assistant role. Flushing this immediately
+        // (before the briefing fetch / Anthropic call) gives Vapi response
+        // headers + a first byte within milliseconds, so cold-start and briefing
+        // latency never gate time-to-first-byte. This is what prevents the
+        // error-providerfault-custom-llm-llm-failed timeout.
         send(openAiChunk(id, created, model, { role: "assistant" }, null));
 
+        // Now do the slow work: assemble the system prompt (briefing race) and
+        // open the Anthropic stream. These add inter-chunk delay, which Vapi
+        // tolerates, rather than blocking the response headers.
+        const system = await buildSystem();
         const anthropicStream = await anthropic.messages.create({
           model,
           max_tokens: MAX_TOKENS,

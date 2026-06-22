@@ -56,6 +56,16 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
+  // Skip cross-origin requests entirely — let the browser handle them natively.
+  // The SW must never intercept third-party SDK loads (Vapi, Daily.co WebRTC
+  // bundle, Cartesia, Anthropic, etc.). Without this guard the static-asset
+  // branch below would route e.g. c.daily.co's call-machine-object-bundle.js
+  // through staleWhileRevalidate, and on any fetch hiccup return the SW's own
+  // synthetic `Response("offline", {status: 503})` — which permanently broke
+  // the /voice agent calls (the bundle could never load). See incident
+  // 2026-06-22: recurring "Failed to load call object bundle … 503".
+  if (url.origin !== self.location.origin) return;
+
   // Skip non-GET requests (let POST/PATCH/DELETE go through normally)
   if (event.request.method !== "GET") return;
 
