@@ -13,6 +13,7 @@ import {
   REVENUE_PROGRESS,
   REVENUE_TARGET,
   RUNWAY_MONTHS,
+  TIER_PROBABILITY,
   WV_COLOURS,
   deriveRevenueTiers,
   fmt,
@@ -91,9 +92,9 @@ export function StrategyHero({ subscribers = 0, revenueProgress }: StrategyHeroP
             <span className="text-white/70">progress to target</span>
             <span className="tabular-nums text-white/80">
               <span className="font-semibold" style={{ color: WV_COLOURS.teal }}>
-                {lockedPct}%
+                ${fmt(tiers.signed)}
               </span>{" "}
-              locked · ${fmt(tiers.signed)} signed · ${fmt(tiers.gap)} to close
+              signed ({lockedPct}%) · ${fmt(Math.round(tiers.expected))} weighted pipeline
             </span>
           </div>
 
@@ -116,25 +117,29 @@ export function StrategyHero({ subscribers = 0, revenueProgress }: StrategyHeroP
                 title={`$${fmt(tiers.signedUnpaid)} signed, payment pending`}
               />
             )}
+            {/* Pipeline tiers render at PROBABILITY-WEIGHTED width (expected value),
+                not full potential — a submitted proposal isn't worth its sticker
+                price. The solid teal signed segments above are the headline; these
+                lighter weighted segments are the secondary "expected pipeline" band. */}
             {tiers.advanced > 0 && (
               <div
                 className="h-full"
-                style={{ width: `${widthPct(tiers.advanced)}%`, backgroundColor: COLOR_ADVANCED }}
-                title={`$${fmt(tiers.advanced)} advanced (verbal commit / SOW pending)`}
+                style={{ width: `${widthPct(tiers.advanced * TIER_PROBABILITY.advanced)}%`, backgroundColor: COLOR_ADVANCED }}
+                title={`$${fmt(tiers.advanced)} advanced × ${TIER_PROBABILITY.advanced} = $${fmt(Math.round(tiers.advanced * TIER_PROBABILITY.advanced))} expected`}
               />
             )}
             {tiers.negotiation > 0 && (
               <div
                 className="h-full"
-                style={{ width: `${widthPct(tiers.negotiation)}%`, backgroundImage: NEGOTIATION_TIER_HATCH }}
-                title={`$${fmt(tiers.negotiation)} negotiating (under active discussion)`}
+                style={{ width: `${widthPct(tiers.negotiation * TIER_PROBABILITY.negotiation)}%`, backgroundImage: NEGOTIATION_TIER_HATCH }}
+                title={`$${fmt(tiers.negotiation)} negotiating × ${TIER_PROBABILITY.negotiation} = $${fmt(Math.round(tiers.negotiation * TIER_PROBABILITY.negotiation))} expected`}
               />
             )}
             {tiers.open > 0 && (
               <div
                 className="h-full"
-                style={{ width: `${widthPct(tiers.open)}%`, backgroundImage: OPEN_TIER_HATCH }}
-                title={`$${fmt(tiers.open)} open proposal (awaiting decision)`}
+                style={{ width: `${widthPct(tiers.open * TIER_PROBABILITY.open)}%`, backgroundImage: OPEN_TIER_HATCH }}
+                title={`$${fmt(tiers.open)} open × ${TIER_PROBABILITY.open} = $${fmt(Math.round(tiers.open * TIER_PROBABILITY.open))} expected`}
               />
             )}
           </div>
@@ -148,7 +153,10 @@ export function StrategyHero({ subscribers = 0, revenueProgress }: StrategyHeroP
             <TierGlyph color={COLOR_NEGOTIATION} label={`$${fmt(tiers.negotiation)} negotiating`} fill="ring" />
             <TierGlyph color={COLOR_OPEN_FALLBACK} label={`$${fmt(tiers.open)} open`} fill="ring" />
             <span className="text-white/40">·</span>
-            <span className="text-white/50">${fmt(tiers.gap)} to source</span>
+            <span className="text-white/50">
+              ${fmt(Math.round(tiers.expected))} weighted of ${fmt(REVENUE_TARGET)} target
+            </span>
+            <span className="text-white/35">(pipeline weighted by likelihood)</span>
           </div>
 
           {/* per-contract attribution — moved here from the deleted revenue
