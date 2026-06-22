@@ -31,14 +31,16 @@ import { getRevenuePipelineDeals } from "@/lib/supabase/deals";
 import { supabase } from "@/lib/supabase/client";
 import { REVENUE_TARGET } from "@/lib/strategy-data";
 import type { RevenueProgressInput } from "@/lib/strategy-data";
-import type { RfpOpportunity } from "@/lib/notion/types";
 
 // Statuses that count toward the progress-to-target bar: a proposal is out and
 // awaiting a decision. "pursuing" is deliberately excluded (early-radar/speculative).
-const ACTIVE_RFP_STATUSES = new Set(["interviewing", "submitted"]);
+// "invited" = EOI accepted / invited to submit a full proposal (higher confidence).
+const ACTIVE_RFP_STATUSES = new Set(["interviewing", "invited", "submitted"]);
 
 function rfpStatusToProgressStatus(status: string): string {
-  if (status === "interviewing") return "negotiation";
+  // "invited"/"interviewing" are engaged, higher-confidence stages → negotiation
+  // tier (weighted 0.6); a raw "submitted" stays in the open tier (weighted 0.3).
+  if (status === "interviewing" || status === "invited") return "negotiation";
   return "documentation";
 }
 
