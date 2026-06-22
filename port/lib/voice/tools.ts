@@ -16,6 +16,7 @@
 
 import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { getDealsFromSupabase } from "@/lib/supabase/deals";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import type { VoiceSlug } from "./assistants";
 
 // ── tool definitions (Anthropic Tool schema) ─────────────────────────────────
@@ -66,6 +67,24 @@ const LOOKUP_DEALS: VoiceTool = {
   },
 };
 
+const LOOKUP_OPPORTUNITIES: VoiceTool = {
+  name: "lookup_opportunities",
+  description:
+    "Search the live RFP pipeline for active opportunities by name keyword. " +
+    "Use when asked about a specific bid, RFP, or opportunity that isn't fully " +
+    "covered in your briefing. " +
+    "Returns opportunity name, status, fit score, estimated value, and due date.",
+  input_schema: {
+    type: "object",
+    properties: {
+      search: {
+        type: "string",
+        description: "Partial opportunity name to search (case-insensitive). Omit to return all active opportunities.",
+      },
+    },
+  },
+};
+
 // ── per-slug tool assignments ─────────────────────────────────────────────────
 
 const SLUG_TOOLS: Record<VoiceSlug, VoiceTool[]> = {
@@ -74,6 +93,7 @@ const SLUG_TOOLS: Record<VoiceSlug, VoiceTool[]> = {
   carl:  [LOOKUP_PROJECTS],
   fin:   [LOOKUP_DEALS],
   opsy:  [],
+  biz:   [LOOKUP_OPPORTUNITIES],
   claude: [],
 };
 
@@ -115,6 +135,21 @@ export async function executeVoiceTool(
         ? ` — $${Math.round(d.value).toLocaleString("en-US")}`
         : "";
       return `- [${d.stage}] ${d.deal}${val}`;
+    }).join("\n");
+  }
+
+  if (name === "lookup_opportunities") {
+    const BIZ_TERMINAL = new Set(["won", "lost", "no-go", "missed deadline"]);
+    const { data } = await getRfpOpportunitiesFromSupabase(
+      search ? { search } : {},
+      { page: 1, pageSize: 30 },
+    );
+    const active = data.filter((o) => !BIZ_TERMINAL.has(o.status));
+    if (!active.length) return "no matching active opportunities found.";
+    return active.slice(0, 10).map((o) => {
+      const due = o.dueDate?.start ? ` (due ${o.dueDate.start})` : "";
+      const val = o.estimatedValue ? ` $${Math.round(o.estimatedValue).toLocaleString("en-US")}` : "";
+      return `- [${o.status}] ${o.opportunityName}${due}${val} | fit: ${o.wvFitScore ?? "TBD"}`;
     }).join("\n");
   }
 

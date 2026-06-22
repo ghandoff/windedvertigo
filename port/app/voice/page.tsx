@@ -38,10 +38,11 @@ type Agent = { id: string; name: string; tagline: string; voice: string; dot: st
 
 const AGENTS: Agent[] = [
   { id: "ba635645-717d-4415-8bd6-640aa7a62a5c", name: "Pam", tagline: "projects & momentum — what's moving, what's stuck", voice: "Ariana", dot: "bg-rose-400", ring: "hover:border-rose-400/60" },
-  { id: "50aee5b0-e4e5-4b4f-8b19-d3ad05adae97", name: "Mo", tagline: "marketing — strategy, campaigns, positioning", voice: "Amélie", dot: "bg-amber-400", ring: "hover:border-amber-400/60" },
+  { id: "50aee5b0-e4e5-4b4f-8b19-d3ad05adae97", name: "Mo", tagline: "marketing — strategy, campaigns, positioning", voice: "Gemma", dot: "bg-amber-400", ring: "hover:border-amber-400/60" },
   { id: "9e3d60f5-47bd-4ca1-ad18-a0cc407c51f5", name: "Carl", tagline: "research & learning — evidence, citations, findings", voice: "Adrian", dot: "bg-sky-400", ring: "hover:border-sky-400/60" },
   { id: "083e9950-420e-459f-ae58-90f9ccb96ed9", name: "Finn", tagline: "finance — runway, receivables, what's due", voice: "Brent", dot: "bg-emerald-400", ring: "hover:border-emerald-400/60" },
   { id: "d7d2a1e8-da87-42ad-997c-f0aa354f3549", name: "Opsy", tagline: "infrastructure — is everything up and healthy?", voice: "Andi", dot: "bg-violet-400", ring: "hover:border-violet-400/60" },
+  { id: "5eb55121-c083-4237-9bfc-f28a772eb54a", name: "Biz", tagline: "business development — pipeline, bids, go/no-go", voice: "Carson", dot: "bg-orange-400", ring: "hover:border-orange-400/60" },
   { id: "eadd9571-8cf7-44bc-a4b9-a2d0c4aaed69", name: "Claude", tagline: "general thinking partner — no memory, just help", voice: "Cameron", dot: "bg-slate-300", ring: "hover:border-slate-300/60" },
 ];
 

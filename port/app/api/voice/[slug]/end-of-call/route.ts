@@ -22,6 +22,7 @@ import { insertCmoDecision } from "@/lib/supabase/cmo";
 import { insertCarlDecision } from "@/lib/supabase/carl";
 import { insertOpsyDecision } from "@/lib/supabase/opsy";
 import { createFinDecision } from "@/lib/fin-data";
+import { createBizDecision } from "@/lib/biz-data";
 
 const HAIKU = "claude-haiku-4-5-20251001";
 
@@ -106,6 +107,14 @@ async function saveToMemory(
       break;
     case "fin":
       await createFinDecision({
+        decision: summary,
+        context: decisions.length ? decisions.join("; ") : undefined,
+        logged_by: "garrett",
+        category: "voice-call",
+      });
+      break;
+    case "biz":
+      await createBizDecision({
         decision: summary,
         context: decisions.length ? decisions.join("; ") : undefined,
         logged_by: "garrett",

@@ -33,6 +33,8 @@ import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { getDealsFromSupabase } from "@/lib/supabase/deals";
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { supabase } from "@/lib/supabase/client";
+import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
+import { getRecentBizDecisions, getBizMemory } from "@/lib/biz-data";
 import type { VoiceSlug } from "./assistants";
 
 // ── shared dashboard snapshot helpers ────────────────────────────────────────
@@ -298,12 +300,65 @@ async function finBriefing(): Promise<string> {
   return lines.length > 1 ? lines.join("\n") : "(no financial data recorded yet.)";
 }
 
+// ── biz ──────────────────────────────────────────────────────────────────--
+const BIZ_TERMINAL = new Set(["won", "lost", "no-go", "missed deadline"]);
+
+async function bizBriefing(): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10);
+  const cutoff = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+  const [{ data: allOpps }, decisions, memory] = await Promise.all([
+    getRfpOpportunitiesFromSupabase({}, { page: 1, pageSize: 200 }),
+    getRecentBizDecisions(10),
+    getBizMemory(),
+  ]);
+  const active = allOpps.filter((o) => !BIZ_TERMINAL.has(o.status));
+  const pipelineValue = active.reduce((sum, o) => sum + (o.estimatedValue ?? 0), 0);
+
+  const byStatus: Record<string, number> = {};
+  for (const o of active) byStatus[o.status] = (byStatus[o.status] ?? 0) + 1;
+
+  const deadlines = active
+    .filter((o) => o.dueDate?.start && o.dueDate.start >= today && o.dueDate.start <= cutoff)
+    .sort((a, b) => (a.dueDate!.start).localeCompare(b.dueDate!.start));
+
+  const lines: string[] = ["# Biz briefing", ""];
+  if (memory.length) {
+    lines.push("## working state");
+    for (const m of memory) lines.push(`- ${m.key}: ${m.value}`);
+    lines.push("");
+  }
+  lines.push("## pipeline overview");
+  lines.push(`- ${active.length} active opportunities — $${Math.round(pipelineValue).toLocaleString("en-US")} total estimated value`);
+  for (const [status, count] of Object.entries(byStatus)) lines.push(`- ${status}: ${count}`);
+  lines.push("");
+  if (deadlines.length) {
+    lines.push("## bid deadlines (30 days)");
+    for (const o of deadlines) {
+      const val = o.estimatedValue ? ` — $${Math.round(o.estimatedValue).toLocaleString("en-US")}` : "";
+      lines.push(`- ${o.dueDate!.start} | [${o.status}] ${o.opportunityName}${val} | fit: ${o.wvFitScore ?? "TBD"}`);
+    }
+    lines.push("");
+  }
+  lines.push("## active pipeline");
+  for (const o of active.slice(0, 12)) {
+    const due = o.dueDate?.start ? ` (due ${o.dueDate.start})` : "";
+    const val = o.estimatedValue ? ` $${Math.round(o.estimatedValue).toLocaleString("en-US")}` : "";
+    lines.push(`- [${o.status}] ${o.opportunityName}${due}${val} | fit: ${o.wvFitScore ?? "TBD"}`);
+  }
+  if (decisions.length) {
+    lines.push("", "## recent bd decisions");
+    for (const d of decisions) lines.push(`- ${String(d.created_at ?? "").slice(0, 10)}: ${d.decision}`);
+  }
+  return lines.join("\n");
+}
+
 const BUILDERS: Record<Exclude<VoiceSlug, "claude">, () => Promise<string>> = {
   pam: pamBriefing,
   cmo: cmoBriefing,
   carl: carlBriefing,
   fin: finBriefing,
   opsy: opsyBriefing,
+  biz: bizBriefing,
 };
 
 /**
