@@ -29,7 +29,7 @@ const HAIKU = "claude-haiku-4-5-20251001";
 // are intentionally swapped per Garrett: Mo = steady/decisive, Opsy = upbeat.
 const ASSISTANTS = [
   { slug: "pam",   name: "Pam",  voice: "ec1e269e-9ca0-402f-8a18-58e0e022355a", voiceLabel: "Ariana – Kind Friend",    model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
-  { slug: "cmo",   name: "Mo",   voice: "62ae83ad-4f6a-430b-af41-a9bede9286ca", voiceLabel: "Gemma – Decisive Agent",  model: SONNET, greet: "hi, Mo here. what's on your mind?" },
+  { slug: "cmo",   name: "Mo",   voice: "faa75703-00e3-4a57-9955-0703001e3231", voiceLabel: "Amélie – Decisive Agent", model: SONNET, greet: "hi, Mo here. what's on your mind?" },
   { slug: "carl",  name: "Carl", voice: "e2d48e7b-cd73-4c4c-bc1e-f232580e8709", voiceLabel: "Adrian – Explorer",      model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
   { slug: "fin",   name: "Finn", voice: "3d808d23-cb09-4c39-8afd-528e209cba4f", voiceLabel: "Brent – Steady",         model: SONNET, greet: "hey, Finn here. want the numbers?" },
   { slug: "opsy",  name: "Opsy", voice: "a053f6bc-7df4-40de-96d4-de026bc47ce8", voiceLabel: "Andi – Dynamic Presenter",  model: SONNET, greet: "hi, it's Opsy. want a status check?" },
@@ -50,7 +50,9 @@ function bodyFor(a) {
       model: a.model,
       headers: { "x-voice-secret": SECRET },
     },
-    voice: { provider: "cartesia", voiceId: a.voice },
+    // Explicitly pin sonic-3.5: older voice IDs default to the deprecated sonic-english
+    // model and Cartesia now rejects those calls. sonic-3.5 works for all voice IDs.
+    voice: { provider: "cartesia", voiceId: a.voice, model: "sonic-3.5" },
     transcriber: { provider: "deepgram", model: "nova-3", language: "en" },
     // 1:1 call turn-taking: respond promptly, allow barge-in interruptions.
     startSpeakingPlan: { waitSeconds: 0.4 },
