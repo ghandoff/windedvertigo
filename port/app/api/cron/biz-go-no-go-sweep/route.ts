@@ -77,13 +77,17 @@ export async function GET(req: NextRequest) {
   const cutoff = new Date(Date.now() - HOLD_HOURS * 60 * 60 * 1000).toISOString();
 
   // Fetch radar cards with no decision that have aged past the hold window.
+  // NB: rfp_opportunities has no `created_at` column (only `updated_at`, set on
+  // insert via DEFAULT now()). Referencing created_at made PostgREST 500 every
+  // run. updated_at = "last touched", which is the right signal for "has sat
+  // unreviewed past the hold window" anyway.
   const { data: candidates, error: queryErr } = await supabase
     .from("rfp_opportunities")
     .select("notion_page_id, opportunity_name, wv_fit_score, estimated_value, due_date")
     .eq("status", "radar")
     .is("bid_decision", null)
-    .lt("created_at", cutoff)
-    .order("created_at", { ascending: true })
+    .lt("updated_at", cutoff)
+    .order("updated_at", { ascending: true })
     .limit(30);
 
   if (queryErr) {

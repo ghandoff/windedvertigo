@@ -10,7 +10,17 @@ export const revalidate = 3600;
  */
 
 export default async function PaperTrailHome() {
-  const activities = await fetchActivities();
+  // Fail open: a Notion hiccup (the API has been flaky) or an unset
+  // NOTION_DB_PAPER_TRAIL_ACTIVITIES must not 500 the whole page — the home
+  // render only needs the list to populate a section. This makes good on the
+  // "shows placeholder if the database isn't configured yet" promise above,
+  // which the previous unguarded await did not actually deliver.
+  let activities: Awaited<ReturnType<typeof fetchActivities>> = [];
+  try {
+    activities = await fetchActivities();
+  } catch (err) {
+    console.error("[paper-trail] fetchActivities failed, rendering placeholder:", err);
+  }
 
   return (
     <main id="main" className="min-h-screen flex flex-col">

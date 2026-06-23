@@ -29,3 +29,11 @@ create index if not exists review_queue_status_idx on review_queue (status, crea
 create unique index if not exists review_queue_email_kind_uniq
   on review_queue (source_email_id, kind)
   where source_email_id is not null;
+
+-- Enable RLS (default-deny; no policies). review_queue is read/written ONLY via
+-- the service-role client (lib/supabase/client.ts -> SUPABASE_SECRET_KEY, which
+-- bypasses RLS), so the /inbox page + scanners keep working while nothing public
+-- can touch it. Applied manually on 2026-06-22 because this table was created
+-- before the force_rls_on_new_tables trigger (20260622_enable_rls_port_usage_events)
+-- was live — included here so the migration is reproducible.
+alter table public.review_queue enable row level security;

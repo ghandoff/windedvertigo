@@ -48,8 +48,13 @@ async function checkSupabasePilot(): Promise<CustomCheckResult> {
   if (r.error) {
     return { status: "red", response_time_ms: r.ms, symptoms: `supabase wv-port-pilot query failed: ${r.error}`, details: { error: r.error } };
   }
-  if (r.ms > 1000) {
-    return { status: "amber", response_time_ms: r.ms, symptoms: `supabase wv-port-pilot slow: ${r.ms}ms query (threshold 1000ms)`, details: {} };
+  // 1500ms threshold: the wv-port-pilot pooler routinely grazes 1000-1400ms on
+  // cold/pooled connections and self-recovers, which was firing ~daily noise
+  // incidents (#27 in 90 days). 1500ms still catches genuine degradation. If
+  // these recur above 1500ms, surface NEON_API_KEY to monitor neon-pools and
+  // confirm whether it's connection-pool saturation.
+  if (r.ms > 1500) {
+    return { status: "amber", response_time_ms: r.ms, symptoms: `supabase wv-port-pilot slow: ${r.ms}ms query (threshold 1500ms)`, details: {} };
   }
   return { status: "green", response_time_ms: r.ms, details: {} };
 }
