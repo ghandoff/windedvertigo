@@ -72,9 +72,23 @@ export interface EnqueueInput {
 /**
  * Enqueue a proposed change. Idempotent on (source_email_id, kind): a re-scan of
  * the same email won't create a duplicate. Returns true if a new row was created.
+ *
+ * Uses check-then-insert rather than upsert/ON CONFLICT: the dedup index is
+ * PARTIAL (`where source_email_id is not null`), which PostgREST cannot use as an
+ * ON CONFLICT target. The cron is single-threaded daily, so the check is safe; the
+ * partial unique index remains as a DB-level backstop.
  */
 export async function enqueueReviewItem(input: EnqueueInput): Promise<boolean> {
-  const row = {
+  if (input.sourceEmailId) {
+    const { data: existing } = await supabase
+      .from("review_queue")
+      .select("id")
+      .eq("source_email_id", input.sourceEmailId)
+      .eq("kind", input.kind)
+      .limit(1);
+    if (existing && existing.length) return false;
+  }
+  const { error } = await supabase.from("review_queue").insert({
     kind: input.kind,
     rfp_id: input.rfpId ?? null,
     deal_id: input.dealId ?? null,
@@ -82,14 +96,9 @@ export async function enqueueReviewItem(input: EnqueueInput): Promise<boolean> {
     summary: input.summary,
     source: input.source ?? "email",
     source_email_id: input.sourceEmailId ?? null,
-  };
-  // ignoreDuplicates so the unique (source_email_id, kind) index makes this a no-op on re-scan
-  const { data, error } = await supabase
-    .from("review_queue")
-    .upsert(row, { onConflict: "source_email_id,kind", ignoreDuplicates: true })
-    .select("id");
+  });
   if (error) throw new Error(`[review-queue] enqueue: ${error.message}`);
-  return !!(data && data.length);
+  return true;
 }
 
 export async function listReviewItems(status: ReviewStatus = "pending"): Promise<ReviewItem[]> {
