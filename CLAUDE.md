@@ -81,10 +81,14 @@ via wv-site's `/*` route (since 2026-05-28). To update: rebuild in `harbour-apps
 
 The `windedvertigo.com` zone blocks AI-bot user-agents. Anthropic's MCP
 connection uses one, so the WAF rule **"allow anthropic mcp + oauth on api
-paths"** skips bot protection for `/api/mcp/`, `/api/oauth/`, and
-`/.well-known/oauth` only. Remove it and Cowork connections silently fail with
+paths"** skips bot protection for `/api/mcp/`, `/api/oauth/`, `/.well-known/oauth`,
+and `/api/voice/`. Remove it and Cowork connections silently fail with
 *"the integration rejected the credentials"* while the marketing site keeps full
-scraper protection. (OAuth server internals: `docs/decisions/`.)
+scraper protection. `/api/voice/` is in the list because Vapi calls the
+custom-llm endpoint as `OpenAI/JS` (an AI-bot UA) — drop it and voice calls
+connect, greet, then die the instant you speak (the first LLM turn is blocked at
+the edge, invisible to `wrangler tail`; check firewall events). Full
+post-mortem + the diagnostic GraphQL query: `docs/decisions/2026-06-22-voice-agents-waf-block-and-stacked-bugs.md`.
 
 ## conventions inherited from harbour-apps
 
