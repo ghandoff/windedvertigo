@@ -5,7 +5,7 @@ import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
 import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
-import { getCarlFindings, getCarlMemory, getCarlDecisions } from "@/lib/supabase/carl";
+import { getCarlFindings, getCarlMemory, getCarlDecisions, getCarlDomains } from "@/lib/supabase/carl";
 import { getCurriculum } from "@/lib/supabase/carl-curriculum";
 import { getUsageSummary } from "@/lib/ai/usage-store";
 import { FindingsLibrary } from "./components/findings-library";
@@ -29,15 +29,17 @@ export default async function CarlPage({
   const sp = await searchParams;
   const tabParam = typeof sp.tab === "string" ? sp.tab : undefined;
   const activeTab = TABS.find((t) => t.key === tabParam)?.key ?? "research-lines";
+  const viewMode = sp.view === "agent" ? "agent" : "domain";
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const [findings, memory, decisions, curriculum, usage] = await Promise.all([
+  const [findings, memory, decisions, curriculum, usage, domains] = await Promise.all([
     getCarlFindings({ limit: 200 }).catch(() => []),
     getCarlMemory().catch(() => []),
     getCarlDecisions({ days: 90 }).catch(() => []),
     getCurriculum().catch(() => []),
     getUsageSummary(monthStart, now.toISOString()).catch(() => null),
+    getCarlDomains().catch(() => []),
   ]);
 
   // cARL's own token economics this month — transparent, and cheap
@@ -95,7 +97,7 @@ export default async function CarlPage({
         <UrlTabs tabs={TABS} activeTab={activeTab} />
 
         {activeTab === "research-lines" && (
-          <ResearchLines findings={findings} curriculum={curriculum} intendedDomains={intendedDomains} />
+          <ResearchLines findings={findings} curriculum={curriculum} intendedDomains={intendedDomains} domains={domains} defaultViewMode={viewMode} />
         )}
         {activeTab === "findings" && (
           <div className="space-y-4">

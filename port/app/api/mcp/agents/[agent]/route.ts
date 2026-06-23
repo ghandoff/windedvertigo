@@ -83,6 +83,13 @@ async function callMo(name: string, a: Record<string, unknown>, token: string): 
     const d = (await apiFetch("/api/cmo/memory", token, { method: "POST", body: JSON.stringify({ key: a.key, value: a.value, updated_by: a.updated_by }) })) as { key: string };
     return { text: `memory updated: ${d.key}` };
   }
+  if (name === "cmo_request_research") {
+    const d = (await apiFetch("/api/carl/curriculum", token, {
+      method: "POST",
+      body: JSON.stringify({ domain: a.domain, topic: a.topic, key_works: a.key_works ?? [], priority: 1, notes: a.context || undefined, requested_by: "mo" }),
+    })) as { id?: string };
+    return { text: `research request queued for cARL (priority 1) — ${a.domain}: ${a.topic}. cARL will synthesise findings at the next daily run and post a digest to #canon.${d.id ? ` [id: ${d.id}]` : ""}` };
+  }
   return { text: `unknown tool: ${name}`, isError: true };
 }
 
@@ -129,10 +136,10 @@ const CARL_TOOLS: ToolDef[] = [
   { name: "carl_briefing", description: "Load cARL's full working state — active research domains, recent library findings, working state, and 14 days of conversation history. Call silently at session start.", inputSchema: { type: "object", properties: {}, required: [] } },
   { name: "carl_log_decision", description: "Log a research decision or direction to cARL's persistent memory — when a framework is adopted, a domain is prioritised, or a key insight is confirmed.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Name of the person in the conversation" }, summary: { ...STR, description: "Summary of what was discussed" }, decisions: { ...STR_ARR, description: "Specific research decisions or directions adopted" }, tags: { ...STR_ARR, description: "Research domain tags e.g. ['threshold-concepts', 'harbour', 'UDL']" }, session_type: { ...STR, description: "Session type, default 'cowork'" } }, required: ["who", "summary"] } },
   { name: "carl_update_memory", description: "Update a key in cARL's working state memory. Use when research priorities shift, a new domain becomes active, or a framework is adopted.", inputSchema: { type: "object", properties: { key: { ...STR, description: "Memory key (e.g. 'active-research-domains')" }, value: { ...STR, description: "New value" }, updated_by: { ...STR, description: "Who made the update" } }, required: ["key", "value", "updated_by"] } },
-  { name: "carl_add_finding", description: "Add a synthesised finding to cARL's living research library. Call when a relevant study, framework, or insight is surfaced that connects to the team's work.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Research domain (e.g. 'threshold concepts', 'play-based learning', 'UDL')" }, title: { ...STR, description: "Clear descriptive title of the finding" }, summary: { ...STR, description: "1-3 sentence distilled insight (not raw notes)" }, source: { ...STR, description: "Author(s) and title of the source" }, citation: { ...STR, description: "Enough detail to find the source (author, year, journal/book)" }, relevance: { ...STR, description: "How this connects to what the team is currently building" }, tags: { ...STR_ARR, description: "Searchable tags" }, connected_to: { ...STR_ARR, description: "Related concepts or other finding titles" } }, required: ["domain", "title", "summary"] } },
+  { name: "carl_add_finding", description: "Add a synthesised finding to cARL's living research library. Call when a relevant study, framework, or insight is surfaced that connects to the team's work. domain MUST be a canonical label from the vocabulary — call GET /api/carl/domains if unsure what's available.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Canonical research domain label — must match an entry in the vocabulary (e.g. 'threshold concepts', 'play-based & experiential pedagogy', 'learning design & UDL', 'ai in education', 'cognitive psychology', 'mo · strategy', 'pam · project management'). Reject non-canonical strings." }, subtopic: { ...STR, description: "Optional fine-grain context within the domain (e.g. 'embodied cognition', 'memory', 'SLIMM'). Keeps the domain canonical while preserving nuance." }, title: { ...STR, description: "Clear descriptive title of the finding" }, summary: { ...STR, description: "1-3 sentence distilled insight (not raw notes)" }, source: { ...STR, description: "Author(s) and title of the source" }, citation: { ...STR, description: "Enough detail to find the source (author, year, journal/book)" }, relevance: { ...STR, description: "How this connects to what the team is currently building" }, tags: { ...STR_ARR, description: "Searchable tags" }, connected_to: { ...STR_ARR, description: "Related concepts or other finding titles" } }, required: ["domain", "title", "summary"] } },
   { name: "carl_search_findings", description: "Search cARL's living research library by domain, tags, or keyword. Call before starting a research response to check what's already known.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Filter by research domain" }, tags: { ...STR, description: "Filter by tag (single tag)" }, search: { ...STR, description: "Keyword search across title and summary" } }, required: [] } },
   { name: "carl_curriculum", description: "Read cARL's target curriculum — the marketing + lifelong-learning syllabus cARL is working toward, with each topic's coverage status (planned / in-progress / covered). Use it to see what's covered, the blind spots (planned-but-uncovered), and what to research next.", inputSchema: { type: "object", properties: { status: { ...STR, description: "Filter by status: planned | in-progress | covered (optional)" }, domain: { ...STR, description: "Filter by domain (optional)" } }, required: [] } },
-  { name: "carl_add_curriculum_topic", description: "Add a NEW topic to cARL's target curriculum — for a blind spot or a teammate/agent-requested research line that isn't covered yet. The topic starts as 'planned'; logging findings against it later advances its coverage. Use this when you spot a gap and want to formally adopt it into the syllabus.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Research domain the topic belongs to (e.g. 'pricing', 'motivation science', 'threshold concepts')" }, topic: { ...STR, description: "The specific topic or question to research" }, key_works: { ...STR_ARR, description: "Known key works/authors to anchor it (optional)" }, notes: { ...STR, description: "Why it matters / who asked for it (optional)" } }, required: ["domain", "topic"] } },
+  { name: "carl_add_curriculum_topic", description: "Add a NEW topic to cARL's target curriculum — for a blind spot or a teammate/agent-requested research line that isn't covered yet. The topic starts as 'planned'; the daily study cron picks it up and synthesises findings automatically. Use this when you spot a gap and want to formally adopt it into the syllabus.", inputSchema: { type: "object", properties: { domain: { ...STR, description: "Canonical research domain label the topic belongs to" }, topic: { ...STR, description: "The specific topic or question to research" }, key_works: { ...STR_ARR, description: "Known key works/authors to anchor it (optional)" }, priority: { type: "number", description: "1 = high / urgent, 2 = medium (default), 3 = low" }, notes: { ...STR, description: "Why it matters / who asked for it (optional)" }, requested_by: { ...STR, description: "Who requested this topic — agent slug ('mo','biz','pam') or person slug ('jamie','payton','garrett'). Omit if self-generated." } }, required: ["domain", "topic"] } },
 ];
 
 async function callCarl(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
@@ -149,8 +156,8 @@ async function callCarl(name: string, a: Record<string, unknown>, token: string)
     return { text: `memory updated: ${d.key}` };
   }
   if (name === "carl_add_finding") {
-    const d = (await apiFetch("/api/carl/findings", token, { method: "POST", body: JSON.stringify({ domain: a.domain, title: a.title, summary: a.summary, source: a.source || undefined, citation: a.citation || undefined, relevance: a.relevance || undefined, tags: a.tags ?? [], connected_to: a.connected_to || undefined }) })) as { id: string };
-    return { text: `finding added to library (id: ${d.id}) — ${a.domain}: ${a.title}` };
+    const d = (await apiFetch("/api/carl/findings", token, { method: "POST", body: JSON.stringify({ domain: a.domain, subtopic: a.subtopic || undefined, title: a.title, summary: a.summary, source: a.source || undefined, citation: a.citation || undefined, relevance: a.relevance || undefined, tags: a.tags ?? [], connected_to: a.connected_to || undefined }) })) as { id: string };
+    return { text: `finding added to library (id: ${d.id}) — ${a.domain}${a.subtopic ? ` · ${a.subtopic}` : ""}: ${a.title}` };
   }
   if (name === "carl_search_findings") {
     const p = new URLSearchParams();
@@ -181,9 +188,9 @@ async function callCarl(name: string, a: Record<string, unknown>, token: string)
   if (name === "carl_add_curriculum_topic") {
     const d = (await apiFetch("/api/carl/curriculum", token, {
       method: "POST",
-      body: JSON.stringify({ domain: a.domain, topic: a.topic, key_works: a.key_works ?? [], notes: a.notes || undefined }),
+      body: JSON.stringify({ domain: a.domain, topic: a.topic, key_works: a.key_works ?? [], priority: a.priority ?? 2, notes: a.notes || undefined, requested_by: a.requested_by || undefined }),
     })) as { id?: string };
-    return { text: `curriculum topic added (planned) — ${a.domain}: ${a.topic}${d.id ? ` [id: ${d.id}]` : ""}` };
+    return { text: `curriculum topic queued (planned, priority ${a.priority ?? 2}) — ${a.domain}: ${a.topic}${a.requested_by ? ` [requested by ${a.requested_by}]` : ""}${d.id ? ` [id: ${d.id}]` : ""}` };
   }
   return { text: `unknown tool: ${name}`, isError: true };
 }
@@ -520,6 +527,21 @@ const BIZ_TOOLS: ToolDef[] = [
       required: ["rfp_id", "outcome"],
     },
   },
+  {
+    name: "biz_request_research",
+    description:
+      "Ask cARL to research a topic relevant to business development — sector intelligence, funder behaviour, outcomes frameworks, bid strategy, RFP analysis patterns. cARL queues it as priority 1 and delivers findings at the next daily run. Use when you need theoretical or evidence-based grounding before a bid decision, proposal, or strategy call.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        domain: { ...STR, description: "Canonical cARL domain label this research belongs to (e.g. 'mhpss & mission', 'mo · strategy', 'learning design & UDL')" },
+        topic: { ...STR, description: "Specific topic or question to research (e.g. 'outcomes-based contracting in education sector', 'impact measurement frameworks for MHPSS funders')" },
+        context: { ...STR, description: "Why this is needed — the bid, decision, or question driving the request (optional but helps cARL prioritise)" },
+        key_works: { ...STR_ARR, description: "Known papers, authors, or frameworks to anchor the search (optional)" },
+      },
+      required: ["domain", "topic"],
+    },
+  },
 ];
 
 // the go/no-go scorecard recipe the Cowork agent applies after biz_go_no_go returns the facts
@@ -700,6 +722,13 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
       body: JSON.stringify({ rfp_id: a.rfp_id, outcome: a.outcome, what_worked: a.what_worked, what_fell_flat: a.what_fell_flat, client_feedback: a.client_feedback, lessons: a.lessons }),
     })) as { outcome: string };
     return { text: `outcome recorded: ${d.outcome} — debrief saved. consider running the rfp-postmortem-to-library skill to bank the lessons.` };
+  }
+  if (name === "biz_request_research") {
+    const d = (await apiFetch("/api/carl/curriculum", token, {
+      method: "POST",
+      body: JSON.stringify({ domain: a.domain, topic: a.topic, key_works: a.key_works ?? [], priority: 1, notes: a.context || undefined, requested_by: "biz" }),
+    })) as { id?: string };
+    return { text: `research request queued for cARL (priority 1) — ${a.domain}: ${a.topic}. cARL will synthesise findings at the next daily run and post a digest to #canon.${d.id ? ` [id: ${d.id}]` : ""}` };
   }
   return { text: `unknown tool: ${name}`, isError: true };
 }

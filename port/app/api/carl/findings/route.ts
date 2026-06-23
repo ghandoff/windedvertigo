@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { json, error, param } from "@/lib/api-helpers";
-import { getCarlFindings, insertCarlFinding } from "@/lib/supabase/carl";
+import { getCarlFindings, getCarlDomains, insertCarlFinding } from "@/lib/supabase/carl";
 import { createBibliographyEntry } from "@/lib/notion/bibliography";
 
 function verifyAuth(req: NextRequest): boolean {
@@ -32,11 +32,26 @@ export async function POST(req: NextRequest) {
   if (!body?.title) return error("title is required");
   if (!body?.summary) return error("summary is required");
 
+  // Validate domain against canonical vocabulary if the table exists.
+  // Falls back gracefully (accepts any domain) if the migration hasn't run yet.
+  const canonicalDomains = await getCarlDomains();
+  if (canonicalDomains.length > 0) {
+    const labels = canonicalDomains.map((d) => d.label.toLowerCase());
+    if (!labels.includes(body.domain.toLowerCase())) {
+      const suggestions = canonicalDomains.map((d) => `"${d.label}"`).join(", ");
+      return error(
+        `"${body.domain}" is not a canonical domain. use one of: ${suggestions}`,
+        400,
+      );
+    }
+  }
+
   try {
     const result = await insertCarlFinding({
       domain: body.domain,
       title: body.title,
       summary: body.summary,
+      subtopic: body.subtopic ?? undefined,
       source: body.source ?? undefined,
       citation: body.citation ?? undefined,
       relevance: body.relevance ?? undefined,

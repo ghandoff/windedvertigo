@@ -69,6 +69,37 @@ export const MO_TOOLS = [
       required: ["key", "value"],
     },
   },
+  {
+    name: "cmo_request_research",
+    description:
+      "Ask cARL to research a topic that would deepen Mo's marketing and strategy expertise. cARL queues it as priority 1 and posts a digest to #canon when done. Use when you need theoretical grounding before a strategy call, campaign direction, or positioning decision — e.g. consumer behaviour research for a specific sector, evidence on pricing psychology, or brand frameworks for mission-led organisations.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        domain: {
+          type: "string",
+          description:
+            "Canonical cARL domain label (e.g. 'mo · strategy', 'mo · audience & behaviour', 'mo · digital & growth', 'mo · communications'). Use a 'mo · *' domain so findings flow back into Mo's briefing.",
+        },
+        topic: {
+          type: "string",
+          description:
+            "Specific topic or question (e.g. 'consumer behaviour in mission-driven social enterprise', 'evidence-based pricing psychology for non-profit memberships').",
+        },
+        context: {
+          type: "string",
+          description:
+            "Why this is needed — the campaign, decision, or question driving the request. Helps cARL prioritise and frame the research.",
+        },
+        key_works: {
+          type: "array",
+          items: { type: "string" },
+          description: "Known papers, authors, or frameworks to anchor the search (optional).",
+        },
+      },
+      required: ["domain", "topic"],
+    },
+  },
 ] as const;
 
 export type MoToolName = (typeof MO_TOOLS)[number]["name"];
