@@ -25,6 +25,8 @@ export type RequirementKind =
   | "admin"
   | "submission";
 
+export type EligibilityVerdict = "pass" | "fail" | "n-a" | "covered";
+
 export interface RfpRequirement {
   id: string;
   rfpId: string;
@@ -42,6 +44,8 @@ export interface RfpRequirement {
   extractedBy: string | null;
   extractionConfidence: number | null;
   sourceQuote: string | null;
+  eligibilityVerdict: EligibilityVerdict | null;
+  eligibilityEvidence: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +67,8 @@ interface RfpRequirementRow {
   extracted_by: string | null;
   extraction_confidence: string | number | null;
   source_quote: string | null;
+  eligibility_verdict: string | null;
+  eligibility_evidence: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -70,7 +76,8 @@ interface RfpRequirementRow {
 const SELECT_COLS =
   "id, rfp_id, kind, label, description, page_limit, word_limit, format, " +
   "required_sections, weight_pct, required, approved_by, approved_at, " +
-  "extracted_by, extraction_confidence, source_quote, created_at, updated_at";
+  "extracted_by, extraction_confidence, source_quote, " +
+  "eligibility_verdict, eligibility_evidence, created_at, updated_at";
 
 function toNum(v: string | number | null): number | null {
   if (v === null || v === undefined) return null;
@@ -95,6 +102,8 @@ function rowToRequirement(row: RfpRequirementRow): RfpRequirement {
     extractedBy: row.extracted_by,
     extractionConfidence: toNum(row.extraction_confidence),
     sourceQuote: row.source_quote,
+    eligibilityVerdict: (row.eligibility_verdict as EligibilityVerdict) ?? null,
+    eligibilityEvidence: row.eligibility_evidence,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -270,6 +279,7 @@ export async function clearExtractedRequirements(rfpId: string): Promise<number>
   return count ?? 0;
 }
 
+<<<<<<< Updated upstream
 // ── Coverage (compliance matrix) ─────────────────────────────────────────────
 
 /** A single row from the rfp_coverage view, enriched with weight_pct and
@@ -352,4 +362,97 @@ export async function getCoverageByRfp(rfpId: string): Promise<RfpCoverageRow[]>
       extractionConfidence: extra?.extractionConfidence ?? null,
     };
   });
+=======
+// ── BIZ-E1 eligibility gate ───────────────────────────────────────────────────
+
+export interface EligibilityGateResult {
+  /** true = all required checks recorded and none are uncovered fails */
+  passed: boolean;
+  /** populated when passed=false: the first blocking check label */
+  blockingCheck: string | null;
+  /** 'incomplete' = verdict not yet recorded; 'uncovered_fail' = fail with no evidence */
+  blockingReason: "incomplete" | "uncovered_fail" | null;
+  /** the full set of eligibility rows for embedding in the bid response */
+  checks: Array<{
+    id: string;
+    label: string;
+    verdict: EligibilityVerdict | null;
+    evidence: string | null;
+    sourceQuote: string | null;
+  }>;
+}
+
+/**
+ * Hard gate for biz_go_no_go: verifies that every required eligibility
+ * requirement has a recorded verdict and that none are uncovered fails.
+ *
+ * Rules (mirrored from .brain/memory/biz/bid-eligibility-screen.md):
+ *   pass    — satisfied as-is
+ *   n-a     — does not apply to this call
+ *   covered — not natively met but covered by a named partner/entity;
+ *             eligibility_evidence must be populated
+ *   fail    — unmet with no coverage → blocks bid
+ *   null    — not yet assessed → blocks bid
+ */
+export async function checkEligibilityGate(rfpId: string): Promise<EligibilityGateResult> {
+  const { data, error } = await supabase
+    .from("rfp_requirements")
+    .select("id, label, eligibility_verdict, eligibility_evidence, source_quote, required")
+    .eq("rfp_id", rfpId)
+    .eq("kind", "eligibility");
+
+  if (error) throw new Error(`[rfp-requirements] checkEligibilityGate: ${error.message}`);
+
+  const rows = (data ?? []) as Array<{
+    id: string;
+    label: string;
+    eligibility_verdict: string | null;
+    eligibility_evidence: string | null;
+    source_quote: string | null;
+    required: boolean;
+  }>;
+
+  const checks = rows.map((r) => ({
+    id: r.id,
+    label: r.label,
+    verdict: (r.eligibility_verdict as EligibilityVerdict) ?? null,
+    evidence: r.eligibility_evidence,
+    sourceQuote: r.source_quote,
+  }));
+
+  for (const row of rows) {
+    if (!row.required) continue;
+    if (row.eligibility_verdict === null) {
+      return { passed: false, blockingCheck: row.label, blockingReason: "incomplete", checks };
+    }
+    if (row.eligibility_verdict === "fail") {
+      return { passed: false, blockingCheck: row.label, blockingReason: "uncovered_fail", checks };
+    }
+    if (row.eligibility_verdict === "covered" && !row.eligibility_evidence?.trim()) {
+      return { passed: false, blockingCheck: row.label, blockingReason: "uncovered_fail", checks };
+    }
+  }
+
+  return { passed: true, blockingCheck: null, blockingReason: null, checks };
+}
+
+/** Record or update the verdict for a single eligibility requirement. */
+export async function setEligibilityVerdict(
+  requirementId: string,
+  verdict: EligibilityVerdict,
+  evidence?: string | null,
+): Promise<void> {
+  if (verdict === "covered" && !evidence?.trim()) {
+    throw new Error("eligibility_evidence is required when verdict is 'covered'");
+  }
+  const { error } = await supabase
+    .from("rfp_requirements")
+    .update({
+      eligibility_verdict:  verdict,
+      eligibility_evidence: evidence ?? null,
+      approved_at:          new Date().toISOString(),
+    })
+    .eq("id", requirementId);
+  if (error) throw new Error(`[rfp-requirements] setEligibilityVerdict: ${error.message}`);
+>>>>>>> Stashed changes
 }
