@@ -485,76 +485,100 @@ export const STEPS: Step[] = [
     },
   },
   // ────────────────────────────────────────────────────────────────
-  // 10. meet the agents (Mo, PaM, cARL)
+  // 10. meet the agents (Mo, PaM, cARL, Opsy, Fin, Biz)
   // ────────────────────────────────────────────────────────────────
   {
     id: 'agents',
     section: 'how-we-work',
     title: 'meet your agents.',
-    subtitle: 'winded.vertigo has three AI teammates with long memories: Mo, PaM, and cARL.',
+    subtitle: 'winded.vertigo runs six AI agents — each one always arrives briefed.',
     shared: {
       intro:
-        "the collective runs three persistent AI agents. unlike a fresh claude conversation, they remember decisions across sessions — because they read and write a shared memory api on the port. you reach them in cowork (one connector you sign in to) or in claude code (by cd-ing into their brain folder, or saying \"talk to Mo\").",
+        "unlike a fresh claude conversation, these agents remember decisions across sessions — because they each read and write a shared memory api on the port. you reach all six through one cowork connector you sign in to, or in claude code by saying \"talk to Mo\" (or any agent by name).",
       body: [
-        { kind: 'heading', text: 'the three agents' },
+        { kind: 'heading', text: 'the six agents' },
         {
           kind: 'paragraph',
-          text: "**Mo** — chief marketing officer. strategy, brand, pipeline, campaigns. brain lives in `docs/cmo/`; dashboard at `/mo` (see the \"Mo's log\" tab).",
+          text: "**Mo** — chief marketing officer. strategy, brand, pipeline, campaigns. brain lives in `docs/cmo/`; dashboard at `/mo`.",
         },
         {
           kind: 'paragraph',
-          text: "**PaM** — project + momentum manager. tracks who committed to what, dependencies, and follow-ups. brain in `docs/pam/`; dashboard at `/pam` — a commitments board and an interactive timeline.",
+          text: "**PaM** — project + momentum manager. tracks who committed to what, dependencies, and follow-ups. brain in `docs/pam/`; dashboard at `/pam` — a commitments board and interactive timeline.",
         },
         {
           kind: 'paragraph',
           text: "**cARL** — cyber agent of research + learning. the living library of evidence, threshold concepts, and pedagogy. brain in `docs/carl/`; dashboard at `/carl`.",
         },
         {
-          kind: 'callout',
-          tone: 'info',
-          text: "all three share one memory api on port.windedvertigo.com. their decisions are transparent — anything they log shows up on the dashboards, so the whole collective can see what was decided.",
-        },
-        { kind: 'heading', text: 'what each agent can do — their 15 skills' },
-        {
           kind: 'paragraph',
-          text: "**Mo (3)** — *read the briefing:* \"Mo, catch me up on strategy and pipeline\" · *log a decision:* \"log that — we're pivoting harbour messaging to ecosystem storytelling\" · *update memory:* \"note that the WTG proposal is now submitted.\"",
+          text: "**Opsy** — operations + systems intelligence. monitors infrastructure health, logs incidents, and tracks recurring patterns. brain in `docs/opsy/`; dashboard at `/ops`.",
         },
         {
           kind: 'paragraph',
-          text: "**PaM (5)** — *read the briefing:* \"PaM, what's on my plate this week?\" · *create a commitment:* \"track that I'll send the DW Akademie follow-up by friday\" · *update a commitment:* \"mark the PPCS draft done\" (or \"that one's blocked on maria\") · *log a decision:* \"log that we pushed the harbour campaign to july\" · *update memory:* \"note payton's focus this week is the launch deck.\"",
+          text: "**Fin** — cfo. tracks financial items (bills, invoices, tax deadlines), caches accounting snapshots from QuickBooks and Gusto, and flags anything that needs action. brain in `docs/fin/`; dashboard at `/finn` (owner-only).",
         },
         {
           kind: 'paragraph',
-          text: "**cARL (7)** — *read the briefing:* \"cARL, what's in the library lately?\" · *search findings:* \"what do we already know about play-based assessment?\" · *add a finding:* \"save that to our research\" · *read the curriculum:* \"what are your blind spots?\" · *adopt a topic:* \"add 'value-based pricing for edtech' and go research it\" · *log a decision:* \"log that we're adopting Meyer & Land's threshold framework\" · *update memory:* \"note pricing research is now a priority.\"",
+          text: "**Biz** — business development. drives the rfp pipeline — running qc checks on proposals, recording go/no-go verdicts, coordinating handoffs to PaM and Fin, and tracking the bd feature roadmap. brain in `docs/biz/`; dashboard at `/biz`.",
         },
         {
           kind: 'callout',
           tone: 'info',
-          text: "in cowork all 15 arrive in one connector; on the port dashboards the briefing loads automatically, so you don't call it yourself.",
+          text: "all six share one memory api on port.windedvertigo.com. their decisions are transparent — anything they log shows up on the dashboards, so the whole collective can see what was decided.",
+        },
+        { kind: 'heading', text: 'what each agent can do' },
+        {
+          kind: 'paragraph',
+          text: "**Mo** — *briefing:* \"Mo, catch me up on strategy and pipeline\" · *log a decision:* \"log that — we're pivoting harbour messaging to ecosystem storytelling\" · *update memory:* \"note that the WTG proposal is now submitted.\"",
+        },
+        {
+          kind: 'paragraph',
+          text: "**PaM** — *briefing:* \"PaM, what's on my plate this week?\" · *create a commitment:* \"track that I'll send the DW Akademie follow-up by friday\" · *update a commitment:* \"mark the PPCS draft done\" · *log a decision:* \"log that we pushed the harbour campaign to july.\"",
+        },
+        {
+          kind: 'paragraph',
+          text: "**cARL** — *briefing:* \"cARL, what's in the library lately?\" · *search findings:* \"what do we already know about play-based assessment?\" · *add a finding:* \"save that to our research\" · *adopt a topic:* \"add 'value-based pricing for edtech' and go research it.\"",
+        },
+        {
+          kind: 'paragraph',
+          text: "**Opsy** — *briefing:* \"Opsy, is everything green?\" · *run a health check:* \"check all services now\" · *log an incident:* \"log that — the port was down for 4 minutes this morning\" · *search past incidents:* \"what was that supabase outage last month?\"",
+        },
+        {
+          kind: 'paragraph',
+          text: "**Fin** — *briefing:* \"Fin, what's outstanding this month?\" · *log an item:* \"log that Adobe invoice — $82, due friday\" · *store a snapshot:* \"pull the latest p&l from QuickBooks\" · *spot patterns:* \"what recurring costs are coming up this quarter?\"",
+        },
+        {
+          kind: 'paragraph',
+          text: "**Biz** — *briefing:* \"Biz, what's in the pipeline?\" · *qc review:* \"run a qc check on the AMNA proposal\" · *go/no-go:* \"should we bid on this one?\" · *close a bid:* \"log that we won the PPCS contract\" · *roadmap:* \"what bd upgrades are available?\"",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "in cowork all six arrive in one connector. on the port dashboards the briefing loads automatically, so you don't call it yourself.",
         },
         { kind: 'heading', text: "how documenting happens — you don't flip a switch, the agents do" },
         {
           kind: 'paragraph',
-          text: "you don't \"turn on\" logging per tool — the agent documents *as you talk*: when a decision lands, a commitment is made, or a finding is confirmed, it calls the matching tool right then. just talk normally, and **nudge** when you want something captured — \"log that decision,\" \"track that with a due date,\" \"add that to the library.\" everything logged is shared instantly — it shows on the dashboards (Mo's log · PaM's board + timeline · cARL's library + bibliography) and in everyone's next briefing. that's how a conversation becomes collective memory.",
+          text: "you don't \"turn on\" logging per tool — the agent documents *as you talk*: when a decision lands, a commitment is made, or a finding is confirmed, it calls the matching tool right then. just talk normally, and **nudge** when you want something captured — \"log that decision,\" \"track that with a due date,\" \"add that to the library.\" everything logged is shared instantly across all the dashboards and in everyone's next briefing. that's how a conversation becomes collective memory.",
         },
         { kind: 'heading', text: 'two ways to reach them' },
         {
           kind: 'paragraph',
-          text: "**the port (browser — zero setup):** sign in at port.windedvertigo.com and chat with them in the sidebar on `/mo` (Mo), `/pam` (PaM), and `/carl` (cARL). they auto-load the shared memory and persona — nothing to install. they can *think and log* (record decisions, commitments, findings) but can't browse the live web or create documents. the port also hosts **`/bibliography`** — the citation library plus an article-retrieval (scholarly search) tool, open to any signed-in member.",
+          text: "**the port (browser — zero setup):** sign in at port.windedvertigo.com and chat with any agent from its dashboard page. they auto-load the shared memory and persona — nothing to install. they can *think and log* but can't browse the live web or create documents. the port also hosts **`/bibliography`** — cARL's citation library plus a scholarly search tool.",
         },
         {
           kind: 'paragraph',
-          text: "**cowork / claude code (full power):** the same agents, the same memory — plus the reach to *do the work*: live web research (cARL), drafting proposals and decks, creating documents, email, calendar, notion, slack. this is the surface you set up below. rule of thumb: use the port when you just want to think and log; use cowork or claude code when you want the agent to act.",
+          text: "**cowork / claude code (full power):** the same agents, the same memory — plus the reach to *do the work*: live web research, drafting proposals and decks, creating documents, email, calendar, notion, slack. rule of thumb: use the port when you just want to think and log; use cowork or claude code when you want the agent to act.",
         },
         {
           kind: 'callout',
           tone: 'tip',
-          text: "short on setup time, or just want the simplest path? the port is browser-only and needs nothing — sign in and start chatting. it's the recommended starting point for anyone who works in short bursts; you can add cowork later when you want an agent to research or draft.",
+          text: "short on setup time? the port is browser-only and needs nothing — sign in and start chatting. it's the recommended starting point for anyone who works in short bursts; you can add cowork later when you want an agent to research or draft.",
         },
         { kind: 'heading', text: 'cowork: connect once, then sign in (no token)' },
         {
           kind: 'paragraph',
-          text: "cowork can't run local files, so the agents are served as a hosted connector you sign in to. in cowork: **settings → connectors → add custom connector**. set the **url** to `https://port.windedvertigo.com/api/mcp/agents/all`, leave the **oauth client id / secret** fields blank, click **add**, then **connect** → sign in with your **winded.vertigo google account** → **approve**. that one connector gives you all three agents' tools — no token to paste anywhere.",
+          text: "in cowork: **settings → connectors → add custom connector**. set the **url** to `https://port.windedvertigo.com/api/mcp/agents/all`, leave the **oauth client id / secret** fields blank, click **add**, then **connect** → sign in with your **winded.vertigo google account** → **approve**. that one connector gives you all six agents' tools — no token to paste anywhere.",
         },
         {
           kind: 'callout',
@@ -584,7 +608,13 @@ export const STEPS: Step[] = [
         {
           kind: 'callout',
           tone: 'tip',
-          text: "then either install the plugins (`/plugin marketplace add ghandoff/windedvertigo`, then `/plugin install mo-cmo` · `pam-pm` · `carl-research`), or skip them and just `cd docs/cmo` (or `docs/pam`, `docs/carl`) and start talking — or say \"i want to talk to PaM\" anywhere in the monorepo.",
+          text: "then either install the plugins (`/plugin marketplace add ghandoff/windedvertigo`, then `/plugin install mo-cmo` · `pam-pm` · `carl-research` · `opsy-ops` · `fin-cfo` · `biz-bd`), or skip them and just say \"i want to talk to PaM\" (or any agent) anywhere in the monorepo.",
+        },
+        { kind: 'heading', text: 'under the hood — how every agent is built' },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "every agent shares the same skeleton: two core database tables (`{agent}_decisions` — an append-only diary; `{agent}_memory` — a live scratchpad), a briefing endpoint that assembles everything at session start, standard api routes, and a skill.md persona doc. what makes each agent different is its domain-specific tables (PaM tracks commitments; cARL tracks findings and curriculum; Opsy tracks incidents and health checks; Fin tracks financial items and snapshots; Biz tracks the bd feature roadmap) and its persona, which defines its voice, style, and decision-logging habits. full write-up: `docs/onboarding/how-we-build-agents.md`.",
         },
         { kind: 'heading', text: 'say hello' },
         {
@@ -596,13 +626,13 @@ export const STEPS: Step[] = [
         {
           kind: 'callout',
           tone: 'success',
-          text: "if PaM answers with your commitments (or asks what you're working on), the connector + memory api are wired correctly. the same pattern works for Mo (\"what's our pipeline looking like?\") and cARL (\"what does the research say about threshold concepts?\").",
+          text: "if PaM answers with your commitments (or asks what you're working on), the connector + memory api are wired correctly. the same pattern works for any agent — try Mo (\"what's our pipeline looking like?\"), cARL (\"what does the research say about threshold concepts?\"), Opsy (\"is everything green?\"), Fin (\"what's outstanding this month?\"), or Biz (\"what's in the rfp pipeline?\").",
         },
       ],
       doneLooksLike:
-        "in cowork the winded.vertigo agents connector is connected (you signed in), or in claude code your WV_AGENT_TOKEN is set — and you've had a first exchange where an agent clearly remembered (or asked to learn) your context.",
+        "in cowork the winded.vertigo agents connector is connected (you signed in with your google account), or in claude code your WV_AGENT_TOKEN is set — and you've had a first exchange where an agent clearly remembered (or asked to learn) your context.",
       helpPrompt:
-        "i'm setting up the winded.vertigo agents (Mo / PaM / cARL). in cowork i added the custom connector `https://port.windedvertigo.com/api/mcp/agents/all` and clicked connect, but [describe what happened — sign-in failed, it says couldn't connect, no tools appear]. walk me through fixing it.",
+        "i'm setting up the winded.vertigo agents (Mo / PaM / cARL / Opsy / Fin / Biz). in cowork i added the custom connector `https://port.windedvertigo.com/api/mcp/agents/all` and clicked connect, but [describe what happened — sign-in failed, it says couldn't connect, no tools appear]. walk me through fixing it.",
     },
   },
   // ────────────────────────────────────────────────────────────────
