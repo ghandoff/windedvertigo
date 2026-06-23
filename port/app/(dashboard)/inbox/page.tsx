@@ -31,7 +31,7 @@ export default async function InboxPage() {
         description="email-detected pipeline updates awaiting your approval"
       />
       {items.length === 0 ? (
-        <p className="text-sm text-white/50">nothing to review — you’re all caught up.</p>
+        <p className="text-sm text-muted-foreground">nothing to review — you’re all caught up.</p>
       ) : (
         <div className="space-y-3">
           {items.map((item) => (
