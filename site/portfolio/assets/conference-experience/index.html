@@ -70,7 +70,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S0.sc-bg { background-image: url('./arrival_question_wall.png'); }
 #S0.sc-bg::before { background: rgba(39,50,72,0.82); }
 /* #S1 — color only */
-#S1.sc-bg::before { background: rgba(255,235,210,0.80); }
+#S1.sc-bg::before { background: rgba(255,255,255,0.82); }
 #S2.sc-bg { background-image: url('./arrival_question_wall.png'); }
 #S2.sc-bg::before { background: rgba(234,86,33,0.65); }
 #S3.sc-bg { background-image: url('./sketches_behind_keynote.png'); }
@@ -82,7 +82,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S6.sc-bg { background-image: url('./childrens_voices_thread.png'); }
 #S6.sc-bg::before { background: rgba(39,50,72,0.20); }
 /* #S7 — color only */
-#S7.sc-bg::before { background: rgba(255,235,210,0.88); }
+#S7.sc-bg::before { background: rgba(255,255,255,0.88); }
 /* #S8 — color only */
 #S8.sc-bg::before { background: rgba(39,50,72,0.70); }
 #S9.sc-bg { background-image: url('./30_seconds_of_risky_play.png'); }
@@ -98,7 +98,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S14.sc-bg { background-image: url('./garden_party.png'); }
 #S14.sc-bg::before { background: rgba(67,177,135,0.65); }
 /* #S15 — color only */
-#S15.sc-bg::before { background: rgba(255,235,210,0.80); }
+#S15.sc-bg::before { background: rgba(255,255,255,0.82); }
 
 /* ── Progress ── */
 #progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--orange); z-index: 200; transition: width 0.8s ease, background-color 0.8s ease; }
@@ -370,8 +370,8 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S2 {
   background: var(--white);
   background-image:
-    repeating-linear-gradient(90deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px),
-    repeating-linear-gradient(0deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px);
+    repeating-linear-gradient(90deg, transparent, transparent 199px, rgba(234,86,33,0.06) 199px, rgba(234,86,33,0.06) 200px),
+    repeating-linear-gradient(0deg, transparent, transparent 199px, rgba(234,86,33,0.06) 199px, rgba(234,86,33,0.06) 200px);
 }
 #S2 .wall-surface { position: absolute; inset: 0; padding: 60px 20px 140px; overflow: hidden; }
 .wc {
@@ -391,7 +391,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .wc.child {
-  background: #fff9f5; border-left: 3px solid var(--sienna);
+  background: #fff; border-left: 3px solid var(--orange);
   font-style: normal;
 }
 .wc.child::before { background: var(--redwood); }
@@ -453,7 +453,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .ghost-card {
   position: absolute;
   width: 160px; padding: 10px 14px;
-  background: rgba(255,235,210,0.15); border-radius: 2px;
+  background: rgba(234,86,33,0.10); border-radius: 2px;
   font: 600 12px/1.4 'Inter', sans-serif;
   color: var(--champagne);
   transform: rotate(var(--r, 0deg));
@@ -486,7 +486,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
    SCREEN 4 — MAKING SPACE (10:10 a.m.)
    ════════════════════════════════ */
 #S4 {
-  background: #fff8f5;
+  background: var(--white);
   background-image:
     linear-gradient(rgba(234,86,33,0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(234,86,33,0.08) 1px, transparent 1px),
@@ -503,7 +503,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .material.dragging { cursor: grabbing; z-index: 50; box-shadow: 0 16px 48px rgba(0,0,0,0.2); }
 .mat-card {
   width: 220px; padding: 20px;
-  background: #fffcf5; border-radius: 2px;
+  background: var(--white); border-radius: 2px;
   font: 300 15px/1.5 'Inter', sans-serif; color: var(--redwood);
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
   transform: rotate(var(--r, 0deg));
@@ -524,7 +524,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
   z-index: 20; text-align: center;
   font: 300 18px/1.5 'Inter', sans-serif; color: var(--cadet);
-  background: rgba(255,248,245,0.95); padding: 14px 32px; border-radius: 4px;
+  background: rgba(255,255,255,0.95); padding: 14px 32px; border-radius: 4px;
   backdrop-filter: blur(12px); max-width: 90%;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
 }
@@ -533,7 +533,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   z-index: 20; text-align: center;
   font: 400 13px/1.6 'Inter', sans-serif; color: var(--grey);
   max-width: 500px;
-  background: rgba(255,248,245,0.90); padding: 10px 20px; border-radius: 4px;
+  background: rgba(255,255,255,0.90); padding: 10px 20px; border-radius: 4px;
   backdrop-filter: blur(8px);
 }
 .time-badge {
@@ -550,7 +550,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .table-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .table-top {
   width: 300px; height: 300px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, #f0f0f0, #e8e8e8);
+  background: radial-gradient(circle at 40% 40%, #fff, #f4f4f4);
   box-shadow: 0 4px 30px rgba(0,0,0,0.08), inset 0 2px 10px rgba(255,255,255,0.3);
   display: flex; align-items: center; justify-content: center;
   text-align: center; padding: 50px;
@@ -662,7 +662,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 }
 #S8 .collage-paper {
   position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%) rotate(-1deg); z-index: 20;
-  background: #fffdf9; padding: 16px 20px; border-radius: 2px; width: 320px; max-width: 90%;
+  background: var(--white); padding: 16px 20px; border-radius: 2px; width: 320px; max-width: 90%;
   box-shadow: 2px 3px 14px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
   display: flex; gap: 10px; align-items: flex-end;
 }
@@ -1430,15 +1430,15 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
     <div class="services-section">
       <h3 class="services-label">what we offer conferences and events</h3>
       <div class="services-grid">
-        <div class="service-card" style="background:rgba(177,80,67,0.15)">
+        <div class="service-card" style="background:rgba(234,86,33,0.08)">
           <h4>experience design</h4>
           <p>we design the architecture of a day, not just its schedule. the format should say what the content argues.</p>
         </div>
-        <div class="service-card" style="background:rgba(88,203,178,0.12)">
+        <div class="service-card" style="background:rgba(67,177,135,0.10)">
           <h4>evidence translation</h4>
           <p>turning research into practice that educators actually use. not summaries — structures.</p>
         </div>
-        <div class="service-card" style="background:rgba(177,80,67,0.15)">
+        <div class="service-card" style="background:rgba(234,86,33,0.08)">
           <h4>facilitation</h4>
           <p>we run sessions that make participants feel smart. the room leaves with something it didn't arrive with.</p>
         </div>
