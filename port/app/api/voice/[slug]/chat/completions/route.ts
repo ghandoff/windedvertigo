@@ -295,7 +295,7 @@ export async function POST(
             let toolInput: Record<string, unknown> = {};
             try { toolInput = JSON.parse(toolInputJson || "{}"); } catch { /* keep {} */ }
 
-            const toolResult = await executeVoiceTool(toolName, toolInput).catch(
+            const toolResult = await executeVoiceTool(toolName, toolInput, assistant.slug).catch(
               () => "(tool lookup failed)",
             );
 
