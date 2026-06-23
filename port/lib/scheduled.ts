@@ -92,13 +92,13 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/morning-digest",      hours: [9],  weekdays: [1,2,3,4,5] },
   { path: "/api/cron/sync-calendar-time",  hours: [14], weekdays: [1,2,3,4,5] },
   { path: "/api/cron/deadline-risk",       hours: [13], originalMinute: 30, weekdays: [1,2,3,4,5] },
+  // owner: biz — go/no-go scoring for new radar cards (autonomous, 24h hold window)
   { path: "/api/cron/biz-go-no-go-sweep",       hours: [8],  weekdays: [1,2,3,4,5] },
+  // owner: biz — digest of proposals in v1-generated or human-review stage
   { path: "/api/cron/proposal-review-digest",   hours: [9],  weekdays: [1,2,3,4,5] },
-  // Keep `deals` consistent with the RFP Lighthouse: self-heal won RFPs into
-  // signed linked deals + flag drift. Runs nightly (off-hours).
+  // owner: biz — self-heal won RFPs into signed linked deals + flag drift. Runs nightly.
   { path: "/api/cron/rfp-deal-reconcile",       hours: [6] },
-  // Scan reply emails for RFP outcomes (award/rejection/invited), enqueue them
-  // to the /inbox review queue, and DM Garrett. Human approves before any write.
+  // owner: biz — scan reply emails for RFP outcomes → review_queue → /inbox approval
   { path: "/api/cron/rfp-outcome-scan",         hours: [10] },
 
   // ── Monday-only ─────────────────────────────────────────────────────────────

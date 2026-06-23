@@ -10,6 +10,10 @@ import Link from "next/link";
 import { PageHeader } from "@/app/components/page-header";
 import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
 import { getRecentBizDecisions, getRoadmap, type BizRoadmapItem } from "@/lib/biz-data";
+import { fetchRevenueProgress } from "@/lib/marketing/revenue-progress";
+import { getSocialStatsFromSnapshot } from "@/lib/marketing/social-stats";
+import { countPendingReviews } from "@/lib/review-queue";
+import { StrategyHero } from "./components/strategy-hero";
 
 export const metadata: Metadata = { robots: "noindex" };
 export const dynamic = "force-dynamic";
@@ -26,10 +30,13 @@ function daysUntil(date: string): number {
 }
 
 export default async function BizPage() {
-  const [{ data: allOpps }, roadmap, decisions] = await Promise.all([
+  const [{ data: allOpps }, roadmap, decisions, revenueProgress, socialStats, pendingCount] = await Promise.all([
     getRfpOpportunitiesFromSupabase({}, { page: 1, pageSize: 500 }).catch(() => ({ data: [], total: 0 })),
     getRoadmap().catch((): BizRoadmapItem[] => []),
     getRecentBizDecisions(8).catch(() => []),
+    fetchRevenueProgress().catch(() => null),
+    getSocialStatsFromSnapshot().catch(() => null),
+    countPendingReviews().catch(() => 0),
   ]);
 
   const active = allOpps.filter((o) => !TERMINAL.has(o.status));
@@ -61,6 +68,21 @@ export default async function BizPage() {
           open RFP Lighthouse →
         </Link>
       </PageHeader>
+
+      {revenueProgress && (
+        <StrategyHero revenueProgress={revenueProgress} subscribers={socialStats?.totalSubscribers ?? 0} />
+      )}
+
+      {pendingCount > 0 && (
+        <Link
+          href="/inbox"
+          className="flex items-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm hover:bg-amber-500/15 transition-colors mb-6"
+        >
+          <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+          {pendingCount} contract status {pendingCount === 1 ? "update" : "updates"} awaiting review
+          <span className="ml-auto text-muted-foreground">→ inbox</span>
+        </Link>
+      )}
 
       {/* pipeline snapshot */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
