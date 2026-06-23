@@ -16,6 +16,8 @@
  */
 
 import { Suspense } from "react";
+import Link from "next/link";
+import { TrendingUp } from "lucide-react";
 import { PageHeader } from "@/app/components/page-header";
 import { AssignResearchTopic } from "@/app/components/assign-research-topic";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
@@ -27,9 +29,7 @@ import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { getStrategyTimelines } from "@/lib/supabase/strategy-timelines";
 import { getStrategyDistribution } from "@/lib/supabase/strategy-distribution";
-import { fetchRevenueProgress } from "@/lib/marketing/revenue-progress";
-import { CAMPAIGN_TIMELINES, DISTRIBUTION, REVENUE_PROGRESS, getRevenueProgress } from "@/lib/strategy-data";
-import { StrategyHero } from "./components/strategy-hero";
+import { CAMPAIGN_TIMELINES, DISTRIBUTION, getRevenueProgress } from "@/lib/strategy-data";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
 import { DocentWelcomeBanner } from "@/app/components/docent-welcome-banner";
 import { StrategyTab } from "./components/strategy-tab";
@@ -70,7 +70,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, revenueProgress, moDecisions, revenueSummary, moMemory] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, moDecisions, revenueSummary, moMemory] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -91,9 +91,6 @@ export default async function StrategyPage({
     getStrategyTimelines().catch(() => CAMPAIGN_TIMELINES),
     // Distribution items — falls back to hardcoded array on error.
     getStrategyDistribution().catch(() => DISTRIBUTION),
-    // Live revenue bar data — merges signed deals + active RFPs.
-    // Falls back to hardcoded REVENUE_PROGRESS on any fetch error.
-    fetchRevenueProgress().catch(() => REVENUE_PROGRESS),
     // Mo's conversation log — last 90 days.
     getCmoDecisions({ days: 90 }).catch(() => []),
     // Aggregated revenue summary (origin_type + tier breakdown) for the pipeline tab.
@@ -122,7 +119,13 @@ export default async function StrategyPage({
 
       <DocentWelcomeBanner />
 
-      <StrategyHero subscribers={stats?.totalSubscribers ?? 0} revenueProgress={revenueProgress} />
+      <Link
+        href="/biz"
+        className="flex items-center gap-2 text-sm font-medium p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors text-foreground"
+      >
+        <TrendingUp className="h-4 w-4 text-emerald-500" />
+        revenue progress → biz page
+      </Link>
 
       <TeamPulseStrip activeMember={memberFilter} timelines={liveTimelines} distributionItems={liveDistribution} />
     </div>
