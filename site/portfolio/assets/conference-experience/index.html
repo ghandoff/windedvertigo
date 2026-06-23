@@ -10,19 +10,26 @@
 <style>
 :root {
   --cadet: #273248;
-  --redwood: #b15043;
-  --sienna: #cb7858;
-  --champagne: #ffebd2;
+  --orange: #ea5621;
+  --peach: #f4a289;
+  --cream: #fff4f0;
+  --yellow: #d6c02d;
+  --jade: #43b187;
+  --lavender: #d5d2ff;
+  --periwinkle: #5872cb;
   --white: #ffffff;
   --dark: #273248;
   --grey: #4A4A4A;
-  --light: #d4c9b8;
-  --mint: #58cbb2;
-  --lavender: #d5d2ff;
+  --light: #f4ddd3;
+  /* aliases for existing references */
+  --redwood: #ea5621;
+  --sienna: #f4a289;
+  --champagne: #fff4f0;
+  --mint: #43b187;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; overflow: hidden; }
-body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); background: #e8eff8; transition: background-color 1.2s ease; }
+body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); background: #fff4f0; transition: background-color 1.2s ease; }
 
 /* ── Screens ── */
 .sc {
@@ -60,35 +67,35 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
    Purple (magenta): research/creative moments
    Light (champagne): informational screens */
 #S0.sc-bg { background-image: url('./arrival_question_wall.png'); }
-#S0.sc-bg::before { background: rgba(39,50,72,0.80); }
+#S0.sc-bg::before { background: rgba(39,50,72,0.82); }
 /* #S1 — color only */
 #S1.sc-bg::before { background: rgba(255,235,210,0.80); }
 #S2.sc-bg { background-image: url('./arrival_question_wall.png'); }
-#S2.sc-bg::before { background: rgba(39,50,72,0.70); }
+#S2.sc-bg::before { background: rgba(244,162,137,0.72); }
 #S3.sc-bg { background-image: url('./sketches_behind_keynote.png'); }
-#S3.sc-bg::before { background: rgba(39,50,72,0.82); }
+#S3.sc-bg::before { background: rgba(39,50,72,0.80); }
 #S4.sc-bg { background-image: url('./making_space.png'); }
-#S4.sc-bg::before { background: rgba(39,50,72,0.78); }
+#S4.sc-bg::before { background: rgba(214,192,45,0.72); }
 #S5.sc-bg { background-image: url('./hall_of_mirrors.png'); }
-#S5.sc-bg::before { background: rgba(255,235,210,0.82); }
+#S5.sc-bg::before { background: rgba(255,244,240,0.88); }
 #S6.sc-bg { background-image: url('./childrens_voices_thread.png'); }
-#S6.sc-bg::before { background: rgba(39,50,72,0.18); }
+#S6.sc-bg::before { background: rgba(39,50,72,0.20); }
 /* #S7 — color only */
 #S7.sc-bg::before { background: rgba(255,235,210,0.88); }
 /* #S8 — color only */
 #S8.sc-bg::before { background: rgba(39,50,72,0.70); }
 #S9.sc-bg { background-image: url('./30_seconds_of_risky_play.png'); }
-#S9.sc-bg::before { background: rgba(39,50,72,0.18); }
+#S9.sc-bg::before { background: rgba(26,18,8,0.70); }
 #S10.sc-bg { background-image: url('./creaseworks_table.png'); }
-#S10.sc-bg::before { background: rgba(255,235,210,0.85); }
+#S10.sc-bg::before { background: rgba(67,177,135,0.72); }
 /* #S11 — color only */
 #S11.sc-bg::before { background: rgba(39,50,72,0.68); }
 #S12.sc-bg { background-image: url('./closing_collage.png'); }
-#S12.sc-bg::before { background: rgba(39,50,72,0.82); }
+#S12.sc-bg::before { background: rgba(39,50,72,0.80); }
 #S13.sc-bg { background-image: url('./card_on_chair.png'); }
-#S13.sc-bg::before { background: rgba(39,50,72,0.78); }
+#S13.sc-bg::before { background: rgba(88,114,203,0.72); }
 #S14.sc-bg { background-image: url('./garden_party.png'); }
-#S14.sc-bg::before { background: rgba(39,50,72,0.72); }
+#S14.sc-bg::before { background: rgba(67,177,135,0.68); }
 /* #S15 — color only */
 #S15.sc-bg::before { background: rgba(255,235,210,0.80); }
 
@@ -219,7 +226,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 }
 @keyframes agendaPulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(88,203,178,0); }
-  50% { box-shadow: 0 0 0 4px rgba(88,203,178,0.25); }
+  50% { box-shadow: 0 0 0 4px rgba(67,177,135,0.25); }
 }
 .agenda-item.current { font-weight: 600; color: var(--dark); }
 .agenda-time { min-width: 40px; font: 400 11px 'Inter', sans-serif; color: var(--sienna); }
@@ -343,11 +350,11 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 1 — BEFORE THE DAY / COMPANION APP
    ════════════════════════════════ */
-#S1 { background-color: var(--champagne); }
+#S1 { background-color: var(--cream); }
 .before-day { display: flex; align-items: center; justify-content: center; gap: 60px; padding: 40px; width: 100%; height: 100%; }
 .before-text { max-width: 440px; }
 .phone-mockup { width: 220px; height: 420px; background: #111; border-radius: 28px; padding: 12px; box-shadow: 0 8px 40px rgba(0,0,0,0.15); flex-shrink: 0; }
-.phone-screen { width: 100%; height: 100%; background: var(--champagne); border-radius: 18px; padding: 20px 16px; overflow: hidden; }
+.phone-screen { width: 100%; height: 100%; background: var(--cream); border-radius: 18px; padding: 20px 16px; overflow: hidden; }
 .app-header { font: 600 11px 'Inter', sans-serif; color: var(--cadet); text-align: center; padding-bottom: 12px; border-bottom: 1px solid var(--light); margin-bottom: 16px; }
 .app-badge { text-align: center; margin-bottom: 20px; }
 .app-badge-circle { width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--sienna); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font: 600 11px 'Inter', sans-serif; color: var(--sienna); }
@@ -360,7 +367,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
    SCREEN 2 — QUESTION WALL (9:00 a.m.)
    ════════════════════════════════ */
 #S2 {
-  background: var(--champagne);
+  background: var(--cream);
   background-image:
     repeating-linear-gradient(90deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px),
     repeating-linear-gradient(0deg, transparent, transparent 199px, rgba(0,0,0,0.03) 199px, rgba(0,0,0,0.03) 200px);
@@ -422,7 +429,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   text-align: center; max-width: 520px; opacity: 0;
   animation: fadeUp 1s 0.5s ease forwards;
   pointer-events: none;
-  background: rgba(255,235,210,0.96); padding: 24px 36px; border-radius: 6px;
+  background: rgba(255,244,240,0.96); padding: 24px 36px; border-radius: 6px;
   backdrop-filter: blur(12px); box-shadow: 0 4px 24px rgba(0,0,0,0.06);
   transition: all 1.5s ease;
 }
@@ -436,7 +443,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
    SCREEN 3 — MORGAN (9:40 a.m.)
    ════════════════════════════════ */
 #S3 {
-  background: linear-gradient(135deg, var(--champagne) 0%, #e8d8c0 50%, #ffebd2 100%);
+  background: linear-gradient(135deg, var(--cream) 0%, #fde8dc 50%, #fff4f0 100%);
 }
 #S3 .morgan-scene {
   position: relative; width: 100%; height: 100%;
@@ -453,7 +460,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 }
 #S3 .morgan-center {
   text-align: center; z-index: 10;
-  background: rgba(255,235,210,0.96);
+  background: rgba(255,244,240,0.96);
   padding: 48px 60px; border-radius: 4px;
   backdrop-filter: blur(20px); max-width: 540px;
 }
@@ -478,12 +485,12 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
    SCREEN 4 — MAKING SPACE (10:10 a.m.)
    ════════════════════════════════ */
 #S4 {
-  background: #d4c4a8;
+  background: #fde8dc;
   background-image:
-    linear-gradient(rgba(180,160,130,0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(180,160,130,0.3) 1px, transparent 1px),
-    radial-gradient(ellipse at 30% 70%, rgba(160,140,110,0.2) 0%, transparent 60%),
-    radial-gradient(ellipse at 70% 30%, rgba(200,180,150,0.15) 0%, transparent 60%);
+    linear-gradient(rgba(234,86,33,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(234,86,33,0.08) 1px, transparent 1px),
+    radial-gradient(ellipse at 30% 70%, rgba(214,192,45,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 30%, rgba(244,162,137,0.15) 0%, transparent 60%);
   background-size: 80px 80px, 80px 80px, 100% 100%, 100% 100%;
 }
 #S4 .bench { position: absolute; inset: 0; }
@@ -516,7 +523,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
   z-index: 20; text-align: center;
   font: 300 18px/1.5 'Inter', sans-serif; color: var(--cadet);
-  background: rgba(212,196,168,0.92); padding: 14px 32px; border-radius: 4px;
+  background: rgba(253,232,220,0.92); padding: 14px 32px; border-radius: 4px;
   backdrop-filter: blur(12px); max-width: 90%;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
 }
@@ -525,7 +532,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   z-index: 20; text-align: center;
   font: 400 13px/1.6 'Inter', sans-serif; color: var(--grey);
   max-width: 500px;
-  background: rgba(212,196,168,0.8); padding: 10px 20px; border-radius: 4px;
+  background: rgba(253,232,220,0.85); padding: 10px 20px; border-radius: 4px;
   backdrop-filter: blur(8px);
 }
 .time-badge {
@@ -538,11 +545,11 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 5 — HALL OF MIRRORS (10:40 a.m.)
    ════════════════════════════════ */
-#S5 { background-color: var(--champagne); }
+#S5 { background-color: var(--cream); }
 .table-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .table-top {
   width: 300px; height: 300px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, #e8dcc8, #d4c4a8);
+  background: radial-gradient(circle at 40% 40%, #fde8dc, #f4a289);
   box-shadow: 0 4px 30px rgba(0,0,0,0.08), inset 0 2px 10px rgba(255,255,255,0.3);
   display: flex; align-items: center; justify-content: center;
   text-align: center; padding: 50px;
@@ -567,7 +574,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
   font: 400 13px/1.6 'Inter', sans-serif; color: var(--dark);
   text-align: center; max-width: 480px;
-  background: rgba(255,235,210,0.9); padding: 12px 24px; border-radius: 4px;
+  background: rgba(255,244,240,0.9); padding: 12px 24px; border-radius: 4px;
   backdrop-filter: blur(8px);
 }
 
@@ -602,7 +609,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 7 — SESSION CHOICE (11:45 a.m.)
    ════════════════════════════════ */
-#S7 { background-color: var(--champagne); }
+#S7 { background-color: var(--cream); }
 .door-choice { display: flex; width: 100%; height: 100%; }
 .door {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -610,11 +617,11 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   background: none; border: none; font-family: inherit; min-height: 48px;
 }
 .door::before { content: ''; position: absolute; inset: 0; transition: background 0.5s; }
-.door:hover::before { background: rgba(39,50,72,0.04); }
+.door:hover::before { background: rgba(234,86,33,0.04); }
 .door:hover { transform: scale(1.01); }
 .door-divider { width: 1px; background: var(--light); align-self: stretch; }
 .door .d-label { font: 500 10px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 20px; z-index: 1; }
-.door h3 { font: 700 clamp(22px,3vw,32px)/1.2 'Inter', sans-serif; color: var(--redwood); margin-bottom: 16px; z-index: 1; text-align: center; }
+.door h3 { font: 700 clamp(22px,3vw,32px)/1.2 'Inter', sans-serif; color: var(--orange); margin-bottom: 16px; z-index: 1; text-align: center; }
 .door p { font: 400 15px/1.6 'Inter', sans-serif; color: var(--grey); max-width: 300px; text-align: center; z-index: 1; }
 .door .d-foot { font: 300 15px 'Inter', sans-serif; color: var(--cadet); margin-top: 24px; z-index: 1; opacity: 0; transition: opacity 0.5s; }
 .door:hover .d-foot { opacity: 1; }
@@ -625,9 +632,9 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 #S8 {
   background: #fff;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(88,203,178,0.06) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(39,50,72,0.04) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(39,50,72,0.03) 0%, transparent 60%);
+    radial-gradient(circle at 20% 30%, rgba(234,86,33,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(67,177,135,0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(213,210,255,0.08) 0%, transparent 60%);
   cursor: crosshair;
 }
 .collage-surface { position: absolute; inset: 0; overflow: hidden; }
@@ -710,7 +717,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 10 — THREE TRACKS (2:15 p.m.)
    ════════════════════════════════ */
-#S10 { background-color: var(--champagne); overflow-y: auto; }
+#S10 { background-color: var(--cream); overflow-y: auto; }
 .tracks-container { display: flex; gap: 20px; padding: 80px 40px; width: 100%; min-height: 100%; align-items: center; }
 .track { flex: 1; background: rgba(255,255,255,0.9); border-radius: 8px; padding: 24px 22px; backdrop-filter: blur(8px); }
 .track-label { font: 600 9px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 16px; }
@@ -741,8 +748,8 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
    SCREEN 11 — MAPPING (3:15 p.m.)
    ════════════════════════════════ */
 #S11 {
-  background: var(--champagne);
-  background-image: radial-gradient(circle at 50% 50%, rgba(39,50,72,0.03) 0%, transparent 70%);
+  background: var(--cream);
+  background-image: radial-gradient(circle at 50% 50%, rgba(234,86,33,0.04) 0%, transparent 70%);
 }
 .map-canvas { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 20px 80px; gap: 16px; overflow-y: auto; flex-wrap: wrap; align-content: flex-start; }
 .map-description {
@@ -751,7 +758,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 .map-description h2 { font: 700 clamp(22px,3vw,30px)/1.2 'Inter', sans-serif; color: var(--champagne); margin-bottom: 12px; }
 .map-description p { font: 400 15px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.88); }
 .map-prompt {
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   border: 1px solid var(--light); border-radius: 6px; padding: 20px 24px;
   backdrop-filter: blur(8px); max-width: 280px; width: 100%;
   box-shadow: 0 4px 20px rgba(0,0,0,0.04); opacity: 0;
@@ -776,18 +783,18 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 12 — CLOSING PLENARY (4:00 p.m.)
    ════════════════════════════════ */
-#S12 { background-color: var(--champagne); overflow: hidden; }
+#S12 { background-color: var(--cream); overflow: hidden; }
 #S12 .closing-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 .cascade-item {
   position: absolute; font: 400 12px 'Inter', sans-serif; color: var(--cadet);
-  background: rgba(39,50,72,0.06); padding: 6px 14px; border-radius: 20px;
+  background: rgba(234,86,33,0.07); padding: 6px 14px; border-radius: 20px;
   opacity: 0; animation: cascadeIn 0.6s ease forwards;
 }
 @keyframes cascadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.9); } 100% { opacity: 0.85; transform: translateY(0) scale(1); } }
-.cascade-voice { font: 600 14px 'Inter', sans-serif; color: var(--champagne); background: rgba(255,235,210,0.15); }
+.cascade-voice { font: 600 14px 'Inter', sans-serif; color: var(--cadet); background: rgba(67,177,135,0.12); }
 #S12 .closing-center {
   z-index: 10; text-align: center; max-width: 560px; padding: 48px;
-  background: rgba(255,235,210,0.96); border-radius: 4px; backdrop-filter: blur(20px);
+  background: rgba(255,244,240,0.96); border-radius: 4px; backdrop-filter: blur(20px);
 }
 #S12 .closing-final {
   font: 300 15px/1.6 'Inter', sans-serif; color: var(--dark);
@@ -802,7 +809,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 13 — CARD ON CHAIR (3D flip)
    ════════════════════════════════ */
-#S13 { background-color: var(--champagne); }
+#S13 { background-color: var(--cream); }
 .card-flip-container { perspective: 1000px; width: 88%; max-width: 420px; cursor: pointer; outline: none; }
 .card-flip-container:focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; border-radius: 6px; }
 .card-inner { position: relative; width: 100%; transition: transform 0.7s ease; transform-style: preserve-3d; }
@@ -834,11 +841,11 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
 /* ════════════════════════════════
    SCREEN 14 — GARDEN PARTY (4:30 p.m.)
    ════════════════════════════════ */
-#S14 { background-color: var(--champagne); }
+#S14 { background-color: var(--cream); }
 #S14 .garden-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
 #S14 .garden-center {
   text-align: center; max-width: 500px; padding: 40px; z-index: 5;
-  background: rgba(255,235,210,0.92); border-radius: 8px;
+  background: rgba(255,244,240,0.92); border-radius: 8px;
   backdrop-filter: blur(12px); box-shadow: 0 4px 24px rgba(0,0,0,0.1);
 }
 #S14 .garden-label { font: 600 10px 'Inter', sans-serif; letter-spacing: 0.16em; color: var(--sienna); margin-bottom: 16px; }
@@ -857,7 +864,7 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--dark); ba
   box-shadow: 0 8px 40px rgba(0,0,0,0.3);
 }
 .dir-screen {
-  width: 100%; height: 100%; background: var(--champagne); border-radius: 18px;
+  width: 100%; height: 100%; background: var(--cream); border-radius: 18px;
   padding: 16px 14px; overflow: hidden;
 }
 .dir-header {
@@ -1690,7 +1697,7 @@ var SCREEN_TRANS = {0:'scale',2:'up',3:'fade',6:'fade',8:'up',9:'dark',12:'fade'
 function lerpColor(c1,c2,t) { return [Math.round(c1[0]+(c2[0]-c1[0])*t),Math.round(c1[1]+(c2[1]-c1[1])*t),Math.round(c1[2]+(c2[2]-c1[2])*t)]; }
 function updateTimeOfDay(n) {
   var t = n / 16;
-  var morning=[232,239,248], afternoon=[240,237,232], dusk=[26,18,8];
+  var morning=[255,244,240], afternoon=[248,240,220], dusk=[26,18,8];
   var col = t < 0.5 ? lerpColor(morning,afternoon,t/0.5) : lerpColor(afternoon,dusk,(t-0.5)/0.5);
   document.body.style.background = 'rgb('+col[0]+','+col[1]+','+col[2]+')';
 }
@@ -1806,8 +1813,8 @@ function spawnParticles(container, count, opts) {
     container.appendChild(p);
   }
 }
-spawnParticles(document.getElementById('coverParticles'), 20, { minSize: 2, maxSize: 5, color: 'rgba(88,203,178,0.3)' });
-spawnParticles(document.getElementById('finalParticles'), 15, { minSize: 2, maxSize: 4, color: 'rgba(88,203,178,0.25)' });
+spawnParticles(document.getElementById('coverParticles'), 20, { minSize: 2, maxSize: 5, color: 'rgba(234,86,33,0.25)' });
+spawnParticles(document.getElementById('finalParticles'), 15, { minSize: 2, maxSize: 4, color: 'rgba(234,86,33,0.2)' });
 
 /* ── QUESTION WALL ── */
 var WALL_CARDS = [
@@ -1912,7 +1919,7 @@ function initBench() {
     {t:"I pretended to understand for three weeks.", a:"age 14"},
     {t:"I learned more from my group than from the slides.", a:"age 22"},
   ];
-  var colours = ['#273248','#b15043','#cb7858','#273248','#b15043','#cb7858','#58cbb2','#b15043','#cb7858','#d5d2ff'];
+  var colours = ['#ea5621','#43b187','#d6c02d','#5872cb','#f4a289','#d5d2ff','#ea5621','#43b187','#d6c02d','#5872cb'];
   var items = [];
   children_cards.forEach(function(c, i) {
     var el = document.createElement('div');
@@ -2043,7 +2050,7 @@ function initCollage() {
     if (f.italic) el.style.fontStyle = 'italic';
     el.textContent = f.t; s.appendChild(el);
   });
-  var stripColours = ['var(--cadet)','var(--redwood)','var(--sienna)','var(--mint)','var(--lavender)'];
+  var stripColours = ['var(--orange)','var(--jade)','var(--yellow)','var(--periwinkle)','var(--lavender)'];
   for (var i = 0; i < 10; i++) {
     var el = document.createElement('div');
     el.className = 'c-fragment c-strip';
