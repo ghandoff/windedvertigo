@@ -349,6 +349,32 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--cadet); b
 .btn-ghost:hover { background: rgba(255,255,255,0.06); color: #fff; }
 .cta-foot { font: 400 12px 'Inter', sans-serif; color: rgba(255,255,255,0.25); margin-top: 48px; }
 
+/* ── Narrator ── */
+#narrator-toggle {
+  position: fixed; top: 16px; right: 20px; z-index: 300;
+  background: rgba(39,50,72,0.85); border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7); padding: 7px 14px;
+  font: 500 11px/1 'Inter', sans-serif; letter-spacing: 0.06em;
+  cursor: pointer; border-radius: 3px; backdrop-filter: blur(8px);
+  transition: background 0.2s, color 0.2s;
+}
+#narrator-toggle:hover { background: rgba(39,50,72,1); color: #fff; }
+#narrator-overlay {
+  position: fixed; bottom: 62px; left: 50%; transform: translateX(-50%);
+  z-index: 150; max-width: 560px; width: calc(100% - 48px);
+  background: rgba(39,50,72,0.92); border-radius: 6px; padding: 16px 20px;
+  backdrop-filter: blur(12px); pointer-events: none;
+  transition: opacity 0.4s ease; opacity: 1;
+}
+#narrator-overlay.hidden { opacity: 0; }
+.narrator-label {
+  font: 600 9px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--orange); margin-bottom: 7px;
+}
+.narrator-body {
+  font: 400 13px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.8);
+}
+
 /* ── Ambient particles ── */
 .particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
 .particle {
@@ -590,6 +616,13 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--cadet); b
   </div>
 </section>
 
+<!-- ══ NARRATOR ══ -->
+<button id="narrator-toggle" aria-pressed="true">&#9673; narrator</button>
+<div id="narrator-overlay" role="status" aria-live="polite">
+  <div class="narrator-label" id="narratorLabel"></div>
+  <div class="narrator-body" id="narratorBody"></div>
+</div>
+
 <!-- ══ NAV ══ -->
 <nav id="nav" aria-label="screen navigation">
   <button class="n-btn" id="btnP" onclick="go(cur-1)" aria-label="previous">&larr; back</button>
@@ -598,6 +631,41 @@ body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--cadet); b
 </nav>
 
 <script>
+/* ── Narrator data ── */
+var NARRATOR = [
+  null,
+  {label:'design decision · arrival', body:'most conferences start with logistics. this one starts with a question — already live when people walk in. arrival becomes the first act of participation, not a waiting room.'},
+  {label:'design decision · keynote', body:'the speaker prepares a talk. but the opening question comes from the wall. research follows the room\'s own language. the audience writes a sentence mid-talk. five are read aloud. the speaker and the room are in dialogue from the first minute.'},
+  {label:'design decision · break', body:'breaks are usually undesigned. this one places four perspectives on a single question around a table. people who would not naturally sit together do. the friction is the point — it surfaces assumptions before the afternoon.'},
+  {label:'design decision · sessions', body:'offering a quiet room is not a concession — it is an acknowledgement that people process differently. three formats running simultaneously means no one track is the "right" one to attend. the day validates more than one way of being present.'},
+  {label:'design decision · close', body:'the card on the chair closes a loop opened at the start of the day. the collage at the front is what the room produced — not what the speakers said. the conference ends by showing the participants to themselves.'},
+  null,
+];
+
+var narratorVisible = true;
+var narratorToggle = document.getElementById('narrator-toggle');
+var narratorOverlay = document.getElementById('narrator-overlay');
+var narratorLabel = document.getElementById('narratorLabel');
+var narratorBody = document.getElementById('narratorBody');
+
+narratorToggle.addEventListener('click', function() {
+  narratorVisible = !narratorVisible;
+  narratorOverlay.classList.toggle('hidden', !narratorVisible);
+  narratorToggle.setAttribute('aria-pressed', narratorVisible);
+  narratorToggle.textContent = (narratorVisible ? '◉' : '○') + ' narrator';
+});
+
+function updateNarrator(i) {
+  var n = NARRATOR[i];
+  if (!n) {
+    narratorOverlay.classList.add('hidden');
+    return;
+  }
+  narratorLabel.textContent = n.label;
+  narratorBody.textContent = n.body;
+  if (narratorVisible) narratorOverlay.classList.remove('hidden');
+}
+
 var screens = document.querySelectorAll('.sc');
 var nav = document.getElementById('nav');
 var nLabel = document.getElementById('nLabel');
@@ -637,6 +705,7 @@ function go(i) {
 
   cur = i;
   prog.style.width = (i / (screens.length - 1) * 100) + '%';
+  updateNarrator(i);
 
   if (i === 0 || i === 6) {
     nav.style.display = 'none';
