@@ -11,11 +11,7 @@
  */
 
 import { Client } from "@notionhq/client";
-import type {
-  PageObjectResponse,
-  QueryDataSourceParameters,
-  QueryDataSourceResponse,
-} from "@notionhq/client/build/src/api-endpoints";
+import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
 // ── Notion client ─────────────────────────────────────────
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
@@ -27,30 +23,43 @@ const SITE_DB = {
   outcomes: "b8ff41d2d4ef41559e01c2d952a3a1da",
 } as const;
 
-// ── Data source cache ─────────────────────────────────────
-const dataSourceCache = new Map<string, string>();
 
-async function getDataSourceId(databaseId: string): Promise<string> {
-  const cached = dataSourceCache.get(databaseId);
-  if (cached) return cached;
-  const db = await withRetry(
-    () => notion.databases.retrieve({ database_id: databaseId }),
-    `getDataSourceId:${databaseId}`,
-  );
-  if (!("data_sources" in db) || db.data_sources.length === 0) {
-    throw new Error(`no data sources found for database ${databaseId}`);
-  }
-  const id = db.data_sources[0].id;
-  dataSourceCache.set(databaseId, id);
-  return id;
+// ── Database page fetcher (no data-source required) ──────────────────────────
+// notion.databases.query was removed in @notionhq/client v5. The replacement
+// (dataSources.query) requires the database to be registered as a Notion data
+// source, which these site databases are not. notion.search() works without it
+// and is the pattern already used by fetchPortfolioAssets().
+
+function dashUuid(id: string): string {
+  return id.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, "$1-$2-$3-$4-$5");
 }
 
-async function queryDataSource(
-  databaseId: string,
-  params: Omit<QueryDataSourceParameters, "data_source_id">,
-): Promise<QueryDataSourceResponse> {
-  const data_source_id = await getDataSourceId(databaseId);
-  return notion.dataSources.query({ data_source_id, ...params });
+async function fetchPagesFromDatabase(databaseId: string): Promise<PageObjectResponse[]> {
+  const dashed = dashUuid(databaseId);
+  const pages: PageObjectResponse[] = [];
+  let cursor: string | undefined;
+  let round = 0;
+  do {
+    round++;
+    const res = await withRetry(
+      () => notion.search({
+        filter: { property: "object", value: "page" },
+        page_size: 100,
+        ...(cursor ? { start_cursor: cursor } : {}),
+      }),
+      `searchDb:${databaseId}:${round}`,
+    );
+    for (const p of res.results) {
+      if (!("properties" in p) || !("parent" in p)) continue;
+      const parent = (p as PageObjectResponse).parent;
+      const parentId = "database_id" in parent ? parent.database_id : "";
+      if (parentId === databaseId || parentId === dashed) {
+        pages.push(p as PageObjectResponse);
+      }
+    }
+    cursor = res.has_more ? (res.next_cursor ?? undefined) : undefined;
+  } while (cursor && round < 30);
+  return pages;
 }
 
 // ── Retry helper ──────────────────────────────────────────
@@ -271,7 +280,7 @@ async function fetchPortfolioAssets(): Promise<
     );
 
     for (const page of response.results) {
-      if (!("properties" in page)) continue;
+      if (!("properties" in page) || !("parent" in page)) continue;
       const pid = (page as PageObjectResponse).parent;
       if (
         "database_id" in pid &&
@@ -348,20 +357,19 @@ export async function fetchPackageBuilderData(): Promise<Record<string, PackData
   const qp = QUADRANT_PROPS;
   const op = OUTCOME_PROPS;
 
-  const [quadrantsRes, outcomesRes, portfolioAssets] = await Promise.all([
-    withRetry(
-      () => queryDataSource(SITE_DB.quadrants, {}),
-      "fetchQuadrants",
-    ),
-    withRetry(
-      () =>
-        queryDataSource(SITE_DB.outcomes, {
-          sorts: [{ property: op.order, direction: "ascending" }],
-        }),
-      "fetchOutcomes",
-    ),
+  const [quadrantPages, outcomePagesRaw, portfolioAssets] = await Promise.all([
+    fetchPagesFromDatabase(SITE_DB.quadrants),
+    fetchPagesFromDatabase(SITE_DB.outcomes),
     fetchPortfolioAssets(),
   ]);
+
+  // Sort outcomes by the Order property (ascending), matching the old dataSources sort.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const outcomePagesOrdered = [...outcomePagesRaw].sort((a, b) => {
+    const oA = ((a.properties[op.order] as any)?.number ?? Infinity);
+    const oB = ((b.properties[op.order] as any)?.number ?? Infinity);
+    return oA - oB;
+  });
 
   // Build examples grouped by quadrant
   const pbExamples: Record<string, PackExample[]> = {};
@@ -385,7 +393,7 @@ export async function fetchPackageBuilderData(): Promise<Record<string, PackData
 
   // Build quadrants map
   const quadrants: Record<string, { title: string; promise: string; quadrantStory: string; story: string; crossover: string }> = {};
-  for (const page of quadrantsRes.results) {
+  for (const page of quadrantPages) {
     if (!("properties" in page)) continue;
     const props = page.properties;
     const key = getSelect(props[qp.key]);
@@ -401,7 +409,7 @@ export async function fetchPackageBuilderData(): Promise<Record<string, PackData
 
   // Build outcomes grouped by quadrant
   const outcomes: Record<string, { title: string; detail: string }[]> = {};
-  for (const page of outcomesRes.results) {
+  for (const page of outcomePagesOrdered) {
     if (!("properties" in page)) continue;
     const props = page.properties;
     const quadrant = getSelect(props[op.quadrant]);
