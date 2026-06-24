@@ -6,16 +6,19 @@ import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
 import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
 import { getPamCommitments, getPamMemory, getPamDecisions, getWhirlpoolCommitments } from "@/lib/supabase/pam";
+import { listPendingTriageActions } from "@/lib/supabase/meeting-action-items";
 import { CommitmentsBoard } from "./components/commitments-board";
 import { CommitmentsTimeline } from "./components/commitments-timeline";
 import { AddCommitmentDialog } from "./components/add-commitment-dialog";
 import { WhirlpoolBoard } from "./components/whirlpool-board";
+import { MeetingActionsInbox, type InboxItem } from "./components/meeting-actions-inbox";
 
 export const dynamic = "force-dynamic";
 
 const TABS: readonly TabDef[] = [
   { key: "whirlpool", label: "whirlpool" },
   { key: "commitments", label: "commitments" },
+  { key: "inbox", label: "inbox" },
   { key: "timeline", label: "timeline" },
   { key: "memory", label: "memory" },
   { key: "log", label: "log" },
@@ -38,12 +41,28 @@ export default async function PamPage({
   monday.setUTCDate(todayUTC.getUTCDate() + mondayOffset);
   const currentCycle = monday.toISOString().slice(0, 10);
 
-  const [commitments, memory, decisions, whirlpoolCommitments] = await Promise.all([
+  const [commitments, memory, decisions, whirlpoolCommitments, pendingActions] = await Promise.all([
     getPamCommitments({ limit: 300 }).catch(() => []),
     getPamMemory().catch(() => []),
     getPamDecisions({ days: 90 }).catch(() => []),
     getWhirlpoolCommitments(currentCycle).catch(() => []),
+    listPendingTriageActions().catch(() => []),
   ]);
+
+  // Lookup so the inbox can render a merge target's "who · what" from its id.
+  const commitmentLookup: Record<string, string> = Object.fromEntries(
+    commitments.map((c) => [c.id, `${c.who} · ${c.what}`]),
+  );
+  const inboxItems: InboxItem[] = pendingActions.map((a) => ({
+    id: a.id,
+    title: a.title,
+    ownerName: a.ownerName,
+    ownerEmail: a.ownerEmail,
+    meetingId: a.meetingId,
+    deadline: a.deadline,
+    context: a.context,
+    suggestion: a.triageSuggestion,
+  }));
 
   const today = new Date().toISOString().slice(0, 10);
   const active = commitments.filter((c) => !["done", "parked"].includes(c.status));
@@ -88,7 +107,14 @@ export default async function PamPage({
 
         <CarlInsightsPanel entries={memory} />
 
-        <UrlTabs tabs={TABS} activeTab={activeTab} />
+        <UrlTabs
+          tabs={TABS.map((t) =>
+            t.key === "inbox" && inboxItems.length > 0
+              ? { ...t, label: `inbox (${inboxItems.length})` }
+              : t,
+          )}
+          activeTab={activeTab}
+        />
 
         {activeTab === "whirlpool" && (
           <WhirlpoolBoard commitments={whirlpoolCommitments} cycle={currentCycle} />
@@ -100,6 +126,9 @@ export default async function PamPage({
             </div>
             <CommitmentsBoard commitments={commitments} />
           </div>
+        )}
+        {activeTab === "inbox" && (
+          <MeetingActionsInbox items={inboxItems} commitmentLookup={commitmentLookup} />
         )}
         {activeTab === "timeline" && <CommitmentsTimeline commitments={commitments} />}
         {activeTab === "memory" && <AgentMemoryPanel entries={splitCarlInsights(memory).working} />}

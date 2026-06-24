@@ -53,6 +53,10 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   "opsy-email-triage": "claude-haiku-4-5-20251001",
   // Haiku: Opsy's weekly ops digest — one short summary per week.
   "opsy-digest": "claude-haiku-4-5-20251001",
+  // Haiku: triage meeting action items into PaM commitments — meaningfulness,
+  // cycle/type/priority suggestion, dedup vs existing commitments. Cheap, runs
+  // over a batch of new action items per cron.
+  "pam-action-triage": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -76,7 +80,8 @@ export type AiFeature =
   | "carl-research"
   | "bibliography-import"
   | "opsy-email-triage"
-  | "opsy-digest";
+  | "opsy-digest"
+  | "pam-action-triage";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -98,6 +103,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "bibliography-import": "Bibliography Import",
   "opsy-email-triage": "Opsy Email Triage",
   "opsy-digest": "Opsy Weekly Digest",
+  "pam-action-triage": "PaM Action Triage",
 };
 
 // ── token usage tracking ─────────────────────────────────

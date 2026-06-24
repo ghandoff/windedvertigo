@@ -51,6 +51,9 @@ export async function middleware(req: NextRequest) {
     // path inside each route). Route enforces CRON_SECRET independently.
     pathname === "/api/cron/meet-transcript-ingest" ||
     pathname === "/api/cron/ingest-meeting-notes" ||
+    // PaM action triage cron — dual-token (CRON_SECRET or CMO_API_TOKEN) so an
+    // agent can also trigger an on-demand inbox refresh. Route enforces both.
+    pathname === "/api/cron/pam-action-triage" ||
     // Inngest webhook — Inngest cloud POSTs here to deliver events.
     // Required on Vercel during G.2.4 canary (fallback path for inngest.send()).
     // Remove after G.2.5 DNS cutover + inngest route deletion.

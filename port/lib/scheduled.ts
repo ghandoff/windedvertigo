@@ -218,6 +218,11 @@ const CRON_TABLE: CronEntry[] = [
   // Monday 07:00 UTC — Opsy weekly ops digest + pattern-detection learning
   // pass. Posts to #ops-alerts.
   { path: "/api/cron/opsy-digest", hours: [7], weekdays: [1] },
+
+  // Daily 10:00 UTC — owner: pam — triage newly-ingested meeting action items
+  // into the PaM review inbox (meaningful? cycle? type? dup?). Inbox-only; a
+  // human accepts/merges/dismisses from /pam.
+  { path: "/api/cron/pam-action-triage", hours: [10] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
