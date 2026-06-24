@@ -39,9 +39,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const actions = await listUntriagedActions(200);
+  // Only triage the live inflow — actions from roughly the last 3 weeks. Older
+  // untriaged items are pre-bridge backlog we deliberately leave alone (a
+  // ?sinceDays= override lets an agent widen the window for a one-off sweep).
+  const sinceDaysParam = req.nextUrl.searchParams.get("sinceDays");
+  const sinceDays = sinceDaysParam ? Number.parseInt(sinceDaysParam, 10) : 21;
+  const createdSince = new Date(Date.now() - sinceDays * 86_400_000).toISOString();
+
+  const actions = await listUntriagedActions(createdSince, 200);
   if (actions.length === 0) {
-    return NextResponse.json({ ok: true, triaged: 0, message: "no untriaged actions" });
+    return NextResponse.json({ ok: true, triaged: 0, message: "no untriaged actions in window" });
   }
 
   // Existing open commitments (exclude done/parked) for dedup, compacted.

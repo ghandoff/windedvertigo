@@ -263,18 +263,27 @@ export async function updateActionStatus(
 /**
  * Actions that have never been triaged for the PaM board (triage_state IS NULL)
  * and aren't already linked to a commitment. Feeds the cron triage pass.
- * Open status only — done/cancelled actions aren't worth surfacing.
+ *
+ * Scoped to a recency window (`createdSince`, ISO) and ordered NEWEST first so
+ * the live inflow is triaged ahead of any historical backlog — there are 1000+
+ * pre-bridge open action items, and an inbox full of months-old stale items is
+ * worse than useless. Open status only.
  */
-export async function listUntriagedActions(limit = 200): Promise<MeetingActionItem[]> {
+export async function listUntriagedActions(
+  createdSince?: string,
+  limit = 200,
+): Promise<MeetingActionItem[]> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("meeting_action_items")
       .select("*")
       .is("triage_state", null)
       .is("pam_commitment_id", null)
       .eq("status", "open")
-      .order("created_at", { ascending: true })
+      .order("created_at", { ascending: false })
       .limit(limit);
+    if (createdSince) query = query.gte("created_at", createdSince);
+    const { data, error } = await query;
     if (error) {
       console.warn("[supabase/meeting-action-items] list-untriaged failed:", error.message);
       return [];
