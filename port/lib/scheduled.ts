@@ -101,6 +101,10 @@ const CRON_TABLE: CronEntry[] = [
   // owner: biz — scan reply emails for RFP outcomes → review_queue → /inbox approval
   { path: "/api/cron/rfp-outcome-scan",         hours: [10] },
 
+  // ── Friday-only ─────────────────────────────────────────────────────────────
+  // owner: pam — midpoint check-in for the current whirlpool cycle; posts digest to #whirlpool
+  { path: "/api/cron/whirlpool-checkin", hours: [17], weekdays: [5] },
+
   // ── Monday-only ─────────────────────────────────────────────────────────────
   { path: "/api/cron/weekly-digest",    hours: [14], weekdays: [1] },
   { path: "/api/gusto/sync",            hours: [13], weekdays: [1] },
