@@ -31,8 +31,20 @@ export interface RfpDocumentUploadedJob {
   uploadedAt: string; // ISO timestamp
 }
 
+export interface DocumentAudioJob {
+  type: "listen/render-document";
+  itemId: string; // listen_items row id
+  textKey: string; // R2 key of the extracted source text
+  cleanLevel: "faithful" | "clean";
+  enqueuedAt: string; // ISO timestamp
+}
+
 /** Union of all job payload shapes. Add new job types here. */
-export type JobPayload = RfpProposalJob | TimesheetStatusJob | RfpDocumentUploadedJob;
+export type JobPayload =
+  | RfpProposalJob
+  | TimesheetStatusJob
+  | RfpDocumentUploadedJob
+  | DocumentAudioJob;
 
 // ── Consumer / handler types ──────────────────────────────────────
 
@@ -66,6 +78,7 @@ export interface QueueBindings {
   PROPOSAL_QUEUE: QueueSender<RfpProposalJob>;
   TIMESHEET_QUEUE: QueueSender<TimesheetStatusJob>;
   RFP_DOCUMENT_QUEUE: QueueSender<RfpDocumentUploadedJob>;
+  LISTEN_QUEUE: QueueSender<DocumentAudioJob>;
 }
 
 // ── Cron function signatures (for CF scheduled() handler) ─────────

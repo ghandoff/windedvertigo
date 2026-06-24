@@ -27,7 +27,8 @@
     "producers": [
       { "binding": "PROPOSAL_QUEUE",    "queue": "wv-port-proposal-queue" },
       { "binding": "TIMESHEET_QUEUE",   "queue": "wv-port-timesheet-queue" },
-      { "binding": "RFP_DOCUMENT_QUEUE","queue": "wv-port-rfp-document-queue" }
+      { "binding": "RFP_DOCUMENT_QUEUE","queue": "wv-port-rfp-document-queue" },
+      { "binding": "LISTEN_QUEUE",      "queue": "wv-port-listen-queue" }
     ]
   },
 

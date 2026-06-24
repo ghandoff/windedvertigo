@@ -126,6 +126,13 @@ export async function insertListenChunks(
   if (error) throw error;
 }
 
+/** Remove a item's chunk rows — called at the start of each render attempt so
+ *  retries don't accumulate duplicate chunks (audio objects reuse idx keys). */
+export async function deleteListenChunks(itemId: string): Promise<void> {
+  const { error } = await supabase.from("listen_chunks").delete().eq("item_id", itemId);
+  if (error) throw error;
+}
+
 export async function getListenChunks(itemId: string): Promise<ListenChunk[]> {
   const { data, error } = await supabase
     .from("listen_chunks")
