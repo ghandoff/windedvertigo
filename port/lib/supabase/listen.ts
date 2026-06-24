@@ -142,3 +142,10 @@ export async function getListenChunks(itemId: string): Promise<ListenChunk[]> {
   if (error) throw error;
   return (data ?? []) as ListenChunk[];
 }
+
+/** Delete an item row. listen_chunks rows cascade via the FK ON DELETE CASCADE;
+ *  the caller is responsible for removing the R2 audio/text objects first. */
+export async function deleteListenItem(itemId: string): Promise<void> {
+  const { error } = await supabase.from("listen_items").delete().eq("id", itemId);
+  if (error) throw error;
+}

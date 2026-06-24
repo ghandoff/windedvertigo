@@ -34,6 +34,7 @@ declare global {
         httpMetadata?: { contentType?: string };
         size?: number;
       } | null>;
+      delete(key: string): Promise<void>;
     };
     /**
      * CF Browser Rendering binding.

@@ -23,8 +23,16 @@ interface Item {
   source_type: string;
   clean_level: string;
   error: string | null;
+  created_at: string;
+  char_count: number | null;
 }
 interface Chunk { idx: number; url: string }
+
+/** Rough render-time estimate (seconds) from the extracted character count —
+ *  calibrated on observed renders (~600 raw chars/sec incl. queue pickup). */
+function etaSeconds(item: Item): number {
+  return Math.max(10, Math.round((item.char_count ?? 4000) / 600));
+}
 
 const SPEEDS = [
   { rate: 0.8, label: "🐢", name: "amble" },
@@ -59,6 +67,8 @@ export default function ReadingBoothPage() {
   const [rate, setRate] = useState(1.0);
   const [frac, setFrac] = useState(0); // 0..1 within current chunk
   const [playErr, setPlayErr] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now()); // ticks for live ETA countdown
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
     try {
@@ -73,13 +83,35 @@ export default function ReadingBoothPage() {
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
+  const cooking = items.some((i) => i.status === "queued" || i.status === "rendering");
+
   // poll while anything is still cooking
   useEffect(() => {
-    const cooking = items.some((i) => i.status === "queued" || i.status === "rendering");
     if (!cooking) return;
     const t = setInterval(fetchItems, 4000);
     return () => clearInterval(t);
-  }, [items, fetchItems]);
+  }, [cooking, fetchItems]);
+
+  // 1s tick for the live "~Ns left" countdown while items render
+  useEffect(() => {
+    if (!cooking) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [cooking]);
+
+  const deleteItem = useCallback(async (it: Item) => {
+    if (deleting) return;
+    setDeleting(it.id);
+    if (active?.id === it.id) { wantPlay.current = false; audioRef.current?.pause(); setActive(null); }
+    setItems((prev) => prev.filter((p) => p.id !== it.id)); // optimistic
+    try {
+      await fetch(`/api/listen/${it.id}`, { method: "DELETE" });
+    } catch {
+      fetchItems(); // restore on failure
+    } finally {
+      setDeleting(null);
+    }
+  }, [deleting, active, fetchItems]);
 
   // ── submit ────────────────────────────────────────────────────────────────
   const submitUrl = useCallback(async () => {
@@ -321,29 +353,53 @@ export default function ReadingBoothPage() {
         {loaded && items.length === 0 && (
           <p className="muted">empty. hand carl his first read above. 📚</p>
         )}
-        {items.map((it) => (
-          <button
-            key={it.id}
-            className={`card ${it.status} ${active?.id === it.id ? "active" : ""}`}
-            onClick={() => openItem(it)}
-            disabled={it.status !== "ready"}
-          >
-            <div className="card-main">
-              <div className="card-title">{it.title}</div>
-              <div className="card-sub">
-                {STATUS_COPY[it.status]}
-                {it.status === "ready" && it.est_minutes ? ` · ~${it.est_minutes} min` : ""}
-                {it.status === "failed" && it.error ? ` · ${it.error}` : ""}
-              </div>
+        {items.map((it) => {
+          const processing = it.status === "queued" || it.status === "rendering";
+          const eta = etaSeconds(it);
+          const elapsed = Math.max(0, (now - new Date(it.created_at).getTime()) / 1000);
+          const remaining = Math.max(0, Math.round(eta - elapsed));
+          const pct = Math.min(96, Math.round((elapsed / eta) * 100));
+          return (
+            <div key={it.id} className={`card ${it.status} ${active?.id === it.id ? "active" : ""}`}>
+              <button
+                className="card-hit"
+                onClick={() => openItem(it)}
+                disabled={it.status !== "ready"}
+              >
+                <div className="card-main">
+                  <div className="card-title">{it.title}</div>
+                  <div className="card-sub">
+                    {processing
+                      ? (remaining > 0
+                          ? `${it.status === "queued" ? "queued" : "reading it aloud"} · ~${remaining}s left`
+                          : "almost ready…")
+                      : STATUS_COPY[it.status]}
+                    {it.status === "ready" && it.est_minutes ? ` · ~${it.est_minutes} min listen` : ""}
+                    {it.status === "failed" && it.error ? ` · ${it.error}` : ""}
+                  </div>
+                  {processing && (
+                    <div className="card-prog"><div className="card-prog-fill" style={{ width: `${pct}%` }} /></div>
+                  )}
+                </div>
+                <div className="card-badge">
+                  {it.status === "ready" && "▶"}
+                  {it.status === "rendering" && <span className="spin">◔</span>}
+                  {it.status === "queued" && "⏳"}
+                  {it.status === "failed" && "↻"}
+                </div>
+              </button>
+              <button
+                className="card-del"
+                onClick={() => deleteItem(it)}
+                disabled={deleting === it.id}
+                aria-label={`delete ${it.title}`}
+                title="delete"
+              >
+                {deleting === it.id ? "…" : "🗑"}
+              </button>
             </div>
-            <div className="card-badge">
-              {it.status === "ready" && "▶"}
-              {it.status === "rendering" && <span className="spin">◔</span>}
-              {it.status === "queued" && "⏳"}
-              {it.status === "failed" && "↻"}
-            </div>
-          </button>
-        ))}
+          );
+        })}
       </section>
     </div>
   );
@@ -426,17 +482,26 @@ const BOOTH_CSS = `
 .stack { margin-top: 1.4rem; }
 .stack h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 0 0 .6rem; }
 .muted { color: var(--muted); font-size: .85rem; }
-.card { display: flex; align-items: center; gap: .7rem; width: 100%; text-align: left;
+.card { display: flex; align-items: stretch; width: 100%; overflow: hidden;
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
-  padding: .75rem .85rem; margin-bottom: .55rem; color: var(--cream); font: inherit; cursor: pointer;
+  margin-bottom: .55rem; color: var(--cream);
   transition: transform .08s, border-color .15s; }
-.card:active:not(:disabled) { transform: scale(.985); }
 .card.ready { border-left: 3px solid var(--teal); }
 .card.rendering { border-left: 3px solid var(--amber); }
 .card.queued { border-left: 3px solid #8a76c0; }
 .card.failed { border-left: 3px solid var(--tomato); }
 .card.active { border-color: var(--amber); background: rgba(255,179,71,.1); }
-.card:disabled { cursor: default; }
+.card-hit { flex: 1; min-width: 0; display: flex; align-items: center; gap: .7rem;
+  text-align: left; background: none; border: 0; color: inherit; font: inherit;
+  padding: .75rem .85rem; cursor: pointer; }
+.card-hit:active:not(:disabled) { transform: scale(.985); }
+.card-hit:disabled { cursor: default; }
+.card-del { flex-shrink: 0; background: none; border: 0; border-left: 1px solid rgba(255,255,255,.08);
+  color: var(--muted); padding: 0 .85rem; font-size: 1rem; cursor: pointer; transition: color .15s, background .15s; }
+.card-del:hover:not(:disabled) { color: var(--tomato); background: rgba(255,107,94,.08); }
+.card-del:disabled { opacity: .5; cursor: default; }
+.card-prog { height: 5px; background: rgba(255,255,255,.12); border-radius: 99px; margin-top: .45rem; overflow: hidden; }
+.card-prog-fill { height: 100%; background: linear-gradient(90deg, var(--amber), var(--teal)); border-radius: 99px; transition: width .8s linear; }
 .card-main { flex: 1; min-width: 0; }
 .card-title { font-weight: 600; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-sub { color: var(--muted); font-size: .74rem; margin-top: .1rem; }

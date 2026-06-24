@@ -9,8 +9,10 @@
 
 import { auth } from "@/lib/auth";
 import { error } from "@/lib/api-helpers";
-import { getListenItem, getListenChunks } from "@/lib/supabase/listen";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getListenItem, getListenChunks, deleteListenItem } from "@/lib/supabase/listen";
 import { R2_PUBLIC_URL } from "@/lib/r2/client";
+import "@/lib/cf-env";
 
 export async function GET(
   _req: Request,
@@ -33,4 +35,32 @@ export async function GET(
   }));
 
   return Response.json({ item, chunks });
+}
+
+/** Delete an item + its R2 audio/text objects. Owner-only. */
+export async function DELETE(
+  _req: Request,
+  ctx: { params: Promise<{ id: string }> },
+) {
+  const session = await auth();
+  if (!session?.user?.email) return error("Unauthorized", 401);
+
+  const { id } = await ctx.params;
+  const item = await getListenItem(id);
+  if (!item || item.created_by !== session.user.email) return error("not found", 404);
+
+  // Best-effort R2 cleanup (audio chunks + extracted text), then the DB row
+  // (listen_chunks cascade). R2 failures don't block the delete — the row going
+  // away is what tidies the booth; orphaned objects, if any, are harmless.
+  try {
+    const chunks = await getListenChunks(id);
+    const { env } = getCloudflareContext();
+    const keys = [...chunks.map((c) => c.r2_key), item.text_key].filter(Boolean) as string[];
+    await Promise.all(keys.map((k) => env.PORT_ASSETS.delete(k).catch(() => {})));
+  } catch {
+    /* ignore R2 cleanup errors */
+  }
+
+  await deleteListenItem(id);
+  return Response.json({ ok: true });
 }
