@@ -92,7 +92,9 @@ export async function triageActions(
     system: SYSTEM_PROMPT,
     userMessage,
     userId,
-    maxTokens: 4096,
+    // ~80 tokens per suggestion; callers batch (see cron) to stay well under
+    // this, but keep generous headroom so a single batch never truncates.
+    maxTokens: 8192,
     temperature: 0.2,
   });
 

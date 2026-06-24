@@ -60,31 +60,45 @@ export async function GET(req: NextRequest) {
     context: a.context,
   }));
 
+  // Triage in batches so a single LLM call never has to emit a giant JSON array
+  // (Haiku truncates long output → unparseable). Small daily runs fit one batch;
+  // a backlog (e.g. the initial 2-week backfill) spreads across a few.
+  const BATCH_SIZE = 20;
+  const cycle = currentCycleMonday();
+  let triaged = 0;
   let pending = 0;
   let dismissed = 0;
-  try {
-    const { suggestions, usage } = await triageActions(
-      input,
-      existing,
-      currentCycleMonday(),
-      "pam-action-triage-cron",
-    );
+  let totalCost = 0;
 
-    for (const s of suggestions) {
-      const state = s.meaningful ? "pending" : "dismissed";
-      await setActionTriage(s.actionId, state, s);
-      if (s.meaningful) pending++;
-      else dismissed++;
+  try {
+    for (let i = 0; i < input.length; i += BATCH_SIZE) {
+      const batch = input.slice(i, i + BATCH_SIZE);
+      const { suggestions, usage } = await triageActions(
+        batch,
+        existing,
+        cycle,
+        "pam-action-triage-cron",
+      );
+      totalCost += usage.costUsd;
+      for (const s of suggestions) {
+        const state = s.meaningful ? "pending" : "dismissed";
+        await setActionTriage(s.actionId, state, s);
+        triaged++;
+        if (s.meaningful) pending++;
+        else dismissed++;
+      }
     }
 
     console.log(
       "[cron/pam-action-triage]",
-      JSON.stringify({ triaged: suggestions.length, pending, dismissed, costUsd: usage.costUsd }),
+      JSON.stringify({ triaged, pending, dismissed, costUsd: totalCost }),
     );
-    return NextResponse.json({ ok: true, triaged: suggestions.length, pending, dismissed });
+    return NextResponse.json({ ok: true, triaged, pending, dismissed });
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
     console.error("[cron/pam-action-triage] failed:", message);
-    return NextResponse.json({ error: "triage_failed", message }, { status: 500 });
+    // Partial progress is persisted (each batch writes as it completes), so a
+    // retry resumes on the remaining untriaged actions.
+    return NextResponse.json({ error: "triage_failed", message, triaged }, { status: 500 });
   }
 }
