@@ -105,14 +105,22 @@ export async function POST(req: NextRequest) {
   await uploadAsset(Buffer.from(resolved.text, "utf8"), textKey, "text/plain; charset=utf-8");
   await updateListenItem(item.id, { text_key: textKey });
 
-  const { env } = getCloudflareContext();
-  publishJob(env.LISTEN_QUEUE, {
-    type: "listen/render-document",
-    itemId: item.id,
-    textKey,
-    cleanLevel,
-    enqueuedAt: new Date().toISOString(),
-  }).catch((err) => console.error("[listen] enqueue failed:", err));
+  // Await the enqueue — a fire-and-forget send() can be dropped when the worker
+  // returns its response before the queue write flushes (no ctx.waitUntil).
+  try {
+    const { env } = getCloudflareContext();
+    await publishJob(env.LISTEN_QUEUE, {
+      type: "listen/render-document",
+      itemId: item.id,
+      textKey,
+      cleanLevel,
+      enqueuedAt: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.error("[listen] enqueue failed:", e);
+    await updateListenItem(item.id, { status: "failed", error: "could not queue the render job" });
+    return error("could not queue the render job", 502);
+  }
 
   return Response.json({ ok: true, item: { ...item, text_key: textKey, status: "queued" } });
 }
