@@ -9,23 +9,29 @@ A `pass` verdict requires zero unresolved **blocking** items.
 ## Blocking Items (high severity — fail the bundle)
 
 ### (a) Unsourced Figure
-**Rule:** Any number, currency amount, or percentage in the draft that cannot
-be traced to a source line is a hard fail.
+**Rule:** Currency amounts and magnitude figures in the draft that cannot be
+traced to a source line are a hard fail. Plain large integers ≥ 1,000 that
+lack a source are surfaced as **warnings** (not hard blocks).
 
 "Traceable to a source" means one of:
-- Inline citation bracket: `[1]`, `[2]` etc.
+- Inline citation bracket: `[1]`, `[2]` etc. OR markdown footnote anchor `[^1]`, `[^2]`
 - Parenthetical year reference: `(2023)`, `(IDB, 2024)`
 - Explicit attribution: "per ToR", "per RFP", "source:", "ref 3", "fn 2"
 
-**Canonical regression case:** A draft containing `$20M` with no citation
-must fail QC, regardless of how plausible the figure is.
+**Currency / magnitude figures (hard block):** Anything with a currency prefix
+(`$`, `€`, `£`, `¥`, `USD`, `EUR`, `MXN`, `BRL`, `COP`) or a magnitude qualifier
+(`million`, `billion`) without a traceable source fails QC.
 
-**Threshold:** Numbers under 1,000 without a currency prefix are excluded
-(page numbers, years, counts). Numbers ≥ 1,000, all currency amounts, and all
-percentages require a source.
+**Canonical regression case:** A draft containing `$20M` with no citation must
+fail QC, regardless of how plausible the figure is.
 
-**Resolution:** Add a citation, replace with a sourced figure from a BD asset,
-or remove the figure entirely.
+**Scale figures (warning only):** Plain integers ≥ 1,000 without currency or
+magnitude (e.g. "40,000+ educators", "45,000 professionals") are reported as
+warnings but do **not** block submission. These are often own-IP scale claims
+that do not require external sourcing.
+
+**Resolution (blocking):** Add a citation, replace with a sourced figure from a
+BD asset, or remove the figure entirely.
 
 ---
 
@@ -96,7 +102,8 @@ them before submission.
 
 | Item | Severity | Blocks submission? |
 |------|----------|-------------------|
-| Unsourced figure | high | yes |
+| Unsourced currency/magnitude figure | high | yes |
+| Unsourced scale figure (≥ 1,000, no currency/magnitude) | low | no |
 | Unverified CV claim | high | yes |
 | Structure vs. ToR mismatch | high | yes |
 | De-templated bio | low | no |

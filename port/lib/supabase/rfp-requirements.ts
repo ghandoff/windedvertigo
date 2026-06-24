@@ -279,7 +279,6 @@ export async function clearExtractedRequirements(rfpId: string): Promise<number>
   return count ?? 0;
 }
 
-<<<<<<< Updated upstream
 // ── Coverage (compliance matrix) ─────────────────────────────────────────────
 
 /** A single row from the rfp_coverage view, enriched with weight_pct and
@@ -362,7 +361,8 @@ export async function getCoverageByRfp(rfpId: string): Promise<RfpCoverageRow[]>
       extractionConfidence: extra?.extractionConfidence ?? null,
     };
   });
-=======
+}
+
 // ── BIZ-E1 eligibility gate ───────────────────────────────────────────────────
 
 export interface EligibilityGateResult {
@@ -454,5 +454,4 @@ export async function setEligibilityVerdict(
     })
     .eq("id", requirementId);
   if (error) throw new Error(`[rfp-requirements] setEligibilityVerdict: ${error.message}`);
->>>>>>> Stashed changes
 }

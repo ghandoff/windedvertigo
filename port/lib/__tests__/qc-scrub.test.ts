@@ -13,6 +13,7 @@
 
 import { describe, it, expect } from "vitest";
 import {
+  scanFigures,
   findUnsourcedFigures,
   findUnverifiedCvClaims,
   checkTorMismatches,
@@ -28,9 +29,9 @@ describe("findUnsourcedFigures", () => {
     expect(hits).toContain("$20M");
   });
 
-  it("flags a large plain number (≥1000) with no source", () => {
+  it("does NOT flag a large plain number (≥1000) — these go to warnings, not blocking", () => {
     const hits = findUnsourcedFigures("The programme reached 5,000 teachers across three provinces.");
-    expect(hits.length).toBeGreaterThan(0);
+    expect(hits).toHaveLength(0);
   });
 
   it("does NOT flag a figure immediately followed by a citation bracket", () => {
@@ -262,5 +263,61 @@ describe("QC pass/fail integration", () => {
     expect(figures.length).toBeGreaterThan(0);
     expect(cvClaims).toHaveLength(0);
     expect(torMismatches).toHaveLength(0);
+  });
+});
+
+// ── (a2) scanFigures — blocking vs. warning split ─────────────────────────────
+
+describe("scanFigures", () => {
+  it("puts $20M with no source in blocking", () => {
+    const { blocking, warnings } = scanFigures(
+      "winded.vertigo has managed portfolios of up to $20M in international programmes.",
+    );
+    expect(blocking).toContain("$20M");
+    expect(warnings).toHaveLength(0);
+  });
+
+  it("puts '40,000 educators' (plain large integer) in warnings, not blocking", () => {
+    const { blocking, warnings } = scanFigures(
+      "Our platform has reached 40,000 educators across the region.",
+    );
+    expect(blocking).toHaveLength(0);
+    expect(warnings.length).toBeGreaterThan(0);
+  });
+
+  it("puts '45,000+ professionals' in warnings, not blocking", () => {
+    const { blocking, warnings } = scanFigures(
+      "winded.vertigo's network includes 45,000 professionals in the field.",
+    );
+    expect(blocking).toHaveLength(0);
+    expect(warnings.length).toBeGreaterThan(0);
+  });
+
+  it("clears $20M when followed by a standard citation bracket [1]", () => {
+    const { blocking, warnings } = scanFigures("The programme reached $20M [1] in disbursements.");
+    expect(blocking).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it("clears $20M when followed by a markdown footnote [^1]", () => {
+    const { blocking, warnings } = scanFigures("The programme reached $20M [^1] in disbursements.");
+    expect(blocking).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it("clears a large plain integer when followed by [^1]", () => {
+    const { blocking, warnings } = scanFigures(
+      "The programme trained 12,000 teachers [^2] across three provinces.",
+    );
+    expect(blocking).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it("returns both empty for a clean draft with no figures", () => {
+    const { blocking, warnings } = scanFigures(
+      "winded.vertigo designs learning experiences for practitioners.",
+    );
+    expect(blocking).toHaveLength(0);
+    expect(warnings).toHaveLength(0);
   });
 });

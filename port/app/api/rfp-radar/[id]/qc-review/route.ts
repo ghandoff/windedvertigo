@@ -32,7 +32,7 @@ import { auth } from "@/lib/auth";
 import { getAllCvs, cvConfidence } from "@/lib/supabase/cv";
 import { getApprovedDeliverables } from "@/lib/supabase/rfp-requirements";
 import {
-  findUnsourcedFigures,
+  scanFigures,
   findUnverifiedCvClaims,
   checkTorMismatches,
   NAME_ALIASES,
@@ -52,7 +52,7 @@ interface QcBlockingItem {
 }
 
 interface QcWarning {
-  rule: "de-templated-bio" | "voice-antithesis" | "unanswered-question";
+  rule: "de-templated-bio" | "voice-antithesis" | "unanswered-question" | "unsourced-figure";
   detail: string;
 }
 
@@ -82,13 +82,20 @@ export async function POST(
   const warnings: QcWarning[] = [];
 
   // ── (a) Unsourced figures ─────────────────────────────────────────────────
-  const unsourcedFigures = findUnsourcedFigures(draftText);
-  for (const fig of unsourcedFigures) {
+  // blocking: currency/magnitude figures (e.g. $20M); warnings: plain integers >=1000.
+  const figureScan = scanFigures(draftText);
+  for (const fig of figureScan.blocking) {
     blockingItems.push({
       rule: "unsourced-figure",
       severity: "high",
       offendingText: fig,
       detail: `"${fig}" appears without a traceable source marker (footnote, citation bracket, or "per ToR/RFP")`,
+    });
+  }
+  for (const fig of figureScan.warnings) {
+    warnings.push({
+      rule: "unsourced-figure",
+      detail: `"${fig}" is a large unsourced number — review whether a source is needed`,
     });
   }
 

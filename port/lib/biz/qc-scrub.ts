@@ -35,31 +35,48 @@ export const COLLECTIVE_NAMES = [
 const FIGURE_PATTERN =
   /(?:[$€£¥]|USD|EUR|MXN|BRL|COP)\s*\d[\d,]*(?:\.\d+)?(?:\s*(?:million|billion|M|B))?|\b\d[\d,]*(?:\.\d+)?\s*(?:million|billion)(?:\s+dollars?|euros?)?\b|\b\d[\d,]*(?:\.\d+)?\b/gi;
 
+// Broaden SOURCE_MARKER to include markdown footnotes [^1] in addition to [1].
 const SOURCE_MARKER =
-  /\[\d+\]|\(\d{4}\)|per\s+ToR|per\s+RFP|source\s*:|fn\s*\d|footnote\s*\d|\bref\b/i;
+  /\[\^?\d+\]|\(\d{4}\)|per\s+ToR|per\s+RFP|source\s*:|fn\s*\d|footnote\s*\d|\bref\b/i;
 
 // Four-digit years in the range 1900–2099 should not be flagged.
 const YEAR_PATTERN = /^(?:19|20)\d{2}$/;
 
-export function findUnsourcedFigures(text: string): string[] {
-  const hits: string[] = [];
+// Identifies figures that are currency-prefixed or magnitude-qualified — these
+// are hard-blocking because they are specific enough to verify. Plain integers
+// >=1000 (e.g. "40,000 educators") are large but often legitimate scale figures;
+// they become warnings instead of hard blocks.
+const CURRENCY_OR_MAGNITUDE = /[$€£¥]|USD|EUR|MXN|BRL|COP|million|billion/i;
+
+export interface FigureScan {
+  blocking: string[];
+  warnings: string[];
+}
+
+export function scanFigures(text: string): FigureScan {
+  const blocking: string[] = [];
+  const warnings: string[] = [];
   let match: RegExpExecArray | null;
   FIGURE_PATTERN.lastIndex = 0;
   while ((match = FIGURE_PATTERN.exec(text)) !== null) {
     const figure = match[0].trim();
-    // Skip years
     const digitsOnly = figure.replace(/[^0-9]/g, "");
     if (YEAR_PATTERN.test(digitsOnly)) continue;
-    // Skip plain numbers under 1000 with no currency prefix
-    if (!/[$€£¥]|USD|EUR|MXN|BRL|COP|million|billion/i.test(figure)) {
-      if (Number(digitsOnly) < 1000) continue;
-    }
+    const isCurrencyOrMagnitude = CURRENCY_OR_MAGNITUDE.test(figure);
+    if (!isCurrencyOrMagnitude && Number(digitsOnly) < 1000) continue;
     const after = text.slice(match.index + figure.length, match.index + figure.length + 120);
-    if (!SOURCE_MARKER.test(after)) {
-      hits.push(figure);
+    if (SOURCE_MARKER.test(after)) continue;
+    if (isCurrencyOrMagnitude) {
+      blocking.push(figure);
+    } else {
+      warnings.push(figure);
     }
   }
-  return [...new Set(hits)];
+  return { blocking: [...new Set(blocking)], warnings: [...new Set(warnings)] };
+}
+
+export function findUnsourcedFigures(text: string): string[] {
+  return scanFigures(text).blocking;
 }
 
 // ── (b) Unverified CV claim detection ─────────────────────────────────────────
