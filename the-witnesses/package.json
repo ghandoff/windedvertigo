@@ -1,0 +1,31 @@
+{
+  "name": "@windedvertigo/the-witnesses",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3020",
+    "build": "next build",
+    "build:cf": "next build && npx @opennextjs/cloudflare build --skipNextBuild",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.55.0",
+    "@supabase/supabase-js": "^2.50.0",
+    "next": "^16.2.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "replicate": "^1.0.1"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.19.1",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^16.2.4",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^6.0.3"
+  }
+}
