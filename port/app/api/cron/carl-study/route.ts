@@ -36,12 +36,13 @@ import { createBibliographyEntry } from "@/lib/notion/bibliography";
 import { insertBibliographyRow } from "@/lib/supabase/bibliography";
 import { searchScholar } from "@/lib/bibliography/scholar";
 import type { ScholarHit } from "@/lib/bibliography/scholar/types";
+import { postToChannel } from "@/lib/slack";
 
 // go-big daily volume; manual ?count can override up to the cap
-const TOPICS_PER_RUN = 10;
-const COUNT_CAP = 20;
+const TOPICS_PER_RUN = 20;
+const COUNT_CAP = 40;
 // keep the queue full: replenish when fewer than this remain planned
-const REPLENISH_BELOW = 8;
+const REPLENISH_BELOW = 15;
 
 function hasTokenAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -173,7 +174,7 @@ export async function GET(req: NextRequest) {
       .slice(0, count);
 
     let costUsd = 0;
-    const studied: { domain: string; topic: string; title: string; audience: string; grounded: boolean; filed: number; delivered: boolean }[] = [];
+    const studied: { domain: string; topic: string; title: string; audience: string; grounded: boolean; filed: number; delivered: boolean; requested_by: string | null }[] = [];
     const providerTally: Record<string, number> = {};
     const studiedDomains = new Set<string>();
 
@@ -263,7 +264,7 @@ export async function GET(req: NextRequest) {
 
         await updateCurriculumTopic(t.id, { status: "covered" });
         studiedDomains.add(t.domain);
-        studied.push({ domain: t.domain, topic: t.topic, title: f.title, audience, grounded, filed, delivered });
+        studied.push({ domain: t.domain, topic: t.topic, title: f.title, audience, grounded, filed, delivered, requested_by: t.requested_by ?? null });
       } catch (perTopic) {
         console.error(`[cron/carl-study] topic failed (${t.domain} · ${t.topic}):`, perTopic);
       }
@@ -307,6 +308,30 @@ export async function GET(req: NextRequest) {
         }
       } catch (rep) {
         console.error("[cron/carl-study] replenish failed:", rep);
+      }
+    }
+
+    // 7. notify #canon when requested research topics were completed
+    const requestedCompleted = studied.filter((s) => s.requested_by);
+    if (requestedCompleted.length > 0) {
+      try {
+        const grouped = requestedCompleted.reduce<Record<string, typeof requestedCompleted>>((acc, s) => {
+          const key = s.requested_by!;
+          (acc[key] ??= []).push(s);
+          return acc;
+        }, {});
+        const digest = Object.entries(grouped)
+          .map(([who, items]) => {
+            const list = items.map((s) => `• *${s.title}* — ${s.domain}`).join("\n");
+            return `*${who}* requested:\n${list}`;
+          })
+          .join("\n\n");
+        await postToChannel(
+          "#canon",
+          `cARL completed ${requestedCompleted.length} requested research topic${requestedCompleted.length === 1 ? "" : "s"}:\n\n${digest}\n\nFindings are in the cARL library.`,
+        ).catch(() => {});
+      } catch {
+        // non-fatal — don't abort the run summary
       }
     }
 

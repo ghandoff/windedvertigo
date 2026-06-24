@@ -32,6 +32,11 @@ export interface PamCommitment {
   blocker: string | null;
   completed_at: string | null;
   updated_at: string;
+  // whirlpool fields (added 2026-06-24 migration)
+  cycle: string | null;           // ISO Monday date of the whirlpool week, e.g. "2026-06-23"
+  if_then_plan: string | null;    // implementation intention: "if <cue>, then I'll <action>"
+  commitment_type: "action" | "learning" | "connection" | "ritual" | null;
+  visibility: "public" | "private"; // public = on the whirlpool board; private = PaM memory only
 }
 
 export async function insertPamDecision(data: {
@@ -128,6 +133,17 @@ export async function getPamCommitments(opts: {
   return data ?? [];
 }
 
+export async function getWhirlpoolCommitments(cycle: string): Promise<PamCommitment[]> {
+  const { data, error } = await supabase
+    .from("pam_commitments")
+    .select("*")
+    .eq("cycle", cycle)
+    .eq("visibility", "public")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function insertPamCommitment(data: {
   who: string;
   what: string;
@@ -135,6 +151,10 @@ export async function insertPamCommitment(data: {
   due_date?: string;
   source?: string;
   depends_on?: string[];
+  cycle?: string;
+  if_then_plan?: string;
+  commitment_type?: "action" | "learning" | "connection" | "ritual";
+  visibility?: "public" | "private";
 }): Promise<PamCommitment> {
   const { data: row, error } = await supabase
     .from("pam_commitments")
@@ -145,6 +165,10 @@ export async function insertPamCommitment(data: {
       due_date: data.due_date ?? null,
       source: data.source ?? null,
       depends_on: data.depends_on ?? null,
+      cycle: data.cycle ?? null,
+      if_then_plan: data.if_then_plan ?? null,
+      commitment_type: data.commitment_type ?? null,
+      visibility: data.visibility ?? "public",
       status: "not-started",
       updated_at: new Date().toISOString(),
     })
@@ -171,6 +195,10 @@ export async function updatePamCommitment(
     start_date?: string;
     due_date?: string;
     depends_on?: string[];
+    cycle?: string;
+    if_then_plan?: string;
+    commitment_type?: string;
+    visibility?: string;
   },
 ): Promise<PamCommitment> {
   const { data: row, error } = await supabase

@@ -5,14 +5,16 @@ import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
 import { AgentLogTab } from "@/app/components/agent-log-tab";
 import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
-import { getPamCommitments, getPamMemory, getPamDecisions } from "@/lib/supabase/pam";
+import { getPamCommitments, getPamMemory, getPamDecisions, getWhirlpoolCommitments } from "@/lib/supabase/pam";
 import { CommitmentsBoard } from "./components/commitments-board";
 import { CommitmentsTimeline } from "./components/commitments-timeline";
 import { AddCommitmentDialog } from "./components/add-commitment-dialog";
+import { WhirlpoolBoard } from "./components/whirlpool-board";
 
 export const dynamic = "force-dynamic";
 
 const TABS: readonly TabDef[] = [
+  { key: "whirlpool", label: "whirlpool" },
   { key: "commitments", label: "commitments" },
   { key: "timeline", label: "timeline" },
   { key: "memory", label: "memory" },
@@ -26,12 +28,21 @@ export default async function PamPage({
 }) {
   const sp = await searchParams;
   const tabParam = typeof sp.tab === "string" ? sp.tab : undefined;
-  const activeTab = TABS.find((t) => t.key === tabParam)?.key ?? "commitments";
+  const activeTab = TABS.find((t) => t.key === tabParam)?.key ?? "whirlpool";
 
-  const [commitments, memory, decisions] = await Promise.all([
+  // current whirlpool cycle = ISO Monday of this week
+  const todayUTC = new Date();
+  const dayOfWeek = todayUTC.getUTCDay(); // 0=Sun … 6=Sat
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(todayUTC);
+  monday.setUTCDate(todayUTC.getUTCDate() + mondayOffset);
+  const currentCycle = monday.toISOString().slice(0, 10);
+
+  const [commitments, memory, decisions, whirlpoolCommitments] = await Promise.all([
     getPamCommitments({ limit: 300 }).catch(() => []),
     getPamMemory().catch(() => []),
     getPamDecisions({ days: 90 }).catch(() => []),
+    getWhirlpoolCommitments(currentCycle).catch(() => []),
   ]);
 
   const today = new Date().toISOString().slice(0, 10);
@@ -50,7 +61,7 @@ export default async function PamPage({
       </div>
       <AgentPageWithChat agentId="pam">
       <div className="space-y-6">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <div className="rounded-lg border border-border bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">active</p>
             <p className="text-xl font-semibold tabular-nums">{active.length}</p>
@@ -67,12 +78,21 @@ export default async function PamPage({
               {blocked.length}
             </p>
           </div>
+          <div className="rounded-lg border border-border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-1">this week</p>
+            <p className="text-xl font-semibold tabular-nums">
+              {whirlpoolCommitments.filter((c) => c.status === "done").length}/{whirlpoolCommitments.length}
+            </p>
+          </div>
         </div>
 
         <CarlInsightsPanel entries={memory} />
 
         <UrlTabs tabs={TABS} activeTab={activeTab} />
 
+        {activeTab === "whirlpool" && (
+          <WhirlpoolBoard commitments={whirlpoolCommitments} cycle={currentCycle} />
+        )}
         {activeTab === "commitments" && (
           <div className="space-y-4">
             <div className="flex justify-end">
