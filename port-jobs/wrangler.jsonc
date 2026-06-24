@@ -93,12 +93,19 @@
   // R2_PUBLIC_URL: the public domain for the port-assets R2 bucket.
   // NOT a secret — visible in wrangler deploy output.
   "vars": {
-    "R2_PUBLIC_URL": "https://pub-ae6933715be744649a1f2fd99346225a.r2.dev"
+    "R2_PUBLIC_URL": "https://pub-ae6933715be744649a1f2fd99346225a.r2.dev",
+    // listen-library TTS engine: cloudflare-aura | cloudflare-melotts | cartesia.
+    // Keep in sync with wv-port's var so the dedupe hash matches.
+    "LISTEN_TTS_PROVIDER": "cloudflare-aura"
   },
 
   // ── R2 binding ───────────────────────────────────────────────────
   // Used by parse-rfp-questions consumer to store parsed question JSON.
   "r2_buckets": [
     { "binding": "PORT_ASSETS", "bucket_name": "port-assets" }
-  ]
+  ],
+
+  // ── Workers AI binding ───────────────────────────────────────────
+  // Listen-library TTS (MeloTTS / Deepgram Aura). No secret — billed in neurons.
+  "ai": { "binding": "AI" }
 }

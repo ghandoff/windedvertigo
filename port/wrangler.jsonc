@@ -65,7 +65,10 @@
   // PORT_URL is used by the scheduled() hourly router when self-requesting
   // API routes. Must match the production domain.
   "vars": {
-    "PORT_URL": "https://port.windedvertigo.com"
+    "PORT_URL": "https://port.windedvertigo.com",
+    // listen-library TTS engine — must match wv-port-jobs so the dedupe content
+    // hash (computed here at submit) lines up with what the consumer renders.
+    "LISTEN_TTS_PROVIDER": "cloudflare-aura"
   },
 
   // ── Routes ───────────────────────────────────────────────────────────────

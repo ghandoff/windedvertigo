@@ -53,6 +53,7 @@ export default function ReadingBoothPage() {
   const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState("");
   const [cleanLevel, setCleanLevel] = useState<"clean" | "faithful">("clean");
+  const [condense, setCondense] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -123,7 +124,7 @@ export default function ReadingBoothPage() {
       const res = await fetch("/api/listen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceType, url, cleanLevel }),
+        body: JSON.stringify({ sourceType, url, cleanLevel, condense }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "couldn't hand that to Carl");
@@ -134,7 +135,7 @@ export default function ReadingBoothPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [input, cleanLevel, fetchItems]);
+  }, [input, cleanLevel, condense, fetchItems]);
 
   const submitFile = useCallback(async (file: File) => {
     setSubmitting(true); setErr(null);
@@ -142,6 +143,7 @@ export default function ReadingBoothPage() {
       const form = new FormData();
       form.append("file", file);
       form.append("cleanLevel", cleanLevel);
+      form.append("condense", String(condense));
       const res = await fetch("/api/listen", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "couldn't read that file");
@@ -151,7 +153,7 @@ export default function ReadingBoothPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [cleanLevel, fetchItems]);
+  }, [cleanLevel, condense, fetchItems]);
 
   // ── playback engine ─────────────────────────────────────────────────────--
   // Playback is event-driven: we set `wantPlay` intent + the current chunk, and
@@ -279,6 +281,14 @@ export default function ReadingBoothPage() {
             onChange={(e) => setCleanLevel(e.target.checked ? "clean" : "faithful")}
           />
           <span>skip the citations &amp; footnotes (recommended for articles)</span>
+        </label>
+        <label className="skip-toggle">
+          <input
+            type="checkbox"
+            checked={condense}
+            onChange={(e) => setCondense(e.target.checked)}
+          />
+          <span>condensed — the gist, shorter (carl trims it down)</span>
         </label>
         {err && <p className="feed-err">⚠ {err}</p>}
       </section>

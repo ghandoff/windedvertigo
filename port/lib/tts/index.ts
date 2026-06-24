@@ -9,16 +9,37 @@
 
 import type { TtsProvider } from "./types";
 import { createCartesiaProvider } from "./cartesia";
+import {
+  createCloudflareMeloTtsProvider,
+  createCloudflareAuraProvider,
+  type WorkersAi,
+} from "./cloudflare";
 
 export type { TtsProvider, TtsResult } from "./types";
+export type { WorkersAi } from "./cloudflare";
 export { createCartesiaProvider, CARL_VOICE_ID } from "./cartesia";
+
+/** Default engine for the listen library — overridable via LISTEN_TTS_PROVIDER. */
+export const DEFAULT_LISTEN_PROVIDER = "cloudflare-aura";
 
 export function getTtsProvider(opts: {
   provider?: string;
   cartesiaApiKey?: string;
   voiceId?: string;
+  ai?: WorkersAi;
+  speaker?: string;
 }): TtsProvider {
   const provider = opts.provider ?? "cartesia";
+
+  if (provider === "cloudflare-aura") {
+    if (!opts.ai) throw new Error("Workers AI binding required for cloudflare-aura");
+    return createCloudflareAuraProvider(opts.ai, { speaker: opts.speaker });
+  }
+
+  if (provider === "cloudflare-melotts") {
+    if (!opts.ai) throw new Error("Workers AI binding required for cloudflare-melotts");
+    return createCloudflareMeloTtsProvider(opts.ai);
+  }
 
   if (provider === "cartesia") {
     if (!opts.cartesiaApiKey) {
@@ -27,6 +48,5 @@ export function getTtsProvider(opts: {
     return createCartesiaProvider(opts.cartesiaApiKey, { voiceId: opts.voiceId });
   }
 
-  // future: case "openai" → createOpenAiProvider(opts.openAiApiKey)
   throw new Error(`unknown TTS provider: ${provider}`);
 }
