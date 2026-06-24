@@ -133,5 +133,16 @@ export async function GET(req: NextRequest) {
   );
 
   console.log("[meet-transcript-ingest]", JSON.stringify({ summary, perSubject }));
+
+  // If EVERY member failed to find a folder, this is a hard infrastructure
+  // failure (SA Drive auth broken, credentials missing, DWD revoked). Return
+  // 503 so the scheduled() cron-router logs it to Opsy rather than silently
+  // treating it as a no-op success.
+  const allFoldersMissing = perSubject.length > 0 && perSubject.every((p) => p.folderId === null);
+  if (allFoldersMissing) {
+    console.error("[meet-transcript-ingest] all members missing Drive folder — likely SA Drive auth failure. Check GOOGLE_SERVICE_ACCOUNT_JSON and DWD scopes.");
+    return NextResponse.json({ ok: false, error: "drive_auth_failure", summary, perSubject }, { status: 503 });
+  }
+
   return NextResponse.json({ ok: true, summary, perSubject });
 }
