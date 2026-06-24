@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Target, Users, Clock, CalendarDays, ListChecks } from "lucide-react";
+import { Target, Users, Clock, CalendarDays, ListChecks, Headphones } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -11,6 +11,7 @@ const TABS = [
   { label: "log", href: "/m/log", icon: Clock },
   { label: "today", href: "/m/today", icon: CalendarDays },
   { label: "work", href: "/m/work", icon: ListChecks },
+  { label: "listen", href: "/m/listen", icon: Headphones },
 ] as const;
 
 export function MobileTabBar() {
