@@ -37,7 +37,7 @@ export async function resolveGoogleDoc(
   const text = await exportDocAsText(docId, { subject: opts.subject });
   if (!text) {
     throw new Error(
-      "could not read that Google Doc — check it's shared with the service account",
+      "could not read that Google Doc — make sure you can open it in your own Google account (we read it as you)",
     );
   }
   return {

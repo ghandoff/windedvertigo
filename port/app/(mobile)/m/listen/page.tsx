@@ -187,6 +187,18 @@ export default function ReadingBoothPage() {
   // keep playbackRate synced
   useEffect(() => { if (audioRef.current) audioRef.current.playbackRate = rate; }, [rate, chunkIdx]);
 
+  // pre-buffer the next chunk while the current one plays, so the boundary swap
+  // is near-instant instead of a ~100–300ms silence at each chunk transition.
+  useEffect(() => {
+    const next = chunks[chunkIdx + 1];
+    if (!next) return;
+    const pre = new Audio();
+    pre.preload = "auto";
+    pre.src = next.url;
+    pre.load();
+    return () => { pre.src = ""; };
+  }, [chunkIdx, chunks]);
+
   const overall = chunks.length ? (chunkIdx + frac) / chunks.length : 0;
 
   return (

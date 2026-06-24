@@ -31,7 +31,14 @@ export function normaliseForSpeech(raw: string): string {
 
 /** Split text into chunks no longer than maxChars, on sentence boundaries. */
 export function chunkText(text: string, maxChars = MAX_CHUNK_CHARS): string[] {
-  const clean = text.trim();
+  // Collapse ALL whitespace (incl. newlines) to single spaces so the TTS reads a
+  // smooth flow. Cartesia renders every newline / paragraph break as a 1–2s
+  // pause, and a stripped citation/footnote leaves the surrounding newlines —
+  // that's the awkward "pause where something was removed". Reference-section and
+  // citation removal already happened in cleanForListening (which needs the
+  // newlines), so flattening them here is safe. Also tidy any orphaned space
+  // before punctuation a removal may have left.
+  const clean = text.replace(/\s+/g, " ").replace(/\s+([.,;:!?])/g, "$1").trim();
   if (!clean) return [];
 
   // sentence-ish units: a run ending in . ! ? (keeping the terminator), or a

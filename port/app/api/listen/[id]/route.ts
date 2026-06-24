@@ -21,7 +21,9 @@ export async function GET(
 
   const { id } = await ctx.params;
   const item = await getListenItem(id);
-  if (!item) return error("not found", 404);
+  // 404 for both missing and not-yours — items are private to their creator, and
+  // we don't leak existence of another user's item.
+  if (!item || item.created_by !== session.user.email) return error("not found", 404);
 
   const base = process.env.R2_PUBLIC_URL ?? R2_PUBLIC_URL;
   const chunks = (await getListenChunks(id)).map((c) => ({
