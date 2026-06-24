@@ -18,8 +18,8 @@ const CARTESIA_TTS_URL = "https://api.cartesia.ai/tts/bytes";
 const CARTESIA_VERSION = "2026-03-01";
 const MODEL_ID = "sonic-3.5";
 
-/** Carl's voice — "Adrian", the same id his Vapi assistant uses. */
-export const CARL_VOICE_ID = "e2d48e7b-cd73-4c4c-bc1e-f232580e8709";
+/** Carl's voice — "Archie" (Cartesia), the same id his Vapi assistant uses. */
+export const CARL_VOICE_ID = "ef191366-f52f-447a-a398-ed8c0f2943a1";
 
 export function createCartesiaProvider(
   apiKey: string,
