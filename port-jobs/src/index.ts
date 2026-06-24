@@ -26,7 +26,18 @@ import type {
   RfpProposalJob,
   TimesheetStatusJob,
   RfpDocumentUploadedJob,
+  DocumentAudioJob,
 } from "@windedvertigo/job-queue/types";
+// Listen library (Carl reads docs aloud) — pure port/lib modules + TTS provider.
+import { cleanForListening } from "@/lib/listen/clean";
+import { normaliseForSpeech, chunkText, estimateMinutes, buildIntro } from "@/lib/listen/chunk";
+import { getTtsProvider } from "@/lib/tts";
+import {
+  getListenItem,
+  updateListenItem,
+  insertListenChunks,
+  deleteListenChunks,
+} from "@/lib/supabase/listen";
 
 // Business logic from port/lib — resolved via tsconfig @/* path alias.
 // These modules use process.env.* which is seeded per-invocation below.
@@ -83,6 +94,7 @@ export interface Env {
   NOTION_TOKEN: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
+  CARTESIA_API_KEY: string; // listen library TTS (Carl's voice). sk_car_...
 
   // Plain-text vars (set in wrangler.jsonc [vars])
   R2_PUBLIC_URL: string; // public domain for port-assets bucket
@@ -97,6 +109,7 @@ const QUEUE_PROPOSAL     = "wv-port-proposal-queue";
 const QUEUE_TIMESHEET    = "wv-port-timesheet-queue";
 const QUEUE_RFP_DOCUMENT = "wv-port-rfp-document-queue";
 const QUEUE_PROPOSAL_DLQ = "wv-port-proposal-queue-dlq";
+const QUEUE_LISTEN       = "wv-port-listen-queue";
 
 // R2 public URL is read from env.R2_PUBLIC_URL (wrangler.jsonc [vars]).
 // The constant below is a fallback for type safety only — the env value always wins.
@@ -835,6 +848,71 @@ const rfpDocumentConsumer = createQueueConsumer<RfpDocumentUploadedJob>(
 
 // ── Worker export ─────────────────────────────────────────────────────────────
 
+// ── Listen library: render a document to audio chunks (Carl's voice) ──────────
+// Pipeline: fetch extracted text from R2 → clean (strip citations) → chunk →
+// Cartesia TTS per chunk → store mp3 chunks in R2 → record chunk rows + mark
+// ready. Clears prior chunks at the start so retries are idempotent. On error,
+// records the message and acks (no DLQ loop) — resubmit covers transient fails.
+const listenConsumer = createQueueConsumer<DocumentAudioJob>(
+  async (payload, env) => {
+    seedProcessEnv(env as unknown as Env);
+    const typedEnv = env as unknown as Env;
+    const r2 = typedEnv.PORT_ASSETS;
+    const { itemId, textKey, cleanLevel } = payload;
+
+    try {
+      await updateListenItem(itemId, { status: "rendering" });
+      await deleteListenChunks(itemId); // idempotent: clear any prior attempt
+
+      const obj = await r2.get(textKey);
+      if (!obj) {
+        await updateListenItem(itemId, { status: "failed", error: "source text not found in storage" });
+        return { success: true, message: "no source text" };
+      }
+      const rawText = await obj.text();
+
+      const item = await getListenItem(itemId);
+      const title = item?.title ?? "your document";
+      const cleaned = cleanForListening(normaliseForSpeech(rawText), cleanLevel);
+      if (!cleaned.trim()) {
+        await updateListenItem(itemId, { status: "failed", error: "no readable text after cleaning" });
+        return { success: true, message: "empty after clean" };
+      }
+
+      // intro + body chunks
+      const segments = [buildIntro(title, cleaned.length), ...chunkText(cleaned)];
+
+      // Cartesia TTS (Carl's voice) — key passed explicitly from env.
+      const tts = getTtsProvider({
+        provider: "cartesia",
+        cartesiaApiKey: typedEnv.CARTESIA_API_KEY,
+      });
+
+      const stored: { idx: number; r2_key: string; char_count: number }[] = [];
+      for (let idx = 0; idx < segments.length; idx++) {
+        const result = await tts.synthesize(segments[idx]);
+        const key = `listen-audio/${itemId}/${idx}.${result.ext}`;
+        await r2.put(key, result.audio, { httpMetadata: { contentType: result.contentType } });
+        stored.push({ idx, r2_key: key, char_count: result.charCount });
+      }
+
+      await insertListenChunks(itemId, stored);
+      await updateListenItem(itemId, {
+        status: "ready",
+        char_count: cleaned.length,
+        est_minutes: estimateMinutes(cleaned.length),
+        chunk_count: stored.length,
+      });
+      return { success: true, message: `rendered ${stored.length} chunks` };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "render failed";
+      await updateListenItem(itemId, { status: "failed", error: msg }).catch(() => {});
+      console.error(`[listen] render failed for ${itemId}:`, msg);
+      return { success: true, message: `failed: ${msg}` }; // ack — resubmit to retry
+    }
+  },
+);
+
 export default {
   async queue(
     batch: MessageBatch,
@@ -856,6 +934,10 @@ export default {
 
       case QUEUE_RFP_DOCUMENT:
         await rfpDocumentConsumer(batch as MessageBatch<RfpDocumentUploadedJob>, env as unknown as Record<string, unknown>);
+        break;
+
+      case QUEUE_LISTEN:
+        await listenConsumer(batch as MessageBatch<DocumentAudioJob>, env as unknown as Record<string, unknown>);
         break;
 
       default:

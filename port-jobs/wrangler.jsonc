@@ -48,6 +48,17 @@
         "max_batch_size": 5,
         "max_batch_timeout": 30,
         "max_retries": 1
+      },
+      {
+        "queue": "wv-port-listen-queue",
+        // Document → audio render (Carl reads docs aloud). Per-chunk Cartesia
+        // TTS calls + R2 writes; one doc at a time. Generous timeout for long
+        // docs; the handler clears prior chunks on each attempt so retries are
+        // idempotent.
+        "max_batch_size": 1,
+        "max_batch_timeout": 60,
+        "max_retries": 3,
+        "dead_letter_queue": "wv-port-listen-queue-dlq"
       }
     ]
   },
@@ -61,6 +72,11 @@
   //   NOTION_TOKEN           — Notion read/write (Deal CRM record)
   //   SUPABASE_URL           — wv-port-pilot project URL
   //   SUPABASE_SERVICE_KEY   — Service role key (bypasses RLS for job writes)
+  //   CARTESIA_API_KEY       — Cartesia TTS (listen library — Carl reads docs
+  //                            aloud). An `sk_car_...` key from play.cartesia.ai.
+  //                            Today the Cartesia key lives only inside Vapi —
+  //                            this worker needs its own. Needs a paid Cartesia
+  //                            plan; the free tier (20k credits/mo) ≈ 1 article.
   //
   // Google Docs output secrets (optional — pipeline falls back to Notion if absent):
   //   GOOGLE_DOCS_FOLDER_ID      — Drive folder ID (from folder URL: /folders/<id>)

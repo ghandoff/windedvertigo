@@ -30,7 +30,7 @@ const HAIKU = "claude-haiku-4-5-20251001";
 const ASSISTANTS = [
   { slug: "pam",   name: "Pam",  voice: "ec1e269e-9ca0-402f-8a18-58e0e022355a", voiceLabel: "Ariana – Kind Friend",    model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
   { slug: "cmo",   name: "Mo",   voice: "faa75703-00e3-4a57-9955-0703001e3231", voiceLabel: "Amélie – Decisive Agent", model: SONNET, greet: "hi, Mo here. what's on your mind?" },
-  { slug: "carl",  name: "Carl", voice: "e2d48e7b-cd73-4c4c-bc1e-f232580e8709", voiceLabel: "Adrian – Explorer",      model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
+  { slug: "carl",  name: "Carl", voice: "ef191366-f52f-447a-a398-ed8c0f2943a1", voiceLabel: "Archie – Approachable Mate", model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
   { slug: "fin",   name: "Finn", voice: "3d808d23-cb09-4c39-8afd-528e209cba4f", voiceLabel: "Brent – Steady",         model: SONNET, greet: "hey, Finn here. want the numbers?" },
   { slug: "opsy",  name: "Opsy", voice: "a053f6bc-7df4-40de-96d4-de026bc47ce8", voiceLabel: "Andi – Dynamic Presenter",  model: SONNET, greet: "hi, it's Opsy. want a status check?" },
   { slug: "biz",   name: "Biz",  voice: "86e30c1d-714b-4074-a1f2-1cb6b552fb49", voiceLabel: "Carson – Curious Conversationalist", model: SONNET, greet: "hey, it's Biz. what are we pursuing?" },
