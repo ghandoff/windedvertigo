@@ -51,12 +51,14 @@ export default function ReadingBoothPage() {
 
   // ── player state ─────────────────────────────────────────────────────────
   const audioRef = useRef<HTMLAudioElement>(null);
+  const wantPlay = useRef(false); // intent: play the current chunk once it can
   const [active, setActive] = useState<Item | null>(null);
   const [chunks, setChunks] = useState<Chunk[]>([]);
   const [chunkIdx, setChunkIdx] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [rate, setRate] = useState(1.0);
   const [frac, setFrac] = useState(0); // 0..1 within current chunk
+  const [playErr, setPlayErr] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
     try {
@@ -120,35 +122,52 @@ export default function ReadingBoothPage() {
   }, [cleanLevel, fetchItems]);
 
   // ── playback engine ─────────────────────────────────────────────────────--
+  // Playback is event-driven: we set `wantPlay` intent + the current chunk, and
+  // the <audio onCanPlay> handler starts it once the media is ready. Avoids the
+  // race of calling play() before the new src has loaded, and surfaces errors.
+  const tryPlay = useCallback(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.play().catch((e) => setPlayErr(e?.message ? `couldn't play — ${e.message}` : "couldn't play this audio"));
+  }, []);
+
   const openItem = useCallback(async (item: Item) => {
     if (item.status !== "ready") return;
+    setPlayErr(null);
     setActive(item);
     setPlaying(false);
-    const res = await fetch(`/api/listen/${item.id}`);
-    const data = (await res.json()) as { chunks: Chunk[] };
-    setChunks(data.chunks);
-    const saved = Number(localStorage.getItem(`listen-pos-${item.id}`) || 0);
-    setChunkIdx(saved < data.chunks.length ? saved : 0);
-    setFrac(0);
-    // let the <audio src> settle, then play
-    setTimeout(() => { audioRef.current?.play().catch(() => {}); }, 60);
+    try {
+      const res = await fetch(`/api/listen/${item.id}`);
+      const data = (await res.json()) as { chunks: Chunk[] };
+      if (!data.chunks?.length) { setPlayErr("no audio found for this one"); return; }
+      setChunks(data.chunks);
+      const saved = Number(localStorage.getItem(`listen-pos-${item.id}`) || 0);
+      setChunkIdx(saved < data.chunks.length ? saved : 0);
+      setFrac(0);
+      wantPlay.current = true; // onCanPlay will start it
+    } catch {
+      setPlayErr("couldn't load this item");
+    }
   }, []);
 
   const togglePlay = useCallback(() => {
     const a = audioRef.current;
     if (!a) return;
-    if (a.paused) a.play().catch(() => {}); else a.pause();
-  }, []);
+    setPlayErr(null);
+    if (a.paused) { wantPlay.current = true; tryPlay(); }
+    else { wantPlay.current = false; a.pause(); }
+  }, [tryPlay]);
 
   const onEnded = useCallback(() => {
     if (!active) return;
     if (chunkIdx + 1 < chunks.length) {
       const next = chunkIdx + 1;
+      wantPlay.current = true; // new src → onCanPlay plays it
       setChunkIdx(next);
       setFrac(0);
       localStorage.setItem(`listen-pos-${active.id}`, String(next));
-      setTimeout(() => { audioRef.current?.play().catch(() => {}); }, 30);
     } else {
+      wantPlay.current = false;
       setPlaying(false);
       localStorage.removeItem(`listen-pos-${active.id}`); // finished → reset
       setChunkIdx(0);
@@ -159,10 +178,10 @@ export default function ReadingBoothPage() {
   const jump = useCallback((delta: number) => {
     if (!active) return;
     const next = Math.max(0, Math.min(chunks.length - 1, chunkIdx + delta));
+    wantPlay.current = true;
     setChunkIdx(next);
     setFrac(0);
     localStorage.setItem(`listen-pos-${active.id}`, String(next));
-    setTimeout(() => { audioRef.current?.play().catch(() => {}); }, 30);
   }, [active, chunkIdx, chunks.length]);
 
   // keep playbackRate synced
@@ -261,18 +280,23 @@ export default function ReadingBoothPage() {
             ))}
           </div>
 
+          {playErr && <p className="feed-err" style={{ textAlign: "center" }}>⚠ {playErr}</p>}
+
           <audio
             ref={audioRef}
             src={chunks[chunkIdx]?.url}
-            onPlay={() => setPlaying(true)}
+            preload="auto"
+            onCanPlay={() => { if (wantPlay.current) tryPlay(); }}
+            onPlay={() => { setPlaying(true); setPlayErr(null); }}
             onPause={() => setPlaying(false)}
             onEnded={onEnded}
+            onError={() => { if (chunks[chunkIdx]) setPlayErr("audio didn't load — tap play to retry"); }}
             onTimeUpdate={(e) => {
               const a = e.currentTarget;
               if (a.duration) setFrac(a.currentTime / a.duration);
             }}
           />
-          <button className="close-stage" onClick={() => { audioRef.current?.pause(); setActive(null); }}>
+          <button className="close-stage" onClick={() => { wantPlay.current = false; audioRef.current?.pause(); setActive(null); }}>
             tuck carl away
           </button>
         </section>

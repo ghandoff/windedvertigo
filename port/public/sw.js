@@ -8,7 +8,7 @@
  * - Static assets: stale-while-revalidate
  */
 
-const CACHE_NAME = "wv-port-v1";
+const CACHE_NAME = "wv-port-v2"; // v2: cross-origin guard (don't intercept R2 audio / SDKs)
 const OFFLINE_PAGE = "/m/log";
 const SYNC_TAG = "wv-activity-sync";
 

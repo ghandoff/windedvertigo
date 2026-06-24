@@ -59,6 +59,8 @@ const nextConfig: NextConfig = {
       "font-src 'self'",
       "img-src 'self' data: https:",
       "connect-src 'self' https://api.notion.com https://api.anthropic.com",
+      // listen library: <audio> chunks are served from the port-assets R2 bucket.
+      "media-src 'self' https://pub-ae6933715be744649a1f2fd99346225a.r2.dev",
       "frame-src 'none'",
       "frame-ancestors 'none'",
       "worker-src 'self'",
