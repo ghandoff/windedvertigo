@@ -199,6 +199,7 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "bibliography-import":    summary.byFeature["bibliography-import"]?.costUsd     ?? 0,
     "opsy-email-triage":      summary.byFeature["opsy-email-triage"]?.costUsd       ?? 0,
     "opsy-digest":            summary.byFeature["opsy-digest"]?.costUsd             ?? 0,
+    "pam-action-triage":      summary.byFeature["pam-action-triage"]?.costUsd       ?? 0,
   };
 
   // Estimate Notion API calls: ~3 per AI request (fetch context)
