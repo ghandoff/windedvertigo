@@ -8,7 +8,9 @@
     "build:cf": "opennextjs-cloudflare build",
     "deploy:cf": "opennextjs-cloudflare build && wrangler deploy",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.74",
@@ -62,6 +64,7 @@
     "eslint-config-next": "^16.2.4",
     "tailwindcss": "^4.0.0",
     "typescript": "^6.0.3",
+    "vitest": "^4.1.9",
     "wrangler": "^4.87.0"
   }
 }
