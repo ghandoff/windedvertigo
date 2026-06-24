@@ -129,11 +129,10 @@ export async function GET(request) {
   const statusFilter = searchParams.get('status');
   const ingredientFilter = searchParams.get('ingredient');
 
-  try {
-    await requireCapability(request, 'pcs.canonical:edit');
-  } catch (err) {
-    return NextResponse.json({ error: err?.message || 'Unauthorized' }, { status: 401 });
-  }
+  // requireCapability RETURNS { user } | { error: Response } — it never throws.
+  // The previous try/catch never fired, leaving this route fully unauthenticated.
+  const gate = await requireCapability(request, 'pcs.canonical:edit');
+  if (gate.error) return gate.error;
 
   try {
     const [groups, allClaims] = await Promise.all([getGroups(), getAllClaims(100)]);
@@ -159,12 +158,8 @@ export async function GET(request) {
 // ── POST ─────────────────────────────────────────────────────────────────────
 
 export async function POST(request) {
-  let user;
-  try {
-    user = await requireCapability(request, 'pcs.canonical:edit');
-  } catch (err) {
-    return NextResponse.json({ error: err?.message || 'Unauthorized' }, { status: 401 });
-  }
+  const gate = await requireCapability(request, 'pcs.canonical:edit');
+  if (gate.error) return gate.error;
 
   let body;
   try {
@@ -216,11 +211,8 @@ export async function POST(request) {
 // ── DELETE (manual cache clear) ───────────────────────────────────────────────
 
 export async function DELETE(request) {
-  try {
-    await requireCapability(request, 'pcs.canonical:edit');
-  } catch (err) {
-    return NextResponse.json({ error: err?.message || 'Unauthorized' }, { status: 401 });
-  }
+  const gate = await requireCapability(request, 'pcs.canonical:edit');
+  if (gate.error) return gate.error;
   invalidateCache();
   return NextResponse.json({ ok: true, message: 'Cache cleared' });
 }

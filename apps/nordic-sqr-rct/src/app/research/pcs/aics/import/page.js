@@ -94,6 +94,7 @@ export default function AicsImportPage() {
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfExtracting, setPdfExtracting] = useState(false);
   const [pdfBanner, setPdfBanner] = useState(null); // success message after extraction
+  const [warnings, setWarnings] = useState(null);   // non-fatal extraction notes (amber, not red)
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -105,6 +106,7 @@ export default function AicsImportPage() {
       setPdfFile(f);
       setParseError(null);
       setPdfBanner(null);
+      setWarnings(null);
     }
   }
 
@@ -115,6 +117,7 @@ export default function AicsImportPage() {
     setPdfExtracting(true);
     setParseError(null);
     setPdfBanner(null);
+    setWarnings(null);
     try {
       const fd = new FormData();
       fd.append('file', pdfFile);
@@ -137,7 +140,8 @@ export default function AicsImportPage() {
         `${aicsIdHint} Review the JSON and click "Parse & Preview".`
       );
       if (warnCount > 0) {
-        setParseError('Extraction warnings:\n• ' + body.warnings.join('\n• '));
+        // Non-fatal: these are inferred-field notes, not failures. Render amber.
+        setWarnings(body.warnings);
       }
     } catch (err) {
       setParseError(err?.message || 'PDF extraction failed.');
@@ -303,7 +307,7 @@ export default function AicsImportPage() {
               {[{ id: 'json', label: 'JSON' }, { id: 'csv', label: 'CSV' }, { id: 'pdf', label: 'Upload PDF' }].map((m) => (
                 <button
                   key={m.id}
-                  onClick={() => { setMode(m.id); setPreview(null); setParseError(null); setPdfBanner(null); }}
+                  onClick={() => { setMode(m.id); setPreview(null); setParseError(null); setPdfBanner(null); setWarnings(null); }}
                   className={`px-4 py-1.5 font-medium transition ${
                     mode === m.id
                       ? 'bg-pacific-600 text-white'
@@ -328,6 +332,27 @@ export default function AicsImportPage() {
           {pdfBanner && (
             <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
               {pdfBanner}
+            </div>
+          )}
+
+          {/* Non-fatal extraction notes — amber, visually distinct from the red
+              fatal-error box below. Claude flags inferred or assumed fields here;
+              they are informational, NOT failures. The extraction succeeded and the
+              user can review, edit the JSON if needed, and click "Parse & Preview". */}
+          {warnings && warnings.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <p className="font-semibold mb-1">
+                ✓ Extraction succeeded — {warnings.length} note{warnings.length !== 1 ? 's' : ''} to review
+              </p>
+              <p className="text-xs text-amber-700 mb-2">
+                These are fields Claude inferred or wants you to double-check. They are not errors.
+                Edit the JSON above if anything looks wrong, then click “Parse &amp; Preview” to continue.
+              </p>
+              <ul className="text-xs text-amber-800 space-y-1 list-disc pl-4">
+                {warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
             </div>
           )}
 
@@ -374,7 +399,7 @@ export default function AicsImportPage() {
                   className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
-                    if (f) { setPdfFile(f); setParseError(null); setPdfBanner(null); }
+                    if (f) { setPdfFile(f); setParseError(null); setPdfBanner(null); setWarnings(null); }
                   }}
                 />
               </div>
