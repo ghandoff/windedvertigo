@@ -48,7 +48,10 @@ async function extractUpload(file: File): Promise<string> {
 export async function GET() {
   const session = await auth();
   if (!session?.user?.email) return error("Unauthorized", 401);
-  const items = await getListenItems({ limit: 100 });
+  // Per-user: the booth only ever shows the caller's own items. Same login sees
+  // the same items across devices (rows are server-stored, keyed by created_by);
+  // different logins are isolated — you don't see Maria's, she doesn't see yours.
+  const items = await getListenItems({ createdBy: session.user.email, limit: 100 });
   return Response.json({ items });
 }
 
