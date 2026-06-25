@@ -2,18 +2,18 @@ import { PageHeader } from "@/app/components/page-header";
 import { AssignResearchTopic } from "@/app/components/assign-research-topic";
 import { CarlInsightsPanel, splitCarlInsights } from "@/app/components/carl-insights-panel";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
-import { AgentMemoryPanel } from "@/app/components/agent-memory-panel";
-import { AgentLogTab } from "@/app/components/agent-log-tab";
 import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
 import { getPamCommitments, getPamMemory, getPamDecisions, getWhirlpoolCommitments } from "@/lib/supabase/pam";
 import { listPendingTriageActions } from "@/lib/supabase/meeting-action-items";
 import { getCollectivePulse } from "@/lib/pam/pulse";
+import { getProjectTimeline } from "@/lib/pam/project-timeline";
 import { CommitmentsBoard } from "./components/commitments-board";
-import { CommitmentsTimeline } from "./components/commitments-timeline";
+import { ProjectTimeline } from "./components/project-timeline";
 import { AddCommitmentDialog } from "./components/add-commitment-dialog";
 import { WhirlpoolBoard } from "./components/whirlpool-board";
 import { MeetingActionsInbox, type InboxItem } from "./components/meeting-actions-inbox";
 import { CollectivePulse } from "./components/collective-pulse";
+import { BrainTab } from "./components/brain-tab";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +23,7 @@ const TABS: readonly TabDef[] = [
   { key: "inbox", label: "inbox" },
   { key: "pulse", label: "pulse" },
   { key: "timeline", label: "timeline" },
-  { key: "memory", label: "memory" },
-  { key: "log", label: "log" },
+  { key: "brain", label: "brain" },
 ];
 
 export default async function PamPage({
@@ -44,7 +43,7 @@ export default async function PamPage({
   monday.setUTCDate(todayUTC.getUTCDate() + mondayOffset);
   const currentCycle = monday.toISOString().slice(0, 10);
 
-  const [commitments, memory, decisions, whirlpoolCommitments, pendingActions, pulse] = await Promise.all([
+  const [commitments, memory, decisions, whirlpoolCommitments, pendingActions, pulse, projectTimeline] = await Promise.all([
     getPamCommitments({ limit: 300 }).catch(() => []),
     getPamMemory().catch(() => []),
     getPamDecisions({ days: 90 }).catch(() => []),
@@ -52,6 +51,7 @@ export default async function PamPage({
     listPendingTriageActions().catch(() => []),
     // Only hit the cross-system reads when the pulse tab is actually open.
     activeTab === "pulse" ? getCollectivePulse(currentCycle).catch(() => null) : Promise.resolve(null),
+    activeTab === "timeline" ? getProjectTimeline().catch(() => []) : Promise.resolve([]),
   ]);
 
   // Lookup so the inbox can render a merge target's "who · what" from its id.
@@ -136,9 +136,10 @@ export default async function PamPage({
           <MeetingActionsInbox items={inboxItems} commitmentLookup={commitmentLookup} />
         )}
         {activeTab === "pulse" && pulse && <CollectivePulse pulse={pulse} />}
-        {activeTab === "timeline" && <CommitmentsTimeline commitments={commitments} />}
-        {activeTab === "memory" && <AgentMemoryPanel entries={splitCarlInsights(memory).working} />}
-        {activeTab === "log" && <AgentLogTab decisions={decisions} agentName="PaM" />}
+        {activeTab === "timeline" && <ProjectTimeline projects={projectTimeline} />}
+        {activeTab === "brain" && (
+          <BrainTab memory={splitCarlInsights(memory).working} decisions={decisions} />
+        )}
       </div>
     </AgentPageWithChat>
     </>
