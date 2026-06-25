@@ -20,8 +20,31 @@ export interface WorkersAi {
 const MELOTTS_MODEL = "@cf/myshell-ai/melotts";
 const AURA_MODEL = "@cf/deepgram/aura-1";
 
-/** Carl's reading voice on Aura — a warm male speaker. */
+/** Carl's reading voice on Aura — a warm male speaker (global fallback). */
 export const CARL_READING_SPEAKER = "arcas";
+
+/** The Aura voices available on Workers AI, with friendly labels for the UI. */
+export const AURA_SPEAKERS: { id: string; label: string }[] = [
+  { id: "arcas", label: "Arcas — professional male" },
+  { id: "orion", label: "Orion — deep, authoritative male" },
+  { id: "angus", label: "Angus — casual male (Irish)" },
+  { id: "zeus", label: "Zeus — commanding male" },
+  { id: "perseus", label: "Perseus — confident male" },
+  { id: "helios", label: "Helios — upbeat male" },
+  { id: "orpheus", label: "Orpheus — warm male" },
+  { id: "asteria", label: "Asteria — clear female" },
+  { id: "luna", label: "Luna — warm, conversational female" },
+  { id: "athena", label: "Athena — calm female" },
+  { id: "hera", label: "Hera — confident female" },
+  { id: "stella", label: "Stella — friendly female" },
+];
+
+const AURA_SPEAKER_IDS = new Set(AURA_SPEAKERS.map((s) => s.id));
+
+/** Validate + normalise a requested speaker; falls back to Carl's default. */
+export function resolveAuraSpeaker(speaker?: string | null): string {
+  return speaker && AURA_SPEAKER_IDS.has(speaker) ? speaker : CARL_READING_SPEAKER;
+}
 
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);

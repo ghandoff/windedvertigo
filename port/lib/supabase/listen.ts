@@ -30,6 +30,7 @@ export interface ListenItem {
   error: string | null;
   condense: boolean;
   content_hash: string | null;
+  speaker: string | null;
 }
 
 export interface ListenChunk {
@@ -52,6 +53,7 @@ export async function createListenItem(data: {
   char_count?: number;
   condense?: boolean;
   content_hash?: string;
+  speaker?: string;
 }): Promise<ListenItem> {
   const { data: row, error } = await supabase
     .from("listen_items")
@@ -66,6 +68,7 @@ export async function createListenItem(data: {
       char_count: data.char_count ?? null,
       condense: data.condense ?? false,
       content_hash: data.content_hash ?? null,
+      speaker: data.speaker ?? null,
       status: "queued",
     })
     .select("*")
@@ -172,5 +175,29 @@ export async function getListenChunks(itemId: string): Promise<ListenChunk[]> {
  *  the caller is responsible for removing the R2 audio/text objects first. */
 export async function deleteListenItem(itemId: string): Promise<void> {
   const { error } = await supabase.from("listen_items").delete().eq("id", itemId);
+  if (error) throw error;
+}
+
+// ── per-user voice preference (listen_prefs) ───────────────────────────────────
+
+/** The caller's chosen Aura voice, or null if they haven't set one. */
+export async function getListenPref(userEmail: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("listen_prefs")
+    .select("speaker")
+    .eq("user_email", userEmail)
+    .maybeSingle();
+  if (error) throw error;
+  return (data?.speaker as string) ?? null;
+}
+
+/** Upsert the caller's chosen Aura voice. */
+export async function setListenPref(userEmail: string, speaker: string): Promise<void> {
+  const { error } = await supabase
+    .from("listen_prefs")
+    .upsert(
+      { user_email: userEmail, speaker, updated_at: new Date().toISOString() },
+      { onConflict: "user_email" },
+    );
   if (error) throw error;
 }

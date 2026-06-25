@@ -912,7 +912,8 @@ const listenConsumer = createQueueConsumer<DocumentAudioJob>(
       const tts = getTtsProvider({
         provider: typedEnv.LISTEN_TTS_PROVIDER || DEFAULT_LISTEN_PROVIDER,
         ai: typedEnv.AI,
-        speaker: typedEnv.LISTEN_AURA_SPEAKER,
+        // per-item voice (the submitter's pref); global var as fallback.
+        speaker: item?.speaker || typedEnv.LISTEN_AURA_SPEAKER,
         cartesiaApiKey: typedEnv.CARTESIA_API_KEY,
       });
 

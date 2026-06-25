@@ -31,9 +31,10 @@ import {
   getListenItems,
   updateListenItem,
   findReadyByHash,
+  getListenPref,
   type ListenCleanLevel,
 } from "@/lib/supabase/listen";
-import { DEFAULT_LISTEN_PROVIDER } from "@/lib/tts";
+import { DEFAULT_LISTEN_PROVIDER, resolveAuraSpeaker } from "@/lib/tts";
 import "@/lib/cf-env";
 
 const LISTEN_PROVIDER = process.env.LISTEN_TTS_PROVIDER ?? DEFAULT_LISTEN_PROVIDER;
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
   let resolved: ResolvedSource;
   let cleanLevel: ListenCleanLevel = "clean";
   let condense = false;
+  let reqSpeaker: string | undefined; // optional one-off override
 
   try {
     if (contentType.includes("multipart/form-data")) {
@@ -77,6 +79,7 @@ export async function POST(req: NextRequest) {
       if (!(file instanceof File)) return error("a file is required", 400);
       if (form.get("cleanLevel") === "faithful") cleanLevel = "faithful";
       condense = form.get("condense") === "true";
+      reqSpeaker = (form.get("speaker") as string) || undefined;
       resolved = resolveUpload(await extractUpload(file), file.name);
     } else {
       const body = (await req.json()) as {
@@ -86,9 +89,11 @@ export async function POST(req: NextRequest) {
         cleanLevel?: string;
         title?: string;
         condense?: boolean;
+        speaker?: string;
       };
       if (body.cleanLevel === "faithful") cleanLevel = "faithful";
       condense = body.condense === true;
+      reqSpeaker = body.speaker;
       if (body.sourceType === "google-doc" && body.url) {
         resolved = await resolveGoogleDoc(body.url, { subject: body.subject ?? who, title: body.title });
       } else if (body.sourceType === "url" && body.url) {
@@ -103,9 +108,12 @@ export async function POST(req: NextRequest) {
 
   if (!resolved.text.trim()) return error("no readable text found in that source", 400);
 
-  // dedupe cache: identical content + settings + engine → reuse the existing
-  // render instead of paying to synthesize it again.
-  const hash = await contentHash(resolved.text, { cleanLevel, condense, provider: LISTEN_PROVIDER });
+  // the caller's chosen Aura voice (one-off override wins, else their saved pref)
+  const speaker = resolveAuraSpeaker(reqSpeaker ?? (await getListenPref(who)));
+
+  // dedupe cache: identical content + settings + engine + voice → reuse the
+  // existing render instead of paying to synthesize it again.
+  const hash = await contentHash(resolved.text, { cleanLevel, condense, provider: LISTEN_PROVIDER, speaker });
   const existing = await findReadyByHash(who, hash);
   if (existing) return Response.json({ ok: true, deduped: true, item: existing });
 
@@ -120,6 +128,7 @@ export async function POST(req: NextRequest) {
     char_count: resolved.text.length,
     condense,
     content_hash: hash,
+    speaker,
   });
 
   const textKey = `listen-text/${item.id}.txt`;
