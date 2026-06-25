@@ -28,6 +28,8 @@ export interface ListenItem {
   est_minutes: number | null;
   chunk_count: number | null;
   error: string | null;
+  condense: boolean;
+  content_hash: string | null;
 }
 
 export interface ListenChunk {
@@ -48,6 +50,8 @@ export async function createListenItem(data: {
   voice?: string;
   text_key?: string;
   char_count?: number;
+  condense?: boolean;
+  content_hash?: string;
 }): Promise<ListenItem> {
   const { data: row, error } = await supabase
     .from("listen_items")
@@ -60,12 +64,33 @@ export async function createListenItem(data: {
       voice: data.voice ?? "cartesia",
       text_key: data.text_key ?? null,
       char_count: data.char_count ?? null,
+      condense: data.condense ?? false,
+      content_hash: data.content_hash ?? null,
       status: "queued",
     })
     .select("*")
     .single();
   if (error) throw error;
   return row as ListenItem;
+}
+
+/** Find a caller's already-rendered item with identical content+settings, for
+ *  the dedupe cache — returns it so we skip a re-render entirely. */
+export async function findReadyByHash(
+  createdBy: string,
+  contentHash: string,
+): Promise<ListenItem | null> {
+  const { data, error } = await supabase
+    .from("listen_items")
+    .select("*")
+    .eq("created_by", createdBy)
+    .eq("content_hash", contentHash)
+    .eq("status", "ready")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as ListenItem) ?? null;
 }
 
 export async function getListenItems(opts: {

@@ -20,6 +20,17 @@ export interface ResolvedSource {
   sourceRef: string; // doc id, file name, url, or page id
 }
 
+/** Stable hash of the render inputs — identical (text + settings + engine)
+ *  short-circuits to the existing render via the dedupe cache. */
+export async function contentHash(
+  text: string,
+  opts: { cleanLevel: string; condense: boolean; provider: string },
+): Promise<string> {
+  const input = `${opts.provider}|${opts.cleanLevel}|${opts.condense ? 1 : 0}|${text}`;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 /** Pull a Google Docs document id out of a share URL. */
 export function parseGoogleDocId(url: string): string | null {
   const m = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);

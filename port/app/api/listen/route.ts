@@ -23,15 +23,20 @@ import {
   resolveGoogleDoc,
   resolveUrl,
   resolveUpload,
+  contentHash,
   type ResolvedSource,
 } from "@/lib/listen/extract";
 import {
   createListenItem,
   getListenItems,
   updateListenItem,
+  findReadyByHash,
   type ListenCleanLevel,
 } from "@/lib/supabase/listen";
+import { DEFAULT_LISTEN_PROVIDER } from "@/lib/tts";
 import "@/lib/cf-env";
+
+const LISTEN_PROVIDER = process.env.LISTEN_TTS_PROVIDER ?? DEFAULT_LISTEN_PROVIDER;
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -63,6 +68,7 @@ export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? "";
   let resolved: ResolvedSource;
   let cleanLevel: ListenCleanLevel = "clean";
+  let condense = false;
 
   try {
     if (contentType.includes("multipart/form-data")) {
@@ -70,6 +76,7 @@ export async function POST(req: NextRequest) {
       const file = form.get("file");
       if (!(file instanceof File)) return error("a file is required", 400);
       if (form.get("cleanLevel") === "faithful") cleanLevel = "faithful";
+      condense = form.get("condense") === "true";
       resolved = resolveUpload(await extractUpload(file), file.name);
     } else {
       const body = (await req.json()) as {
@@ -78,8 +85,10 @@ export async function POST(req: NextRequest) {
         subject?: string;
         cleanLevel?: string;
         title?: string;
+        condense?: boolean;
       };
       if (body.cleanLevel === "faithful") cleanLevel = "faithful";
+      condense = body.condense === true;
       if (body.sourceType === "google-doc" && body.url) {
         resolved = await resolveGoogleDoc(body.url, { subject: body.subject ?? who, title: body.title });
       } else if (body.sourceType === "url" && body.url) {
@@ -94,6 +103,12 @@ export async function POST(req: NextRequest) {
 
   if (!resolved.text.trim()) return error("no readable text found in that source", 400);
 
+  // dedupe cache: identical content + settings + engine → reuse the existing
+  // render instead of paying to synthesize it again.
+  const hash = await contentHash(resolved.text, { cleanLevel, condense, provider: LISTEN_PROVIDER });
+  const existing = await findReadyByHash(who, hash);
+  if (existing) return Response.json({ ok: true, deduped: true, item: existing });
+
   // 1. create the item, 2. stash extracted text in R2, 3. enqueue the render job
   const item = await createListenItem({
     title: resolved.title,
@@ -101,7 +116,10 @@ export async function POST(req: NextRequest) {
     source_ref: resolved.sourceRef,
     created_by: who,
     clean_level: cleanLevel,
+    voice: LISTEN_PROVIDER,
     char_count: resolved.text.length,
+    condense,
+    content_hash: hash,
   });
 
   const textKey = `listen-text/${item.id}.txt`;

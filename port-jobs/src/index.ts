@@ -31,7 +31,7 @@ import type {
 // Listen library (Carl reads docs aloud) — pure port/lib modules + TTS provider.
 import { cleanForListening } from "@/lib/listen/clean";
 import { normaliseForSpeech, chunkText, estimateMinutes, buildIntro } from "@/lib/listen/chunk";
-import { getTtsProvider } from "@/lib/tts";
+import { getTtsProvider, DEFAULT_LISTEN_PROVIDER } from "@/lib/tts";
 import {
   getListenItem,
   updateListenItem,
@@ -94,10 +94,15 @@ export interface Env {
   NOTION_TOKEN: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
-  CARTESIA_API_KEY: string; // listen library TTS (Carl's voice). sk_car_...
+  CARTESIA_API_KEY: string; // listen library TTS fallback. sk_car_...
 
   // Plain-text vars (set in wrangler.jsonc [vars])
   R2_PUBLIC_URL: string; // public domain for port-assets bucket
+  LISTEN_TTS_PROVIDER?: string; // cloudflare-aura | cloudflare-melotts | cartesia
+  LISTEN_AURA_SPEAKER?: string; // Aura voice for Carl (e.g. arcas, orion, angus)
+
+  // Workers AI binding — listen-library TTS (MeloTTS / Deepgram Aura).
+  AI: { run(model: string, inputs: Record<string, unknown>, options?: Record<string, unknown>): Promise<unknown> };
 
   // Native R2 binding (used directly — not via S3 SDK)
   PORT_ASSETS: R2Bucket;
@@ -853,6 +858,21 @@ const rfpDocumentConsumer = createQueueConsumer<RfpDocumentUploadedJob>(
 // Cartesia TTS per chunk → store mp3 chunks in R2 → record chunk rows + mark
 // ready. Clears prior chunks at the start so retries are idempotent. On error,
 // records the message and acks (no DLQ loop) — resubmit covers transient fails.
+/** "Condensed listen": trim a cleaned document to its gist before synthesis —
+ *  fewer characters = shorter listen + lower TTS cost. Haiku; fails open. */
+async function condenseForListening(text: string): Promise<string> {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const resp = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 8192,
+    system:
+      "Condense this document into a tighter version for audio narration. Keep all substantive points, arguments, and concrete details in the author's original order; cut boilerplate, repetition, hedging, and asides. Output ONLY the condensed prose — no preamble, no markdown, no headings.",
+    messages: [{ role: "user", content: text.slice(0, 120_000) }],
+  });
+  const out = resp.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+  return out.length > 200 ? out : text; // fail open if the model returned little
+}
+
 const listenConsumer = createQueueConsumer<DocumentAudioJob>(
   async (payload, env) => {
     seedProcessEnv(env as unknown as Env);
@@ -873,18 +893,26 @@ const listenConsumer = createQueueConsumer<DocumentAudioJob>(
 
       const item = await getListenItem(itemId);
       const title = item?.title ?? "your document";
-      const cleaned = cleanForListening(normaliseForSpeech(rawText), cleanLevel);
+      let cleaned = cleanForListening(normaliseForSpeech(rawText), cleanLevel);
       if (!cleaned.trim()) {
         await updateListenItem(itemId, { status: "failed", error: "no readable text after cleaning" });
         return { success: true, message: "empty after clean" };
       }
 
+      // optional "condensed listen" — trim to the gist before synthesis
+      if (item?.condense) {
+        cleaned = await condenseForListening(cleaned).catch(() => cleaned);
+      }
+
       // intro + body chunks
       const segments = [buildIntro(title, cleaned.length), ...chunkText(cleaned)];
 
-      // Cartesia TTS (Carl's voice) — key passed explicitly from env.
+      // TTS engine — Cloudflare Workers AI by default (cheap, no credit cap);
+      // cartesia stays available as a fallback. Switch via LISTEN_TTS_PROVIDER.
       const tts = getTtsProvider({
-        provider: "cartesia",
+        provider: typedEnv.LISTEN_TTS_PROVIDER || DEFAULT_LISTEN_PROVIDER,
+        ai: typedEnv.AI,
+        speaker: typedEnv.LISTEN_AURA_SPEAKER,
         cartesiaApiKey: typedEnv.CARTESIA_API_KEY,
       });
 
