@@ -96,7 +96,10 @@
     "R2_PUBLIC_URL": "https://pub-ae6933715be744649a1f2fd99346225a.r2.dev",
     // listen-library TTS engine: cloudflare-aura | cloudflare-melotts | cartesia.
     // Keep in sync with wv-port's var so the dedupe hash matches.
-    "LISTEN_TTS_PROVIDER": "cloudflare-aura"
+    "LISTEN_TTS_PROVIDER": "cloudflare-aura",
+    // Aura voice for Carl. Swap to any Deepgram voice (orion, angus, zeus, …)
+    // with `wrangler deploy --var LISTEN_AURA_SPEAKER:<name>` — no code change.
+    "LISTEN_AURA_SPEAKER": "arcas"
   },
 
   // ── R2 binding ───────────────────────────────────────────────────

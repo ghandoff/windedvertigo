@@ -99,6 +99,7 @@ export interface Env {
   // Plain-text vars (set in wrangler.jsonc [vars])
   R2_PUBLIC_URL: string; // public domain for port-assets bucket
   LISTEN_TTS_PROVIDER?: string; // cloudflare-aura | cloudflare-melotts | cartesia
+  LISTEN_AURA_SPEAKER?: string; // Aura voice for Carl (e.g. arcas, orion, angus)
 
   // Workers AI binding — listen-library TTS (MeloTTS / Deepgram Aura).
   AI: { run(model: string, inputs: Record<string, unknown>, options?: Record<string, unknown>): Promise<unknown> };
@@ -911,6 +912,7 @@ const listenConsumer = createQueueConsumer<DocumentAudioJob>(
       const tts = getTtsProvider({
         provider: typedEnv.LISTEN_TTS_PROVIDER || DEFAULT_LISTEN_PROVIDER,
         ai: typedEnv.AI,
+        speaker: typedEnv.LISTEN_AURA_SPEAKER,
         cartesiaApiKey: typedEnv.CARTESIA_API_KEY,
       });
 
