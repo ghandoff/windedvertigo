@@ -18,11 +18,11 @@ import { BrainTab } from "./components/brain-tab";
 export const dynamic = "force-dynamic";
 
 const TABS: readonly TabDef[] = [
+  { key: "timeline", label: "timeline" },
+  { key: "pulse", label: "pulse" },
   { key: "whirlpool", label: "whirlpool" },
   { key: "commitments", label: "commitments" },
   { key: "inbox", label: "inbox" },
-  { key: "pulse", label: "pulse" },
-  { key: "timeline", label: "timeline" },
   { key: "brain", label: "brain" },
 ];
 
@@ -33,7 +33,7 @@ export default async function PamPage({
 }) {
   const sp = await searchParams;
   const tabParam = typeof sp.tab === "string" ? sp.tab : undefined;
-  const activeTab = TABS.find((t) => t.key === tabParam)?.key ?? "whirlpool";
+  const activeTab = TABS.find((t) => t.key === tabParam)?.key ?? TABS[0].key;
 
   // current whirlpool cycle = ISO Monday of this week
   const todayUTC = new Date();
