@@ -24,9 +24,9 @@ export interface ResolvedSource {
  *  short-circuits to the existing render via the dedupe cache. */
 export async function contentHash(
   text: string,
-  opts: { cleanLevel: string; condense: boolean; provider: string },
+  opts: { cleanLevel: string; condense: boolean; provider: string; speaker?: string },
 ): Promise<string> {
-  const input = `${opts.provider}|${opts.cleanLevel}|${opts.condense ? 1 : 0}|${text}`;
+  const input = `${opts.provider}|${opts.speaker ?? ""}|${opts.cleanLevel}|${opts.condense ? 1 : 0}|${text}`;
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }

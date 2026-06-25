@@ -18,6 +18,7 @@ import {
 export type { TtsProvider, TtsResult } from "./types";
 export type { WorkersAi } from "./cloudflare";
 export { createCartesiaProvider, CARL_VOICE_ID } from "./cartesia";
+export { AURA_SPEAKERS, CARL_READING_SPEAKER, resolveAuraSpeaker } from "./cloudflare";
 
 /** Default engine for the listen library — overridable via LISTEN_TTS_PROVIDER. */
 export const DEFAULT_LISTEN_PROVIDER = "cloudflare-aura";

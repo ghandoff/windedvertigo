@@ -42,10 +42,10 @@ const SPEEDS = [
 ];
 
 const STATUS_COPY: Record<Status, string> = {
-  queued: "in Carl's stack",
-  rendering: "Carl's warming up his voice…",
+  queued: "in Echo's stack",
+  rendering: "Echo's warming up its voice…",
   ready: "ready when you are",
-  failed: "Carl fumbled this one",
+  failed: "Echo fumbled this one",
 };
 
 export default function ReadingBoothPage() {
@@ -54,6 +54,8 @@ export default function ReadingBoothPage() {
   const [input, setInput] = useState("");
   const [cleanLevel, setCleanLevel] = useState<"clean" | "faithful">("clean");
   const [condense, setCondense] = useState(false);
+  const [speaker, setSpeaker] = useState("arcas");
+  const [voices, setVoices] = useState<{ id: string; label: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -83,6 +85,28 @@ export default function ReadingBoothPage() {
   }, []);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
+
+  // load the caller's saved voice (syncs across their devices)
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch("/api/listen/prefs");
+        if (!r.ok) return;
+        const d = await r.json();
+        if (d.speaker) setSpeaker(d.speaker);
+        if (Array.isArray(d.voices)) setVoices(d.voices);
+      } catch { /* keep defaults */ }
+    })();
+  }, []);
+
+  const saveSpeaker = useCallback((next: string) => {
+    setSpeaker(next);
+    fetch("/api/listen/prefs", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ speaker: next }),
+    }).catch(() => {});
+  }, []);
 
   const cooking = items.some((i) => i.status === "queued" || i.status === "rendering");
 
@@ -124,10 +148,10 @@ export default function ReadingBoothPage() {
       const res = await fetch("/api/listen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceType, url, cleanLevel, condense }),
+        body: JSON.stringify({ sourceType, url, cleanLevel, condense, speaker }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "couldn't hand that to Carl");
+      if (!res.ok) throw new Error(data.error || "couldn't hand that to Echo");
       setInput("");
       fetchItems();
     } catch (e) {
@@ -135,7 +159,7 @@ export default function ReadingBoothPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [input, cleanLevel, condense, fetchItems]);
+  }, [input, cleanLevel, condense, speaker, fetchItems]);
 
   const submitFile = useCallback(async (file: File) => {
     setSubmitting(true); setErr(null);
@@ -144,6 +168,7 @@ export default function ReadingBoothPage() {
       form.append("file", file);
       form.append("cleanLevel", cleanLevel);
       form.append("condense", String(condense));
+      form.append("speaker", speaker);
       const res = await fetch("/api/listen", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "couldn't read that file");
@@ -153,7 +178,7 @@ export default function ReadingBoothPage() {
     } finally {
       setSubmitting(false);
     }
-  }, [cleanLevel, condense, fetchItems]);
+  }, [cleanLevel, condense, speaker, fetchItems]);
 
   // ── playback engine ─────────────────────────────────────────────────────--
   // Playback is event-driven: we set `wantPlay` intent + the current chunk, and
@@ -245,7 +270,7 @@ export default function ReadingBoothPage() {
       <style>{BOOTH_CSS}</style>
 
       <header className="booth-head">
-        <h1>carl&apos;s reading booth</h1>
+        <h1>echo&apos;s reading booth</h1>
         <p>hand him something. he&apos;ll read it to you on your walk.</p>
       </header>
 
@@ -261,7 +286,7 @@ export default function ReadingBoothPage() {
         />
         <div className="feed-row">
           <button className="feed-go" onClick={submitUrl} disabled={submitting || !input.trim()}>
-            {submitting ? "handing it over…" : "→ hand to carl"}
+            {submitting ? "handing it over…" : "→ hand to echo"}
           </button>
           <button className="feed-file" onClick={() => fileRef.current?.click()} disabled={submitting}>
             📎 file
@@ -288,8 +313,21 @@ export default function ReadingBoothPage() {
             checked={condense}
             onChange={(e) => setCondense(e.target.checked)}
           />
-          <span>condensed — the gist, shorter (carl trims it down)</span>
+          <span>condensed — the gist, shorter (echo trims it down)</span>
         </label>
+        <div className="voice-row">
+          <span className="voice-label">echo&apos;s voice</span>
+          <select
+            className="voice-select"
+            value={speaker}
+            onChange={(e) => saveSpeaker(e.target.value)}
+          >
+            {(voices.length ? voices : [{ id: "arcas", label: "Arcas" }]).map((v) => (
+              <option key={v.id} value={v.id}>{v.label}</option>
+            ))}
+          </select>
+          <a className="voice-preview" href="https://playground.deepgram.com/?endpoint=speak" target="_blank" rel="noopener noreferrer">preview ↗</a>
+        </div>
         {err && <p className="feed-err">⚠ {err}</p>}
       </section>
 
@@ -351,17 +389,17 @@ export default function ReadingBoothPage() {
             }}
           />
           <button className="close-stage" onClick={() => { wantPlay.current = false; audioRef.current?.pause(); setActive(null); }}>
-            tuck carl away
+            tuck echo away
           </button>
         </section>
       )}
 
       {/* ── the stack ─────────────────────────────────────────────── */}
       <section className="stack">
-        <h2>carl&apos;s stack</h2>
+        <h2>echo&apos;s stack</h2>
         {!loaded && <p className="muted">opening the booth…</p>}
         {loaded && items.length === 0 && (
-          <p className="muted">empty. hand carl his first read above. 📚</p>
+          <p className="muted">empty. hand echo your first read above. 📚</p>
         )}
         {items.map((it) => {
           const processing = it.status === "queued" || it.status === "rendering";
@@ -446,6 +484,12 @@ const BOOTH_CSS = `
 .skip-toggle { display: flex; align-items: center; gap: .5rem; margin-top: .65rem;
   font-size: .76rem; color: var(--muted); cursor: pointer; }
 .skip-toggle input { accent-color: var(--teal); width: 16px; height: 16px; }
+.voice-row { display: flex; align-items: center; gap: .5rem; margin-top: .7rem; font-size: .78rem; color: var(--muted); }
+.voice-label { white-space: nowrap; }
+.voice-select { flex: 1; min-width: 0; background: rgba(0,0,0,.28); color: var(--cream);
+  border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: .45rem .55rem; font: inherit; font-size: .8rem; }
+.voice-select:focus { outline: none; border-color: var(--amber); }
+.voice-preview { color: var(--teal); text-decoration: none; white-space: nowrap; }
 .feed-err { color: var(--tomato); font-size: .8rem; margin: .6rem 0 0; }
 
 /* ── stage ── */
