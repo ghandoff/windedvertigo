@@ -79,7 +79,7 @@ export default async function PamPage({
       <div className="mb-6 flex items-start justify-between gap-3">
         <PageHeader
           title="PaM"
-          description="project + momentum manager · commitments, dependencies, follow-ups"
+          description="project + momentum manager · what i'm doing this week (projects = what we're building)"
         />
         <AssignResearchTopic assignedBy="PaM" label="brief cARL" />
       </div>
