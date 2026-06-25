@@ -232,7 +232,7 @@ export default async function ProjectsPage(props: Props) {
   const activeTab = TABS.some((t) => t.key === params.type) ? params.type! : "timeline";
 
   const descriptions: Record<string, string> = {
-    timeline: "everything on the calendar — grouped by project lead, coloured by status.",
+    timeline: "what we're building — grouped by project lead, coloured by status. (pam = what i'm doing this week.)",
     contracts: "task boards and time tracking for client projects",
     studios: "product backlog, cycles, and roadmap for harbour apps",
   };

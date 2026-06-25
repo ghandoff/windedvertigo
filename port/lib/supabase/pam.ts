@@ -37,6 +37,9 @@ export interface PamCommitment {
   if_then_plan: string | null;    // implementation intention: "if <cue>, then I'll <action>"
   commitment_type: "action" | "learning" | "connection" | "ritual" | null;
   visibility: "public" | "private"; // public = on the whirlpool board; private = PaM memory only
+  // bridge: optional link to a Notion work_item (work_items.notion_page_id) so a
+  // commitment and its "shipped work" counterpart aren't tracked in two silos.
+  work_item_id: string | null;
 }
 
 export async function insertPamDecision(data: {
@@ -199,6 +202,7 @@ export async function updatePamCommitment(
     if_then_plan?: string;
     commitment_type?: string;
     visibility?: string;
+    work_item_id?: string | null;
   },
 ): Promise<PamCommitment> {
   const { data: row, error } = await supabase
