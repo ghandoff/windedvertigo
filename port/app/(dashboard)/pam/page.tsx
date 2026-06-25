@@ -136,7 +136,7 @@ export default async function PamPage({
           <MeetingActionsInbox items={inboxItems} commitmentLookup={commitmentLookup} />
         )}
         {activeTab === "pulse" && pulse && <CollectivePulse pulse={pulse} />}
-        {activeTab === "timeline" && <ProjectTimeline projects={projectTimeline} />}
+        {activeTab === "timeline" && <ProjectTimeline groups={projectTimeline} />}
         {activeTab === "brain" && (
           <BrainTab memory={splitCarlInsights(memory).working} decisions={decisions} />
         )}
