@@ -42,10 +42,10 @@ const SPEEDS = [
 ];
 
 const STATUS_COPY: Record<Status, string> = {
-  queued: "in Carl's stack",
-  rendering: "Carl's warming up his voice…",
+  queued: "in Echo's stack",
+  rendering: "Echo's warming up its voice…",
   ready: "ready when you are",
-  failed: "Carl fumbled this one",
+  failed: "Echo fumbled this one",
 };
 
 export default function ReadingBoothPage() {
@@ -151,7 +151,7 @@ export default function ReadingBoothPage() {
         body: JSON.stringify({ sourceType, url, cleanLevel, condense, speaker }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "couldn't hand that to Carl");
+      if (!res.ok) throw new Error(data.error || "couldn't hand that to Echo");
       setInput("");
       fetchItems();
     } catch (e) {
@@ -270,7 +270,7 @@ export default function ReadingBoothPage() {
       <style>{BOOTH_CSS}</style>
 
       <header className="booth-head">
-        <h1>carl&apos;s reading booth</h1>
+        <h1>echo&apos;s reading booth</h1>
         <p>hand him something. he&apos;ll read it to you on your walk.</p>
       </header>
 
@@ -286,7 +286,7 @@ export default function ReadingBoothPage() {
         />
         <div className="feed-row">
           <button className="feed-go" onClick={submitUrl} disabled={submitting || !input.trim()}>
-            {submitting ? "handing it over…" : "→ hand to carl"}
+            {submitting ? "handing it over…" : "→ hand to echo"}
           </button>
           <button className="feed-file" onClick={() => fileRef.current?.click()} disabled={submitting}>
             📎 file
@@ -313,10 +313,10 @@ export default function ReadingBoothPage() {
             checked={condense}
             onChange={(e) => setCondense(e.target.checked)}
           />
-          <span>condensed — the gist, shorter (carl trims it down)</span>
+          <span>condensed — the gist, shorter (echo trims it down)</span>
         </label>
         <div className="voice-row">
-          <span className="voice-label">carl&apos;s voice</span>
+          <span className="voice-label">echo&apos;s voice</span>
           <select
             className="voice-select"
             value={speaker}
@@ -389,17 +389,17 @@ export default function ReadingBoothPage() {
             }}
           />
           <button className="close-stage" onClick={() => { wantPlay.current = false; audioRef.current?.pause(); setActive(null); }}>
-            tuck carl away
+            tuck echo away
           </button>
         </section>
       )}
 
       {/* ── the stack ─────────────────────────────────────────────── */}
       <section className="stack">
-        <h2>carl&apos;s stack</h2>
+        <h2>echo&apos;s stack</h2>
         {!loaded && <p className="muted">opening the booth…</p>}
         {loaded && items.length === 0 && (
-          <p className="muted">empty. hand carl his first read above. 📚</p>
+          <p className="muted">empty. hand echo your first read above. 📚</p>
         )}
         {items.map((it) => {
           const processing = it.status === "queued" || it.status === "rendering";

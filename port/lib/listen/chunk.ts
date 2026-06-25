@@ -80,8 +80,8 @@ export function estimateMinutes(charCount: number): number {
   return Math.max(1, Math.round(charCount / CHARS_PER_MINUTE));
 }
 
-/** Carl's spoken intro, prepended as the first chunk. */
+/** Echo's spoken intro, prepended as the first chunk. */
 export function buildIntro(title: string, charCount: number): string {
   const mins = estimateMinutes(charCount);
-  return `this is Carl. reading ${title}. about ${mins} ${mins === 1 ? "minute" : "minutes"}.`;
+  return `this is Echo. reading ${title}. about ${mins} ${mins === 1 ? "minute" : "minutes"}.`;
 }
