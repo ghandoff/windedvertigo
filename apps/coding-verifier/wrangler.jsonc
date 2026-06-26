@@ -14,13 +14,12 @@
     "binding": "ASSETS"
   },
 
-  // d1 — holds `claims` + `audit_log`. database_id is filled in AFTER `wrangler d1 create`
-  // (step 2, needs approval). eu primary requested via the --location weur hint at create time.
+  // d1 — holds `claims` + `audit_log`. created 2026-06-26 in region WEUR (western europe).
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "wv-coding-verifier",
-      "database_id": "PENDING_CREATE"
+      "database_id": "5c2b7dd3-75c0-46b5-abee-78f811ea0c63"
     }
   ],
 
