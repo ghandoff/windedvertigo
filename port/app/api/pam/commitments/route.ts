@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       if_then_plan: body.if_then_plan ?? undefined,
       commitment_type: body.commitment_type ?? undefined,
       visibility: body.visibility ?? undefined,
+      programme: body.programme ?? undefined,
     });
     return json(result, 201);
   } catch (err) {
@@ -80,7 +81,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body) return error("request body is required");
 
-  const allowed = ["who", "status", "blocker", "completed_at", "what", "start_date", "due_date", "depends_on", "cycle", "if_then_plan", "commitment_type", "visibility"];
+  const allowed = ["who", "status", "blocker", "completed_at", "what", "start_date", "due_date", "depends_on", "cycle", "if_then_plan", "commitment_type", "visibility", "programme"];
   const update: Record<string, unknown> = {};
   for (const key of allowed) {
     if (body[key] !== undefined) update[key] = body[key];

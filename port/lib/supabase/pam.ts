@@ -40,6 +40,9 @@ export interface PamCommitment {
   // bridge: optional link to a Notion work_item (work_items.notion_page_id) so a
   // commitment and its "shipped work" counterpart aren't tracked in two silos.
   work_item_id: string | null;
+  // optional programme label (free-text, matches projects.project — no FK). groups
+  // commitments under a timeline programme, e.g. "amna at 10".
+  programme: string | null;
 }
 
 export async function insertPamDecision(data: {
@@ -158,6 +161,7 @@ export async function insertPamCommitment(data: {
   if_then_plan?: string;
   commitment_type?: "action" | "learning" | "connection" | "ritual";
   visibility?: "public" | "private";
+  programme?: string;
 }): Promise<PamCommitment> {
   const { data: row, error } = await supabase
     .from("pam_commitments")
@@ -172,6 +176,7 @@ export async function insertPamCommitment(data: {
       if_then_plan: data.if_then_plan ?? null,
       commitment_type: data.commitment_type ?? null,
       visibility: data.visibility ?? "public",
+      programme: data.programme ?? null,
       status: "not-started",
       updated_at: new Date().toISOString(),
     })
@@ -203,6 +208,7 @@ export async function updatePamCommitment(
     commitment_type?: string;
     visibility?: string;
     work_item_id?: string | null;
+    programme?: string | null;
   },
 ): Promise<PamCommitment> {
   const { data: row, error } = await supabase

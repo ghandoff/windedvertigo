@@ -93,7 +93,8 @@ export function MeetingActionsInbox({ items, commitmentLookup }: MeetingActionsI
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
         {queue.length} action {queue.length === 1 ? "item" : "items"} from recent meetings, triaged by
-        PaM. accept → adds to the whirlpool board · merge → links to an existing commitment · dismiss → drops it.
+        PaM. accept → adds to the whirlpool board · dismiss → drops it · merge appears only when PaM
+        spots a possible duplicate.
       </p>
 
       {error && (
@@ -112,7 +113,7 @@ export function MeetingActionsInbox({ items, commitmentLookup }: MeetingActionsI
               <div className="min-w-0">
                 <p className="text-sm text-foreground">{item.title}</p>
                 {item.context && (
-                  <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-1">{item.context}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-3">{item.context}</p>
                 )}
               </div>
               <Link
