@@ -32,10 +32,12 @@ export function EditCommitmentDialog({
   commitment,
   open,
   onOpenChange,
+  programmes = [],
 }: {
   commitment: PamCommitment | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  programmes?: string[];
 }) {
   const router = useRouter();
   const [who, setWho] = useState("garrett");
@@ -43,6 +45,7 @@ export function EditCommitmentDialog({
   const [status, setStatus] = useState("not-started");
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [programme, setProgramme] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -59,6 +62,7 @@ export function EditCommitmentDialog({
       setStatus(commitment.status);
       setStartDate(commitment.start_date ?? "");
       setDueDate(commitment.due_date ?? "");
+      setProgramme(commitment.programme ?? "");
       setWorkItemId(commitment.work_item_id ?? null);
       setLinkedTask(null);
       setLinkQuery("");
@@ -92,6 +96,7 @@ export function EditCommitmentDialog({
         start_date: startDate || undefined,
         due_date: dueDate || undefined,
         work_item_id: workItemId,
+        programme: programme.trim() || null,
       });
       if (res.error) {
         setError(res.error);
@@ -148,6 +153,21 @@ export function EditCommitmentDialog({
               <Label htmlFor="edit-due">due date</Label>
               <Input id="edit-due" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-programme">programme <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input
+              id="edit-programme"
+              list="pam-programmes-edit"
+              value={programme}
+              onChange={(e) => setProgramme(e.target.value)}
+              placeholder="e.g. amna at 10"
+            />
+            <datalist id="pam-programmes-edit">
+              {programmes.map((p) => (
+                <option key={p} value={p} />
+              ))}
+            </datalist>
           </div>
           <div className="space-y-1.5">
             <Label>link a project task <span className="text-muted-foreground font-normal">(optional)</span></Label>

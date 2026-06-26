@@ -25,7 +25,7 @@ import { addCommitmentAction } from "../actions";
 
 const PEOPLE = ["garrett", "maria", "payton", "jamie", "lamis"];
 
-export function AddCommitmentDialog() {
+export function AddCommitmentDialog({ programmes = [] }: { programmes?: string[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [who, setWho] = useState("garrett");
@@ -33,6 +33,7 @@ export function AddCommitmentDialog() {
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [source, setSource] = useState("");
+  const [programme, setProgramme] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -49,6 +50,7 @@ export function AddCommitmentDialog() {
         start_date: startDate || undefined,
         due_date: dueDate || undefined,
         source: source.trim() || undefined,
+        programme: programme.trim() || undefined,
       });
       if (res.error) {
         setError(res.error);
@@ -58,6 +60,7 @@ export function AddCommitmentDialog() {
       setStartDate("");
       setDueDate("");
       setSource("");
+      setProgramme("");
       setOpen(false);
       router.refresh();
     });
@@ -118,14 +121,31 @@ export function AddCommitmentDialog() {
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="source">source (optional)</Label>
-            <Input
-              id="source"
-              value={source}
-              onChange={(e) => setSource(e.target.value)}
-              placeholder="e.g. whirlpool, 1:1, slack"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="source">source (optional)</Label>
+              <Input
+                id="source"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                placeholder="e.g. whirlpool, 1:1, slack"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="programme">programme (optional)</Label>
+              <Input
+                id="programme"
+                list="pam-programmes"
+                value={programme}
+                onChange={(e) => setProgramme(e.target.value)}
+                placeholder="e.g. amna at 10"
+              />
+              <datalist id="pam-programmes">
+                {programmes.map((p) => (
+                  <option key={p} value={p} />
+                ))}
+              </datalist>
+            </div>
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>

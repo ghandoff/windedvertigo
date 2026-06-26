@@ -127,7 +127,11 @@ export default async function PamPage({
         {activeTab === "commitments" && (
           <div className="space-y-4">
             <div className="flex justify-end">
-              <AddCommitmentDialog />
+              <AddCommitmentDialog
+                programmes={Array.from(
+                  new Set(commitments.map((c) => c.programme).filter((p): p is string => !!p)),
+                ).sort()}
+              />
             </div>
             <CommitmentsBoard commitments={commitments} />
           </div>

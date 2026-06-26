@@ -86,6 +86,11 @@ function CommitmentCard({
         {c.commitment_type && (
           <span className={cn("text-[10px] px-1.5 py-0 rounded border", typeClass)}>{c.commitment_type}</span>
         )}
+        {c.programme && (
+          <span className="text-[10px] px-1.5 py-0 rounded border border-border bg-muted/40 text-muted-foreground lowercase">
+            {c.programme}
+          </span>
+        )}
         {c.due_date && <span className="text-[10px] text-muted-foreground">{c.due_date}</span>}
       </div>
     </button>

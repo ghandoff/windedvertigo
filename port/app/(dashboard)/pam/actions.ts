@@ -59,6 +59,7 @@ export async function addCommitmentAction(input: {
   start_date?: string;
   due_date?: string;
   source?: string;
+  programme?: string;
 }): Promise<{ ok?: true; error?: string }> {
   await requireSession();
   try {
@@ -68,6 +69,7 @@ export async function addCommitmentAction(input: {
       start_date: input.start_date || undefined,
       due_date: input.due_date || undefined,
       source: input.source || "port",
+      programme: input.programme || undefined,
     });
     revalidatePath("/pam");
     return { ok: true };
@@ -102,6 +104,7 @@ export async function updateCommitmentAction(
     start_date?: string;
     due_date?: string;
     work_item_id?: string | null;
+    programme?: string | null;
   },
 ): Promise<{ ok?: true; error?: string }> {
   await requireSession();
