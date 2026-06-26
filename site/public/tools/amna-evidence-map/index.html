@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="noindex, nofollow, noarchive"/>
+<title>amna at 10 — evidence map (inception draft)</title>
+<style>
+  :root{
+    --bg:#f7f6f3; --ink:#23211e; --muted:#6f6a62; --line:#e3ded6; --card:#fffdfa;
+    --c0:#efe9e1; --c1:#d8e6dd; --c2:#8fc6a8; --c3:#3f9d6d;  /* coverage none→strong */
+    --ext:#c97b46; --meal:#3f7fb0; --feed:#7a9c3f; --logs:#9a6fb0; --rep:#b0843f; --strat:#5a8f8a;
+    --accent:#3f9d6d;
+    --g:#b0463f; --m:#c9933f; --s:#3f9d6d; /* thin/mod/strong text dots */
+    font-synthesis:none;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+    line-height:1.5;font-size:15px}
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 22px 80px}
+  h1{font-size:25px;margin:0 0 4px;font-weight:650;letter-spacing:-.2px}
+  h2{font-size:17px;margin:38px 0 10px;font-weight:650;letter-spacing:-.1px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+  .banner{background:#fbf3e8;border:1px solid #ecd9bd;border-radius:10px;padding:13px 15px;font-size:13.5px;color:#7a5a2a;margin:18px 0 6px}
+  .banner b{color:#5c4119}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card .n{font-size:28px;font-weight:680;letter-spacing:-.5px}
+  .card .t{font-weight:620;margin:2px 0 4px;font-size:14.5px}
+  .card .d{color:var(--muted);font-size:12.5px}
+  table{border-collapse:collapse;width:100%;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{padding:8px 9px;text-align:center;border-bottom:1px solid var(--line)}
+  th{background:#f1ece4;font-weight:600;font-size:11.5px;color:#56514a;text-transform:lowercase;position:sticky;top:0}
+  td.row{text-align:left;font-weight:600;white-space:nowrap}
+  .cell{display:inline-block;width:26px;height:22px;border-radius:5px;line-height:22px;color:#fff;font-size:11px;font-weight:600}
+  .cv0{background:var(--c0);color:#9a948b}.cv1{background:var(--c1);color:#3f6b51}.cv2{background:var(--c2)}.cv3{background:var(--c3)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 0;font-size:12.5px;color:var(--muted);align-items:center}
+  .sw{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+  .evals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .eval{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--meal);border-radius:9px;padding:10px 12px;font-size:13px}
+  .eval.final{border-left-color:var(--c3)} .eval.ongoing{border-left-color:var(--ext)} .eval.internal{border-left-color:var(--logs)}
+  .eval .ti{font-weight:620} .eval .me{color:var(--muted);font-size:12px;margin-top:2px}
+  .tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:20px;background:#eee7dd;color:#6b6459;margin-left:4px;vertical-align:1px}
+  .tag.fin{background:#dff0e6;color:#2c6e49}.tag.ong{background:#f6e6d6;color:#9a5a2a}
+  .geo{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+  .chip{font-size:12.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);background:var(--card)}
+  .chip b{font-weight:680}
+  .yr{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;margin-top:8px}
+  .yrcell{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .yrcell .val{font-size:10px;color:var(--muted);font-weight:650;font-variant-numeric:tabular-nums}
+  .yrcell .barwrap{height:64px;width:100%;display:flex;align-items:flex-end}
+  .yrcell .bar{width:100%;border-radius:4px 4px 0 0;transition:height .3s}
+  .yrcell .lab{font-size:10.5px;color:var(--muted)}
+  .ramp{height:9px;border-radius:6px;margin:12px 0 0;background:linear-gradient(90deg,#dbeae1,#2f8f66)}
+  .rampcap{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+  .lens{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .lens .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .lensfig{width:100%;height:auto;display:block;margin:6px 0 2px}
+  .lensfig text{fill:var(--ink);font-size:11px;font-weight:560;paint-order:stroke;stroke:#fffdfa;stroke-width:2.6px;stroke-linejoin:round}
+  .lensfig .cap{fill:var(--muted);stroke:none;font-size:10px;font-weight:500}
+  .lensfig .ctr{font-size:10.5px;font-weight:650}
+  .read{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .read .r{display:grid;grid-template-columns:120px 1fr;gap:0;border-bottom:1px solid var(--line)}
+  .read .r:last-child{border-bottom:none}
+  .who{padding:13px 14px;font-weight:660;background:#f3efe9;font-size:13.5px;display:flex;flex-direction:column;gap:3px}
+  .who span{font-weight:500;color:var(--muted);font-size:11.5px}
+  .does{padding:13px 14px;font-size:13px}
+  .does ul{margin:0;padding-left:17px}.does li{margin:2px 0}
+  .note{background:#eef3f0;border:1px solid #d3e3da;border-radius:10px;padding:12px 14px;font-size:13px;color:#2f5a44;margin-top:12px}
+  .foot{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
+  @media(max-width:760px){.cards,.evals,.lens{grid-template-columns:1fr}.read .r{grid-template-columns:90px 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>amna at 10 — evidence map</h1>
+  <p class="sub">inception draft · for shared sense-making with amna · winded.vertigo · <span id="d"></span></p>
+
+  <div class="banner">
+    <b>what this is, and isn't.</b> this maps <b>what evidence exists and where</b> — its volume, type, and source-mix across amna's programme pillars — so we can confirm we're seeing your portfolio the way you do. it is <b>not yet a findings or confidence map</b>: that comes after synthesis. coverage shading below = <b>how much evidence we hold</b>, not how strong the conclusions are. all preliminary, to be checked together at inception.
+  </div>
+
+  <h2>1 · the corpus at a glance</h2>
+  <div class="cards">
+    <div class="card"><div class="n">3</div><div class="t">top-level corpora</div><div class="d">amna programmes (11 pillar MEAL folders) · strategies &amp; processes (≈15 spine docs) · evaluations</div></div>
+    <div class="card"><div class="n">10 + 4</div><div class="t">evaluations</div><div class="d">10 past + 4 ongoing external/internal — across 5 named academic/consulting partners</div></div>
+    <div class="card"><div class="n">~2–4k</div><div class="t">files (2016–2026)</div><div class="d">mostly .docx/.pdf/.xlsx + large photo/video sets; mostly <b>pre-analysed</b> reports, not raw data</div></div>
+  </div>
+
+  <h2>2 · evidence coverage by pillar &amp; source type</h2>
+  <p class="sub" style="margin-bottom:8px">rows = amna's programme pillars · columns = evidence type · cell = how much we hold (preliminary). hover a cell for the read.</p>
+  <div style="overflow-x:auto">
+  <table id="mx">
+    <thead><tr><th class="row" style="text-align:left">pillar</th>
+      <th>external<br>evaluation</th><th>internal<br>MEAL</th><th>training /<br>session feedback</th><th>reflective /<br>supervision logs</th><th>programme<br>reporting</th><th>strategy /<br>ToC</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--c0)"></span>none</span>
+    <span><span class="sw" style="background:var(--c1)"></span>thin</span>
+    <span><span class="sw" style="background:var(--c2)"></span>moderate</span>
+    <span><span class="sw" style="background:var(--c3)"></span>strong</span>
+    <span style="margin-left:auto;color:#a06">▲ thinnest pillar: systems of care (no external eval, 2025→ only)</span>
+  </div>
+
+  <h2>3 · the evaluation portfolio (the credible spine)</h2>
+  <div class="evals" id="ev"></div>
+
+  <h2>4 · coverage across place &amp; time</h2>
+  <p class="sub" style="margin-bottom:4px">geographies (darker = more evidence)</p>
+  <div class="geo" id="geo"></div>
+  <p class="sub" style="margin:16px 0 0">evidence by year — number above each bar = relative density (1 sparse → 6 dense)</p>
+  <div class="yr" id="yr"></div>
+  <div class="ramp"></div>
+  <div class="rampcap"><span>sparse · early years (2016–18)</span><span>dense · 2024–26</span></div>
+
+  <h2>5 · the analytical lens (what we'll map findings onto, post-synthesis)</h2>
+  <div class="lens">
+    <div class="box"><b style="font-size:13.5px">amna's 8 outcome domains</b>
+      <div id="domFig"></div>
+      <div class="sub" style="margin:9px 0 0;font-size:12px">co-equal facets of a healing person — findings get mapped to these, then cross-walked to the IASC M&amp;E taxonomy for funders.</div></div>
+    <div class="box"><b style="font-size:13.5px">6 levels of impact</b>
+      <div id="lvlFig"></div>
+      <div class="sub" style="margin:9px 0 0;font-size:12px">widening rings, individual → ecosystem — the synthesis populates pillar × outcome × level as confidence accrues.</div></div>
+  </div>
+
+  <h2>6 · reading triage — who reads what (humans in the loop, strategically)</h2>
+  <p class="sub" style="margin-bottom:8px">it is not possible — or useful — for everyone to read every document. deep human reading is concentrated on ~20–25 high-value docs, split by strength. the long tail is machine-assisted with human validation.</p>
+  <div class="read">
+    <div class="r"><div class="who">garrett<span>evidence lead</span></div><div class="does"><ul>
+      <li>the ≈15 strategy / spine docs (healing-ecosystems evolution, internal narrative 2026, MEL ToC, cumulative-reach workbook)</li>
+      <li>the 2022 six-year evaluation (our precedent)</li>
+      <li>cross-cutting synthesis + the tier-1 quantitative datasets</li></ul></div></div>
+    <div class="r"><div class="who">jamie<span>UCL · qual + methods</span></div><div class="does"><ul>
+      <li>the external academic evaluations: UVA Baytna (final), Chapin Hall Afghanistan (final), Nexus CP Afghanistan</li>
+      <li>methodology + evidence-quality read; the preregistration</li></ul></div></div>
+    <div class="r"><div class="who">lamis<span>context · arabic</span></div><div class="does"><ul>
+      <li>UVA Jordan &amp; Lebanon (incl. arabic transcripts), Baytna Lebanon, CP Afghanistan partner materials</li>
+      <li>emergency response (palestine); trans-adaptation checks</li></ul></div></div>
+    <div class="r"><div class="who">maría<span>knowledge translation</span></div><div class="does"><ul>
+      <li>baytna/ECD + dinami/youth materials; impact &amp; public-facing narratives</li>
+      <li>owns this evidence map + designs the inception workshop</li></ul></div></div>
+  </div>
+  <div class="note"><b>the long tail (hundreds of partner-MEAL files + feedback spreadsheets):</b> not read in full by anyone. these go through an <b>LLM-assisted thematic pass with human spot-check &amp; validation</b> (declared, ZDR, named-team review) — surfacing patterns to the map, with humans deep-reading only the cells the map flags as pivotal or thin. that is how we stay rigorous without pretending to read everything.</div>
+
+  <div class="foot">
+    <b>next step:</b> share this map with amna at the inception check-in to confirm we're seeing the evidence as they do, then co-develop the framework and agree which thin/pivotal cells warrant the tiered raw-data deepening. · coverage values are preliminary winded.vertigo estimates from a metadata-level inventory — not yet validated by reading, and explicitly open to amna's correction.<br><br>
+    <b>confidential — winded.vertigo × amna · internal sense-making artefact (noindex).</b> contains <b>no amna participant or special-category data</b>: only programme/pillar names, evidence counts &amp; coverage estimates, organisational evaluator names, geographies, and the winded.vertigo team's own roles.
+  </div>
+</div>
+
+<script>
+document.getElementById('d').textContent=new Date().toISOString().slice(0,10);
+// pillar × source-type coverage (0-3), preliminary
+const cols=['ext','meal','feed','logs','rep','strat'];
+const rows=[
+ ['community partnerships',[3,3,2,2,3,3]],
+ ['baytna / ECD',[3,3,3,2,2,2]],
+ ['dinami / youth',[2,3,2,1,2,2]],
+ ['systems of care',[0,2,2,1,1,2]],
+ ['global healing network',[2,2,3,1,2,3]],
+ ['therapeutic groups',[1,2,2,1,1,1]],
+ ['wellbeing spaces',[2,3,2,1,2,1]],
+ ['emergency response',[1,2,2,1,2,2]],
+ ['consultancies / public',[1,2,3,0,1,1]],
+];
+const lab=['no evidence held','thin','moderate','strong'];
+const tb=document.querySelector('#mx tbody');
+rows.forEach(([p,vals])=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td class="row">'+p+'</td>'+vals.map((v,i)=>
+    '<td><span class="cell cv'+v+'" title="'+p+' — '+document.querySelectorAll("#mx thead th")[i+1].innerText.replace(/\n/g," ")+': '+lab[v]+'">'+(v||'·')+'</span></td>').join('');
+  tb.appendChild(tr);
+});
+// evaluations
+const evs=[
+ ['UVA — Humanitarian Collaborative','Baytna / ECD · Greece · 2021–23','final','final'],
+ ['UVA — Humanitarian Collaborative','Community Partnerships · Jordan &amp; Lebanon · 2024–26','ongoing','ongoing'],
+ ['Chapin Hall / U. Chicago','Afghanistan response (+Ukraine, Italy, Balkans) · 2022–23','final','final'],
+ ['Harvard / RTI','Pakistan response · 2021–22','internal','review'],
+ ['Nexus','Community Partnerships · Afghanistan · 2024–25','final','final'],
+ ['Nexus','Global Healing Network · Afghanistan · 2025–26','ongoing','ongoing'],
+ ['360 Consulting','Baytna · Lebanon · 2025–27','ongoing','ongoing'],
+ ['internal','Wellbeing Spaces · 2022–26','internal','internal'],
+ ['internal','General Trainings · 2025','internal','internal'],
+ ['internal','Dinami endline + Dinami Hubs · 2020–23','internal','internal'],
+];
+document.getElementById('ev').innerHTML=evs.map(([m,d,c,t])=>
+ '<div class="eval '+c+'"><div class="ti">'+m+' <span class="tag '+(t==="final"?"fin":t==="ongoing"?"ong":"")+'">'+t+'</span></div><div class="me">'+d+'</div></div>').join('');
+// geography
+const geo=[['Greece',3],['Jordan',3],['Lebanon',3],['Afghanistan',3],['Ukraine',3],['Pakistan',2],['Palestine / Gaza',2],['Balkans / Italy / Poland',1],['Syria',1],['UK',1]];
+document.getElementById('geo').innerHTML=geo.map(([g,n])=>
+ '<span class="chip" style="background:'+['','#f3efe9','#dbe9e1','#bfe0cd'][n]+'"><b>'+g+'</b></span>').join('');
+// timeline — bar height AND colour both encode density (1 sparse → 6 dense)
+const yrs=[['16',1],['17',1],['18',2],['19',2],['20',3],['21',3],['22',4],['23',4],['24',5],['25',6],['26',5]];
+const dmax=6;
+const dramp=['#dbeae1','#bfe0cd','#9bd2b3','#73bd97','#4ea982','#2f8f66']; // density 1→6
+const yrEl=document.getElementById('yr');
+yrs.forEach(([y,n])=>{
+  const cell=document.createElement('div'); cell.className='yrcell';
+  const val=document.createElement('div'); val.className='val'; val.textContent=n;
+  const wrap=document.createElement('div'); wrap.className='barwrap';
+  const bar=document.createElement('div'); bar.className='bar';
+  bar.style.height=(n/dmax*100)+'%'; bar.style.background=dramp[n-1];
+  bar.title='’'+y+' — density '+n+'/6'; wrap.appendChild(bar);
+  const lab=document.createElement('div'); lab.className='lab'; lab.textContent='’'+y;
+  cell.append(val,wrap,lab); yrEl.appendChild(cell);
+});
+
+// parse a static SVG string into a node (no innerHTML sink; handles svg namespace)
+function svgFrom(str){ return new DOMParser().parseFromString(str,'image/svg+xml').documentElement; }
+
+// 5 · analytical lens — radial wheel of the 8 outcome domains (co-equal facets)
+const DOM=[['safety'],['regulation'],['sense of','future'],['joy'],['agency'],['wellbeing'],['protective','relationships'],['belonging']];
+const dcol=['#3f9d6d','#5aa3a0','#7a9c3f','#b0843f','#c97b46','#b06f8a','#7a6fb0','#4f86b6'];
+(function(){
+  const W=440,H=300,cx=220,cy=150,R=96,cr=37; let s='';
+  DOM.forEach((lines,i)=>{
+    const a=(-90+i*45)*Math.PI/180,co=Math.cos(a),si=Math.sin(a);
+    const x0=cx+cr*co,y0=cy+cr*si,nx=cx+R*co,ny=cy+R*si;
+    const lx=cx+(R+15)*co,ly=cy+(R+15)*si;
+    const anc=co>0.3?'start':co<-0.3?'end':'middle';
+    s+='<line x1="'+x0.toFixed(1)+'" y1="'+y0.toFixed(1)+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="'+dcol[i]+'" stroke-width="2" opacity=".55"/>';
+    s+='<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="6.5" fill="'+dcol[i]+'"/>';
+    const dy0=-(lines.length-1)*6;
+    s+='<text x="'+lx.toFixed(1)+'" y="'+(ly+dy0).toFixed(1)+'" text-anchor="'+anc+'">'+
+       lines.map((t,k)=>'<tspan x="'+lx.toFixed(1)+'" dy="'+(k?12:0)+'">'+t+'</tspan>').join('')+'</text>';
+  });
+  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+cr+'" fill="#f2f7f4" stroke="#cfe1d6"/>';
+  s+='<text class="ctr" x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle"><tspan x="'+cx+'">the healing</tspan><tspan x="'+cx+'" dy="13">person</tspan></text>';
+  document.getElementById('domFig').replaceChildren(svgFrom('<svg xmlns="http://www.w3.org/2000/svg" class="lensfig" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="radial wheel of 8 outcome domains">'+s+'</svg>'));
+})();
+
+// 5 · analytical lens — nested concentric rings of the 6 impact levels
+const LVL=['individual','caregiver / family','community','organisational','institutional','ecosystem'];
+const lr=[24,40,57,75,94,114];                                   // radius per level (inner→outer)
+const lc=['#2f8f66','#52a884','#82c0a2','#aed6c1','#d2e7dc','#edf4ef']; // inner deep → outer light
+(function(){
+  const W=300,H=270,cx=150,cy=132; let s='';
+  for(let i=LVL.length-1;i>=0;i--){                              // outer first so inner paints on top
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+lr[i]+'" fill="'+lc[i]+'" stroke="#fffdfa" stroke-width="1.5"/>';
+  }
+  LVL.forEach((t,i)=>{ s+='<text x="'+cx+'" y="'+(cy-lr[i]+12)+'" text-anchor="middle">'+t+'</text>'; });
+  s+='<text class="cap" x="'+cx+'" y="'+(cy+lr[5]+18)+'" text-anchor="middle">core (individual) → outer (ecosystem)</text>';
+  document.getElementById('lvlFig').replaceChildren(svgFrom('<svg xmlns="http://www.w3.org/2000/svg" class="lensfig" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="nested concentric rings of 6 impact levels">'+s+'</svg>'));
+})();
+</script>
+</body>
+</html>
