@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>evidence verification console</title>
+  <style>
+    :root {
+      --wv-cadet: #273248;
+      --wv-redwood: #b15043;
+      --wv-sienna: #cb7858;
+      --wv-champagne: #ffebd2;
+      --ink: #1d2533;
+      --muted: #6b7686;
+      --line: #e4dccf;
+      --bg: #faf6ef;
+      --agree: #2f7a4f;
+      --disagree: #b15043;
+      --partial: #b8862f;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      letter-spacing: 0.01em;
+    }
+    a { color: var(--wv-redwood); }
+    header {
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      padding: 14px 22px; background: var(--wv-cadet); color: var(--wv-champagne);
+    }
+    header h1 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: 0.02em; }
+    header .spacer { flex: 1; }
+    header .who { font-size: 13px; opacity: 0.85; }
+    .tabbtn, .btn {
+      font: inherit; font-size: 14px; cursor: pointer; border-radius: 8px;
+      border: 1px solid transparent; padding: 7px 13px; background: transparent;
+      color: inherit;
+    }
+    header .tabbtn { color: var(--wv-champagne); border-color: rgba(255,235,210,0.3); }
+    header .tabbtn.active { background: var(--wv-sienna); border-color: var(--wv-sienna); color: #fff; }
+    main { max-width: 1080px; margin: 0 auto; padding: 24px 22px 80px; }
+    .btn-primary { background: var(--wv-redwood); color: #fff; border-color: var(--wv-redwood); }
+    .btn-ghost { border-color: var(--line); background: #fff; }
+    .btn:disabled { opacity: 0.5; cursor: default; }
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+
+    /* login */
+    .login-card {
+      max-width: 380px; margin: 8vh auto; background: #fff; border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 28px;
+    }
+    .login-card h2 { margin: 0 0 6px; font-size: 18px; }
+    input[type=password], input[type=text], textarea, select {
+      width: 100%; font: inherit; padding: 9px 11px; border: 1px solid var(--line);
+      border-radius: 8px; background: #fff; margin-top: 6px;
+    }
+    label { font-size: 13px; color: var(--muted); display: block; margin-top: 14px; }
+    .err { color: var(--wv-redwood); font-size: 13px; min-height: 18px; margin-top: 8px; }
+
+    /* reviewer pills */
+    .reviewer-pick { display: flex; gap: 8px; align-items: center; }
+    .pill {
+      border: 1px solid var(--line); background: #fff; border-radius: 999px;
+      padding: 5px 14px; cursor: pointer; font-size: 14px;
+    }
+    .pill.active { background: var(--wv-cadet); color: var(--wv-champagne); border-color: var(--wv-cadet); }
+
+    /* filters */
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+    .toolbar select { width: auto; margin: 0; }
+
+    /* claim card */
+    .claim {
+      background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 18px; margin-bottom: 16px;
+    }
+    .claim-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .claim-head h3 { margin: 0; font-size: 17px; }
+    .tag {
+      font-size: 12px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line);
+      color: var(--muted); white-space: nowrap;
+    }
+    .badge { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; color: #fff; }
+    .badge.agree { background: var(--agree); }
+    .badge.disagree { background: var(--disagree); }
+    .badge.partial { background: var(--partial); }
+    .status { text-transform: lowercase; }
+    .status.pending { color: var(--muted); }
+    .status.verified { color: var(--agree); font-weight: 600; }
+    .status.flagged { color: var(--disagree); font-weight: 600; }
+    .status.adjudicated { color: var(--wv-cadet); font-weight: 600; }
+    .source { font-size: 13px; color: var(--muted); margin: 8px 0 14px; }
+    .source b { color: var(--ink); font-weight: 600; }
+
+    .excerpts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    @media (max-width: 760px) { .excerpts { grid-template-columns: 1fr; } }
+    .ex {
+      border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg);
+      font-size: 14px;
+    }
+    .ex .who { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 5px; }
+    .ex.empty { color: var(--muted); font-style: italic; }
+    .ex.match { border-color: var(--agree); }
+    .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .ruling-note { margin-top: 12px; font-size: 14px; padding: 10px 12px; border-left: 3px solid var(--wv-sienna); background: var(--wv-champagne); border-radius: 0 8px 8px 0; }
+    .ruling-note b { font-weight: 600; }
+
+    /* dashboard */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+    .stat .n { font-size: 30px; font-weight: 700; color: var(--wv-cadet); }
+    .stat .k { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .bars { margin-top: 8px; }
+    .bar { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed var(--line); }
+    .bar b { font-weight: 600; }
+
+    /* modal */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(29,37,51,0.55); display: flex;
+      align-items: center; justify-content: center; padding: 20px; z-index: 50;
+    }
+    .modal { background: #fff; border-radius: var(--radius); padding: 24px; max-width: 520px; width: 100%; }
+    .modal h3 { margin: 0 0 4px; }
+    .footnote { font-size: 12px; color: var(--muted); margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; }
+  </style>
+</head>
+<body>
+  <header class="hidden" id="hdr">
+    <h1>evidence verification console</h1>
+    <button class="tabbtn active" data-tab="queue">queue</button>
+    <button class="tabbtn" data-tab="dashboard">dashboard</button>
+    <span class="spacer"></span>
+    <span class="reviewer-pick">
+      <span class="who">acting as</span>
+      <button class="pill" data-reviewer="garrett">garrett</button>
+      <button class="pill" data-reviewer="jamie">jamie</button>
+    </span>
+    <a href="api/logout" class="who">log out</a>
+  </header>
+
+  <main>
+    <!-- login -->
+    <section id="login">
+      <div class="login-card">
+        <h2>evidence verification console</h2>
+        <p class="muted" style="font-size:14px;margin:0">amna at 10 desk review · internal, not public.</p>
+        <label for="pw">shared password</label>
+        <input type="password" id="pw" autocomplete="current-password" />
+        <div class="err" id="loginErr"></div>
+        <button class="btn btn-primary" id="loginBtn" style="width:100%;margin-top:6px">enter</button>
+      </div>
+    </section>
+
+    <!-- queue -->
+    <section id="queue" class="hidden">
+      <div class="toolbar">
+        <label style="margin:0">status
+          <select id="fStatus">
+            <option value="pending">pending</option>
+            <option value="flagged">flagged</option>
+            <option value="verified">verified</option>
+            <option value="adjudicated">adjudicated</option>
+            <option value="all">all</option>
+          </select>
+        </label>
+        <label style="margin:0">engagement
+          <select id="fEngagement"><option value="amna-at-10">amna-at-10</option></select>
+        </label>
+        <span class="spacer" style="flex:1"></span>
+        <span class="muted" id="queueCount"></span>
+      </div>
+      <div id="queueList"></div>
+    </section>
+
+    <!-- dashboard -->
+    <section id="dashboard" class="hidden">
+      <div class="cards" id="statCards"></div>
+      <div class="cards" style="margin-top:16px">
+        <div class="stat"><div class="k">by status</div><div class="bars" id="barStatus"></div></div>
+        <div class="stat"><div class="k">coder agreement</div><div class="bars" id="barAgreement"></div></div>
+        <div class="stat"><div class="k">adjudications by reviewer</div><div class="bars" id="barReviewer"></div></div>
+      </div>
+      <div class="actions" style="margin-top:18px">
+        <a class="btn btn-ghost" href="api/export?format=csv">export csv</a>
+        <a class="btn btn-ghost" href="api/export?format=json">export json</a>
+      </div>
+    </section>
+
+    <p class="footnote">
+      holds aggregate evaluation excerpts only — no participant-level or special-category data.
+      every action is recorded in an append-only audit trail with reviewer + timestamp.
+      open the named source file at the page/section to confirm each quote verbatim.
+    </p>
+  </main>
+
+  <div id="modalRoot"></div>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    let reviewer = localStorage.getItem("cv_reviewer") || null;
+
+    // ── safe dom builder (no innerHTML — everything is textContent / setAttribute) ──
+    function el(tag, props, ...kids) {
+      const n = document.createElement(tag);
+      for (const [k, v] of Object.entries(props || {})) {
+        if (v == null) continue;
+        if (k === "class") n.className = v;
+        else if (k === "text") n.textContent = v;
+        else if (k === "html") { /* intentionally unsupported */ }
+        else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), v);
+        else n.setAttribute(k, v);
+      }
+      for (const kid of kids.flat()) {
+        if (kid == null || kid === false) continue;
+        n.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+      }
+      return n;
+    }
+    // only allow http(s) urls through to an href (blocks javascript: etc.)
+    function safeUrl(u) {
+      try { const p = new URL(u, location.href); return (p.protocol === "http:" || p.protocol === "https:") ? p.href : null; }
+      catch { return null; }
+    }
+
+    // ── boot ──────────────────────────────────────────────────────────────
+    async function boot() {
+      const r = await fetch("api/session").then((x) => x.json()).catch(() => ({ ok: false }));
+      if (r.ok) showApp(); else showLogin();
+    }
+    function showLogin() {
+      $("#login").classList.remove("hidden");
+      $("#hdr").classList.add("hidden");
+      $("#queue").classList.add("hidden");
+      $("#dashboard").classList.add("hidden");
+    }
+    function showApp() {
+      $("#login").classList.add("hidden");
+      $("#hdr").classList.remove("hidden");
+      paintReviewer();
+      tab("queue");
+    }
+
+    // ── login ─────────────────────────────────────────────────────────────
+    $("#loginBtn").onclick = login;
+    $("#pw").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+    async function login() {
+      const password = $("#pw").value;
+      const res = await fetch("api/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) { $("#pw").value = ""; $("#loginErr").textContent = ""; showApp(); }
+      else $("#loginErr").textContent = "wrong password — try again.";
+    }
+
+    // ── reviewer picker ─────────────────────────────────────────────────────
+    function paintReviewer() {
+      document.querySelectorAll(".pill[data-reviewer]").forEach((b) =>
+        b.classList.toggle("active", b.dataset.reviewer === reviewer)
+      );
+    }
+    document.querySelectorAll(".pill[data-reviewer]").forEach((b) =>
+      (b.onclick = () => { reviewer = b.dataset.reviewer; localStorage.setItem("cv_reviewer", reviewer); paintReviewer(); })
+    );
+
+    // ── tabs ────────────────────────────────────────────────────────────────
+    document.querySelectorAll(".tabbtn").forEach((b) => (b.onclick = () => tab(b.dataset.tab)));
+    function tab(name) {
+      document.querySelectorAll(".tabbtn").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+      $("#queue").classList.toggle("hidden", name !== "queue");
+      $("#dashboard").classList.toggle("hidden", name !== "dashboard");
+      if (name === "queue") loadQueue();
+      if (name === "dashboard") loadStats();
+    }
+
+    // ── queue ────────────────────────────────────────────────────────────────
+    $("#fStatus").onchange = loadQueue;
+    $("#fEngagement").onchange = loadQueue;
+    async function loadQueue() {
+      const status = $("#fStatus").value;
+      const engagement = $("#fEngagement").value;
+      const r = await fetch(`api/claims?status=${encodeURIComponent(status)}&engagement=${encodeURIComponent(engagement)}`).then((x) => x.json());
+      const list = r.claims || [];
+      $("#queueCount").textContent = `${list.length} claim${list.length === 1 ? "" : "s"}`;
+      const root = $("#queueList");
+      if (!list.length) { root.replaceChildren(el("p", { class: "muted", text: "nothing in this view." })); return; }
+      root.replaceChildren(...list.map(card));
+      wireCards();
+    }
+
+    function exCell(label, text, matched) {
+      if (!text) return el("div", { class: "ex empty" }, el("div", { class: "who", text: label }), "— not extracted —");
+      return el("div", { class: "ex" + (matched ? " match" : "") }, el("div", { class: "who", text: label }), text);
+    }
+
+    function card(c) {
+      const matched = c.coder_a_excerpt && c.coder_b_excerpt && c.coder_a_excerpt === c.coder_b_excerpt;
+      const drive = c.drive_link ? safeUrl(c.drive_link) : null;
+
+      const head = el("div", { class: "claim-head" },
+        el("h3", { text: c.claim_text }),
+        c.conjecture_ref ? el("span", { class: "tag", text: c.conjecture_ref }) : null,
+        c.agreement ? el("span", { class: "badge " + c.agreement, text: c.agreement }) : null,
+        el("span", { class: "spacer", style: "flex:1" }),
+        el("span", { class: "status " + c.status, text: c.status + (c.reviewer ? " · " + c.reviewer : "") })
+      );
+
+      const source = el("div", { class: "source" },
+        el("b", { text: c.source_file }), " · " + (c.location || "—"),
+        drive ? el("a", { href: drive, target: "_blank", rel: "noopener" }, " drive ↗") : null
+      );
+
+      const excerpts = el("div", { class: "excerpts" },
+        exCell("coder a", c.coder_a_excerpt, matched),
+        exCell("coder b", c.coder_b_excerpt, matched),
+        exCell("carl", c.carl_excerpt, false)
+      );
+
+      const extra = [];
+      if (c.ruling) extra.push(el("div", { class: "ruling-note" }, el("b", { text: "ruling: " }), c.ruling));
+      if (c.notes && c.status !== "adjudicated") extra.push(el("div", { class: "ruling-note" }, el("b", { text: "note: " }), c.notes));
+
+      const actions = el("div", { class: "actions" },
+        el("button", { class: "btn btn-ghost act", "data-act": "verify", text: "✓ verify" }),
+        el("button", { class: "btn btn-ghost act", "data-act": "flag", text: "✗ flag mismatch" }),
+        el("button", { class: "btn btn-ghost act", "data-act": "adjudicate", text: "⚖ adjudicate" })
+      );
+
+      return el("div", { class: "claim", "data-id": c.id }, head, source, excerpts, ...extra, actions);
+    }
+
+    function wireCards() {
+      document.querySelectorAll(".claim .act").forEach((btn) => {
+        btn.onclick = () => {
+          if (!reviewer) { alert("pick a reviewer (garrett / jamie) in the header first."); return; }
+          const id = btn.closest(".claim").dataset.id;
+          const act = btn.dataset.act;
+          if (act === "verify") doAction(id, "verify", { reviewer });
+          if (act === "flag") openNote(id);
+          if (act === "adjudicate") openAdjudicate(id);
+        };
+      });
+    }
+
+    async function doAction(id, action, body) {
+      const res = await fetch(`api/claims/${id}/${action}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); alert("could not save: " + (e.error || res.status)); return; }
+      closeModal(); loadQueue();
+    }
+
+    // ── modals (built with the same safe dom builder) ─────────────────────────
+    function closeModal() { $("#modalRoot").replaceChildren(); }
+
+    function modalShell(titleText, helpText, bodyNodes, onSave, saveLabel) {
+      const err = el("div", { class: "err" });
+      const cancel = el("button", { class: "btn btn-ghost", text: "cancel", onclick: closeModal });
+      const save = el("button", { class: "btn btn-primary", text: saveLabel, onclick: () => onSave(err) });
+      const modal = el("div", { class: "modal" },
+        el("h3", { text: titleText }),
+        el("p", { class: "muted", style: "font-size:14px", text: helpText }),
+        ...bodyNodes, err,
+        el("div", { class: "actions", style: "justify-content:flex-end" }, cancel, save)
+      );
+      $("#modalRoot").replaceChildren(el("div", { class: "modal-bg" }, modal));
+    }
+
+    function openNote(id) {
+      const ta = el("textarea", { rows: "4", placeholder: "e.g. quote not found on the cited page…" });
+      modalShell("flag mismatch", "a note is required — say what didn't match the source.", [ta], (err) => {
+        const note = ta.value.trim();
+        if (!note) { err.textContent = "note required."; return; }
+        doAction(id, "flag", { reviewer, note });
+      }, "flag");
+    }
+
+    function openAdjudicate(id) {
+      const sel = el("select", {},
+        el("option", { value: "", text: "— none / not applicable —" }),
+        el("option", { value: "a", text: "coder a" }),
+        el("option", { value: "b", text: "coder b" }),
+        el("option", { value: "carl", text: "carl" })
+      );
+      const ta = el("textarea", { rows: "4", placeholder: "your reasoning, confronted against the source…" });
+      const body = [
+        el("label", { text: "correct excerpt" }, sel),
+        el("label", { text: "ruling" }, ta),
+      ];
+      modalShell("adjudicate", "for disagreements: pick the correct excerpt and/or write a ruling.", body, (err) => {
+        const chosen = sel.value;
+        const ruling = ta.value.trim();
+        if (!chosen && !ruling) { err.textContent = "choose an excerpt or write a ruling."; return; }
+        doAction(id, "adjudicate", { reviewer, chosen: chosen || undefined, ruling });
+      }, "record ruling");
+    }
+
+    // ── dashboard ─────────────────────────────────────────────────────────────
+    async function loadStats() {
+      const s = await fetch("api/stats").then((x) => x.json());
+      const cards = [
+        ["total claims", s.total],
+        ["% source-confronted", s.source_confronted_pct + "%"],
+        ["coder-agreement rate", s.coder_agreement_pct + "%"],
+        ["pending", s.by_status.pending || 0],
+      ].map(([k, n]) => el("div", { class: "stat" }, el("div", { class: "n", text: String(n) }), el("div", { class: "k", text: k })));
+      $("#statCards").replaceChildren(...cards);
+      $("#barStatus").replaceChildren(...bars(s.by_status));
+      $("#barAgreement").replaceChildren(...bars(s.by_agreement));
+      const rev = bars(s.adjudications_by_reviewer);
+      $("#barReviewer").replaceChildren(...(rev.length ? rev : [el("div", { class: "bar muted", text: "none yet" })]));
+    }
+    function bars(obj) {
+      return Object.keys(obj || {}).map((k) =>
+        el("div", { class: "bar" }, el("span", { text: k }), el("b", { text: String(obj[k]) }))
+      );
+    }
+
+    boot();
+  </script>
+</body>
+</html>
