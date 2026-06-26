@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TimelineGroup } from "@/lib/pam/project-timeline";
 
@@ -103,6 +104,30 @@ export function ProjectTimeline({ groups }: { groups: TimelineGroup[] }) {
         </div>
       </div>
 
+      {/* tier legend — the logic behind the chart, on demand */}
+      <details className="rounded-md border border-border bg-muted/30">
+        <summary className="cursor-pointer select-none px-2.5 py-1.5 text-xs text-muted-foreground flex items-center gap-1.5 [&::-webkit-details-marker]:hidden">
+          <Info className="h-3 w-3" /> how this reads · the tiers
+        </summary>
+        <div className="px-2.5 pb-2.5 pt-1 space-y-2 text-[11px] text-muted-foreground">
+          <p>
+            <span className="font-medium text-foreground">programmes</span> are the colour &amp; grouping (the portfolio level — contracts &amp; studios) ·{" "}
+            <span className="font-medium text-foreground">deliverables</span> are the rows (milestones with dates) ·{" "}
+            the <span className="font-medium" style={{ color: "#BA7517" }}>amber lane</span> is the rfp pipeline ·{" "}
+            day-to-day <span className="font-medium text-foreground">tasks</span> live in the whirlpool tab.
+          </p>
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {groups.map((g) => (
+              <span key={g.program} className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: g.mark }} />
+                <span className="capitalize">{g.program}</span>
+                <span className="text-muted-foreground/60">{g.tier}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </details>
+
       <div ref={scrollRef} className="overflow-x-auto">
         {/* axis */}
         <div className="flex" style={{ width: rowW }}>
@@ -128,16 +153,17 @@ export function ProjectTimeline({ groups }: { groups: TimelineGroup[] }) {
             {g.items.map((it, i) => {
               const s = it.start ? Date.parse(it.start) : null;
               const e = it.end ? Date.parse(it.end) : null;
+              const tip = `${g.program} · ${it.name}${it.start ? ` · ${it.start}${it.end ? ` → ${it.end}` : ""}` : ""}`;
               return (
                 <div key={i} className="flex">
-                  <div className={cn(stickyLabel, "text-[11px] text-muted-foreground pl-4 pr-2 py-0.5 truncate")} style={{ width: LABEL_W }} title={it.name}>
+                  <div className={cn(stickyLabel, "text-[11px] text-muted-foreground pl-4 pr-2 py-0.5 truncate")} style={{ width: LABEL_W }} title={tip}>
                     {it.name}
                   </div>
                   <div className="relative h-[18px]" style={{ width: trackW }}>
                     {s !== null && e !== null ? (
-                      <div className="absolute top-1 h-2.5 rounded-full" style={{ left: xOf(s), width: Math.max(4, xOf(e) - xOf(s)), background: g.fill }} />
+                      <div title={tip} className="absolute top-1 h-2.5 rounded-full cursor-default" style={{ left: xOf(s), width: Math.max(4, xOf(e) - xOf(s)), background: g.fill }} />
                     ) : s !== null ? (
-                      <div title="milestone" className="absolute top-1.5" style={{ left: xOf(s), width: 10, height: 10, marginLeft: -5, transform: "rotate(45deg)", background: g.mark }} />
+                      <div title={tip} className="absolute top-1.5 cursor-default" style={{ left: xOf(s), width: 10, height: 10, marginLeft: -5, transform: "rotate(45deg)", background: g.mark }} />
                     ) : null}
                     <NowLine />
                   </div>
