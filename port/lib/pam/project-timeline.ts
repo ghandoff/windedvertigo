@@ -12,6 +12,7 @@
 import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { getMilestonesFromSupabase } from "@/lib/supabase/milestones";
 import { getRfpOpportunitiesFromSupabase } from "@/lib/supabase/rfp-opportunities";
+import { programmeStyle } from "@/lib/pam/programmes";
 
 export interface TimelineItem {
   name: string;
@@ -27,14 +28,6 @@ export interface TimelineGroup {
   items: TimelineItem[];
 }
 
-const PALETTE = [
-  { fill: "#85B7EB", mark: "#185FA5" }, // blue
-  { fill: "#5DCAA5", mark: "#0F6E56" }, // teal
-  { fill: "#AFA9EC", mark: "#534AB7" }, // violet
-  { fill: "#F0997B", mark: "#D85A30" }, // coral
-  { fill: "#ED93B1", mark: "#D4537E" }, // pink
-  { fill: "#C0DD97", mark: "#639922" }, // green
-];
 const RFP_COLOUR = { fill: "#FAC775", mark: "#BA7517" }; // amber — reserved for the rfp lane
 const ACTIVE_RFP = new Set(["radar", "reviewing", "pursuing", "interviewing", "submitted", ""]);
 
@@ -76,12 +69,16 @@ export async function getProjectTimeline(): Promise<TimelineGroup[]> {
     const rank = (t: string) => (t === "contract" ? 0 : t === "studio" ? 1 : 2);
     return rank(a[1].tier) - rank(b[1].tier) || a[0].localeCompare(b[0]);
   });
-  const groups: TimelineGroup[] = ordered.map(([program, g], i) => ({
-    program,
-    tier: g.tier,
-    ...PALETTE[i % PALETTE.length],
-    items: g.items.sort((x, y) => (x.start ?? "").localeCompare(y.start ?? "")),
-  }));
+  const groups: TimelineGroup[] = ordered.map(([program, g]) => {
+    const ps = programmeStyle(program);
+    return {
+      program,
+      tier: g.tier,
+      fill: ps.fill,
+      mark: ps.mark,
+      items: g.items.sort((x, y) => (x.start ?? "").localeCompare(y.start ?? "")),
+    };
+  });
 
   // business-development lane — near-term active RFP deadlines (separate pipeline)
   const now = Date.now();

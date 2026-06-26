@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, Link2, AlertTriangle, Pencil } from "lucide-react";
 import type { PamCommitment } from "@/lib/supabase/pam";
+import { programmeStyle } from "@/lib/pam/programmes";
 import { formatDate } from "@/lib/format";
 import { updateCommitmentStatusAction } from "../actions";
 import { EditCommitmentDialog } from "./edit-commitment-dialog";
@@ -46,7 +47,13 @@ function CommitmentCard({ item, onEdit }: { item: BoardItem; onEdit: () => void 
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px] capitalize">{item.who}</Badge>
           {item.programme && (
-            <Badge variant="secondary" className="text-[10px] lowercase">{item.programme}</Badge>
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded-md lowercase font-medium"
+              style={{ background: programmeStyle(item.programme).bg, color: programmeStyle(item.programme).fg }}
+              title={`programme: ${item.programme}`}
+            >
+              {item.programme}
+            </span>
           )}
           {item.source && (
             <span className="text-[10px] text-muted-foreground">via {item.source}</span>

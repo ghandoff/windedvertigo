@@ -5,6 +5,7 @@ import { CheckCircle2, Circle, AlertCircle, CircleDot, Star } from "lucide-react
 import { cn } from "@/lib/utils";
 import type { PamCommitment } from "@/lib/supabase/pam";
 import { memberStyle } from "@/lib/pam/members";
+import { programmeStyle } from "@/lib/pam/programmes";
 import { updateCommitmentStatusAction } from "../actions";
 
 type ViewMode = "owner" | "status";
@@ -72,9 +73,14 @@ function CommitmentCard({
         c.status === "blocked" ? "border-yellow-400/40" : "border-border",
       )}
     >
-      <div className="flex items-start gap-1.5">
-        <StatusIcon status={c.status} />
-        <p className={cn("text-xs font-medium leading-snug flex-1", c.status === "done" && "line-through")}>
+      <div className="flex items-start gap-1.5 min-w-0">
+        <span className="shrink-0 mt-px"><StatusIcon status={c.status} /></span>
+        <p
+          className={cn(
+            "text-xs font-medium leading-snug flex-1 min-w-0 break-words [overflow-wrap:anywhere] line-clamp-4",
+            c.status === "done" && "line-through",
+          )}
+        >
           {c.what}
         </p>
       </div>
@@ -87,7 +93,11 @@ function CommitmentCard({
           <span className={cn("text-[10px] px-1.5 py-0 rounded border", typeClass)}>{c.commitment_type}</span>
         )}
         {c.programme && (
-          <span className="text-[10px] px-1.5 py-0 rounded border border-border bg-muted/40 text-muted-foreground lowercase">
+          <span
+            className="text-[10px] px-1.5 py-0 rounded lowercase"
+            style={{ background: programmeStyle(c.programme).bg, color: programmeStyle(c.programme).fg }}
+            title={`programme: ${c.programme}`}
+          >
             {c.programme}
           </span>
         )}
