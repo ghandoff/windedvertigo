@@ -34,6 +34,7 @@
     header h1 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: 0.02em; }
     header .spacer { flex: 1; }
     header .who { font-size: 13px; opacity: 0.85; }
+    header .who b { font-weight: 600; opacity: 1; }
     .tabbtn, .btn {
       font: inherit; font-size: 14px; cursor: pointer; border-radius: 8px;
       border: 1px solid transparent; padding: 7px 13px; background: transparent;
@@ -50,30 +51,34 @@
 
     /* login */
     .login-card {
-      max-width: 380px; margin: 8vh auto; background: #fff; border: 1px solid var(--line);
-      border-radius: var(--radius); padding: 28px;
+      max-width: 400px; margin: 8vh auto; background: #fff; border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 28px; text-align: center;
     }
     .login-card h2 { margin: 0 0 6px; font-size: 18px; }
-    input[type=password], input[type=text], textarea, select {
+    .login-card p { font-size: 14px; }
+    .google-btn {
+      display: inline-flex; align-items: center; gap: 10px; margin-top: 18px;
+      background: #fff; color: #1f1f1f; border: 1px solid #dadce0; border-radius: 8px;
+      padding: 11px 18px; font: inherit; font-size: 15px; font-weight: 500;
+      text-decoration: none; cursor: pointer;
+    }
+    .google-btn:hover { background: #f7f8f8; }
+    .google-btn svg { width: 18px; height: 18px; }
+
+    /* claim card */
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+    .toolbar select { width: auto; margin: 0; }
+    select {
+      font: inherit; padding: 9px 11px; border: 1px solid var(--line);
+      border-radius: 8px; background: #fff; margin-top: 6px;
+    }
+    textarea {
       width: 100%; font: inherit; padding: 9px 11px; border: 1px solid var(--line);
       border-radius: 8px; background: #fff; margin-top: 6px;
     }
     label { font-size: 13px; color: var(--muted); display: block; margin-top: 14px; }
     .err { color: var(--wv-redwood); font-size: 13px; min-height: 18px; margin-top: 8px; }
 
-    /* reviewer pills */
-    .reviewer-pick { display: flex; gap: 8px; align-items: center; }
-    .pill {
-      border: 1px solid var(--line); background: #fff; border-radius: 999px;
-      padding: 5px 14px; cursor: pointer; font-size: 14px;
-    }
-    .pill.active { background: var(--wv-cadet); color: var(--wv-champagne); border-color: var(--wv-cadet); }
-
-    /* filters */
-    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
-    .toolbar select { width: auto; margin: 0; }
-
-    /* claim card */
     .claim {
       background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
       padding: 18px; margin-bottom: 16px;
@@ -134,11 +139,7 @@
     <button class="tabbtn active" data-tab="queue">queue</button>
     <button class="tabbtn" data-tab="dashboard">dashboard</button>
     <span class="spacer"></span>
-    <span class="reviewer-pick">
-      <span class="who">acting as</span>
-      <button class="pill" data-reviewer="garrett">garrett</button>
-      <button class="pill" data-reviewer="jamie">jamie</button>
-    </span>
+    <span class="who">signed in as <b id="whoami"></b></span>
     <a href="api/logout" class="who">log out</a>
   </header>
 
@@ -147,11 +148,17 @@
     <section id="login">
       <div class="login-card">
         <h2>evidence verification console</h2>
-        <p class="muted" style="font-size:14px;margin:0">amna at 10 desk review · internal, not public.</p>
-        <label for="pw">shared password</label>
-        <input type="password" id="pw" autocomplete="current-password" />
-        <div class="err" id="loginErr"></div>
-        <button class="btn btn-primary" id="loginBtn" style="width:100%;margin-top:6px">enter</button>
+        <p class="muted" style="margin:0">amna at 10 desk review · internal, not public.</p>
+        <a class="google-btn" href="api/auth/login">
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#ea4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285f4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#fbbc05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34a853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          sign in with google
+        </a>
+        <p class="muted" style="font-size:13px;margin-top:18px">use your <b>@windedvertigo.com</b> google account.</p>
       </div>
     </section>
 
@@ -192,7 +199,7 @@
 
     <p class="footnote">
       holds aggregate evaluation excerpts only — no participant-level or special-category data.
-      every action is recorded in an append-only audit trail with reviewer + timestamp.
+      every action is recorded in an append-only audit trail with the signed-in reviewer + timestamp.
       open the named source file at the page/section to confirm each quote verbatim.
     </p>
   </main>
@@ -201,7 +208,6 @@
 
   <script>
     const $ = (s) => document.querySelector(s);
-    let reviewer = localStorage.getItem("cv_reviewer") || null;
 
     // ── safe dom builder (no innerHTML — everything is textContent / setAttribute) ──
     function el(tag, props, ...kids) {
@@ -210,7 +216,6 @@
         if (v == null) continue;
         if (k === "class") n.className = v;
         else if (k === "text") n.textContent = v;
-        else if (k === "html") { /* intentionally unsupported */ }
         else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), v);
         else n.setAttribute(k, v);
       }
@@ -220,16 +225,16 @@
       }
       return n;
     }
-    // only allow http(s) urls through to an href (blocks javascript: etc.)
     function safeUrl(u) {
       try { const p = new URL(u, location.href); return (p.protocol === "http:" || p.protocol === "https:") ? p.href : null; }
       catch { return null; }
     }
+    const localPart = (email) => (email ? String(email).split("@")[0] : "");
 
     // ── boot ──────────────────────────────────────────────────────────────
     async function boot() {
       const r = await fetch("api/session").then((x) => x.json()).catch(() => ({ ok: false }));
-      if (r.ok) showApp(); else showLogin();
+      if (r.ok) showApp(r.email); else showLogin();
     }
     function showLogin() {
       $("#login").classList.remove("hidden");
@@ -237,35 +242,12 @@
       $("#queue").classList.add("hidden");
       $("#dashboard").classList.add("hidden");
     }
-    function showApp() {
+    function showApp(email) {
       $("#login").classList.add("hidden");
       $("#hdr").classList.remove("hidden");
-      paintReviewer();
+      $("#whoami").textContent = email || "";
       tab("queue");
     }
-
-    // ── login ─────────────────────────────────────────────────────────────
-    $("#loginBtn").onclick = login;
-    $("#pw").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
-    async function login() {
-      const password = $("#pw").value;
-      const res = await fetch("api/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-      if (res.ok) { $("#pw").value = ""; $("#loginErr").textContent = ""; showApp(); }
-      else $("#loginErr").textContent = "wrong password — try again.";
-    }
-
-    // ── reviewer picker ─────────────────────────────────────────────────────
-    function paintReviewer() {
-      document.querySelectorAll(".pill[data-reviewer]").forEach((b) =>
-        b.classList.toggle("active", b.dataset.reviewer === reviewer)
-      );
-    }
-    document.querySelectorAll(".pill[data-reviewer]").forEach((b) =>
-      (b.onclick = () => { reviewer = b.dataset.reviewer; localStorage.setItem("cv_reviewer", reviewer); paintReviewer(); })
-    );
 
     // ── tabs ────────────────────────────────────────────────────────────────
     document.querySelectorAll(".tabbtn").forEach((b) => (b.onclick = () => tab(b.dataset.tab)));
@@ -306,7 +288,7 @@
         c.conjecture_ref ? el("span", { class: "tag", text: c.conjecture_ref }) : null,
         c.agreement ? el("span", { class: "badge " + c.agreement, text: c.agreement }) : null,
         el("span", { class: "spacer", style: "flex:1" }),
-        el("span", { class: "status " + c.status, text: c.status + (c.reviewer ? " · " + c.reviewer : "") })
+        el("span", { class: "status " + c.status, text: c.status + (c.reviewer ? " · " + localPart(c.reviewer) : "") })
       );
 
       const source = el("div", { class: "source" },
@@ -336,10 +318,9 @@
     function wireCards() {
       document.querySelectorAll(".claim .act").forEach((btn) => {
         btn.onclick = () => {
-          if (!reviewer) { alert("pick a reviewer (garrett / jamie) in the header first."); return; }
           const id = btn.closest(".claim").dataset.id;
           const act = btn.dataset.act;
-          if (act === "verify") doAction(id, "verify", { reviewer });
+          if (act === "verify") doAction(id, "verify", {});
           if (act === "flag") openNote(id);
           if (act === "adjudicate") openAdjudicate(id);
         };
@@ -351,6 +332,7 @@
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      if (res.status === 401) { showLogin(); return; }
       if (!res.ok) { const e = await res.json().catch(() => ({})); alert("could not save: " + (e.error || res.status)); return; }
       closeModal(); loadQueue();
     }
@@ -376,7 +358,7 @@
       modalShell("flag mismatch", "a note is required — say what didn't match the source.", [ta], (err) => {
         const note = ta.value.trim();
         if (!note) { err.textContent = "note required."; return; }
-        doAction(id, "flag", { reviewer, note });
+        doAction(id, "flag", { note });
       }, "flag");
     }
 
@@ -396,7 +378,7 @@
         const chosen = sel.value;
         const ruling = ta.value.trim();
         if (!chosen && !ruling) { err.textContent = "choose an excerpt or write a ruling."; return; }
-        doAction(id, "adjudicate", { reviewer, chosen: chosen || undefined, ruling });
+        doAction(id, "adjudicate", { chosen: chosen || undefined, ruling });
       }, "record ruling");
     }
 
@@ -412,12 +394,12 @@
       $("#statCards").replaceChildren(...cards);
       $("#barStatus").replaceChildren(...bars(s.by_status));
       $("#barAgreement").replaceChildren(...bars(s.by_agreement));
-      const rev = bars(s.adjudications_by_reviewer);
+      const rev = bars(s.adjudications_by_reviewer, localPart);
       $("#barReviewer").replaceChildren(...(rev.length ? rev : [el("div", { class: "bar muted", text: "none yet" })]));
     }
-    function bars(obj) {
+    function bars(obj, fmt) {
       return Object.keys(obj || {}).map((k) =>
-        el("div", { class: "bar" }, el("span", { text: k }), el("b", { text: String(obj[k]) }))
+        el("div", { class: "bar" }, el("span", { text: fmt ? fmt(k) : k }), el("b", { text: String(obj[k]) }))
       );
     }
 

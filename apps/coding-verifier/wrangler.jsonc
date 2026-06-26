@@ -31,7 +31,14 @@
     { "pattern": "windedvertigo.com/tools/coding-verifier/*", "zone_name": "windedvertigo.com" }
   ],
 
-  // APP_PASSWORD + SESSION_SECRET are worker secrets — set via `wrangler secret put`,
-  // never committed. (step 5, needs approval.)
+  // google oauth client id — not sensitive (it travels in the auth redirect url).
+  // fill in after creating the oauth client in google cloud console.
+  "vars": {
+    "GOOGLE_CLIENT_ID": "PENDING_GOOGLE_CLIENT_ID"
+  },
+
+  // secrets (set via `wrangler secret put --name wv-coding-verifier`, never committed):
+  //   SESSION_SECRET        — signs the session + oauth-state cookies (already set)
+  //   GOOGLE_CLIENT_SECRET  — the oauth client secret from google cloud console
   "observability": { "enabled": true }
 }

@@ -25,24 +25,37 @@ reusable for future desk reviews.
 - cloudflare worker (`src/index.js`, vanilla js) — routes `/tools/coding-verifier/*`
 - d1 (sqlite) — `claims` + `audit_log`
 - static front-end (`assets/index.html`, single file, no build step)
-- auth: shared password (worker secret `APP_PASSWORD`) + signed-cookie session
-  (HMAC over `SESSION_SECRET`). reviewer (garrett / jamie) is stamped on every
-  action — it is attribution, not a security boundary.
+- auth: **google sign-in** restricted to the `windedvertigo.com` workspace. the
+  worker runs the oauth code flow itself (no cloudflare access dependency); the
+  google "internal" consent screen limits sign-in to the org, and the worker
+  re-checks the `hd` claim. the **signed-in email is the reviewer**, recorded
+  server-side on every action — it cannot be asserted by the client.
 
 modelled on `apps/ppcs-impact` (same worker + d1 + assets-binding shape).
+
+## auth — google oauth (windedvertigo.com only)
+
+- one **google oauth client** (web application), consent screen **internal**, with
+  authorised redirect uri `https://windedvertigo.com/tools/coding-verifier/api/auth/callback`.
+- config: `GOOGLE_CLIENT_ID` (a `vars` entry — not sensitive) + secrets
+  `GOOGLE_CLIENT_SECRET` and `SESSION_SECRET`.
+- to add/remove reviewers: nothing here — anyone with a `@windedvertigo.com`
+  google account can sign in. (narrow it later by switching to an explicit
+  allowlist in the worker or a cloudflare access policy.)
 
 ## routes
 
 | method | path | purpose |
 |---|---|---|
-| POST | `/api/login` | check password, set `cv_session` cookie |
+| GET | `/api/auth/login` | redirect to google (signed csrf state) |
+| GET | `/api/auth/callback` | exchange code, verify claims, set `cv_session` |
 | GET | `/api/logout` | clear session |
-| GET | `/api/session` | is the cookie valid? |
+| GET | `/api/session` | `{ ok, email }` |
 | GET | `/api/claims?status=&engagement=` | list (pending first) |
 | GET | `/api/claims/:id` | single claim + its audit trail |
-| POST | `/api/claims/:id/verify` | `{ reviewer }` → verified |
-| POST | `/api/claims/:id/flag` | `{ reviewer, note }` (note required) → flagged |
-| POST | `/api/claims/:id/adjudicate` | `{ reviewer, ruling, chosen? }` → adjudicated |
+| POST | `/api/claims/:id/verify` | → verified (reviewer = session email) |
+| POST | `/api/claims/:id/flag` | `{ note }` (required) → flagged |
+| POST | `/api/claims/:id/adjudicate` | `{ ruling, chosen? }` → adjudicated |
 | GET | `/api/stats` | dashboard tally |
 | GET | `/api/export?format=csv\|json` | full dump for the methods log |
 
@@ -55,28 +68,33 @@ modelled on `apps/ppcs-impact` (same worker + d1 + assets-binding shape).
 cd apps/coding-verifier
 npm install
 
-# 2 · create the d1 database (eu primary)
+# 2 · create the d1 database (eu primary)        — DONE: wv-coding-verifier (WEUR)
 npx wrangler d1 create wv-coding-verifier --location weur
-#   → copy the printed database_id into wrangler.jsonc (replaces PENDING_CREATE)
 
-# 3 · apply the schema
+# 3 · apply the schema                            — DONE
 npm run db:init
+# 3b · relax reviewer (enum → any email) for org-wide google sign-in
+npx wrangler d1 execute wv-coding-verifier --remote --file=migrations/0003_relax_reviewer.sql
 
-# 4 · load the seed (review seed.json first)
+# 4 · load the seed (review seed.json first)       — DONE
 npm run db:seed
 
-# 5 · set the secrets (you choose the password; it never enters the repo)
-npx wrangler secret put APP_PASSWORD
-npx wrangler secret put SESSION_SECRET   # a long random string
+# 5 · oauth config + secrets
+#   set GOOGLE_CLIENT_ID in wrangler.jsonc vars (from the google oauth client)
+npx wrangler secret put GOOGLE_CLIENT_SECRET --name wv-coding-verifier
+npx wrangler secret put SESSION_SECRET --name wv-coding-verifier   # already set
 
-# 6 · confirm the route in the cloudflare dashboard, then deploy
+# 6 · deploy
 npm run deploy
 ```
 
-verify live:
+verify live (signed out, expect the sign-in page + json gates):
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" https://windedvertigo.com/tools/coding-verifier/
+B=https://windedvertigo.com/tools/coding-verifier
+curl -s -o /dev/null -w "page %{http_code}\n" $B/
+curl -s $B/api/session            # {"ok":false,"email":null}
+curl -s $B/api/claims             # {"error":"unauthorised"}
 ```
 
 ## local development
