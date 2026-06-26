@@ -34,7 +34,7 @@
   // google oauth client id — not sensitive (it travels in the auth redirect url).
   // fill in after creating the oauth client in google cloud console.
   "vars": {
-    "GOOGLE_CLIENT_ID": "PENDING_GOOGLE_CLIENT_ID"
+    "GOOGLE_CLIENT_ID": "908615417485-k7pmikr5o0q8sr38v3sddg7cesostbdg.apps.googleusercontent.com"
   },
 
   // secrets (set via `wrangler secret put --name wv-coding-verifier`, never committed):
