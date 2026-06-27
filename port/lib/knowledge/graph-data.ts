@@ -1,0 +1,564 @@
+/**
+ * Knowledge graph data — extracted from all agent brain files.
+ *
+ * 131 nodes, 165 edges across 6 agents + shared concepts.
+ * Source: docs/{cmo,carl,pam,opsy,biz,fin}/ markdown files.
+ *
+ * TODO: move to a supabase table so agents can update the graph
+ * programmatically (e.g. cARL adds nodes when it discovers new
+ * research domains, Biz adds client nodes from proposals).
+ */
+
+// ── types ────────────────────────────────────────────────────
+
+export type AgentId = "mo" | "carl" | "pam" | "opsy" | "biz" | "fin" | "shared";
+
+export type NodeCategory =
+  | "agent"
+  | "organisation"
+  | "product"
+  | "platform"
+  | "project"
+  | "person"
+  | "service"
+  | "client"
+  | "partner"
+  | "research-domain"
+  | "research-program"
+  | "concept"
+  | "tool"
+  | "channel"
+  | "audience"
+  | "strategy"
+  | "competitor";
+
+export interface GraphNode {
+  id: string;
+  label: string;
+  agent: AgentId;
+  category: NodeCategory;
+  description: string;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  relationship: string;
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+// ── agent metadata ───────────────────────────────────────────
+
+export const AGENT_META: Record<AgentId, { color: string; light: string; label: string }> = {
+  mo:     { color: "#3b82f6", light: "#93c5fd", label: "Mo (CMO)" },
+  carl:   { color: "#10b981", light: "#6ee7b7", label: "cARL (research)" },
+  pam:    { color: "#f59e0b", light: "#fcd34d", label: "PaM (PM)" },
+  opsy:   { color: "#ef4444", light: "#fca5a5", label: "Opsy (ops)" },
+  biz:    { color: "#8b5cf6", light: "#c4b5fd", label: "Biz (BD)" },
+  fin:    { color: "#ec4899", light: "#f9a8d4", label: "Fin (CFO)" },
+  shared: { color: "#6b7280", light: "#d1d5db", label: "shared" },
+};
+
+// ── gap analysis ─────────────────────────────────────────────
+
+export interface Gap {
+  type: "isolated" | "shallow-research" | "ungrounded-product" | "thin-bridge" | "no-methodology";
+  severity: "high" | "medium" | "low";
+  title: string;
+  description: string;
+  nodeIds: string[];
+  /** what cARL should study to close this gap */
+  curriculumSuggestion?: string;
+}
+
+export function computeGaps(data: GraphData): Gap[] {
+  const gaps: Gap[] = [];
+
+  // build adjacency
+  const adj = new Map<string, Set<string>>();
+  const edgesByNode = new Map<string, GraphEdge[]>();
+  data.nodes.forEach((n) => {
+    adj.set(n.id, new Set());
+    edgesByNode.set(n.id, []);
+  });
+  data.edges.forEach((e) => {
+    adj.get(e.source)?.add(e.target);
+    adj.get(e.target)?.add(e.source);
+    edgesByNode.get(e.source)?.push(e);
+    edgesByNode.get(e.target)?.push(e);
+  });
+
+  const nodeMap = new Map(data.nodes.map((n) => [n.id, n]));
+
+  // 1. isolated nodes (0 connections, excluding agents themselves)
+  data.nodes.forEach((n) => {
+    if (n.category === "agent") return;
+    const degree = adj.get(n.id)?.size ?? 0;
+    if (degree === 0) {
+      gaps.push({
+        type: "isolated",
+        severity: "medium",
+        title: `${n.label} is isolated`,
+        description: `mentioned in brain files but has no mapped relationships. either the connection is implicit, or this node needs linking.`,
+        nodeIds: [n.id],
+        curriculumSuggestion: n.category === "concept"
+          ? `research how "${n.label}" connects to the collective's practice`
+          : undefined,
+      });
+    }
+  });
+
+  // 2. shallow research domains (research-domain with ≤1 concept connections)
+  data.nodes
+    .filter((n) => n.category === "research-domain")
+    .forEach((domain) => {
+      const conceptEdges = (edgesByNode.get(domain.id) ?? []).filter((e) => {
+        const otherId = e.source === domain.id ? e.target : e.source;
+        const other = nodeMap.get(otherId);
+        return other?.category === "concept";
+      });
+      if (conceptEdges.length <= 1) {
+        gaps.push({
+          type: "shallow-research",
+          severity: "high",
+          title: `"${domain.label}" has thin conceptual grounding`,
+          description: `this research domain connects to only ${conceptEdges.length} concept node(s). cARL should deepen the theoretical foundation.`,
+          nodeIds: [domain.id],
+          curriculumSuggestion: `study foundational theories and frameworks within "${domain.label}" — identify 3-5 key concepts, authors, and effect sizes`,
+        });
+      }
+    });
+
+  // 3. ungrounded products (products with no research-domain or concept edges)
+  data.nodes
+    .filter((n) => n.category === "product")
+    .forEach((product) => {
+      const researchEdges = (edgesByNode.get(product.id) ?? []).filter((e) => {
+        const otherId = e.source === product.id ? e.target : e.source;
+        const other = nodeMap.get(otherId);
+        return other?.category === "research-domain" || other?.category === "concept";
+      });
+      if (researchEdges.length === 0) {
+        gaps.push({
+          type: "ungrounded-product",
+          severity: "medium",
+          title: `"${product.label}" has no research backing`,
+          description: `this product isn't connected to any research domain or concept. it may work well in practice, but the evidence link is unmapped.`,
+          nodeIds: [product.id],
+          curriculumSuggestion: `identify the pedagogical theory that grounds "${product.label}" and map the evidence base`,
+        });
+      }
+    });
+
+  // 4. client projects without methodology nodes
+  data.nodes
+    .filter((n) => n.category === "project")
+    .forEach((project) => {
+      const methodEdges = (edgesByNode.get(project.id) ?? []).filter((e) => {
+        const otherId = e.source === project.id ? e.target : e.source;
+        const other = nodeMap.get(otherId);
+        return (
+          other?.category === "concept" &&
+          (other.description.includes("method") ||
+            other.description.includes("framework") ||
+            other.description.includes("evaluation") ||
+            other.description.includes("synthesis"))
+        );
+      });
+      // only flag projects that seem like client work (not infra projects)
+      const isClientWork = (edgesByNode.get(project.id) ?? []).some((e) => {
+        const otherId = e.source === project.id ? e.target : e.source;
+        return nodeMap.get(otherId)?.category === "client";
+      });
+      if (methodEdges.length === 0 && isClientWork) {
+        gaps.push({
+          type: "no-methodology",
+          severity: "low",
+          title: `"${project.label}" lacks explicit methodology`,
+          description: `this client project doesn't connect to any methodological concept. adding a framework strengthens proposals and deliverables.`,
+          nodeIds: [project.id],
+          curriculumSuggestion: `research appropriate evaluation/synthesis methodologies for "${project.label}"`,
+        });
+      }
+    });
+
+  // 5. thin inter-agent bridges
+  const agentIds = data.nodes.filter((n) => n.category === "agent").map((n) => n.id);
+  for (let i = 0; i < agentIds.length; i++) {
+    for (let j = i + 1; j < agentIds.length; j++) {
+      const a = agentIds[i];
+      const b = agentIds[j];
+      const directEdges = data.edges.filter(
+        (e) =>
+          (e.source === a && e.target === b) ||
+          (e.source === b && e.target === a),
+      );
+      if (directEdges.length === 0) {
+        const aNode = nodeMap.get(a);
+        const bNode = nodeMap.get(b);
+        if (aNode && bNode) {
+          gaps.push({
+            type: "thin-bridge",
+            severity: "low",
+            title: `${aNode.label} ↔ ${bNode.label} have no direct link`,
+            description: `these agents don't have a direct relationship edge. they may coordinate through shared nodes, but an explicit protocol is unmapped.`,
+            nodeIds: [a, b],
+          });
+        }
+      }
+    }
+  }
+
+  // sort by severity
+  const severityOrder = { high: 0, medium: 1, low: 2 };
+  gaps.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+
+  return gaps;
+}
+
+// ── graph data ───────────────────────────────────────────────
+
+export const GRAPH_DATA: GraphData = {
+  nodes: [
+    { id: "mo", label: "Mo", agent: "mo", category: "agent", description: "AI chief marketing officer — strategy, brand, pipeline, audience, content decisions" },
+    { id: "carl", label: "cARL", agent: "carl", category: "agent", description: "Cyber agent of research and learning — librarian, scholar, evidence synthesis" },
+    { id: "pam", label: "PaM", agent: "pam", category: "agent", description: "Project and momentum manager — commitments, dependencies, follow-ups" },
+    { id: "opsy", label: "Opsy", agent: "opsy", category: "agent", description: "Operations and systems intelligence — infrastructure health monitoring, auto-fixes" },
+    { id: "biz", label: "Biz", agent: "biz", category: "agent", description: "Business development agent — RFP processing, go/no-go, proposal QC" },
+    { id: "fin", label: "Fin", agent: "fin", category: "agent", description: "Chief financial officer agent — QBO, Gusto, tax calendar, financial dashboards" },
+
+    { id: "wv", label: "winded.vertigo", agent: "shared", category: "organisation", description: "Learning design collective — the parent entity operating as Winded Vertigo LLC" },
+    { id: "harbour", label: "harbour", agent: "shared", category: "product", description: "19-game playful learning platform for educators, launched May 28 2026" },
+    { id: "ppcs", label: "PPCS", agent: "shared", category: "product", description: "Pedagogy Certificate System — UN-backed evidence infrastructure + access to harbour games" },
+    { id: "creaseworks", label: "creaseworks", agent: "shared", category: "product", description: "Creative confidence toolkit and design thinking methodology for any subject" },
+    { id: "depth-chart", label: "depth-chart", agent: "shared", category: "product", description: "Learning design framework — evidence, lesson plans, implementation scaffolds" },
+    { id: "whirlpool", label: "whirlpool", agent: "shared", category: "product", description: "Weekly community learning events (Mon + Wed 4pm UTC) — free, public" },
+    { id: "port", label: "port", agent: "shared", category: "platform", description: "Internal AI proposal tooling, kanban, agent dashboards at port.windedvertigo.com" },
+    { id: "raft-house", label: "raft.house", agent: "shared", category: "product", description: "Harbour app with embodied phases and toy-threshold bridges" },
+    { id: "vertigo-vault", label: "vertigo vault", agent: "shared", category: "product", description: "Purchasable harbour game package" },
+    { id: "deep-deck", label: "deep deck", agent: "shared", category: "product", description: "Harbour game app for parents and families" },
+    { id: "the-raft", label: "the raft", agent: "shared", category: "product", description: "Harbour game app for learning designers and higher ed" },
+    { id: "play-fair-labs", label: "Play & Fair labs", agent: "shared", category: "research-program", description: "Independent research outputs on play-based learning impact" },
+    { id: "perpetual-labs", label: "Perpetual labs", agent: "shared", category: "research-program", description: "Research outputs for institutional-grade evidence" },
+    { id: "upaya", label: "upaya", agent: "shared", category: "tool", description: "Facilitation tool — four toy-threshold pairings inspired by Buddhist skillful means" },
+
+    { id: "garrett", label: "Garrett Jaeger", agent: "shared", category: "person", description: "Founder, principal lead — MEL, learning design strategy, client relationship, PhD" },
+    { id: "maria", label: "Maria Altamirano Gonzalez", agent: "shared", category: "person", description: "Practitioner & cultural appropriateness lead + operations, Mexico timezone" },
+    { id: "payton", label: "Payton Jaeger", agent: "shared", category: "person", description: "Visual communication, brand, director of marketing execution" },
+    { id: "jamie", label: "Jamie Galpin", agent: "shared", category: "person", description: "Curriculum, instructional writing, accessibility, PhD, UCL IOE affiliation" },
+    { id: "lamis", label: "Lamis Sabra", agent: "shared", category: "person", description: "Facilitation design, practitioner experience lead, PRME community, GMT+3" },
+    { id: "aaron-fruit", label: "Aaron Fruit", agent: "shared", category: "person", description: "Director of aesthetics, co-created brand guidelines" },
+
+    { id: "cloudflare", label: "Cloudflare", agent: "opsy", category: "service", description: "Workers (wv-site + ~17 harbour worker apps), WAF, DNS, R2 storage" },
+    { id: "vercel", label: "Vercel", agent: "opsy", category: "service", description: "Hosts port, nordic, creaseworks — Next.js deployment platform" },
+    { id: "supabase", label: "Supabase", agent: "opsy", category: "service", description: "Database — wv-port-pilot and wv-nordic projects, RLS-enabled" },
+    { id: "neon", label: "Neon", agent: "opsy", category: "service", description: "Postgres — 3 projects for serverless database" },
+    { id: "notion", label: "Notion", agent: "opsy", category: "service", description: "CMS, team plan, CRM contacts, content planning" },
+    { id: "resend", label: "Resend", agent: "opsy", category: "service", description: "Email sending platform on w.v domain" },
+    { id: "stripe", label: "Stripe", agent: "opsy", category: "service", description: "Payment processing + webhooks for creaseworks" },
+    { id: "github-actions", label: "GitHub Actions", agent: "opsy", category: "service", description: "CI/CD — lint, typecheck, deployment for some apps" },
+    { id: "r2", label: "R2", agent: "opsy", category: "service", description: "Cloudflare R2 storage — creaseworks-evidence bucket" },
+    { id: "anthropic", label: "Anthropic", agent: "opsy", category: "service", description: "Claude API via port — AI backbone for all agents" },
+    { id: "slack", label: "Slack", agent: "opsy", category: "service", description: "Team communication, #ops-alerts channel, bot integration" },
+    { id: "qbo", label: "QuickBooks Online", agent: "fin", category: "service", description: "P&L, balance sheet, AP/AR aging, invoices, bills" },
+    { id: "gusto", label: "Gusto", agent: "fin", category: "service", description: "Payroll runs, deductions, employee records" },
+    { id: "adp", label: "ADP", agent: "fin", category: "service", description: "Retirement plan #156733 — terminating June 30 2026, rollover needed" },
+    { id: "taxdome", label: "TaxDome", agent: "fin", category: "service", description: "Client portal for tax docs and organiser questionnaires" },
+
+    { id: "prme", label: "PRME", agent: "mo", category: "client", description: "UN Principles for Responsible Management Education — $145k contract" },
+    { id: "nordic", label: "Nordic Naturals", agent: "mo", category: "client", description: "SOW in progress — $50k + retainer, target June 30 close" },
+    { id: "idb", label: "IDB El Salvador", agent: "mo", category: "client", description: "Documentation phase — $50-100k, decision by July 15" },
+    { id: "amna", label: "Amna", agent: "carl", category: "client", description: "Amna Refugee Healing Network — signed $25k for 'Amna at 10' decade review" },
+    { id: "wtg", label: "William T. Grant Foundation", agent: "mo", category: "client", description: "Major pursuit for funding — not yet submitted" },
+    { id: "dw-akademie", label: "DW Akademie", agent: "mo", category: "client", description: "Proposal submitted, not awarded — removed from pipeline" },
+    { id: "icsp", label: "ICSP / Concern Worldwide", agent: "mo", category: "client", description: "Proposal submitted (~$31,700) — awaiting response" },
+    { id: "oxfam-dk", label: "Oxfam Denmark", agent: "mo", category: "client", description: "Submitted May 4 — learning + inclusion evidence analysis" },
+    { id: "unicef", label: "UNICEF", agent: "mo", category: "client", description: "Potential client — deadline June 8, no acceptance yet" },
+
+    { id: "threshold-concepts", label: "threshold concepts", agent: "carl", category: "research-domain", description: "Transformative conceptual gateways in learning — by discipline (music, economics, physics, biology)" },
+    { id: "play-based-learning", label: "play-based & experiential pedagogy", agent: "carl", category: "research-domain", description: "Research on play-based learning, embodied cognition, experiential pedagogy" },
+    { id: "ai-in-education", label: "AI in education", agent: "carl", category: "research-domain", description: "Research on AI applications in educational contexts" },
+    { id: "learning-design-udl", label: "learning design & UDL", agent: "carl", category: "research-domain", description: "Universal Design for Learning, instructional design patterns" },
+    { id: "cognitive-psychology", label: "cognitive psychology", agent: "carl", category: "research-domain", description: "Memory, embodied cognition, SLIMM, cognitive load" },
+    { id: "motivation-remote", label: "motivation & remote teams", agent: "carl", category: "research-domain", description: "Self-determination theory, async accountability, volunteer motivation" },
+    { id: "assessment-eval", label: "assessment & evaluation", agent: "carl", category: "research-domain", description: "Evaluation methodology, impact measurement" },
+    { id: "cultural-responsiveness", label: "cultural responsiveness", agent: "carl", category: "research-domain", description: "Cultural appropriateness in curriculum design" },
+    { id: "mhpss", label: "MHPSS", agent: "carl", category: "research-domain", description: "Mental health and psychosocial support — Amna engagement domain" },
+
+    { id: "sdt", label: "self-determination theory", agent: "carl", category: "concept", description: "Ryan & Deci — autonomy, competence, relatedness as intrinsic motivation drivers" },
+    { id: "implementation-intentions", label: "implementation intentions", agent: "carl", category: "concept", description: "Gollwitzer's if-then plans — d=0.65 effect on goal attainment" },
+    { id: "psychological-safety", label: "psychological safety", agent: "carl", category: "concept", description: "Edmondson's framework — precondition for learning behaviour in teams" },
+    { id: "goal-setting-theory", label: "goal-setting theory", agent: "carl", category: "concept", description: "Locke & Latham — specific, challenging goals with feedback moderators" },
+    { id: "kek", label: "KEK framework", agent: "shared", category: "concept", description: "Prior Knowledge -> Embodied Experience -> Knowledge (updated) — w.v's learning method" },
+    { id: "fold-unfold", label: "fold-unfold framework", agent: "shared", category: "concept", description: "Jamie's framework — find, fold, unfold, find again — creative process model" },
+    { id: "crowding-out", label: "volunteer crowding-out", agent: "carl", category: "concept", description: "Frey & Goette — introducing monetary payment reduces volunteer effort" },
+    { id: "realist-synthesis", label: "realist synthesis / CMO configs", agent: "carl", category: "concept", description: "Pawson & Tilley — context-mechanism-outcome configurations for programme evaluation" },
+    { id: "cerqual", label: "CERQual confidence framework", agent: "carl", category: "concept", description: "Evidence confidence rating — strong / emerging / gap with fixed claim language" },
+    { id: "iasc", label: "IASC intervention pyramid", agent: "carl", category: "concept", description: "Inter-Agency Standing Committee common M&E framework for MHPSS" },
+    { id: "contribution-analysis", label: "contribution analysis", agent: "carl", category: "concept", description: "Mayne — building contribution stories that name rival/co-contributing factors" },
+
+    { id: "press-play", label: "Press Play (Denmark)", agent: "mo", category: "partner", description: "Jan + Casper — co-facilitation partner, joint whirlpool sessions Mon & Wed" },
+    { id: "lightbulb", label: "Lightbulb Learning Lab", agent: "mo", category: "partner", description: "Sarah Wolman + Lisa Prince — team retreats, LEGO Foundation lineage, play conference co-convener" },
+    { id: "care-for-ed", label: "Care for Education", agent: "mo", category: "partner", description: "South African org — Michael (CSO), Brent Hutcheson (Six Bricks), LEGO Foundation roots" },
+    { id: "edu-for-sharing", label: "Education for Sharing", agent: "mo", category: "partner", description: "Dina Buchbinder — Ashoka fellow, 40+ countries, PRME collaboration" },
+    { id: "six-bricks", label: "Six Bricks", agent: "mo", category: "partner", description: "Brent Hutcheson — play-based learning methodology using LEGO bricks, massive Africa reach" },
+    { id: "lego-foundation", label: "LEGO Foundation", agent: "mo", category: "partner", description: "Global philanthropy + research engine — Harvard Project Zero, Learning Through Play" },
+    { id: "harvard-pz", label: "Harvard Project Zero", agent: "mo", category: "research-program", description: "8 years of LEGO Foundation play research — 'joyful, meaningful, actively engaging, iterative, socially interactive'" },
+
+    { id: "playposium", label: "Playposium", agent: "mo", category: "competitor", description: "Experiential gatherings for educators — 'playful mischief-makers' community model" },
+    { id: "ideo", label: "IDEO", agent: "mo", category: "competitor", description: "Aspirational model — design collective, IDEO U as content-as-marketing engine" },
+
+    { id: "straight-talk", label: "Straight Talk CPAs", agent: "fin", category: "partner", description: "Abhishek Sachdeva (bookkeeper/CFO), Sabir (CPA/tax adviser)" },
+    { id: "abhishek", label: "Abhishek Sachdeva", agent: "fin", category: "person", description: "Bookkeeper / CFO adviser at Straight Talk CPAs — monthly books, YTD reviews" },
+    { id: "sabir", label: "Sabir", agent: "fin", category: "person", description: "CPA / tax adviser at Straight Talk CPAs — 1120-S, quarterly estimates, Roth conversion" },
+
+    { id: "sarah-wolman", label: "Sarah Wolman", agent: "mo", category: "person", description: "Co-founder of Lightbulb, ex-LEGO Foundation Initiatives Lead" },
+    { id: "lisa-prince", label: "Lisa Prince", agent: "mo", category: "person", description: "Partner at Lightbulb Learning Lab, venue expert" },
+    { id: "brent", label: "Brent Hutcheson", agent: "mo", category: "person", description: "Founder of Six Bricks — play-based learning methodology, friend of Garrett" },
+    { id: "michael-cfe", label: "Michael (Care for Education)", agent: "mo", category: "person", description: "CSO of Care for Education, former LEGO Foundation colleague of Garrett" },
+    { id: "dina", label: "Dina Buchbinder", agent: "mo", category: "person", description: "Founder of Education for Sharing, Ashoka fellow, close friend of Garrett" },
+    { id: "meredith", label: "Meredith", agent: "mo", category: "person", description: "Contact at UN Global Compact — PRME network connection" },
+
+    { id: "play-conference", label: "play conference 2027", agent: "mo", category: "project", description: "In-person NYC event Oct 2027 — ~300 people, co-convened with Lightbulb + Press Play" },
+    { id: "play-webinar-2026", label: "play webinar Oct 2026", agent: "mo", category: "project", description: "Online prototype — 2-3 hour mini-conference, ~100 participants, rehearsal for 2027" },
+    { id: "amna-at-10", label: "Amna at 10 project", agent: "carl", category: "project", description: "Decade review (2016-2026) — desk review, evidence synthesis, impact brief, learning synthesis" },
+    { id: "ppcs-impact", label: "PPCS Impact Dashboard", agent: "shared", category: "project", description: "D1-backed engagement dashboard — apps/ppcs-impact, no PII" },
+    { id: "rfp-lighthouse", label: "RFP Lighthouse", agent: "biz", category: "project", description: "Dashboard + Biz agent for proposal management, go/no-go, pipeline tracking" },
+    { id: "wv-site", label: "wv-site", agent: "opsy", category: "project", description: "Main windedvertigo.com Next.js app — CF Worker, marketing site + harbour landing" },
+    { id: "nordic-app", label: "nordic app", agent: "opsy", category: "project", description: "Nordic Naturals application — Vercel-hosted, CI auto-deploy" },
+
+    { id: "linkedin", label: "LinkedIn", agent: "mo", category: "channel", description: "2-3 posts/week — thought leadership, institutional leads, Garrett's voice" },
+    { id: "instagram", label: "Instagram", agent: "mo", category: "channel", description: "4-5 posts/week — community building, email capture, parents + teachers, Payton owns" },
+    { id: "bluesky", label: "Bluesky", agent: "mo", category: "channel", description: "3-4 posts/week — educator community, early adopters, conversational tone" },
+    { id: "substack", label: "Substack", agent: "mo", category: "channel", description: "2 essays/month — long-form authority, designer audience, Jamie + Garrett" },
+    { id: "email-campaigns", label: "email campaigns", agent: "mo", category: "channel", description: "Weekly digest + campaigns via Resend + Port CRM — nurture, whirlpool attendance" },
+
+    { id: "seg-k12", label: "K-12 educators", agent: "mo", category: "audience", description: "Classroom teachers grades K-12, curriculum leads, 10-25 years in role" },
+    { id: "seg-higher-ed", label: "higher ed faculty", agent: "mo", category: "audience", description: "Tenured and early-career faculty — education, business, design, intl development" },
+    { id: "seg-parents", label: "parents & families", agent: "mo", category: "audience", description: "Parents 25-55, homeschooling, traditional school — SEL, play-based learning interest" },
+    { id: "seg-learning-designers", label: "learning designers", agent: "mo", category: "audience", description: "Corporate L&D, ed tech, freelance instructional designers" },
+    { id: "seg-institutional", label: "institutional buyers", agent: "mo", category: "audience", description: "UN agencies, foundations, government ministries, development banks — 6-18 month procurement" },
+    { id: "seg-edtech", label: "edtech communities", agent: "mo", category: "audience", description: "EdTech founders, product managers, UX researchers in learning tech" },
+
+    { id: "strategy-500k", label: "$500k revenue target", agent: "mo", category: "strategy", description: "Sign $500k in new contracts by September 2026 — existence-level priority" },
+    { id: "content-engine", label: "content engine", agent: "mo", category: "strategy", description: "Multi-channel content system — substack, social, email, guest posts, conference presence" },
+    { id: "warm-outreach", label: "warm network activation", agent: "mo", category: "strategy", description: "50+ dormant relationships reactivated — personal emails, not templated" },
+    { id: "conference-strategy", label: "conference injection", agent: "mo", category: "strategy", description: "PEDAL, ISTE, ASCD — speaking slots, sponsor visibility, direct sales conversations" },
+    { id: "community-led-growth", label: "community-led growth", agent: "mo", category: "strategy", description: "Whirlpool -> harbour -> PPCS funnel — community first, relationship-driven" },
+    { id: "spark-lead-build", label: "spark/lead/build service ladder", agent: "mo", category: "strategy", description: "Spark ($15k entry), Lead (workshops), Build (full conference management) — play conference services" },
+
+    { id: "playful-human-dynamic", label: "playful.human.dynamic", agent: "mo", category: "concept", description: "Three words defining the brand verbal identity" },
+    { id: "brand-voice", label: "brand voice rules", agent: "mo", category: "concept", description: "Lowercase, British spelling, Oxford comma, period in winded.vertigo, no buzzword soup" },
+
+    { id: "memory-api", label: "memory API", agent: "shared", category: "platform", description: "port.windedvertigo.com API — /api/{cmo,pam,carl,opsy}/ for agent memory read/write" },
+    { id: "mcp-server", label: "MCP server route", agent: "shared", category: "platform", description: "port/app/api/mcp/agents/[agent]/route.ts — JSON-RPC 2.0 shim for all agents" },
+    { id: "cowork", label: "Cowork", agent: "shared", category: "platform", description: "Claude Desktop plugin ecosystem — agents connect via OAuth + MCP" },
+
+    { id: "bid-decision", label: "bid decision / go-no-go", agent: "biz", category: "tool", description: "Weighted P-win scorecard — pass/fail eligibility, auto-verdict bands (<40/40-70/>70)" },
+    { id: "qc-review", label: "QC review", agent: "biz", category: "tool", description: "Red-team draft vs funder's evaluation rubric — the QC gate" },
+    { id: "conflict-detection", label: "conflict detection", agent: "biz", category: "tool", description: "Cross-source conflict detection — deal-page vs docs vs within-draft drift" },
+    { id: "cv-dedup", label: "CV de-duplication", agent: "biz", category: "tool", description: "Block identical copy-pasted experience entries — Maria's #1 credibility issue" },
+    { id: "health-dashboard", label: "ops health dashboard", agent: "opsy", category: "tool", description: "port.windedvertigo.com/ops — traffic-light cards for nordic, harbour, website" },
+    { id: "strategy-dashboard", label: "strategy dashboard", agent: "mo", category: "tool", description: "port.windedvertigo.com/strategy — campaigns, timelines, KPIs, delegation, Mo log" },
+    { id: "finances-dashboard", label: "finances dashboard", agent: "fin", category: "tool", description: "port.windedvertigo.com/finances — cash position, P&L, AP/AR, payroll, action items" },
+    { id: "carl-dashboard", label: "research dashboard", agent: "carl", category: "tool", description: "port.windedvertigo.com/carl — research library grid, 85+ findings, domain tiles" },
+
+    { id: "crossref", label: "Crossref", agent: "carl", category: "service", description: "Academic literature API used by cARL for daily research" },
+    { id: "openalex", label: "OpenAlex", agent: "carl", category: "service", description: "Academic literature API used by cARL for daily research" },
+    { id: "semantic-scholar", label: "Semantic Scholar", agent: "carl", category: "service", description: "Academic literature API used by cARL for daily research" },
+
+    { id: "waf-rule", label: "WAF AI-bot rule", agent: "opsy", category: "concept", description: "Cloudflare WAF carve-out — allows Anthropic MCP + OAuth on API paths, removing blocks AI-bot UAs" },
+    { id: "isr-cache", label: "ISR cache (KV)", agent: "opsy", category: "concept", description: "Incremental static regeneration backed by Cloudflare KV — not static assets" },
+    { id: "rls", label: "Row Level Security", agent: "opsy", category: "concept", description: "Supabase RLS enabled on all tables — security requirement for all new tables" },
+  ],
+
+  edges: [
+    { source: "mo", target: "pam", relationship: "decisions-inform" },
+    { source: "mo", target: "carl", relationship: "requests-research-from" },
+    { source: "carl", target: "mo", relationship: "delivers-research-to" },
+    { source: "carl", target: "pam", relationship: "delivers-research-to" },
+    { source: "opsy", target: "pam", relationship: "creates-commitments-in" },
+    { source: "opsy", target: "carl", relationship: "requests-research-from" },
+    { source: "opsy", target: "mo", relationship: "informs-about-infrastructure" },
+    { source: "pam", target: "mo", relationship: "reads-decisions-from" },
+    { source: "fin", target: "pam", relationship: "creates-commitments-via" },
+    { source: "fin", target: "opsy", relationship: "coordinates-with" },
+    { source: "fin", target: "mo", relationship: "informs-budget" },
+    { source: "biz", target: "fin", relationship: "receives-budget-from" },
+    { source: "biz", target: "pam", relationship: "hands-off-deadlines-to" },
+
+    { source: "wv", target: "harbour", relationship: "operates" },
+    { source: "wv", target: "ppcs", relationship: "operates" },
+    { source: "wv", target: "creaseworks", relationship: "operates" },
+    { source: "wv", target: "depth-chart", relationship: "operates" },
+    { source: "wv", target: "whirlpool", relationship: "operates" },
+    { source: "wv", target: "port", relationship: "operates" },
+    { source: "wv", target: "play-fair-labs", relationship: "operates" },
+    { source: "harbour", target: "creaseworks", relationship: "contains" },
+    { source: "harbour", target: "vertigo-vault", relationship: "contains" },
+    { source: "harbour", target: "deep-deck", relationship: "contains" },
+    { source: "harbour", target: "depth-chart", relationship: "contains" },
+    { source: "harbour", target: "the-raft", relationship: "contains" },
+    { source: "harbour", target: "raft-house", relationship: "contains" },
+
+    { source: "garrett", target: "wv", relationship: "founded" },
+    { source: "garrett", target: "mo", relationship: "sponsors-and-directs" },
+    { source: "garrett", target: "linkedin", relationship: "owns-voice-on" },
+    { source: "garrett", target: "warm-outreach", relationship: "owns" },
+    { source: "maria", target: "cultural-responsiveness", relationship: "leads" },
+    { source: "maria", target: "ppcs", relationship: "facilitates" },
+    { source: "maria", target: "harbour", relationship: "leads-QA-for" },
+    { source: "payton", target: "instagram", relationship: "owns" },
+    { source: "payton", target: "content-engine", relationship: "executes" },
+    { source: "payton", target: "play-conference", relationship: "owns-campaign-for" },
+    { source: "jamie", target: "substack", relationship: "primary-author-on" },
+    { source: "jamie", target: "fold-unfold", relationship: "created" },
+    { source: "jamie", target: "amna-at-10", relationship: "researcher-on" },
+    { source: "lamis", target: "whirlpool", relationship: "facilitates" },
+    { source: "lamis", target: "ppcs", relationship: "facilitates" },
+    { source: "lamis", target: "play-conference", relationship: "hosts-playdates-for" },
+
+    { source: "port", target: "memory-api", relationship: "hosts" },
+    { source: "port", target: "mcp-server", relationship: "hosts" },
+    { source: "port", target: "strategy-dashboard", relationship: "hosts" },
+    { source: "port", target: "health-dashboard", relationship: "hosts" },
+    { source: "port", target: "finances-dashboard", relationship: "hosts" },
+    { source: "port", target: "carl-dashboard", relationship: "hosts" },
+    { source: "port", target: "rfp-lighthouse", relationship: "hosts" },
+    { source: "mcp-server", target: "cowork", relationship: "connects-to" },
+    { source: "mo", target: "memory-api", relationship: "reads-and-writes" },
+    { source: "pam", target: "memory-api", relationship: "reads-and-writes" },
+    { source: "carl", target: "memory-api", relationship: "reads-and-writes" },
+    { source: "opsy", target: "memory-api", relationship: "reads-and-writes" },
+    { source: "fin", target: "memory-api", relationship: "reads-and-writes" },
+    { source: "biz", target: "memory-api", relationship: "reads-and-writes" },
+
+    { source: "wv-site", target: "cloudflare", relationship: "deployed-on" },
+    { source: "harbour", target: "cloudflare", relationship: "deployed-on" },
+    { source: "port", target: "vercel", relationship: "deployed-on" },
+    { source: "nordic-app", target: "vercel", relationship: "deployed-on" },
+    { source: "creaseworks", target: "vercel", relationship: "deployed-on" },
+    { source: "port", target: "supabase", relationship: "uses-database" },
+    { source: "nordic-app", target: "supabase", relationship: "uses-database" },
+    { source: "ppcs-impact", target: "cloudflare", relationship: "uses-D1-database" },
+    { source: "creaseworks", target: "r2", relationship: "stores-evidence-in" },
+    { source: "creaseworks", target: "stripe", relationship: "processes-payments-via" },
+    { source: "wv-site", target: "isr-cache", relationship: "uses" },
+    { source: "wv-site", target: "waf-rule", relationship: "protected-by" },
+    { source: "opsy", target: "rls", relationship: "enforces" },
+
+    { source: "opsy", target: "cloudflare", relationship: "monitors" },
+    { source: "opsy", target: "vercel", relationship: "monitors" },
+    { source: "opsy", target: "supabase", relationship: "monitors" },
+    { source: "opsy", target: "neon", relationship: "monitors" },
+    { source: "opsy", target: "notion", relationship: "monitors" },
+    { source: "opsy", target: "resend", relationship: "monitors" },
+    { source: "opsy", target: "stripe", relationship: "monitors" },
+    { source: "opsy", target: "github-actions", relationship: "monitors" },
+    { source: "opsy", target: "slack", relationship: "alerts-via" },
+
+    { source: "carl", target: "crossref", relationship: "queries" },
+    { source: "carl", target: "openalex", relationship: "queries" },
+    { source: "carl", target: "semantic-scholar", relationship: "queries" },
+    { source: "carl", target: "threshold-concepts", relationship: "studies" },
+    { source: "carl", target: "play-based-learning", relationship: "studies" },
+    { source: "carl", target: "ai-in-education", relationship: "studies" },
+    { source: "carl", target: "learning-design-udl", relationship: "studies" },
+    { source: "carl", target: "cognitive-psychology", relationship: "studies" },
+    { source: "carl", target: "motivation-remote", relationship: "studies" },
+    { source: "carl", target: "assessment-eval", relationship: "studies" },
+    { source: "carl", target: "cultural-responsiveness", relationship: "studies" },
+    { source: "carl", target: "mhpss", relationship: "studies" },
+    { source: "carl", target: "amna-at-10", relationship: "supports-methodology-for" },
+
+    { source: "amna-at-10", target: "realist-synthesis", relationship: "uses-method" },
+    { source: "amna-at-10", target: "cerqual", relationship: "uses-method" },
+    { source: "amna-at-10", target: "contribution-analysis", relationship: "uses-method" },
+    { source: "amna-at-10", target: "iasc", relationship: "maps-outcomes-to" },
+    { source: "amna-at-10", target: "mhpss", relationship: "domain" },
+    { source: "amna", target: "amna-at-10", relationship: "commissioned" },
+
+    { source: "motivation-remote", target: "sdt", relationship: "anchored-in" },
+    { source: "motivation-remote", target: "implementation-intentions", relationship: "applies" },
+    { source: "motivation-remote", target: "psychological-safety", relationship: "requires" },
+    { source: "motivation-remote", target: "goal-setting-theory", relationship: "applies" },
+    { source: "motivation-remote", target: "crowding-out", relationship: "warns-about" },
+
+    { source: "mo", target: "strategy-500k", relationship: "drives" },
+    { source: "mo", target: "content-engine", relationship: "orchestrates" },
+    { source: "mo", target: "warm-outreach", relationship: "orchestrates" },
+    { source: "mo", target: "conference-strategy", relationship: "orchestrates" },
+    { source: "mo", target: "community-led-growth", relationship: "orchestrates" },
+    { source: "mo", target: "play-conference", relationship: "owns-strategy-for" },
+    { source: "mo", target: "harbour", relationship: "markets" },
+    { source: "mo", target: "ppcs", relationship: "markets" },
+
+    { source: "mo", target: "seg-k12", relationship: "targets" },
+    { source: "mo", target: "seg-higher-ed", relationship: "targets" },
+    { source: "mo", target: "seg-parents", relationship: "targets" },
+    { source: "mo", target: "seg-learning-designers", relationship: "targets" },
+    { source: "mo", target: "seg-institutional", relationship: "targets" },
+    { source: "mo", target: "seg-edtech", relationship: "targets" },
+
+    { source: "play-conference", target: "lightbulb", relationship: "co-convened-with" },
+    { source: "play-conference", target: "press-play", relationship: "co-convened-with" },
+    { source: "play-conference", target: "play-webinar-2026", relationship: "prototyped-by" },
+    { source: "play-conference", target: "spark-lead-build", relationship: "monetised-via" },
+    { source: "play-conference", target: "substack", relationship: "runway-via" },
+
+    { source: "wv", target: "press-play", relationship: "partners-with" },
+    { source: "wv", target: "lightbulb", relationship: "partners-with" },
+    { source: "wv", target: "care-for-ed", relationship: "partners-with" },
+    { source: "wv", target: "edu-for-sharing", relationship: "partners-with" },
+    { source: "lightbulb", target: "lego-foundation", relationship: "descended-from" },
+    { source: "care-for-ed", target: "lego-foundation", relationship: "descended-from" },
+    { source: "care-for-ed", target: "six-bricks", relationship: "associated-with" },
+    { source: "lego-foundation", target: "harvard-pz", relationship: "funded" },
+    { source: "harvard-pz", target: "play-based-learning", relationship: "researches" },
+    { source: "sarah-wolman", target: "lightbulb", relationship: "co-founded" },
+    { source: "sarah-wolman", target: "lego-foundation", relationship: "ex-initiatives-lead" },
+    { source: "brent", target: "six-bricks", relationship: "founded" },
+    { source: "michael-cfe", target: "care-for-ed", relationship: "leads" },
+    { source: "dina", target: "edu-for-sharing", relationship: "founded" },
+
+    { source: "fin", target: "qbo", relationship: "reads-data-from" },
+    { source: "fin", target: "gusto", relationship: "reads-data-from" },
+    { source: "fin", target: "adp", relationship: "tracks-rollover-of" },
+    { source: "fin", target: "taxdome", relationship: "monitors-via-gmail" },
+    { source: "fin", target: "straight-talk", relationship: "escalates-to" },
+    { source: "abhishek", target: "straight-talk", relationship: "works-at" },
+    { source: "sabir", target: "straight-talk", relationship: "works-at" },
+
+    { source: "ppcs", target: "prme", relationship: "delivers-for" },
+    { source: "harbour", target: "ppcs", relationship: "games-accessed-via" },
+    { source: "whirlpool", target: "community-led-growth", relationship: "feeds" },
+    { source: "harbour", target: "community-led-growth", relationship: "feeds" },
+    { source: "content-engine", target: "substack", relationship: "publishes-via" },
+    { source: "content-engine", target: "linkedin", relationship: "publishes-via" },
+    { source: "content-engine", target: "instagram", relationship: "publishes-via" },
+    { source: "content-engine", target: "bluesky", relationship: "publishes-via" },
+    { source: "content-engine", target: "email-campaigns", relationship: "publishes-via" },
+
+    { source: "threshold-concepts", target: "harbour", relationship: "embodied-in" },
+    { source: "kek", target: "harbour", relationship: "applied-in" },
+    { source: "fold-unfold", target: "substack", relationship: "published-via" },
+    { source: "play-based-learning", target: "harbour", relationship: "grounds" },
+    { source: "learning-design-udl", target: "harbour", relationship: "informs-design-of" },
+
+    { source: "biz", target: "bid-decision", relationship: "uses" },
+    { source: "biz", target: "qc-review", relationship: "uses" },
+    { source: "biz", target: "conflict-detection", relationship: "uses" },
+    { source: "biz", target: "cv-dedup", relationship: "uses" },
+    { source: "biz", target: "rfp-lighthouse", relationship: "drives" },
+
+    { source: "playful-human-dynamic", target: "brand-voice", relationship: "defines" },
+    { source: "brand-voice", target: "wv", relationship: "governs-communications-for" },
+
+    { source: "email-campaigns", target: "resend", relationship: "sent-via" },
+    { source: "port", target: "anthropic", relationship: "uses-API-of" },
+  ],
+};
