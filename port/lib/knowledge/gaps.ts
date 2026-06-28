@@ -191,7 +191,9 @@ export function computeGaps(data: GraphData): Gap[] {
     ),
   );
 
-  // 6. capability gaps — agents observe a concept no human lists as a skill
+  // 6. capability gaps — a concept the collective REPEATEDLY works on (referenced
+  //    3+ times across agents) that no human lists as a skill. The repetition
+  //    filter keeps this to genuine themes, not one-off extractions.
   if (skills.length > 0) {
     const seen = new Set<string>();
     concepts
@@ -199,12 +201,13 @@ export function computeGaps(data: GraphData): Gap[] {
       .forEach((concept) => {
         const key = concept.canonicalKey ?? canonicalKey(concept.label);
         if (humanKeys.has(key) || seen.has(key)) return;
+        if ((neighbours.get(concept.id)?.size ?? 0) < 3) return;
         seen.add(key);
         gaps.push({
           type: "capability-gap",
-          severity: "high",
-          title: `agents work on "${concept.label}" but no human claims it`,
-          description: `the agents reference "${concept.label}" in their logs, but it isn't a Skill on anyone's CV. candidate for a new Skills entry.`,
+          severity: "medium",
+          title: `agents repeatedly work on "${concept.label}" but no human claims it`,
+          description: `the agents reference "${concept.label}" across their work, but it isn't a Skill on anyone's CV. strong candidate for a new Skills entry.`,
           nodeIds: [concept.id],
           curriculumSuggestion: `decide whether "${concept.label}" should become a named Skill the collective markets`,
         });
@@ -253,10 +256,13 @@ export function computeGaps(data: GraphData): Gap[] {
       .filter((n) => n?.category === "skill");
     heldSkills.forEach((skill) => {
       if (!skill) return;
-      const demonstrated = (edgesByNode.get(skill.id) ?? []).some((e) => {
-        const o = other(e, skill.id);
-        return nodeMap.get(o)?.category === "cv-entry" && memberEntries.has(o);
-      });
+      const skillEntries = (edgesByNode.get(skill.id) ?? []).filter(
+        (e) => nodeMap.get(other(e, skill.id))?.category === "cv-entry",
+      );
+      // only an *asymmetry* if the skill is evidenced for someone — otherwise
+      // it's covered by claimed-unevidenced, not here.
+      if (skillEntries.length === 0) return;
+      const demonstrated = skillEntries.some((e) => memberEntries.has(other(e, skill.id)));
       if (!demonstrated) {
         gaps.push({
           type: "evidence-asymmetry",
