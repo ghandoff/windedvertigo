@@ -29,11 +29,23 @@ const url = env("NEXT_PUBLIC_SUPABASE_URL");
 const key = env("SUPABASE_SECRET_KEY");
 
 async function all(table, select) {
-  const res = await fetch(`${url}/rest/v1/${table}?select=${select}`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
-  });
-  if (!res.ok) throw new Error(`${table}: ${res.status} ${await res.text()}`);
-  return res.json();
+  // paginate past PostgREST's 1000-row default
+  const rows = [];
+  for (let offset = 0; ; offset += 1000) {
+    const res = await fetch(`${url}/rest/v1/${table}?select=${select}`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        Range: `${offset}-${offset + 999}`,
+        "Range-Unit": "items",
+      },
+    });
+    if (!res.ok) throw new Error(`${table}: ${res.status} ${await res.text()}`);
+    const batch = await res.json();
+    rows.push(...batch);
+    if (batch.length < 1000) break;
+  }
+  return rows;
 }
 
 const nodeRows = await all("knowledge_nodes", "id,label,category,kind,source,canonical_key,description,attrs,last_seen_at");
