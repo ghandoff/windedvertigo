@@ -148,5 +148,9 @@ export function canonicalKey(label: string): string {
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    // strip trailing academic credentials so "garrett jaeger, phd" merges with
+    // the curated "garrett jaeger" (unambiguous suffixes only)
+    .replace(/\s+(phd|ph d|md|mba|msc|edd|dphil)$/g, "")
     .trim();
 }
