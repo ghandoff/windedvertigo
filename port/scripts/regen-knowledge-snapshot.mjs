@@ -39,6 +39,8 @@ async function all(table, select) {
 const nodeRows = await all("knowledge_nodes", "id,label,category,kind,source,canonical_key,description,attrs,last_seen_at");
 const edgeRows = await all("knowledge_edges", "source_id,target_id,relationship,source");
 
+// Omit volatile fields (last_seen_at) so the committed snapshot is stable
+// across regens — it changes only when the graph's structure changes.
 const nodes = nodeRows.map((r) => ({
   id: r.id,
   label: r.label,
@@ -47,8 +49,6 @@ const nodes = nodeRows.map((r) => ({
   description: r.description || "",
   kind: r.kind,
   source: r.source,
-  canonicalKey: r.canonical_key,
-  lastSeenAt: r.last_seen_at,
 }));
 const edges = edgeRows.map((e) => ({
   source: e.source_id,
@@ -57,11 +57,13 @@ const edges = edgeRows.map((e) => ({
   kind: e.source,
 }));
 
+// one object per line — compact but diff-friendly
+const fmt = (arr) => "[\n" + arr.map((o) => "    " + JSON.stringify(o)).join(",\n") + "\n  ]";
 const file = resolve(root, "lib/knowledge/graph-data.ts");
 const src = readFileSync(file, "utf8");
 const marker = "export const GRAPH_DATA";
 const head = src.slice(0, src.indexOf(marker));
-const block = `export const GRAPH_DATA: GraphData = ${JSON.stringify({ nodes, edges }, null, 2)};\n`;
+const block = `export const GRAPH_DATA: GraphData = {\n  nodes: ${fmt(nodes)},\n  edges: ${fmt(edges)},\n};\n`;
 writeFileSync(file, head + block);
 
 console.log(`snapshot regenerated: ${nodes.length} nodes, ${edges.length} edges → lib/knowledge/graph-data.ts`);
