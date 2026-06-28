@@ -14,7 +14,7 @@
 
 import { supabase } from "@/lib/supabase/client";
 import { judgePairs, type JudgePair } from "@/lib/ai/reconcile-judge";
-import { upsertEdges, type EdgeInput } from "./supabase";
+import { upsertEdges, selectAll, type EdgeInput } from "./supabase";
 
 interface MiniNode {
   id: string;
@@ -42,11 +42,7 @@ const tokens = (key: string) => key.split(" ").filter((t) => t.length >= 4);
 const pairKey = (a: string, b: string) => (a <= b ? `${a}::${b}` : `${b}::${a}`);
 
 export async function reconcileFuzzy(syncTs: string, userId = "knowledge-sync"): Promise<FuzzyResult> {
-  const { data, error } = await supabase
-    .from("knowledge_nodes")
-    .select("id, kind, category, label, canonical_key");
-  if (error) throw new Error(`[reconcile-fuzzy] read: ${error.message}`);
-  const nodes = (data ?? []) as MiniNode[];
+  const nodes = await selectAll<MiniNode>("knowledge_nodes", "id, kind, category, label, canonical_key");
 
   const caps = nodes.filter((n) => CAP_CATEGORIES.has(n.category) && (n.kind === "human" || n.kind === "shared"));
   const concepts = nodes.filter((n) => n.category === "concept" && (n.kind === "agent" || n.kind === "shared"));

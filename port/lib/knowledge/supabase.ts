@@ -91,22 +91,33 @@ function rowToNode(r: NodeRow): GraphNode {
  * Read the entire graph for /brain. Returns null if the table is empty or
  * unreachable so the caller can fall back to the committed const snapshot.
  */
+/** Paginate past PostgREST's 1000-row default so large graphs read in full. */
+export async function selectAll<T>(table: string, cols: string): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from(table).select(cols).range(from, from + 999);
+    if (error) throw error;
+    const rows = (data ?? []) as T[];
+    out.push(...rows);
+    if (rows.length < 1000) break;
+  }
+  return out;
+}
+
 export async function fetchGraphData(): Promise<GraphData | null> {
   try {
-    const [nodesRes, edgesRes] = await Promise.all([
-      supabase
-        .from("knowledge_nodes")
-        .select("id, kind, category, label, canonical_key, source, source_ref, description, attrs, last_seen_at"),
-      supabase.from("knowledge_edges").select("source_id, target_id, relationship, source, attrs"),
+    const [nodeRows, edgeRows] = await Promise.all([
+      selectAll<NodeRow>(
+        "knowledge_nodes",
+        "id, kind, category, label, canonical_key, source, source_ref, description, attrs, last_seen_at",
+      ),
+      selectAll<EdgeRow>("knowledge_edges", "source_id, target_id, relationship, source, attrs"),
     ]);
-    if (nodesRes.error) throw nodesRes.error;
-    if (edgesRes.error) throw edgesRes.error;
-    const nodeRows = (nodesRes.data ?? []) as NodeRow[];
     if (nodeRows.length === 0) return null;
 
     const nodes = nodeRows.map(rowToNode);
     const validIds = new Set(nodes.map((n) => n.id));
-    const edges: GraphEdge[] = ((edgesRes.data ?? []) as EdgeRow[])
+    const edges: GraphEdge[] = edgeRows
       // drop dangling edges defensively (FK should prevent, but be safe for the sim)
       .filter((e) => validIds.has(e.source_id) && validIds.has(e.target_id))
       .map((e) => ({ source: e.source_id, target: e.target_id, relationship: e.relationship, kind: e.source }));
@@ -205,12 +216,13 @@ export async function pruneStaleNodes(syncTs: string): Promise<number> {
 
 /** Drop edges whose endpoints no longer exist (after a sync), keeping the graph clean. */
 export async function pruneDanglingEdges(): Promise<number> {
-  const { data: nodeIds } = await supabase.from("knowledge_nodes").select("id");
-  const valid = new Set((nodeIds ?? []).map((r: { id: string }) => r.id));
-  const { data: edges } = await supabase
-    .from("knowledge_edges")
-    .select("id, source_id, target_id");
-  const dangling = ((edges ?? []) as { id: string; source_id: string; target_id: string }[])
+  const nodeIds = await selectAll<{ id: string }>("knowledge_nodes", "id");
+  const valid = new Set(nodeIds.map((r) => r.id));
+  const edges = await selectAll<{ id: string; source_id: string; target_id: string }>(
+    "knowledge_edges",
+    "id, source_id, target_id",
+  );
+  const dangling = edges
     .filter((e) => !valid.has(e.source_id) || !valid.has(e.target_id))
     .map((e) => e.id);
   for (let i = 0; i < dangling.length; i += 500) {
