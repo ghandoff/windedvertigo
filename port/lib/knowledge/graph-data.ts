@@ -1,226 +1,33 @@
 /**
- * Knowledge graph data — extracted from all agent brain files.
+ * Knowledge graph — committed snapshot / backup.
  *
- * 131 nodes, 165 edges across 6 agents + shared concepts.
- * Source: docs/{cmo,carl,pam,opsy,biz,fin}/ markdown files.
+ * SOURCE OF TRUTH is now Supabase (`knowledge_nodes` / `knowledge_edges`),
+ * populated by the daily `knowledge-sync` cron from three sources: Notion CV
+ * (human), live agent tables (agent), and this curated seed. The sync
+ * REGENERATES this file each run so /brain still renders if the DB is
+ * unreachable, and git tracks how the graph evolves.
  *
- * TODO: move to a supabase table so agents can update the graph
- * programmatically (e.g. cARL adds nodes when it discovers new
- * research domains, Biz adds client nodes from proposals).
+ * Types live in ./types; gap analysis in ./gaps. This file is data + re-exports
+ * (so existing importers of "@/lib/knowledge/graph-data" keep working).
  */
 
-// ── types ────────────────────────────────────────────────────
+import type { GraphData } from "./types";
 
-export type AgentId = "mo" | "carl" | "pam" | "opsy" | "biz" | "fin" | "shared";
+export { AGENT_META, PROVENANCE_META, getNodeColor, canonicalKey } from "./types";
+export type {
+  AgentId,
+  NodeKind,
+  NodeSource,
+  NodeCategory,
+  GraphNode,
+  GraphEdge,
+  GraphData,
+  Gap,
+  GapType,
+} from "./types";
+export { computeGaps } from "./gaps";
 
-export type NodeCategory =
-  | "agent"
-  | "organisation"
-  | "product"
-  | "platform"
-  | "project"
-  | "person"
-  | "service"
-  | "client"
-  | "partner"
-  | "research-domain"
-  | "research-program"
-  | "concept"
-  | "tool"
-  | "channel"
-  | "audience"
-  | "strategy"
-  | "competitor";
-
-export interface GraphNode {
-  id: string;
-  label: string;
-  agent: AgentId;
-  category: NodeCategory;
-  description: string;
-}
-
-export interface GraphEdge {
-  source: string;
-  target: string;
-  relationship: string;
-}
-
-export interface GraphData {
-  nodes: GraphNode[];
-  edges: GraphEdge[];
-}
-
-// ── agent metadata ───────────────────────────────────────────
-
-export const AGENT_META: Record<AgentId, { color: string; light: string; label: string }> = {
-  mo:     { color: "#3b82f6", light: "#93c5fd", label: "Mo (CMO)" },
-  carl:   { color: "#10b981", light: "#6ee7b7", label: "cARL (research)" },
-  pam:    { color: "#f59e0b", light: "#fcd34d", label: "PaM (PM)" },
-  opsy:   { color: "#ef4444", light: "#fca5a5", label: "Opsy (ops)" },
-  biz:    { color: "#8b5cf6", light: "#c4b5fd", label: "Biz (BD)" },
-  fin:    { color: "#ec4899", light: "#f9a8d4", label: "Fin (CFO)" },
-  shared: { color: "#6b7280", light: "#d1d5db", label: "shared" },
-};
-
-// ── gap analysis ─────────────────────────────────────────────
-
-export interface Gap {
-  type: "isolated" | "shallow-research" | "ungrounded-product" | "thin-bridge" | "no-methodology";
-  severity: "high" | "medium" | "low";
-  title: string;
-  description: string;
-  nodeIds: string[];
-  /** what cARL should study to close this gap */
-  curriculumSuggestion?: string;
-}
-
-export function computeGaps(data: GraphData): Gap[] {
-  const gaps: Gap[] = [];
-
-  // build adjacency
-  const adj = new Map<string, Set<string>>();
-  const edgesByNode = new Map<string, GraphEdge[]>();
-  data.nodes.forEach((n) => {
-    adj.set(n.id, new Set());
-    edgesByNode.set(n.id, []);
-  });
-  data.edges.forEach((e) => {
-    adj.get(e.source)?.add(e.target);
-    adj.get(e.target)?.add(e.source);
-    edgesByNode.get(e.source)?.push(e);
-    edgesByNode.get(e.target)?.push(e);
-  });
-
-  const nodeMap = new Map(data.nodes.map((n) => [n.id, n]));
-
-  // 1. isolated nodes (0 connections, excluding agents themselves)
-  data.nodes.forEach((n) => {
-    if (n.category === "agent") return;
-    const degree = adj.get(n.id)?.size ?? 0;
-    if (degree === 0) {
-      gaps.push({
-        type: "isolated",
-        severity: "medium",
-        title: `${n.label} is isolated`,
-        description: `mentioned in brain files but has no mapped relationships. either the connection is implicit, or this node needs linking.`,
-        nodeIds: [n.id],
-        curriculumSuggestion: n.category === "concept"
-          ? `research how "${n.label}" connects to the collective's practice`
-          : undefined,
-      });
-    }
-  });
-
-  // 2. shallow research domains (research-domain with ≤1 concept connections)
-  data.nodes
-    .filter((n) => n.category === "research-domain")
-    .forEach((domain) => {
-      const conceptEdges = (edgesByNode.get(domain.id) ?? []).filter((e) => {
-        const otherId = e.source === domain.id ? e.target : e.source;
-        const other = nodeMap.get(otherId);
-        return other?.category === "concept";
-      });
-      if (conceptEdges.length <= 1) {
-        gaps.push({
-          type: "shallow-research",
-          severity: "high",
-          title: `"${domain.label}" has thin conceptual grounding`,
-          description: `this research domain connects to only ${conceptEdges.length} concept node(s). cARL should deepen the theoretical foundation.`,
-          nodeIds: [domain.id],
-          curriculumSuggestion: `study foundational theories and frameworks within "${domain.label}" — identify 3-5 key concepts, authors, and effect sizes`,
-        });
-      }
-    });
-
-  // 3. ungrounded products (products with no research-domain or concept edges)
-  data.nodes
-    .filter((n) => n.category === "product")
-    .forEach((product) => {
-      const researchEdges = (edgesByNode.get(product.id) ?? []).filter((e) => {
-        const otherId = e.source === product.id ? e.target : e.source;
-        const other = nodeMap.get(otherId);
-        return other?.category === "research-domain" || other?.category === "concept";
-      });
-      if (researchEdges.length === 0) {
-        gaps.push({
-          type: "ungrounded-product",
-          severity: "medium",
-          title: `"${product.label}" has no research backing`,
-          description: `this product isn't connected to any research domain or concept. it may work well in practice, but the evidence link is unmapped.`,
-          nodeIds: [product.id],
-          curriculumSuggestion: `identify the pedagogical theory that grounds "${product.label}" and map the evidence base`,
-        });
-      }
-    });
-
-  // 4. client projects without methodology nodes
-  data.nodes
-    .filter((n) => n.category === "project")
-    .forEach((project) => {
-      const methodEdges = (edgesByNode.get(project.id) ?? []).filter((e) => {
-        const otherId = e.source === project.id ? e.target : e.source;
-        const other = nodeMap.get(otherId);
-        return (
-          other?.category === "concept" &&
-          (other.description.includes("method") ||
-            other.description.includes("framework") ||
-            other.description.includes("evaluation") ||
-            other.description.includes("synthesis"))
-        );
-      });
-      // only flag projects that seem like client work (not infra projects)
-      const isClientWork = (edgesByNode.get(project.id) ?? []).some((e) => {
-        const otherId = e.source === project.id ? e.target : e.source;
-        return nodeMap.get(otherId)?.category === "client";
-      });
-      if (methodEdges.length === 0 && isClientWork) {
-        gaps.push({
-          type: "no-methodology",
-          severity: "low",
-          title: `"${project.label}" lacks explicit methodology`,
-          description: `this client project doesn't connect to any methodological concept. adding a framework strengthens proposals and deliverables.`,
-          nodeIds: [project.id],
-          curriculumSuggestion: `research appropriate evaluation/synthesis methodologies for "${project.label}"`,
-        });
-      }
-    });
-
-  // 5. thin inter-agent bridges
-  const agentIds = data.nodes.filter((n) => n.category === "agent").map((n) => n.id);
-  for (let i = 0; i < agentIds.length; i++) {
-    for (let j = i + 1; j < agentIds.length; j++) {
-      const a = agentIds[i];
-      const b = agentIds[j];
-      const directEdges = data.edges.filter(
-        (e) =>
-          (e.source === a && e.target === b) ||
-          (e.source === b && e.target === a),
-      );
-      if (directEdges.length === 0) {
-        const aNode = nodeMap.get(a);
-        const bNode = nodeMap.get(b);
-        if (aNode && bNode) {
-          gaps.push({
-            type: "thin-bridge",
-            severity: "low",
-            title: `${aNode.label} ↔ ${bNode.label} have no direct link`,
-            description: `these agents don't have a direct relationship edge. they may coordinate through shared nodes, but an explicit protocol is unmapped.`,
-            nodeIds: [a, b],
-          });
-        }
-      }
-    }
-  }
-
-  // sort by severity
-  const severityOrder = { high: 0, medium: 1, low: 2 };
-  gaps.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
-
-  return gaps;
-}
-
-// ── graph data ───────────────────────────────────────────────
+// ── curated seed (source: curated) ───────────────────────────
 
 export const GRAPH_DATA: GraphData = {
   nodes: [
