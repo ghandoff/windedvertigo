@@ -64,9 +64,13 @@ export function computeGaps(data: GraphData): Gap[] {
   // 1-5. concept-scaffold detectors (original behaviour)
   // ─────────────────────────────────────────────────────────────
 
-  // 1. isolated nodes (0 connections, excluding agents themselves)
+  // 1. isolated nodes (0 connections). Skips data-leaf categories where
+  //    isolation is uninformative (an un-tagged CV entry / taxonomy row is
+  //    backlog, not a knowledge gap) — only flags concepts, skills, frameworks,
+  //    members, products, etc.
+  const ISO_SKIP = new Set<NodeCategory>(["agent", "cv-entry", "method", "population", "service"]);
   data.nodes.forEach((n) => {
-    if (n.category === "agent") return;
+    if (ISO_SKIP.has(n.category)) return;
     if ((neighbours.get(n.id)?.size ?? 0) === 0) {
       gaps.push({
         type: "isolated",
