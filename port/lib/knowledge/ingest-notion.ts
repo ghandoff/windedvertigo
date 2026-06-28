@@ -128,7 +128,7 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
     edges.push(
       ...relEdges(id, props, "Skills", "skill", "holds-skill"),
       ...relEdges(id, props, "Methodological Strengths", "method", "uses-method"),
-      ...relEdges(id, props, "CV Entries (canonical)", "entry", "authored"),
+      ...relEdges(id, props, "CV Entries (canonical)", "cv-entry", "authored"),
       ...relEdges(id, props, "Services Led", "service", "leads-service"),
       ...relEdges(id, props, "Services Supporting", "service", "supports-service"),
     );
@@ -206,7 +206,7 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
   for (const p of entries) {
     const props = p.properties;
     const label = getTitle(props["Entry"]) || autoTitle(props);
-    const id = nodeId("entry", p.id);
+    const id = nodeId("cv-entry", p.id);
     const endDate = getDate(props["End Date"])?.start ?? getDate(props["Start Date"])?.start ?? null;
     nodes.push(
       baseNode("cv-entry", p, label, getText(props["Description"]) || getText(props["Proposal-Ready Blurb"]), {
