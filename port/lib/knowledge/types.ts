@@ -130,7 +130,7 @@ export function getNodeColor(node: Pick<GraphNode, "kind" | "agent">): string {
 // ── reconciliation / recency ─────────────────────────────────
 /** The categories that form the "proposal-facing" default view. */
 export const PROPOSAL_FACING: ReadonlySet<NodeCategory> = new Set<NodeCategory>([
-  "member", "skill", "method", "framework", "agent", "concept",
+  "member", "skill", "method", "framework", "agent",
 ]);
 
 /** A skill/framework is "stale" with no demonstrating evidence in this window. */

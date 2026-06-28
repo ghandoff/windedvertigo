@@ -178,7 +178,10 @@ export function computeGaps(data: GraphData): Gap[] {
   const members = byCategory("member");
   const frameworks = byCategory("framework");
   const populations = byCategory("population");
-  const services = byCategory("service");
+  // only real WV service OFFERINGS (Notion), not curated SaaS vendors (Cloudflare…)
+  const services = byCategory("service").filter(
+    (n) => n.source === "notion-cv" || n.kind === "human" || n.kind === "shared",
+  );
   const cvEntries = byCategory("cv-entry");
 
   // index human-held capability keys (skills + frameworks + methods)

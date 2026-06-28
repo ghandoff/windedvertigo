@@ -17,6 +17,7 @@ import {
   upsertNodes,
   upsertEdges,
   pruneDanglingEdges,
+  pruneStaleNodes,
   type NodeInput,
   type EdgeInput,
 } from "./supabase";
@@ -100,7 +101,8 @@ export async function runKnowledgeSync(userId = "knowledge-sync"): Promise<SyncR
 
   // ── merge bridges + cleanup ────────────────────────────────
   const recon = await reconcile(syncTs);
-  const pruned = await pruneDanglingEdges();
+  const staleNodes = await pruneStaleNodes(syncTs);
+  const pruned = (await pruneDanglingEdges()) + staleNodes;
 
   return {
     ok: errors.length === 0,

@@ -86,27 +86,24 @@ export async function ingestAgentLogs(userId = "knowledge-sync"): Promise<AgentI
     getCarlFindings({ limit: 80 }).catch(() => []),
   ]);
 
+  // domains, curriculum topics and finding domains are higher-signal than raw
+  // tags — those become concept nodes; tags are too generic ("infra", "rfp").
   domains.forEach((d) => addConcept(d.label, "carl", "researches"));
   curriculum.forEach((c) => addConcept(c.topic, "carl", "studies"));
   findings.forEach((f) => {
     if (f.domain) addConcept(f.domain, "carl", "researches");
-    (f.tags ?? []).forEach((t) => addConcept(t, "carl", "references"));
   });
   counts.domains = domains.length;
   counts.curriculum = curriculum.length;
   counts.findings = findings.length;
 
-  // decision tags per agent
+  // decisions feed the freeform pass only (their summaries name real concepts)
   const [carlD, pamD, cmoD, opsyD] = await Promise.all([
     getCarlDecisions({ limit: 40 }).catch(() => []),
     getPamDecisions({ limit: 40 }).catch(() => []),
     getCmoDecisions({ limit: 40 }).catch(() => []),
     getOpsyDecisions({ limit: 40 }).catch(() => []),
   ]);
-  carlD.forEach((d) => (d.tags ?? []).forEach((t) => addConcept(t, "carl", "references")));
-  pamD.forEach((d) => (d.tags ?? []).forEach((t) => addConcept(t, "pam", "references")));
-  cmoD.forEach((d) => (d.tags ?? []).forEach((t) => addConcept(t, "mo", "references")));
-  opsyD.forEach((d) => (d.tags ?? []).forEach((t) => addConcept(t, "opsy", "references")));
 
   // ── freeform pass (Haiku) ──────────────────────────────────
   const [incidents, bizD, finD] = await Promise.all([

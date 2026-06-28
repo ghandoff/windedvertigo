@@ -185,6 +185,24 @@ export async function upsertEdges(inputs: EdgeInput[], syncTs: string): Promise<
   return { added: touched, updated: 0 };
 }
 
+/**
+ * Drop agent-log concept nodes not seen in the latest run (regenerated each
+ * sync). Edges cascade. Skips `shared` nodes (they have a human counterpart)
+ * and anything from notion-cv / curated.
+ */
+export async function pruneStaleNodes(syncTs: string): Promise<number> {
+  const { data, error } = await supabase
+    .from("knowledge_nodes")
+    .delete()
+    .eq("source", "agent-log")
+    .eq("category", "concept")
+    .eq("kind", "agent")
+    .lt("last_seen_at", syncTs)
+    .select("id");
+  if (error) throw new Error(`[knowledge/supabase] pruneStaleNodes: ${error.message}`);
+  return (data ?? []).length;
+}
+
 /** Drop edges whose endpoints no longer exist (after a sync), keeping the graph clean. */
 export async function pruneDanglingEdges(): Promise<number> {
   const { data: nodeIds } = await supabase.from("knowledge_nodes").select("id");
