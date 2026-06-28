@@ -13,6 +13,7 @@ import { curatedGraphInputs } from "./ingest-curated";
 import { ingestNotionCv } from "./ingest-notion";
 import { ingestAgentLogs } from "./ingest-agents";
 import { reconcile } from "./reconcile";
+import { reconcileFuzzy, type FuzzyResult } from "./reconcile-fuzzy";
 import {
   upsertNodes,
   upsertEdges,
@@ -29,6 +30,7 @@ export interface SyncReport {
   nodes: { added: number; updated: number; total: number };
   edges: { upserted: number; dropped: number; pruned: number };
   reconcile: { bridges: number; sharedNodes: number };
+  fuzzy: FuzzyResult;
   errors: string[];
 }
 
@@ -99,8 +101,9 @@ export async function runKnowledgeSync(userId = "knowledge-sync"): Promise<SyncR
   }
   await upsertEdges(allEdges, syncTs);
 
-  // ── merge bridges + cleanup ────────────────────────────────
+  // ── merge bridges (exact then fuzzy) + cleanup ─────────────
   const recon = await reconcile(syncTs);
+  const fuzzy = await reconcileFuzzy(syncTs, userId);
   const staleNodes = await pruneStaleNodes(syncTs);
   const pruned = (await pruneDanglingEdges()) + staleNodes;
 
@@ -111,6 +114,7 @@ export async function runKnowledgeSync(userId = "knowledge-sync"): Promise<SyncR
     nodes: { added, updated, total: totalNodes },
     edges: { upserted: allEdges.length, dropped, pruned },
     reconcile: recon,
+    fuzzy,
     errors,
   };
 }

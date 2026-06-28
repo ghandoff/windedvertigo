@@ -13,7 +13,7 @@
  */
 
 import { supabase } from "@/lib/supabase/client";
-import { upsertEdges, type EdgeInput } from "./supabase";
+import { upsertEdges, selectAll, type EdgeInput } from "./supabase";
 
 interface MiniNode {
   id: string;
@@ -27,11 +27,7 @@ export interface ReconcileResult {
 }
 
 export async function reconcile(syncTs: string): Promise<ReconcileResult> {
-  const { data, error } = await supabase
-    .from("knowledge_nodes")
-    .select("id, kind, canonical_key");
-  if (error) throw new Error(`[knowledge/reconcile] read: ${error.message}`);
-  const nodes = (data ?? []) as MiniNode[];
+  const nodes = await selectAll<MiniNode>("knowledge_nodes", "id, kind, canonical_key");
 
   // group by canonical_key
   const groups = new Map<string, MiniNode[]>();

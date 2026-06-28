@@ -60,6 +60,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // Haiku: extract referenced concepts/skills from agent freeform logs
   // (findings, decisions, incidents) for the /brain knowledge graph. Batched.
   "knowledge-extract": "claude-haiku-4-5-20251001",
+  // Haiku: adjudicate whether a human CV capability and an agent-observed concept
+  // name the same thing (fuzzy /brain reconciliation). Batched, cached per pair.
+  "knowledge-reconcile": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -85,7 +88,8 @@ export type AiFeature =
   | "opsy-email-triage"
   | "opsy-digest"
   | "pam-action-triage"
-  | "knowledge-extract";
+  | "knowledge-extract"
+  | "knowledge-reconcile";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -109,6 +113,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "opsy-digest": "Opsy Weekly Digest",
   "pam-action-triage": "PaM Action Triage",
   "knowledge-extract": "Knowledge Graph Extract",
+  "knowledge-reconcile": "Knowledge Graph Reconcile",
 };
 
 // ── token usage tracking ─────────────────────────────────
