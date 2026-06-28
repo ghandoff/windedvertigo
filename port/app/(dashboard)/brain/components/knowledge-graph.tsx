@@ -1,7 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import { GRAPH_DATA, AGENT_META, type GraphNode, type GraphEdge, type AgentId } from "@/lib/knowledge/graph-data";
+import { useRef, useState, useMemo, useCallback } from "react";
+import {
+  AGENT_META,
+  PROVENANCE_META,
+  getNodeColor,
+  PROPOSAL_FACING,
+  type GraphData,
+  type GraphNode,
+  type GraphEdge,
+  type NodeKind,
+} from "@/lib/knowledge/types";
 
 // ── types ────────────────────────────────────────────────────
 
@@ -20,10 +29,10 @@ interface SimEdge {
   relationship: string;
 }
 
-// ── d3-like force simulation (dependency-free) ───────────────
-// instead of importing d3, we run a minimal force-directed layout
-// inline. the port has no chart library by design — this keeps
-// it dependency-free (custom SVG, like the sparklines).
+const KINDS: NodeKind[] = ["human", "agent", "shared"];
+const nodeKind = (n: GraphNode): NodeKind => n.kind ?? "agent";
+
+// ── force simulation (dependency-free, like the sparklines) ──
 
 function forceSimulation(
   nodes: SimNode[],
@@ -32,13 +41,11 @@ function forceSimulation(
   height: number,
   iterations = 300,
 ) {
-  const alpha = 0.3;
   const repulsion = -120;
   const linkDistance = 80;
   const linkStrength = 0.15;
   const centerStrength = 0.05;
 
-  // initialise positions in a circle to avoid overlap
   nodes.forEach((n, i) => {
     const angle = (2 * Math.PI * i) / nodes.length;
     const r = Math.min(width, height) * 0.35;
@@ -50,8 +57,6 @@ function forceSimulation(
 
   for (let tick = 0; tick < iterations; tick++) {
     const decay = 1 - (tick / iterations) * 0.9;
-
-    // repulsion (Barnes-Hut would be faster but N≈130 is fine brute-force)
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const dx = nodes[j].x - nodes[i].x;
@@ -66,8 +71,6 @@ function forceSimulation(
         nodes[j].vy += fy;
       }
     }
-
-    // link attraction
     edges.forEach((e) => {
       const dx = e.target.x - e.source.x;
       const dy = e.target.y - e.source.y;
@@ -80,39 +83,21 @@ function forceSimulation(
       e.target.vx -= fx;
       e.target.vy -= fy;
     });
-
-    // center gravity
     nodes.forEach((n) => {
       n.vx += (width / 2 - n.x) * centerStrength * decay;
       n.vy += (height / 2 - n.y) * centerStrength * decay;
     });
-
-    // integrate + dampen
     const velocityDecay = 0.6;
     nodes.forEach((n) => {
-      if (n.fx != null) {
-        n.x = n.fx;
-        n.vx = 0;
-      } else {
-        n.vx *= velocityDecay;
-        n.x += n.vx;
-      }
-      if (n.fy != null) {
-        n.y = n.fy;
-        n.vy = 0;
-      } else {
-        n.vy *= velocityDecay;
-        n.y += n.vy;
-      }
-
-      // keep in bounds
+      n.vx *= velocityDecay;
+      n.x += n.vx;
+      n.vy *= velocityDecay;
+      n.y += n.vy;
       n.x = Math.max(30, Math.min(width - 30, n.x));
       n.y = Math.max(30, Math.min(height - 30, n.y));
     });
   }
 }
-
-// ── adjacency helpers ────────────────────────────────────────
 
 function buildAdjacency(edges: GraphEdge[]) {
   const adj = new Map<string, Set<string>>();
@@ -127,34 +112,48 @@ function buildAdjacency(edges: GraphEdge[]) {
 
 // ── component ────────────────────────────────────────────────
 
-export function KnowledgeGraph() {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function KnowledgeGraph({
+  data,
+  staleNodeIds,
+}: {
+  data: GraphData;
+  staleNodeIds?: Set<string>;
+}) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const stale = staleNodeIds ?? new Set<string>();
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [focusId, setFocusId] = useState<string | null>(null);
   const [hoveredEdge, setHoveredEdge] = useState<SimEdge | null>(null);
-  const [activeAgents, setActiveAgents] = useState<Set<AgentId>>(
-    new Set(Object.keys(AGENT_META) as AgentId[]),
-  );
+  const [activeKinds, setActiveKinds] = useState<Set<NodeKind>>(new Set(KINDS));
+  const [proposalOnly, setProposalOnly] = useState(true);
   const [search, setSearch] = useState("");
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
 
-  const adj = useMemo(() => buildAdjacency(GRAPH_DATA.edges), []);
+  const adj = useMemo(() => buildAdjacency(data.edges), [data.edges]);
 
-  // degree map for sizing
   const degreeMap = useMemo(() => {
     const m = new Map<string, number>();
-    GRAPH_DATA.nodes.forEach((n) => m.set(n.id, 0));
-    GRAPH_DATA.edges.forEach((e) => {
+    data.nodes.forEach((n) => m.set(n.id, 0));
+    data.edges.forEach((e) => {
       m.set(e.source, (m.get(e.source) ?? 0) + 1);
       m.set(e.target, (m.get(e.target) ?? 0) + 1);
     });
     return m;
-  }, []);
+  }, [data]);
 
-  // filter nodes by active agents + search
+  // focus neighbourhood (pin-to-member / service-offering view)
+  const focusSet = useMemo(() => {
+    if (!focusId) return null;
+    const s = new Set<string>([focusId]);
+    adj.get(focusId)?.forEach((id) => s.add(id));
+    return s;
+  }, [focusId, adj]);
+
   const filteredNodes = useMemo(() => {
-    let nodes = GRAPH_DATA.nodes.filter((n) => activeAgents.has(n.agent));
+    let nodes = data.nodes.filter((n) => activeKinds.has(nodeKind(n)));
+    if (proposalOnly) nodes = nodes.filter((n) => PROPOSAL_FACING.has(n.category));
+    if (focusSet) nodes = nodes.filter((n) => focusSet.has(n.id));
     if (search.trim()) {
       const q = search.toLowerCase();
       nodes = nodes.filter(
@@ -165,22 +164,15 @@ export function KnowledgeGraph() {
       );
     }
     return nodes;
-  }, [activeAgents, search]);
+  }, [data.nodes, activeKinds, proposalOnly, focusSet, search]);
 
-  const filteredNodeIds = useMemo(
-    () => new Set(filteredNodes.map((n) => n.id)),
-    [filteredNodes],
-  );
+  const filteredNodeIds = useMemo(() => new Set(filteredNodes.map((n) => n.id)), [filteredNodes]);
 
   const filteredEdges = useMemo(
-    () =>
-      GRAPH_DATA.edges.filter(
-        (e) => filteredNodeIds.has(e.source) && filteredNodeIds.has(e.target),
-      ),
-    [filteredNodeIds],
+    () => data.edges.filter((e) => filteredNodeIds.has(e.source) && filteredNodeIds.has(e.target)),
+    [data.edges, filteredNodeIds],
   );
 
-  // run layout
   const { simNodes, simEdges } = useMemo(() => {
     const w = 900;
     const h = 700;
@@ -201,18 +193,15 @@ export function KnowledgeGraph() {
     return { simNodes: sn, simEdges: se };
   }, [filteredNodes, filteredEdges]);
 
-  // neighbours of selected node
   const neighbours = useMemo(() => {
     if (!selectedNode) return new Set<string>();
-    const s = new Set<string>();
-    s.add(selectedNode);
+    const s = new Set<string>([selectedNode]);
     adj.get(selectedNode)?.forEach((id) => {
       if (filteredNodeIds.has(id)) s.add(id);
     });
     return s;
   }, [selectedNode, adj, filteredNodeIds]);
 
-  // node radius based on degree
   const nodeRadius = useCallback(
     (id: string, category: string) => {
       if (category === "agent") return 10;
@@ -222,79 +211,83 @@ export function KnowledgeGraph() {
     [degreeMap],
   );
 
-  // zoom/pan via wheel
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
-      e.preventDefault();
-      if (e.ctrlKey || e.metaKey) {
-        // zoom
-        const factor = e.deltaY > 0 ? 0.9 : 1.1;
-        setTransform((t) => ({
-          ...t,
-          k: Math.max(0.3, Math.min(3, t.k * factor)),
-        }));
-      } else {
-        // pan
-        setTransform((t) => ({
-          ...t,
-          x: t.x - e.deltaX,
-          y: t.y - e.deltaY,
-        }));
-      }
-    },
-    [],
-  );
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) {
+      const factor = e.deltaY > 0 ? 0.9 : 1.1;
+      setTransform((t) => ({ ...t, k: Math.max(0.3, Math.min(3, t.k * factor)) }));
+    } else {
+      setTransform((t) => ({ ...t, x: t.x - e.deltaX, y: t.y - e.deltaY }));
+    }
+  }, []);
 
-  // edges for selected node's detail panel
   const selectedEdges = useMemo(() => {
     if (!selectedNode) return { outgoing: [] as GraphEdge[], incoming: [] as GraphEdge[] };
     return {
-      outgoing: GRAPH_DATA.edges.filter((e) => e.source === selectedNode),
-      incoming: GRAPH_DATA.edges.filter((e) => e.target === selectedNode),
+      outgoing: data.edges.filter((e) => e.source === selectedNode),
+      incoming: data.edges.filter((e) => e.target === selectedNode),
     };
-  }, [selectedNode]);
+  }, [selectedNode, data.edges]);
 
-  const selectedNodeData = useMemo(
-    () => GRAPH_DATA.nodes.find((n) => n.id === selectedNode),
-    [selectedNode],
-  );
+  const nodeMap = useMemo(() => new Map(data.nodes.map((n) => [n.id, n])), [data.nodes]);
+  const selectedNodeData = selectedNode ? nodeMap.get(selectedNode) : undefined;
 
-  const nodeMap = useMemo(
-    () => new Map(GRAPH_DATA.nodes.map((n) => [n.id, n])),
-    [],
-  );
+  const toggleKind = (k: NodeKind) =>
+    setActiveKinds((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
 
   return (
     <div className="space-y-4">
       {/* controls */}
       <div className="flex flex-wrap items-center gap-2">
-        {(Object.entries(AGENT_META) as [AgentId, (typeof AGENT_META)[AgentId]][]).map(
-          ([id, meta]) => (
+        {KINDS.map((k) => {
+          const meta = PROVENANCE_META[k];
+          const on = activeKinds.has(k);
+          return (
             <button
-              key={id}
-              onClick={() =>
-                setActiveAgents((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(id)) next.delete(id);
-                  else next.add(id);
-                  return next;
-                })
-              }
+              key={k}
+              onClick={() => toggleKind(k)}
               className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors"
               style={{
-                borderColor: activeAgents.has(id) ? meta.color : "var(--border)",
-                backgroundColor: activeAgents.has(id) ? `${meta.color}15` : "transparent",
-                color: activeAgents.has(id) ? meta.color : "var(--muted-foreground)",
+                borderColor: on ? meta.color : "var(--border)",
+                backgroundColor: on ? `${meta.color}1a` : "transparent",
+                color: on ? meta.color : "var(--muted-foreground)",
               }}
             >
               <span
                 className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: meta.color, opacity: activeAgents.has(id) ? 1 : 0.3 }}
+                style={{ backgroundColor: meta.color, opacity: on ? 1 : 0.3 }}
               />
               {meta.label}
             </button>
-          ),
+          );
+        })}
+
+        <button
+          onClick={() => setProposalOnly((v) => !v)}
+          className="rounded-full border px-2.5 py-1 text-xs transition-colors"
+          style={{
+            borderColor: proposalOnly ? "var(--foreground)" : "var(--border)",
+            color: proposalOnly ? "var(--foreground)" : "var(--muted-foreground)",
+          }}
+          title="proposal-facing layer: members · skills · methods · frameworks · concepts"
+        >
+          {proposalOnly ? "proposal-facing" : "everything"}
+        </button>
+
+        {focusId && (
+          <button
+            onClick={() => setFocusId(null)}
+            className="rounded-full border border-amber-500/50 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-600 transition-colors dark:text-amber-400"
+          >
+            ✕ unpin {nodeMap.get(focusId)?.label ?? ""}
+          </button>
         )}
+
         <input
           type="text"
           placeholder="search nodes..."
@@ -306,9 +299,7 @@ export function KnowledgeGraph() {
 
       {/* graph + detail panel */}
       <div className="flex gap-4">
-        {/* svg graph */}
         <div
-          ref={containerRef}
           className="relative flex-1 overflow-hidden rounded-lg border border-border bg-card"
           style={{ minHeight: 500 }}
         >
@@ -326,6 +317,7 @@ export function KnowledgeGraph() {
             <g transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}>
               {/* edges */}
               {simEdges.map((e, i) => {
+                const isBridge = e.relationship === "same-as";
                 const dim =
                   selectedNode && !neighbours.has(e.source.id) && !neighbours.has(e.target.id);
                 return (
@@ -335,11 +327,10 @@ export function KnowledgeGraph() {
                     y1={e.source.y}
                     x2={e.target.x}
                     y2={e.target.y}
-                    stroke={
-                      dim ? "var(--border)" : "var(--muted-foreground)"
-                    }
-                    strokeOpacity={dim ? 0.15 : 0.25}
-                    strokeWidth={1}
+                    stroke={isBridge ? PROVENANCE_META.shared.color : dim ? "var(--border)" : "var(--muted-foreground)"}
+                    strokeOpacity={dim ? 0.12 : isBridge ? 0.7 : 0.25}
+                    strokeWidth={isBridge ? 1.5 : 1}
+                    strokeDasharray={isBridge ? "4 3" : undefined}
                     onMouseEnter={() => setHoveredEdge(e)}
                     onMouseLeave={() => setHoveredEdge(null)}
                     style={{ cursor: "default" }}
@@ -347,7 +338,6 @@ export function KnowledgeGraph() {
                 );
               })}
 
-              {/* edge label on hover */}
               {hoveredEdge && (
                 <text
                   x={(hoveredEdge.source.x + hoveredEdge.target.x) / 2}
@@ -365,20 +355,25 @@ export function KnowledgeGraph() {
               {/* nodes */}
               {simNodes.map((n) => {
                 const r = nodeRadius(n.id, n.category);
-                const color = AGENT_META[n.agent]?.color ?? "#6b7280";
+                const color = getNodeColor(n);
                 const dim = selectedNode && !neighbours.has(n.id);
                 const isSelected = n.id === selectedNode;
+                const isStale = stale.has(n.id);
                 return (
                   <g key={n.id} style={{ cursor: "pointer" }} onClick={() => setSelectedNode(n.id)}>
                     {isSelected && (
+                      <circle cx={n.x} cy={n.y} r={r + 4} fill="none" stroke={color} strokeWidth={2} strokeOpacity={0.5} />
+                    )}
+                    {isStale && (
                       <circle
                         cx={n.x}
                         cy={n.y}
-                        r={r + 4}
+                        r={r + 3}
                         fill="none"
-                        stroke={color}
-                        strokeWidth={2}
-                        strokeOpacity={0.5}
+                        stroke="#f59e0b"
+                        strokeWidth={1.5}
+                        strokeDasharray="2 2"
+                        opacity={dim ? 0.2 : 0.9}
                       />
                     )}
                     <circle
@@ -386,7 +381,7 @@ export function KnowledgeGraph() {
                       cy={n.y}
                       r={r}
                       fill={color}
-                      fillOpacity={dim ? 0.15 : n.category === "agent" ? 1 : 0.75}
+                      fillOpacity={dim ? 0.15 : n.category === "agent" ? 1 : 0.78}
                       stroke={isSelected ? color : "none"}
                       strokeWidth={isSelected ? 2 : 0}
                     />
@@ -409,7 +404,6 @@ export function KnowledgeGraph() {
             </g>
           </svg>
 
-          {/* stats bar */}
           <div className="absolute bottom-2 left-2 flex gap-3 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
             <span>{filteredNodes.length} nodes</span>
             <span>{filteredEdges.length} edges</span>
@@ -424,32 +418,38 @@ export function KnowledgeGraph() {
               <div className="flex items-center gap-2">
                 <span
                   className="inline-block h-3 w-3 rounded-full"
-                  style={{
-                    backgroundColor: AGENT_META[selectedNodeData.agent]?.color ?? "#6b7280",
-                  }}
+                  style={{ backgroundColor: getNodeColor(selectedNodeData) }}
                 />
                 <h3 className="text-sm font-semibold">{selectedNodeData.label}</h3>
               </div>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
-                {selectedNodeData.category} · {selectedNodeData.agent}
+                {selectedNodeData.category}
+                {" · "}
+                {nodeKind(selectedNodeData)}
+                {selectedNodeData.source ? ` · ${selectedNodeData.source}` : ""}
+                {stale.has(selectedNodeData.id) ? " · ⚠ stale" : ""}
               </p>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {selectedNodeData.description}
-            </p>
+            {selectedNodeData.description && (
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {selectedNodeData.description}
+              </p>
+            )}
+
+            <button
+              onClick={() => setFocusId(focusId === selectedNodeData.id ? null : selectedNodeData.id)}
+              className="w-full rounded border border-border px-2 py-1 text-xs font-medium transition-colors hover:bg-muted"
+            >
+              {focusId === selectedNodeData.id ? "show full graph" : "pin to this node's constellation"}
+            </button>
 
             {selectedEdges.outgoing.length > 0 && (
               <div>
-                <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                  outgoing
-                </p>
+                <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">outgoing</p>
                 <ul className="space-y-0.5">
                   {selectedEdges.outgoing.map((e, i) => (
                     <li key={i} className="text-xs">
-                      <button
-                        className="text-left hover:underline"
-                        onClick={() => setSelectedNode(e.target)}
-                      >
+                      <button className="text-left hover:underline" onClick={() => setSelectedNode(e.target)}>
                         <span className="text-muted-foreground">{e.relationship} →</span>{" "}
                         {nodeMap.get(e.target)?.label ?? e.target}
                       </button>
@@ -461,16 +461,11 @@ export function KnowledgeGraph() {
 
             {selectedEdges.incoming.length > 0 && (
               <div>
-                <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                  incoming
-                </p>
+                <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">incoming</p>
                 <ul className="space-y-0.5">
                   {selectedEdges.incoming.map((e, i) => (
                     <li key={i} className="text-xs">
-                      <button
-                        className="text-left hover:underline"
-                        onClick={() => setSelectedNode(e.source)}
-                      >
+                      <button className="text-left hover:underline" onClick={() => setSelectedNode(e.source)}>
                         {nodeMap.get(e.source)?.label ?? e.source}{" "}
                         <span className="text-muted-foreground">→ {e.relationship}</span>
                       </button>
@@ -489,6 +484,12 @@ export function KnowledgeGraph() {
           </div>
         )}
       </div>
+      <p className="text-[10px] text-muted-foreground">
+        colour = provenance: <span style={{ color: PROVENANCE_META.human.color }}>human (CV)</span> ·{" "}
+        <span style={{ color: AGENT_META.carl.color }}>agent</span> (by owner) ·{" "}
+        <span style={{ color: PROVENANCE_META.shared.color }}>shared</span> · gold dashed link = human↔agent merge ·
+        dashed ring = stale. ⌘/ctrl-scroll to zoom.
+      </p>
     </div>
   );
 }

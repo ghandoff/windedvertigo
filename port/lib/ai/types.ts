@@ -57,6 +57,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // cycle/type/priority suggestion, dedup vs existing commitments. Cheap, runs
   // over a batch of new action items per cron.
   "pam-action-triage": "claude-haiku-4-5-20251001",
+  // Haiku: extract referenced concepts/skills from agent freeform logs
+  // (findings, decisions, incidents) for the /brain knowledge graph. Batched.
+  "knowledge-extract": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -81,7 +84,8 @@ export type AiFeature =
   | "bibliography-import"
   | "opsy-email-triage"
   | "opsy-digest"
-  | "pam-action-triage";
+  | "pam-action-triage"
+  | "knowledge-extract";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -104,6 +108,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "opsy-email-triage": "Opsy Email Triage",
   "opsy-digest": "Opsy Weekly Digest",
   "pam-action-triage": "PaM Action Triage",
+  "knowledge-extract": "Knowledge Graph Extract",
 };
 
 // ── token usage tracking ─────────────────────────────────

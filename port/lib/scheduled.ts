@@ -223,6 +223,12 @@ const CRON_TABLE: CronEntry[] = [
   // into the PaM review inbox (meaningful? cycle? type? dup?). Inbox-only; a
   // human accepts/merges/dismisses from /pam.
   { path: "/api/cron/pam-action-triage", hours: [10] },
+
+  // ── knowledge graph ──────────────────────────────────────────────────────
+  // Daily re-ingest of the unified knowledge graph: Notion CV (human) + live
+  // agent logs (agent) + curated seed → knowledge_nodes/edges, then reconcile
+  // the human↔agent merge bridges. Powers /brain. Idempotent.
+  { path: "/api/cron/knowledge-sync", hours: [11], originalMinute: 20 },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE

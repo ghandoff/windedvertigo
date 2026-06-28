@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GRAPH_DATA, AGENT_META, computeGaps, type Gap } from "@/lib/knowledge/graph-data";
+import { getNodeColor, type GraphData, type Gap, type GapType } from "@/lib/knowledge/types";
 
 const SEVERITY_STYLE: Record<Gap["severity"], { bg: string; text: string; label: string }> = {
   high:   { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", label: "high" },
@@ -9,17 +9,22 @@ const SEVERITY_STYLE: Record<Gap["severity"], { bg: string; text: string; label:
   low:    { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", label: "low" },
 };
 
-const TYPE_LABELS: Record<Gap["type"], string> = {
+const TYPE_LABELS: Record<GapType, string> = {
   isolated: "isolated node",
   "shallow-research": "shallow research",
   "ungrounded-product": "ungrounded product",
   "thin-bridge": "thin bridge",
   "no-methodology": "missing methodology",
+  "capability-gap": "capability gap",
+  "claimed-unevidenced": "claimed · unevidenced",
+  "evidence-asymmetry": "evidence asymmetry",
+  "framework-adoption": "framework adoption",
+  "population-coverage": "population coverage",
+  "service-coverage": "service coverage",
 };
 
-export function GapAnalysis() {
-  const gaps = useMemo(() => computeGaps(GRAPH_DATA), []);
-  const [filterType, setFilterType] = useState<Gap["type"] | "all">("all");
+export function GapAnalysis({ data, gaps }: { data: GraphData; gaps: Gap[] }) {
+  const [filterType, setFilterType] = useState<GapType | "all">("all");
 
   const filtered = filterType === "all" ? gaps : gaps.filter((g) => g.type === filterType);
   const curriculumGaps = gaps.filter((g) => g.curriculumSuggestion);
@@ -36,10 +41,7 @@ export function GapAnalysis() {
     return m;
   }, [gaps]);
 
-  const nodeMap = useMemo(
-    () => new Map(GRAPH_DATA.nodes.map((n) => [n.id, n])),
-    [],
-  );
+  const nodeMap = useMemo(() => new Map(data.nodes.map((n) => [n.id, n])), [data.nodes]);
 
   return (
     <div className="space-y-6">
@@ -79,7 +81,7 @@ export function GapAnalysis() {
         >
           all ({gaps.length})
         </button>
-        {(Object.keys(TYPE_LABELS) as Gap["type"][]).map((type) => {
+        {(Object.keys(TYPE_LABELS) as GapType[]).map((type) => {
           const count = typeCounts.get(type) ?? 0;
           if (count === 0) return null;
           return (
@@ -111,22 +113,17 @@ export function GapAnalysis() {
                   >
                     {sev.label}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {TYPE_LABELS[gap.type]}
-                  </span>
+                  <span className="text-[10px] text-muted-foreground">{TYPE_LABELS[gap.type]}</span>
                 </div>
               </div>
               <h4 className="text-sm font-medium">{gap.title}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {gap.description}
-              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{gap.description}</p>
 
               {/* related nodes */}
               <div className="flex flex-wrap gap-1.5">
                 {gap.nodeIds.map((id) => {
                   const node = nodeMap.get(id);
                   if (!node) return null;
-                  const color = AGENT_META[node.agent]?.color ?? "#6b7280";
                   return (
                     <span
                       key={id}
@@ -134,7 +131,7 @@ export function GapAnalysis() {
                     >
                       <span
                         className="inline-block h-1.5 w-1.5 rounded-full"
-                        style={{ backgroundColor: color }}
+                        style={{ backgroundColor: getNodeColor(node) }}
                       />
                       {node.label}
                     </span>
@@ -148,9 +145,7 @@ export function GapAnalysis() {
                   <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400 mb-0.5">
                     cARL curriculum suggestion
                   </p>
-                  <p className="text-xs text-emerald-800 dark:text-emerald-300/80">
-                    {gap.curriculumSuggestion}
-                  </p>
+                  <p className="text-xs text-emerald-800 dark:text-emerald-300/80">{gap.curriculumSuggestion}</p>
                 </div>
               )}
             </div>
@@ -165,9 +160,9 @@ export function GapAnalysis() {
             curriculum recommendations for cARL
           </h3>
           <p className="text-xs text-emerald-700 dark:text-emerald-400/80">
-            the knowledge graph reveals {curriculumGaps.length} gaps that cARL can address
-            through targeted research. these become curriculum topics — each one strengthens
-            a specific part of the collective&apos;s knowledge infrastructure.
+            the knowledge graph reveals {curriculumGaps.length} gaps that cARL can address through
+            targeted research. these become curriculum topics — each one strengthens a specific part
+            of the collective&apos;s knowledge infrastructure.
           </p>
           <ol className="space-y-1.5 list-decimal list-inside">
             {curriculumGaps.map((g, i) => (
