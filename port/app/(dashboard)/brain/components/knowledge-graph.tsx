@@ -226,6 +226,7 @@ export function KnowledgeGraph({
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const pinchRef = useRef<{ dist: number; midX: number; midY: number } | null>(null);
   const stale = staleNodeIds ?? new Set<string>();
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -434,20 +435,74 @@ export function KnowledgeGraph({
     return suppressed;
   }, [simNodes, transform.k, hoveredNode, selectedNode, labelMode, neighbours, hubIds, degreeMap, nodeRadius]);
 
-  // ── zoom (non-passive native wheel so it never zooms the browser) ──
+  // ── zoom (non-passive native wheel + pinch) ─────────────────
+  // All zoom gestures keep the focal point (cursor or viewport centre) fixed by
+  // adjusting the translate alongside the scale. Without this the graph flies to
+  // the SVG origin on every zoom step.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    const toSvg = (clientX: number, clientY: number) => {
+      const r = el.getBoundingClientRect();
+      return { x: (clientX - r.left) / r.width * 900, y: (clientY - r.top) / r.height * 700 };
+    };
+
+    const zoomAround = (svgX: number, svgY: number, factor: number) =>
+      setTransform((t) => {
+        const newK = clamp(t.k * factor, 0.2, 4);
+        const px = (svgX - t.x) / t.k;
+        const py = (svgY - t.y) / t.k;
+        return { k: newK, x: svgX - px * newK, y: svgY - py * newK };
+      });
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const factor = e.deltaY > 0 ? 0.92 : 1.08;
-      setTransform((t) => ({ ...t, k: clamp(t.k * factor, 0.2, 4) }));
+      const { x, y } = toSvg(e.clientX, e.clientY);
+      zoomAround(x, y, e.deltaY > 0 ? 0.92 : 1.08);
     };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+      const [t1, t2] = [e.touches[0], e.touches[1]];
+      const mid = toSvg((t1.clientX + t2.clientX) / 2, (t1.clientY + t2.clientY) / 2);
+      pinchRef.current = { dist: Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY), midX: mid.x, midY: mid.y };
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 2 || !pinchRef.current) return;
+      e.preventDefault();
+      const [t1, t2] = [e.touches[0], e.touches[1]];
+      const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const factor = newDist / pinchRef.current.dist;
+      zoomAround(pinchRef.current.midX, pinchRef.current.midY, factor);
+      const mid = toSvg((t1.clientX + t2.clientX) / 2, (t1.clientY + t2.clientY) / 2);
+      pinchRef.current = { dist: newDist, midX: mid.x, midY: mid.y };
+    };
+
+    const onTouchEnd = () => { pinchRef.current = null; };
+
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
-  const zoomBy = (f: number) => setTransform((t) => ({ ...t, k: clamp(t.k * f, 0.2, 4) }));
+  // Zoom buttons use viewport centre (450, 350) as the fixed point
+  const zoomBy = (f: number) =>
+    setTransform((t) => {
+      const newK = clamp(t.k * f, 0.2, 4);
+      const px = (450 - t.x) / t.k;
+      const py = (350 - t.y) / t.k;
+      return { k: newK, x: 450 - px * newK, y: 350 - py * newK };
+    });
   const resetView = () => setTransform({ x: 0, y: 0, k: 1 });
 
   // Zoom-to-fit: scales to show all currently rendered nodes with padding.
