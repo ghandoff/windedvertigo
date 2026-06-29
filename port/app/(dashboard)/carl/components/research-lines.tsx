@@ -247,13 +247,6 @@ export function ResearchLines({
         showViewToggle={hasMeta}
       />
 
-      {!filterNeedsDepth && thinSpots.length > 0 && (
-        <ThinSpotWorklist
-          lines={thinSpots.map((l) => ({ domain: l.domain, count: l.findings.length }))}
-          onSelect={setSelected}
-        />
-      )}
-
       {groups.map((group) => (
         <div key={group.title || "all"} className="space-y-2.5">
           {group.title && <SectionHeader title={group.title} />}
@@ -267,6 +260,13 @@ export function ResearchLines({
 
       {filteredLines.length === 0 && (
         <p className="text-sm text-muted-foreground py-4 text-center">no domains match the current filters</p>
+      )}
+
+      {!filterNeedsDepth && thinSpots.length > 0 && (
+        <ThinSpotWorklist
+          lines={thinSpots.map((l) => ({ domain: l.domain, count: l.findings.length }))}
+          onSelect={setSelected}
+        />
       )}
     </div>
   );

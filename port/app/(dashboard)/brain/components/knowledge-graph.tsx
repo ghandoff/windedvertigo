@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useMemo, useCallback } from "react";
+import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import {
   AGENT_META,
   PROVENANCE_META,
@@ -10,6 +10,7 @@ import {
   type GraphNode,
   type GraphEdge,
   type NodeKind,
+  type AgentId,
 } from "@/lib/knowledge/types";
 
 // ── types ────────────────────────────────────────────────────
@@ -19,8 +20,6 @@ interface SimNode extends GraphNode {
   y: number;
   vx: number;
   vy: number;
-  fx?: number | null;
-  fy?: number | null;
 }
 
 interface SimEdge {
@@ -30,17 +29,14 @@ interface SimEdge {
 }
 
 const KINDS: NodeKind[] = ["human", "agent", "shared"];
+const AGENTS: AgentId[] = ["mo", "carl", "pam", "opsy", "biz", "fin"];
 const nodeKind = (n: GraphNode): NodeKind => n.kind ?? "agent";
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-// ── force simulation (dependency-free, like the sparklines) ──
+// ── force simulation (dependency-free) ───────────────────────
 
-function forceSimulation(
-  nodes: SimNode[],
-  edges: SimEdge[],
-  width: number,
-  height: number,
-  iterations = 300,
-) {
+function forceSimulation(nodes: SimNode[], edges: SimEdge[], width: number, height: number) {
+  const iterations = nodes.length > 150 ? 150 : 300; // adaptive: O(n²) per tick
   const repulsion = -120;
   const linkDistance = 80;
   const linkStrength = 0.15;
@@ -86,15 +82,10 @@ function forceSimulation(
     nodes.forEach((n) => {
       n.vx += (width / 2 - n.x) * centerStrength * decay;
       n.vy += (height / 2 - n.y) * centerStrength * decay;
-    });
-    const velocityDecay = 0.6;
-    nodes.forEach((n) => {
-      n.vx *= velocityDecay;
-      n.x += n.vx;
-      n.vy *= velocityDecay;
-      n.y += n.vy;
-      n.x = Math.max(30, Math.min(width - 30, n.x));
-      n.y = Math.max(30, Math.min(height - 30, n.y));
+      n.vx *= 0.6;
+      n.vy *= 0.6;
+      n.x = clamp(n.x + n.vx, 30, width - 30);
+      n.y = clamp(n.y + n.vy, 30, height - 30);
     });
   }
 }
@@ -110,27 +101,155 @@ function buildAdjacency(edges: GraphEdge[]) {
   return adj;
 }
 
+// ── small popover checklist ──────────────────────────────────
+
+function FilterDropdown({
+  label,
+  options,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  label: string;
+  options: { id: string; label: string; color?: string }[];
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const active = selected.size > 0;
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors"
+        style={{
+          borderColor: active ? "var(--foreground)" : "var(--border)",
+          color: active ? "var(--foreground)" : "var(--muted-foreground)",
+          backgroundColor: active ? "var(--muted)" : "transparent",
+        }}
+      >
+        {label}
+        {active ? ` (${selected.size})` : ""} <span className="text-[9px]">▾</span>
+      </button>
+      {open && (
+        <div className="absolute left-0 z-20 mt-1 max-h-72 w-56 overflow-auto rounded-lg border border-border bg-card p-1 shadow-lg">
+          {active && (
+            <button
+              onClick={onClear}
+              className="mb-1 w-full rounded px-2 py-1 text-left text-[11px] text-muted-foreground hover:bg-muted"
+            >
+              clear all
+            </button>
+          )}
+          {options.map((o) => (
+            <label
+              key={o.id}
+              className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs hover:bg-muted"
+            >
+              <input type="checkbox" checked={selected.has(o.id)} onChange={() => onToggle(o.id)} className="h-3 w-3" />
+              {o.color && <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: o.color }} />}
+              <span className="truncate">{o.label}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── legend (shown in the drawer empty state) ─────────────────
+
+function Legend() {
+  return (
+    <div className="space-y-3 text-xs">
+      <div>
+        <p className="mb-1 font-medium text-foreground">provenance</p>
+        {(
+          [
+            ["human (CV)", PROVENANCE_META.human.color],
+            ["shared (merged)", PROVENANCE_META.shared.color],
+          ] as const
+        ).map(([l, c]) => (
+          <div key={l} className="flex items-center gap-2 text-muted-foreground">
+            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c }} />
+            {l}
+          </div>
+        ))}
+      </div>
+      <div>
+        <p className="mb-1 font-medium text-foreground">agents (by owner)</p>
+        <div className="grid grid-cols-2 gap-y-0.5">
+          {AGENTS.map((a) => (
+            <div key={a} className="flex items-center gap-2 text-muted-foreground">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: AGENT_META[a].color }} />
+              {AGENT_META[a].label}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p className="mb-1 font-medium text-foreground">markers</p>
+        <p className="text-muted-foreground">
+          <span style={{ color: PROVENANCE_META.shared.color }}>– – –</span> gold dashed link = human↔agent merge
+        </p>
+        <p className="text-muted-foreground">⊙ dashed ring = stale / under-evidenced</p>
+      </div>
+      <p className="border-t border-border pt-2 text-[11px] text-muted-foreground">
+        hover a node to peek · click to inspect · drag to pan · scroll to zoom
+      </p>
+    </div>
+  );
+}
+
 // ── component ────────────────────────────────────────────────
 
 export function KnowledgeGraph({
   data,
   staleNodeIds,
+  initialFocus,
 }: {
   data: GraphData;
   staleNodeIds?: Set<string>;
+  initialFocus?: string | null;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const stale = staleNodeIds ?? new Set<string>();
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [focusId, setFocusId] = useState<string | null>(null);
-  const [hoveredEdge, setHoveredEdge] = useState<SimEdge | null>(null);
+  const [focusId, setFocusId] = useState<string | null>(initialFocus ?? null);
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [activeKinds, setActiveKinds] = useState<Set<NodeKind>>(new Set(KINDS));
+  const [activeAgents, setActiveAgents] = useState<Set<string>>(new Set());
+  const [activePersons, setActivePersons] = useState<Set<string>>(new Set());
   const [proposalOnly, setProposalOnly] = useState(true);
+  const [labelMode, setLabelMode] = useState<"hubs" | "all" | "none">("hubs");
   const [search, setSearch] = useState("");
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
+  const [drawerOpen, setDrawerOpen] = useState(true);
+
+  // focus a node passed from the gap tab (deep-link)
+  useEffect(() => {
+    if (initialFocus) {
+      setFocusId(initialFocus);
+      setSelectedNode(initialFocus);
+    }
+  }, [initialFocus]);
 
   const adj = useMemo(() => buildAdjacency(data.edges), [data.edges]);
+  const nodeMap = useMemo(() => new Map(data.nodes.map((n) => [n.id, n])), [data.nodes]);
 
   const degreeMap = useMemo(() => {
     const m = new Map<string, number>();
@@ -142,7 +261,43 @@ export function KnowledgeGraph({
     return m;
   }, [data]);
 
-  // focus neighbourhood (pin-to-member / service-offering view)
+  // hubs = agents + members + top-degree nodes (always labelled in "hubs" mode)
+  const hubIds = useMemo(() => {
+    const s = new Set<string>();
+    data.nodes.forEach((n) => {
+      if (n.category === "agent" || n.category === "member") s.add(n.id);
+    });
+    const sorted = [...degreeMap.entries()].sort((a, b) => b[1] - a[1]);
+    let added = 0;
+    for (const [id] of sorted) {
+      if (!s.has(id)) {
+        s.add(id);
+        if (++added >= 14) break;
+      }
+    }
+    return s;
+  }, [data.nodes, degreeMap]);
+
+  const members = useMemo(
+    () =>
+      data.nodes
+        .filter((n) => n.category === "member")
+        .sort((a, b) => a.label.localeCompare(b.label))
+        .map((n) => ({ id: n.id, label: n.label, color: getNodeColor(n) })),
+    [data.nodes],
+  );
+
+  // person filter → union of selected members + their neighbours
+  const personSet = useMemo(() => {
+    if (activePersons.size === 0) return null;
+    const s = new Set<string>();
+    activePersons.forEach((id) => {
+      s.add(id);
+      adj.get(id)?.forEach((nb) => s.add(nb));
+    });
+    return s;
+  }, [activePersons, adj]);
+
   const focusSet = useMemo(() => {
     if (!focusId) return null;
     const s = new Set<string>([focusId]);
@@ -154,6 +309,14 @@ export function KnowledgeGraph({
     let nodes = data.nodes.filter((n) => activeKinds.has(nodeKind(n)));
     if (proposalOnly) nodes = nodes.filter((n) => PROPOSAL_FACING.has(n.category));
     if (focusSet) nodes = nodes.filter((n) => focusSet.has(n.id));
+    // agent + person lenses (union when both active)
+    if (activeAgents.size > 0 || personSet) {
+      nodes = nodes.filter((n) => {
+        const byAgent = activeAgents.size > 0 && activeAgents.has(n.agent);
+        const byPerson = personSet?.has(n.id) ?? false;
+        return byAgent || byPerson;
+      });
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       nodes = nodes.filter(
@@ -164,7 +327,7 @@ export function KnowledgeGraph({
       );
     }
     return nodes;
-  }, [data.nodes, activeKinds, proposalOnly, focusSet, search]);
+  }, [data.nodes, activeKinds, proposalOnly, focusSet, activeAgents, personSet, search]);
 
   const filteredNodeIds = useMemo(() => new Set(filteredNodes.map((n) => n.id)), [filteredNodes]);
 
@@ -176,19 +339,15 @@ export function KnowledgeGraph({
   const { simNodes, simEdges } = useMemo(() => {
     const w = 900;
     const h = 700;
-    const nodeMap = new Map<string, SimNode>();
+    const map = new Map<string, SimNode>();
     const sn: SimNode[] = filteredNodes.map((n) => {
       const node: SimNode = { ...n, x: 0, y: 0, vx: 0, vy: 0 };
-      nodeMap.set(n.id, node);
+      map.set(n.id, node);
       return node;
     });
     const se: SimEdge[] = filteredEdges
-      .filter((e) => nodeMap.has(e.source) && nodeMap.has(e.target))
-      .map((e) => ({
-        source: nodeMap.get(e.source)!,
-        target: nodeMap.get(e.target)!,
-        relationship: e.relationship,
-      }));
+      .filter((e) => map.has(e.source) && map.has(e.target))
+      .map((e) => ({ source: map.get(e.source)!, target: map.get(e.target)!, relationship: e.relationship }));
     forceSimulation(sn, se, w, h);
     return { simNodes: sn, simEdges: se };
   }, [filteredNodes, filteredEdges]);
@@ -211,16 +370,23 @@ export function KnowledgeGraph({
     [degreeMap],
   );
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.ctrlKey || e.metaKey) {
-      const factor = e.deltaY > 0 ? 0.9 : 1.1;
-      setTransform((t) => ({ ...t, k: Math.max(0.3, Math.min(3, t.k * factor)) }));
-    } else {
-      setTransform((t) => ({ ...t, x: t.x - e.deltaX, y: t.y - e.deltaY }));
-    }
+  // ── zoom (non-passive native wheel so it never zooms the browser) ──
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const factor = e.deltaY > 0 ? 0.92 : 1.08;
+      setTransform((t) => ({ ...t, k: clamp(t.k * factor, 0.2, 4) }));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
+  const zoomBy = (f: number) => setTransform((t) => ({ ...t, k: clamp(t.k * f, 0.2, 4) }));
+  const resetView = () => setTransform({ x: 0, y: 0, k: 1 });
+
+  const selectedNodeData = selectedNode ? nodeMap.get(selectedNode) : undefined;
   const selectedEdges = useMemo(() => {
     if (!selectedNode) return { outgoing: [] as GraphEdge[], incoming: [] as GraphEdge[] };
     return {
@@ -229,19 +395,22 @@ export function KnowledgeGraph({
     };
   }, [selectedNode, data.edges]);
 
-  const nodeMap = useMemo(() => new Map(data.nodes.map((n) => [n.id, n])), [data.nodes]);
-  const selectedNodeData = selectedNode ? nodeMap.get(selectedNode) : undefined;
-
-  const toggleKind = (k: NodeKind) =>
-    setActiveKinds((prev) => {
+  const toggle = <T,>(set: React.Dispatch<React.SetStateAction<Set<T>>>, v: T) =>
+    set((prev) => {
       const next = new Set(prev);
-      if (next.has(k)) next.delete(k);
-      else next.add(k);
+      if (next.has(v)) next.delete(v);
+      else next.add(v);
       return next;
     });
 
+  const labelFor = (n: SimNode, isSelectedCtx: boolean) =>
+    labelMode === "all" ||
+    n.id === hoveredNode ||
+    isSelectedCtx ||
+    (labelMode === "hubs" && hubIds.has(n.id));
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* controls */}
       <div className="flex flex-wrap items-center gap-2">
         {KINDS.map((k) => {
@@ -250,7 +419,7 @@ export function KnowledgeGraph({
           return (
             <button
               key={k}
-              onClick={() => toggleKind(k)}
+              onClick={() => toggle(setActiveKinds, k)}
               className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors"
               style={{
                 borderColor: on ? meta.color : "var(--border)",
@@ -258,14 +427,26 @@ export function KnowledgeGraph({
                 color: on ? meta.color : "var(--muted-foreground)",
               }}
             >
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: meta.color, opacity: on ? 1 : 0.3 }}
-              />
+              <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: meta.color, opacity: on ? 1 : 0.3 }} />
               {meta.label}
             </button>
           );
         })}
+
+        <FilterDropdown
+          label="agent"
+          options={AGENTS.map((a) => ({ id: a, label: AGENT_META[a].label, color: AGENT_META[a].color }))}
+          selected={activeAgents}
+          onToggle={(id) => toggle(setActiveAgents, id)}
+          onClear={() => setActiveAgents(new Set())}
+        />
+        <FilterDropdown
+          label="person"
+          options={members}
+          selected={activePersons}
+          onToggle={(id) => toggle(setActivePersons, id)}
+          onClear={() => setActivePersons(new Set())}
+        />
 
         <button
           onClick={() => setProposalOnly((v) => !v)}
@@ -274,9 +455,17 @@ export function KnowledgeGraph({
             borderColor: proposalOnly ? "var(--foreground)" : "var(--border)",
             color: proposalOnly ? "var(--foreground)" : "var(--muted-foreground)",
           }}
-          title="proposal-facing layer: members · skills · methods · frameworks · concepts"
+          title="proposal-facing layer: members · skills · methods · frameworks · agents"
         >
           {proposalOnly ? "proposal-facing" : "everything"}
+        </button>
+
+        <button
+          onClick={() => setLabelMode((m) => (m === "hubs" ? "all" : m === "all" ? "none" : "hubs"))}
+          className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          title="how many labels to show"
+        >
+          labels: {labelMode}
         </button>
 
         {focusId && (
@@ -297,29 +486,49 @@ export function KnowledgeGraph({
         />
       </div>
 
-      {/* graph + detail panel */}
-      <div className="flex gap-4">
+      {/* graph + persistent drawer */}
+      <div className="flex gap-3">
         <div
+          ref={containerRef}
           className="relative flex-1 overflow-hidden rounded-lg border border-border bg-card"
-          style={{ minHeight: 500 }}
+          style={{ minHeight: 560 }}
         >
           <svg
             ref={svgRef}
             viewBox="0 0 900 700"
             className="h-full w-full"
-            onWheel={handleWheel}
+            style={{ cursor: dragRef.current ? "grabbing" : "grab" }}
+            onMouseDown={(e) => {
+              dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
+            }}
+            onMouseMove={(e) => {
+              const d = dragRef.current;
+              if (!d) return;
+              const dx = e.clientX - d.x;
+              const dy = e.clientY - d.y;
+              if (Math.abs(dx) + Math.abs(dy) > 1) {
+                d.moved = true;
+                setTransform((t) => ({ ...t, x: t.x + dx * 1.4, y: t.y + dy * 1.4 }));
+                d.x = e.clientX;
+                d.y = e.clientY;
+              }
+            }}
+            onMouseUp={() => {
+              dragRef.current = null;
+            }}
+            onMouseLeave={() => {
+              dragRef.current = null;
+            }}
             onClick={(e) => {
-              if (e.target === svgRef.current || (e.target as Element).tagName === "svg") {
+              if ((e.target === svgRef.current || (e.target as Element).tagName === "svg") && !dragRef.current) {
                 setSelectedNode(null);
               }
             }}
           >
             <g transform={`translate(${transform.x},${transform.y}) scale(${transform.k})`}>
-              {/* edges */}
               {simEdges.map((e, i) => {
                 const isBridge = e.relationship === "same-as";
-                const dim =
-                  selectedNode && !neighbours.has(e.source.id) && !neighbours.has(e.target.id);
+                const dim = selectedNode && !neighbours.has(e.source.id) && !neighbours.has(e.target.id);
                 return (
                   <line
                     key={i}
@@ -328,53 +537,38 @@ export function KnowledgeGraph({
                     x2={e.target.x}
                     y2={e.target.y}
                     stroke={isBridge ? PROVENANCE_META.shared.color : dim ? "var(--border)" : "var(--muted-foreground)"}
-                    strokeOpacity={dim ? 0.12 : isBridge ? 0.7 : 0.25}
+                    strokeOpacity={dim ? 0.1 : isBridge ? 0.7 : 0.22}
                     strokeWidth={isBridge ? 1.5 : 1}
                     strokeDasharray={isBridge ? "4 3" : undefined}
-                    onMouseEnter={() => setHoveredEdge(e)}
-                    onMouseLeave={() => setHoveredEdge(null)}
-                    style={{ cursor: "default" }}
+                    pointerEvents="none"
                   />
                 );
               })}
 
-              {hoveredEdge && (
-                <text
-                  x={(hoveredEdge.source.x + hoveredEdge.target.x) / 2}
-                  y={(hoveredEdge.source.y + hoveredEdge.target.y) / 2 - 6}
-                  textAnchor="middle"
-                  fill="var(--foreground)"
-                  fontSize={9}
-                  fontFamily="var(--font-mono, monospace)"
-                  pointerEvents="none"
-                >
-                  {hoveredEdge.relationship}
-                </text>
-              )}
-
-              {/* nodes */}
               {simNodes.map((n) => {
                 const r = nodeRadius(n.id, n.category);
                 const color = getNodeColor(n);
                 const dim = selectedNode && !neighbours.has(n.id);
                 const isSelected = n.id === selectedNode;
+                const isHovered = n.id === hoveredNode;
                 const isStale = stale.has(n.id);
+                const showLabel = labelFor(n, !!(isSelected || (selectedNode && neighbours.has(n.id))) || isHovered);
                 return (
-                  <g key={n.id} style={{ cursor: "pointer" }} onClick={() => setSelectedNode(n.id)}>
-                    {isSelected && (
+                  <g
+                    key={n.id}
+                    style={{ cursor: "pointer" }}
+                    onMouseEnter={() => setHoveredNode(n.id)}
+                    onMouseLeave={() => setHoveredNode((h) => (h === n.id ? null : h))}
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      if (!dragRef.current?.moved) setSelectedNode(n.id);
+                    }}
+                  >
+                    {(isSelected || isHovered) && (
                       <circle cx={n.x} cy={n.y} r={r + 4} fill="none" stroke={color} strokeWidth={2} strokeOpacity={0.5} />
                     )}
                     {isStale && (
-                      <circle
-                        cx={n.x}
-                        cy={n.y}
-                        r={r + 3}
-                        fill="none"
-                        stroke="#f59e0b"
-                        strokeWidth={1.5}
-                        strokeDasharray="2 2"
-                        opacity={dim ? 0.2 : 0.9}
-                      />
+                      <circle cx={n.x} cy={n.y} r={r + 3} fill="none" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" opacity={dim ? 0.2 : 0.9} />
                     )}
                     <circle
                       cx={n.x}
@@ -382,20 +576,19 @@ export function KnowledgeGraph({
                       r={r}
                       fill={color}
                       fillOpacity={dim ? 0.15 : n.category === "agent" ? 1 : 0.78}
-                      stroke={isSelected ? color : "none"}
-                      strokeWidth={isSelected ? 2 : 0}
                     />
-                    {(r >= 6 || isSelected) && (
+                    {showLabel && (
                       <text
                         x={n.x}
-                        y={n.y + r + 11}
+                        y={n.y + r + 10}
                         textAnchor="middle"
                         fill="var(--foreground)"
-                        fontSize={9}
-                        opacity={dim ? 0.25 : 0.8}
+                        fontSize={isHovered ? 11 : 9}
+                        fontWeight={isHovered || hubIds.has(n.id) ? 600 : 400}
+                        opacity={dim ? 0.3 : 0.85}
                         pointerEvents="none"
                       >
-                        {n.label.length > 18 ? n.label.slice(0, 16) + "..." : n.label}
+                        {n.label.length > 22 ? n.label.slice(0, 20) + "…" : n.label}
                       </text>
                     )}
                   </g>
@@ -404,92 +597,109 @@ export function KnowledgeGraph({
             </g>
           </svg>
 
+          {/* zoom controls */}
+          <div className="absolute right-2 top-2 flex flex-col gap-1">
+            <button onClick={() => zoomBy(1.2)} className="h-7 w-7 rounded border border-border bg-background/90 text-sm text-foreground backdrop-blur hover:bg-muted">+</button>
+            <button onClick={() => zoomBy(0.83)} className="h-7 w-7 rounded border border-border bg-background/90 text-sm text-foreground backdrop-blur hover:bg-muted">−</button>
+            <button onClick={resetView} className="h-7 w-7 rounded border border-border bg-background/90 text-[10px] text-foreground backdrop-blur hover:bg-muted" title="reset view">⤢</button>
+          </div>
+
+          {/* stats */}
           <div className="absolute bottom-2 left-2 flex gap-3 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
             <span>{filteredNodes.length} nodes</span>
             <span>{filteredEdges.length} edges</span>
             <span>{(transform.k * 100).toFixed(0)}%</span>
           </div>
+
+          {!drawerOpen && (
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="absolute right-2 bottom-2 rounded border border-border bg-background/90 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur hover:bg-muted"
+            >
+              ‹ details
+            </button>
+          )}
         </div>
 
-        {/* detail panel */}
-        {selectedNodeData && (
+        {/* persistent drawer */}
+        {drawerOpen && (
           <div className="w-72 shrink-0 space-y-3 rounded-lg border border-border bg-card p-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span
-                  className="inline-block h-3 w-3 rounded-full"
-                  style={{ backgroundColor: getNodeColor(selectedNodeData) }}
-                />
-                <h3 className="text-sm font-semibold">{selectedNodeData.label}</h3>
-              </div>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
-                {selectedNodeData.category}
-                {" · "}
-                {nodeKind(selectedNodeData)}
-                {selectedNodeData.source ? ` · ${selectedNodeData.source}` : ""}
-                {stale.has(selectedNodeData.id) ? " · ⚠ stale" : ""}
-              </p>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {selectedNodeData ? "node" : "legend"}
+              </h3>
+              <button onClick={() => setDrawerOpen(false)} className="text-xs text-muted-foreground hover:text-foreground" title="collapse">
+                ›
+              </button>
             </div>
-            {selectedNodeData.description && (
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {selectedNodeData.description}
-              </p>
-            )}
 
-            <button
-              onClick={() => setFocusId(focusId === selectedNodeData.id ? null : selectedNodeData.id)}
-              className="w-full rounded border border-border px-2 py-1 text-xs font-medium transition-colors hover:bg-muted"
-            >
-              {focusId === selectedNodeData.id ? "show full graph" : "pin to this node's constellation"}
-            </button>
+            {!selectedNodeData && <Legend />}
 
-            {selectedEdges.outgoing.length > 0 && (
-              <div>
-                <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">outgoing</p>
-                <ul className="space-y-0.5">
-                  {selectedEdges.outgoing.map((e, i) => (
-                    <li key={i} className="text-xs">
-                      <button className="text-left hover:underline" onClick={() => setSelectedNode(e.target)}>
-                        <span className="text-muted-foreground">{e.relationship} →</span>{" "}
-                        {nodeMap.get(e.target)?.label ?? e.target}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+            {selectedNodeData && (
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: getNodeColor(selectedNodeData) }} />
+                    <h4 className="text-sm font-semibold">{selectedNodeData.label}</h4>
+                  </div>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    {selectedNodeData.category} · {nodeKind(selectedNodeData)}
+                    {selectedNodeData.source ? ` · ${selectedNodeData.source}` : ""}
+                    {stale.has(selectedNodeData.id) ? " · ⚠ stale" : ""}
+                  </p>
+                </div>
+                {selectedNodeData.description && (
+                  <p className="text-xs leading-relaxed text-muted-foreground">{selectedNodeData.description}</p>
+                )}
+
+                <button
+                  onClick={() => setFocusId(focusId === selectedNodeData.id ? null : selectedNodeData.id)}
+                  className="w-full rounded border border-border px-2 py-1 text-xs font-medium transition-colors hover:bg-muted"
+                >
+                  {focusId === selectedNodeData.id ? "show full graph" : "pin to this node's constellation"}
+                </button>
+
+                {selectedEdges.outgoing.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">outgoing</p>
+                    <ul className="max-h-40 space-y-0.5 overflow-auto">
+                      {selectedEdges.outgoing.map((e, i) => (
+                        <li key={i} className="text-xs">
+                          <button className="text-left hover:underline" onClick={() => setSelectedNode(e.target)}>
+                            <span className="text-muted-foreground">{e.relationship} →</span> {nodeMap.get(e.target)?.label ?? e.target}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {selectedEdges.incoming.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">incoming</p>
+                    <ul className="max-h-40 space-y-0.5 overflow-auto">
+                      {selectedEdges.incoming.map((e, i) => (
+                        <li key={i} className="text-xs">
+                          <button className="text-left hover:underline" onClick={() => setSelectedNode(e.source)}>
+                            {nodeMap.get(e.source)?.label ?? e.source} <span className="text-muted-foreground">→ {e.relationship}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setSelectedNode(null)}
+                  className="w-full rounded border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted"
+                >
+                  close
+                </button>
               </div>
             )}
-
-            {selectedEdges.incoming.length > 0 && (
-              <div>
-                <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">incoming</p>
-                <ul className="space-y-0.5">
-                  {selectedEdges.incoming.map((e, i) => (
-                    <li key={i} className="text-xs">
-                      <button className="text-left hover:underline" onClick={() => setSelectedNode(e.source)}>
-                        {nodeMap.get(e.source)?.label ?? e.source}{" "}
-                        <span className="text-muted-foreground">→ {e.relationship}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <button
-              onClick={() => setSelectedNode(null)}
-              className="w-full rounded border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted"
-            >
-              close
-            </button>
           </div>
         )}
       </div>
-      <p className="text-[10px] text-muted-foreground">
-        colour = provenance: <span style={{ color: PROVENANCE_META.human.color }}>human (CV)</span> ·{" "}
-        <span style={{ color: AGENT_META.carl.color }}>agent</span> (by owner) ·{" "}
-        <span style={{ color: PROVENANCE_META.shared.color }}>shared</span> · gold dashed link = human↔agent merge ·
-        dashed ring = stale. ⌘/ctrl-scroll to zoom.
-      </p>
     </div>
   );
 }
