@@ -697,7 +697,13 @@ export function KnowledgeGraph({
                 );
               })}
 
-              {simNodes.map((n) => {
+              {[...simNodes]
+                .sort((a, b) => {
+                  const rank = (n: SimNode) =>
+                    n.id === hoveredNode ? 2 : n.id === selectedNode ? 1 : 0;
+                  return rank(a) - rank(b);
+                })
+                .map((n) => {
                 const r = nodeRadius(n.id, n.category);
                 const color = getNodeColor(n);
                 const dim = selectedNode && !neighbours.has(n.id);
