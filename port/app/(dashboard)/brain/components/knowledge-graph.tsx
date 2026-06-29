@@ -235,6 +235,7 @@ export function KnowledgeGraph({
   const [activeAgents, setActiveAgents] = useState<Set<string>>(new Set());
   const [activePersons, setActivePersons] = useState<Set<string>>(new Set());
   const [proposalOnly, setProposalOnly] = useState(true);
+  const [showLit, setShowLit] = useState(false);
   const [labelMode, setLabelMode] = useState<"hubs" | "all" | "none">("hubs");
   const [search, setSearch] = useState("");
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
@@ -307,7 +308,12 @@ export function KnowledgeGraph({
 
   const filteredNodes = useMemo(() => {
     let nodes = data.nodes.filter((n) => activeKinds.has(nodeKind(n)));
-    if (proposalOnly) nodes = nodes.filter((n) => PROPOSAL_FACING.has(n.category));
+    // proposal-facing is the default lens, but a pinned focus (e.g. from a gap)
+    // shows its full neighbourhood regardless of category.
+    if (proposalOnly && !focusSet)
+      nodes = nodes.filter(
+        (n) => PROPOSAL_FACING.has(n.category) || (showLit && (n.category === "literature" || n.category === "concept")),
+      );
     if (focusSet) nodes = nodes.filter((n) => focusSet.has(n.id));
     // agent + person lenses (union when both active)
     if (activeAgents.size > 0 || personSet) {
@@ -327,7 +333,7 @@ export function KnowledgeGraph({
       );
     }
     return nodes;
-  }, [data.nodes, activeKinds, proposalOnly, focusSet, activeAgents, personSet, search]);
+  }, [data.nodes, activeKinds, proposalOnly, showLit, focusSet, activeAgents, personSet, search]);
 
   const filteredNodeIds = useMemo(() => new Set(filteredNodes.map((n) => n.id)), [filteredNodes]);
 
@@ -458,6 +464,18 @@ export function KnowledgeGraph({
           title="proposal-facing layer: members · skills · methods · frameworks · agents"
         >
           {proposalOnly ? "proposal-facing" : "everything"}
+        </button>
+
+        <button
+          onClick={() => setShowLit((v) => !v)}
+          className="rounded-full border px-2.5 py-1 text-xs transition-colors"
+          style={{
+            borderColor: showLit ? "var(--foreground)" : "var(--border)",
+            color: showLit ? "var(--foreground)" : "var(--muted-foreground)",
+          }}
+          title="overlay cARL's annotated bibliography (literature grounding the concepts)"
+        >
+          {showLit ? "literature ✓" : "+ literature"}
         </button>
 
         <button

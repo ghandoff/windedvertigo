@@ -14,6 +14,7 @@ import { ingestNotionCv } from "./ingest-notion";
 import { ingestAgentLogs } from "./ingest-agents";
 import { reconcile } from "./reconcile";
 import { reconcileFuzzy, type FuzzyResult } from "./reconcile-fuzzy";
+import { ingestBibliography } from "./ingest-bibliography";
 import {
   upsertNodes,
   upsertEdges,
@@ -71,25 +72,39 @@ export async function runKnowledgeSync(userId = "knowledge-sync"): Promise<SyncR
     sources.agents = { skipped: true, reason: msg.slice(0, 160) };
   }
 
+  // literature layer (annotated bibliography → toggleable nodes)
+  let bibNodes: NodeInput[] = [];
+  let bibEdges: EdgeInput[] = [];
+  try {
+    const b = await ingestBibliography();
+    bibNodes = b.nodes;
+    bibEdges = b.edges;
+    sources.bibliography = b.counts;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    errors.push(`bibliography: ${msg}`);
+    sources.bibliography = { skipped: true, reason: msg.slice(0, 160) };
+  }
+
   // ── upsert nodes (per source; later sources win id conflicts) ──
   let added = 0;
   let updated = 0;
-  for (const batch of [curated.nodes, notionNodes, agentNodes]) {
+  for (const batch of [curated.nodes, notionNodes, agentNodes, bibNodes]) {
     if (batch.length === 0) continue;
     const r = await upsertNodes(batch, syncTs);
     added += r.added;
     updated += r.updated;
   }
-  const totalNodes = curated.nodes.length + notionNodes.length + agentNodes.length;
+  const totalNodes = curated.nodes.length + notionNodes.length + agentNodes.length + bibNodes.length;
 
   // ── upsert edges (dedupe by tuple; drop dangling endpoints) ──
   const validIds = new Set(
-    [...curated.nodes, ...notionNodes, ...agentNodes].map((n) => n.id),
+    [...curated.nodes, ...notionNodes, ...agentNodes, ...bibNodes].map((n) => n.id),
   );
   const seen = new Set<string>();
   const allEdges: EdgeInput[] = [];
   let dropped = 0;
-  for (const e of [...curated.edges, ...notionEdges, ...agentEdges]) {
+  for (const e of [...curated.edges, ...notionEdges, ...agentEdges, ...bibEdges]) {
     if (!validIds.has(e.sourceId) || !validIds.has(e.targetId)) {
       dropped++;
       continue;

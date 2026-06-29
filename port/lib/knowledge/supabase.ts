@@ -206,7 +206,7 @@ export async function pruneStaleNodes(syncTs: string): Promise<number> {
     .from("knowledge_nodes")
     .delete()
     .eq("source", "agent-log")
-    .eq("category", "concept")
+    .in("category", ["concept", "literature"])
     .eq("kind", "agent")
     .lt("last_seen_at", syncTs)
     .select("id");
