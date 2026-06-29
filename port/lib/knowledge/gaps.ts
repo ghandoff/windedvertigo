@@ -205,7 +205,12 @@ export function computeGaps(data: GraphData): Gap[] {
       .forEach((concept) => {
         const key = concept.canonicalKey ?? canonicalKey(concept.label);
         if (humanKeys.has(key) || seen.has(key)) return;
-        if ((neighbours.get(concept.id)?.size ?? 0) < 3) return;
+        // "worked on" = referenced by ≥2 AGENT nodes (not literature citations or
+        // concept-concept links), so this stays a real capability signal.
+        const agentRefs = (edgesByNode.get(concept.id) ?? []).filter(
+          (e) => nodeMap.get(other(e, concept.id))?.category === "agent",
+        ).length;
+        if (agentRefs < 2) return;
         seen.add(key);
         gaps.push({
           type: "capability-gap",
