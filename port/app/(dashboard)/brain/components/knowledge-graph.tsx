@@ -370,9 +370,9 @@ export function KnowledgeGraph({
 
   const nodeRadius = useCallback(
     (id: string, category: string) => {
-      if (category === "agent") return 10;
+      if (category === "agent") return 6;
       const d = degreeMap.get(id) ?? 0;
-      return Math.max(4, Math.min(12, 3 + d * 1.2));
+      return Math.max(2, Math.min(6, 2 + d * 0.5));
     },
     [degreeMap],
   );
