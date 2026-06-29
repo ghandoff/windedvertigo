@@ -148,8 +148,11 @@ export function computeGaps(data: GraphData): Gap[] {
     }
   });
 
-  // 5. thin inter-agent bridges
-  const agentIds = byCategory("agent").map((n) => n.id);
+  // 5. thin inter-agent bridges (only the 6 canonical agent actors)
+  const CORE_AGENT = /^agent:(mo|carl|pam|opsy|biz|fin)$/;
+  const agentIds = byCategory("agent")
+    .map((n) => n.id)
+    .filter((id) => CORE_AGENT.test(id));
   for (let i = 0; i < agentIds.length; i++) {
     for (let j = i + 1; j < agentIds.length; j++) {
       const a = agentIds[i];
@@ -205,7 +208,14 @@ export function computeGaps(data: GraphData): Gap[] {
       .forEach((concept) => {
         const key = concept.canonicalKey ?? canonicalKey(concept.label);
         if (humanKeys.has(key) || seen.has(key)) return;
-        if ((neighbours.get(concept.id)?.size ?? 0) < 3) return;
+        // "worked on by the collective" = referenced by ≥2 DISTINCT agents (a
+        // cross-cutting theme), not one agent's many mentions or a lit citation.
+        const agentNeighbours = new Set(
+          (edgesByNode.get(concept.id) ?? [])
+            .map((e) => other(e, concept.id))
+            .filter((id) => nodeMap.get(id)?.category === "agent"),
+        );
+        if (agentNeighbours.size < 2) return;
         seen.add(key);
         gaps.push({
           type: "capability-gap",
@@ -336,6 +346,35 @@ export function computeGaps(data: GraphData): Gap[] {
       });
     }
   });
+
+  // 12. ungrounded-framework — a human framework with no catalogued literature.
+  // Only meaningful once the literature layer is present.
+  const litNodes = byCategory("literature");
+  if (litNodes.length > 0) {
+    // concept/framework keys that a literature node "grounds"
+    const groundedKeys = new Set<string>();
+    data.edges.forEach((e) => {
+      const a = nodeMap.get(e.source);
+      const b = nodeMap.get(e.target);
+      if (a?.category === "literature" && b) groundedKeys.add(b.canonicalKey ?? canonicalKey(b.label));
+      if (b?.category === "literature" && a) groundedKeys.add(a.canonicalKey ?? canonicalKey(a.label));
+    });
+    frameworks
+      .filter((f) => f.kind === "human" || f.kind === "shared")
+      .forEach((fw) => {
+        const key = fw.canonicalKey ?? canonicalKey(fw.label);
+        if (!groundedKeys.has(key)) {
+          gaps.push({
+            type: "ungrounded-framework",
+            severity: "medium",
+            title: `"${fw.label}" has no catalogued literature`,
+            description: `this is listed as an intellectual asset, but cARL's annotated bibliography has nothing grounding it. building the evidence base strengthens proposals that lead with it.`,
+            nodeIds: [fw.id],
+            curriculumSuggestion: `cARL: build a literature base for "${fw.label}"`,
+          });
+        }
+      });
+  }
 
   // sort by severity
   const order = { high: 0, medium: 1, low: 2 };
