@@ -42,7 +42,8 @@ export type NodeCategory =
   | "method"
   | "framework"
   | "population"
-  | "cv-entry";
+  | "cv-entry"
+  | "literature";
 
 export interface GraphNode {
   id: string;
@@ -87,7 +88,8 @@ export type GapType =
   | "evidence-asymmetry"
   | "framework-adoption"
   | "population-coverage"
-  | "service-coverage";
+  | "service-coverage"
+  | "ungrounded-framework";
 
 export interface Gap {
   type: GapType;

@@ -34,6 +34,7 @@ export default async function BrainPage({
   const sp = await searchParams;
   const tabParam = typeof sp.tab === "string" ? sp.tab : undefined;
   const activeTab = TABS.find((t) => t.key === tabParam)?.key ?? "graph";
+  const focus = typeof sp.focus === "string" ? sp.focus : null;
 
   // live from Supabase, falling back to the committed const snapshot
   const live = await fetchGraphData();
@@ -92,7 +93,7 @@ export default async function BrainPage({
 
         <UrlTabs tabs={TABS} activeTab={activeTab} />
 
-        {activeTab === "graph" && <KnowledgeGraph data={data} staleNodeIds={staleNodeIds} />}
+        {activeTab === "graph" && <KnowledgeGraph data={data} staleNodeIds={staleNodeIds} initialFocus={focus} />}
         {activeTab === "gaps" && <GapAnalysis data={data} gaps={gaps} />}
       </div>
     </>
