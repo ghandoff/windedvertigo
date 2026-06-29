@@ -148,8 +148,11 @@ export function computeGaps(data: GraphData): Gap[] {
     }
   });
 
-  // 5. thin inter-agent bridges
-  const agentIds = byCategory("agent").map((n) => n.id);
+  // 5. thin inter-agent bridges (only the 6 canonical agent actors)
+  const CORE_AGENT = /^agent:(mo|carl|pam|opsy|biz|fin)$/;
+  const agentIds = byCategory("agent")
+    .map((n) => n.id)
+    .filter((id) => CORE_AGENT.test(id));
   for (let i = 0; i < agentIds.length; i++) {
     for (let j = i + 1; j < agentIds.length; j++) {
       const a = agentIds[i];
@@ -205,12 +208,14 @@ export function computeGaps(data: GraphData): Gap[] {
       .forEach((concept) => {
         const key = concept.canonicalKey ?? canonicalKey(concept.label);
         if (humanKeys.has(key) || seen.has(key)) return;
-        // "worked on" = referenced by ≥2 AGENT nodes (not literature citations or
-        // concept-concept links), so this stays a real capability signal.
-        const agentRefs = (edgesByNode.get(concept.id) ?? []).filter(
-          (e) => nodeMap.get(other(e, concept.id))?.category === "agent",
-        ).length;
-        if (agentRefs < 2) return;
+        // "worked on by the collective" = referenced by ≥2 DISTINCT agents (a
+        // cross-cutting theme), not one agent's many mentions or a lit citation.
+        const agentNeighbours = new Set(
+          (edgesByNode.get(concept.id) ?? [])
+            .map((e) => other(e, concept.id))
+            .filter((id) => nodeMap.get(id)?.category === "agent"),
+        );
+        if (agentNeighbours.size < 2) return;
         seen.add(key);
         gaps.push({
           type: "capability-gap",
