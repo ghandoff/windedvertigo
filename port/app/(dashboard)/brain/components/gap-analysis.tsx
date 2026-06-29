@@ -5,29 +5,46 @@ import Link from "next/link";
 import { getNodeColor, type GraphData, type Gap, type GapType } from "@/lib/knowledge/types";
 
 const SEVERITY_STYLE: Record<Gap["severity"], { bg: string; text: string; label: string }> = {
-  high:   { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", label: "high" },
+  high:   { bg: "bg-red-500/10",   text: "text-red-600 dark:text-red-400",   label: "high" },
   medium: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", label: "medium" },
-  low:    { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", label: "low" },
+  low:    { bg: "bg-blue-500/10",  text: "text-blue-600 dark:text-blue-400",  label: "low" },
 };
 
 const TYPE_LABELS: Record<GapType, string> = {
-  isolated: "isolated node",
-  "shallow-research": "shallow research",
-  "ungrounded-product": "ungrounded product",
-  "thin-bridge": "thin bridge",
-  "no-methodology": "missing methodology",
-  "capability-gap": "capability gap",
-  "claimed-unevidenced": "claimed · unevidenced",
-  "evidence-asymmetry": "evidence asymmetry",
-  "framework-adoption": "framework adoption",
-  "population-coverage": "population coverage",
-  "service-coverage": "service coverage",
+  isolated:               "isolated node",
+  "shallow-research":     "shallow research",
+  "ungrounded-product":   "ungrounded product",
+  "thin-bridge":          "thin bridge",
+  "no-methodology":       "missing methodology",
+  "capability-gap":       "capability gap",
+  "claimed-unevidenced":  "claimed · unevidenced",
+  "evidence-asymmetry":   "evidence asymmetry",
+  "framework-adoption":   "framework adoption",
+  "population-coverage":  "population coverage",
+  "service-coverage":     "service coverage",
   "ungrounded-framework": "ungrounded framework",
 };
 
+// Who owns each gap type and how to close it
+const GAP_ATTRIBUTION: Record<GapType, { owner: string; approach: string; canAssignCarl: boolean }> = {
+  "capability-gap":       { owner: "cARL + Garrett", approach: "cARL researches; Garrett adds to CV if validated", canAssignCarl: true },
+  "claimed-unevidenced":  { owner: "team member",    approach: "add a cv-entry demonstrating this skill",         canAssignCarl: false },
+  "evidence-asymmetry":   { owner: "team member",    approach: "add a cv-entry for this skill + member pair",     canAssignCarl: false },
+  "framework-adoption":   { owner: "cARL",           approach: "research how agents can apply this framework",    canAssignCarl: true },
+  "population-coverage":  { owner: "cARL + Garrett", approach: "add cv-entries for this population; cARL maps coverage", canAssignCarl: true },
+  "service-coverage":     { owner: "Garrett",        approach: "add recent service exemplars to CV",              canAssignCarl: false },
+  "ungrounded-framework": { owner: "cARL",           approach: "catalogue literature grounding this framework",   canAssignCarl: true },
+  "thin-bridge":          { owner: "cARL + Garrett", approach: "deepen concept links across the graph",           canAssignCarl: true },
+  "isolated":             { owner: "cARL",           approach: "connect this concept to the broader graph",       canAssignCarl: true },
+  "shallow-research":     { owner: "cARL",           approach: "deepen research coverage in this domain",         canAssignCarl: true },
+  "ungrounded-product":   { owner: "cARL + Mo",      approach: "ground product claims in the evidence base",      canAssignCarl: true },
+  "no-methodology":       { owner: "cARL + Garrett", approach: "identify an appropriate research methodology",    canAssignCarl: true },
+};
+
 const sig = (g: Gap) => `${g.type}|${g.nodeIds.join(",")}`;
-const STAR_KEY = "brain.gaps.starred";
-const DISMISS_KEY = "brain.gaps.dismissed";
+const STAR_KEY     = "brain.gaps.starred";
+const DISMISS_KEY  = "brain.gaps.dismissed";
+const ASSIGNED_KEY = "brain.gaps.assigned";
 
 function useLocalSet(key: string): [Set<string>, (id: string) => void] {
   const [set, setSet] = useState<Set<string>>(new Set());
@@ -35,31 +52,27 @@ function useLocalSet(key: string): [Set<string>, (id: string) => void] {
     try {
       const raw = localStorage.getItem(key);
       if (raw) setSet(new Set(JSON.parse(raw) as string[]));
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, [key]);
   const toggle = (id: string) =>
     setSet((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      try {
-        localStorage.setItem(key, JSON.stringify([...next]));
-      } catch {
-        /* ignore */
-      }
+      try { localStorage.setItem(key, JSON.stringify([...next])); } catch { /* ignore */ }
       return next;
     });
   return [set, toggle];
 }
 
 export function GapAnalysis({ data, gaps }: { data: GraphData; gaps: Gap[] }) {
-  const [filterType, setFilterType] = useState<GapType | "all">("all");
+  const [filterType, setFilterType]   = useState<GapType | "all">("all");
   const [starredOnly, setStarredOnly] = useState(false);
   const [showDismissed, setShowDismissed] = useState(false);
-  const [starred, toggleStar] = useLocalSet(STAR_KEY);
+  const [starred,  toggleStar]    = useLocalSet(STAR_KEY);
   const [dismissed, toggleDismiss] = useLocalSet(DISMISS_KEY);
+  const [assigned, toggleAssigned] = useLocalSet(ASSIGNED_KEY);
+  const [assigning, setAssigning]  = useState<Set<string>>(new Set());
 
   const nodeMap = useMemo(() => new Map(data.nodes.map((n) => [n.id, n])), [data.nodes]);
 
@@ -67,15 +80,12 @@ export function GapAnalysis({ data, gaps }: { data: GraphData; gaps: Gap[] }) {
     let list = gaps.filter((g) => showDismissed || !dismissed.has(sig(g)));
     if (starredOnly) list = list.filter((g) => starred.has(sig(g)));
     if (filterType !== "all") list = list.filter((g) => g.type === filterType);
-    // starred float to the top, otherwise keep the severity order from computeGaps
     return [...list].sort((a, b) => Number(starred.has(sig(b))) - Number(starred.has(sig(a))));
   }, [gaps, dismissed, starred, starredOnly, showDismissed, filterType]);
 
   const typeCounts = useMemo(() => {
     const m = new Map<string, number>();
-    gaps.forEach((g) => {
-      if (!dismissed.has(sig(g))) m.set(g.type, (m.get(g.type) ?? 0) + 1);
-    });
+    gaps.forEach((g) => { if (!dismissed.has(sig(g))) m.set(g.type, (m.get(g.type) ?? 0) + 1); });
     return m;
   }, [gaps, dismissed]);
 
@@ -84,6 +94,40 @@ export function GapAnalysis({ data, gaps }: { data: GraphData; gaps: Gap[] }) {
   const curriculumGaps = live.filter((g) => g.curriculumSuggestion);
   const severityCounts = { high: 0, medium: 0, low: 0 };
   live.forEach((g) => severityCounts[g.severity]++);
+
+  // Returns the specific owner string, substituting the member name for person-owned gaps
+  const resolveOwner = (gap: Gap): string => {
+    const base = GAP_ATTRIBUTION[gap.type].owner;
+    if (base === "team member") {
+      const member = gap.nodeIds.map((id) => nodeMap.get(id)).find((n) => n?.category === "member");
+      if (member) return member.label;
+    }
+    return base;
+  };
+
+  const assignToCarl = async (gap: Gap) => {
+    const s = sig(gap);
+    if (assigned.has(s) || assigning.has(s)) return;
+    setAssigning((prev) => new Set([...prev, s]));
+    try {
+      const res = await fetch("/api/actions/assign-gap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gapType: gap.type,
+          title: gap.title,
+          curriculumSuggestion: gap.curriculumSuggestion,
+          nodeIds: gap.nodeIds,
+          severity: gap.severity,
+        }),
+      });
+      if (res.ok) toggleAssigned(s);
+    } catch (err) {
+      console.warn("[assign-gap]", err);
+    } finally {
+      setAssigning((prev) => { const n = new Set(prev); n.delete(s); return n; });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -145,13 +189,19 @@ export function GapAnalysis({ data, gaps }: { data: GraphData; gaps: Gap[] }) {
       {/* gap cards */}
       <div className="space-y-3">
         {visible.map((gap) => {
-          const sev = SEVERITY_STYLE[gap.severity];
-          const s = sig(gap);
-          const isStarred = starred.has(s);
+          const sev  = SEVERITY_STYLE[gap.severity];
+          const attr = GAP_ATTRIBUTION[gap.type];
+          const s    = sig(gap);
+          const isStarred   = starred.has(s);
           const isDismissed = dismissed.has(s);
+          const isAssigned  = assigned.has(s);
+          const isAssigning = assigning.has(s);
           const focusId = gap.nodeIds[0];
+          const owner   = resolveOwner(gap);
+
           return (
             <div key={s} className={`rounded-lg border border-border bg-card p-4 space-y-2 ${isDismissed ? "opacity-50" : ""}`}>
+              {/* header row */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${sev.bg} ${sev.text}`}>{sev.label}</span>
@@ -183,9 +233,23 @@ export function GapAnalysis({ data, gaps }: { data: GraphData; gaps: Gap[] }) {
                   </button>
                 </div>
               </div>
+
               <h4 className="text-sm font-medium">{gap.title}</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">{gap.description}</p>
 
+              {/* attribution row */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground border-t border-border/50 pt-2">
+                <span>
+                  <span className="font-medium text-foreground/70">owner:</span>{" "}
+                  <span>{owner}</span>
+                </span>
+                <span>
+                  <span className="font-medium text-foreground/70">how to close:</span>{" "}
+                  <span>{attr.approach}</span>
+                </span>
+              </div>
+
+              {/* node chips */}
               <div className="flex flex-wrap gap-1.5">
                 {gap.nodeIds.map((id) => {
                   const node = nodeMap.get(id);
@@ -203,10 +267,26 @@ export function GapAnalysis({ data, gaps }: { data: GraphData; gaps: Gap[] }) {
                 })}
               </div>
 
+              {/* curriculum suggestion + assign button */}
               {gap.curriculumSuggestion && (
-                <div className="rounded border border-emerald-500/20 bg-emerald-500/5 px-3 py-2">
+                <div className="rounded border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 space-y-2">
                   <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400 mb-0.5">cARL curriculum suggestion</p>
                   <p className="text-xs text-emerald-800 dark:text-emerald-300/80">{gap.curriculumSuggestion}</p>
+                  {attr.canAssignCarl && (
+                    <button
+                      onClick={() => assignToCarl(gap)}
+                      disabled={isAssigned || isAssigning}
+                      className={`mt-1 rounded px-3 py-1 text-[11px] font-medium transition-colors ${
+                        isAssigned
+                          ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 cursor-default"
+                          : isAssigning
+                          ? "opacity-60 cursor-wait bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                          : "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600"
+                      }`}
+                    >
+                      {isAssigned ? "✓ assigned to cARL" : isAssigning ? "assigning…" : "→ assign to cARL"}
+                    </button>
+                  )}
                 </div>
               )}
             </div>

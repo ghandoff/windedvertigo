@@ -226,6 +226,7 @@ export function KnowledgeGraph({
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const pinchRef = useRef<{ dist: number; midX: number; midY: number } | null>(null);
   const stale = staleNodeIds ?? new Set<string>();
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -376,21 +377,149 @@ export function KnowledgeGraph({
     [degreeMap],
   );
 
-  // ── zoom (non-passive native wheel so it never zooms the browser) ──
+  // Greedy label collision avoidance — suppress labels whose estimated bboxes overlap.
+  // Processes nodes in priority order so important labels always win space. Runs after
+  // every sim change, zoom change, or hover change (all fast at our node counts ≤1k).
+  const suppressedLabels = useMemo(() => {
+    const k = transform.k;
+    const suppressed = new Set<string>();
+    const committed: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
+    const charW = 5.2; // SVG units per char at fontSize 9
+    const lineH = 14;
+
+    // Local copy of label gate (can't call the outer labelFor from inside useMemo cleanly)
+    const wouldShow = (n: SimNode, isCtx: boolean): boolean => {
+      if (isCtx || n.id === hoveredNode) return true;
+      if (labelMode === "none") return false;
+      if (labelMode === "all") return k >= 0.55;
+      return hubIds.has(n.id) && k >= 0.28;
+    };
+
+    // Sort by decreasing priority so higher-priority labels get space first
+    const sorted = [...simNodes].sort((a, b) => {
+      const pri = (n: SimNode) =>
+        n.id === hoveredNode || n.id === selectedNode ? 4
+          : selectedNode && neighbours.has(n.id) ? 3
+          : hubIds.has(n.id) ? 2
+          : (degreeMap.get(n.id) ?? 0) > 4 ? 1
+          : 0;
+      return pri(b) - pri(a);
+    });
+
+    for (const n of sorted) {
+      const isCtx = !!(n.id === selectedNode || (selectedNode && neighbours.has(n.id)));
+      if (!wouldShow(n, isCtx)) continue;
+
+      // Never suppress hovered or selected node labels — they're always readable
+      const alwaysShow = n.id === hoveredNode || n.id === selectedNode;
+
+      const r = nodeRadius(n.id, n.category);
+      const display = n.label.length > 22 ? n.label.slice(0, 20) + "…" : n.label;
+      const w = display.length * charW;
+      const x1 = n.x - w / 2;
+      const y1 = n.y + r + 2;
+      const bbox = { x1, y1, x2: x1 + w, y2: y1 + lineH };
+
+      if (!alwaysShow) {
+        let overlaps = false;
+        for (const c of committed) {
+          if (bbox.x1 < c.x2 + 5 && bbox.x2 > c.x1 - 5 && bbox.y1 < c.y2 + 3 && bbox.y2 > c.y1 - 3) {
+            overlaps = true;
+            break;
+          }
+        }
+        if (overlaps) { suppressed.add(n.id); continue; }
+      }
+      committed.push(bbox);
+    }
+    return suppressed;
+  }, [simNodes, transform.k, hoveredNode, selectedNode, labelMode, neighbours, hubIds, degreeMap, nodeRadius]);
+
+  // ── zoom (non-passive native wheel + pinch) ─────────────────
+  // All zoom gestures keep the focal point (cursor or viewport centre) fixed by
+  // adjusting the translate alongside the scale. Without this the graph flies to
+  // the SVG origin on every zoom step.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    const toSvg = (clientX: number, clientY: number) => {
+      const r = el.getBoundingClientRect();
+      return { x: (clientX - r.left) / r.width * 900, y: (clientY - r.top) / r.height * 700 };
+    };
+
+    const zoomAround = (svgX: number, svgY: number, factor: number) =>
+      setTransform((t) => {
+        const newK = clamp(t.k * factor, 0.2, 4);
+        const px = (svgX - t.x) / t.k;
+        const py = (svgY - t.y) / t.k;
+        return { k: newK, x: svgX - px * newK, y: svgY - py * newK };
+      });
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const factor = e.deltaY > 0 ? 0.92 : 1.08;
-      setTransform((t) => ({ ...t, k: clamp(t.k * factor, 0.2, 4) }));
+      const { x, y } = toSvg(e.clientX, e.clientY);
+      zoomAround(x, y, e.deltaY > 0 ? 0.92 : 1.08);
     };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+      const [t1, t2] = [e.touches[0], e.touches[1]];
+      const mid = toSvg((t1.clientX + t2.clientX) / 2, (t1.clientY + t2.clientY) / 2);
+      pinchRef.current = { dist: Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY), midX: mid.x, midY: mid.y };
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 2 || !pinchRef.current) return;
+      e.preventDefault();
+      const [t1, t2] = [e.touches[0], e.touches[1]];
+      const newDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const factor = newDist / pinchRef.current.dist;
+      zoomAround(pinchRef.current.midX, pinchRef.current.midY, factor);
+      const mid = toSvg((t1.clientX + t2.clientX) / 2, (t1.clientY + t2.clientY) / 2);
+      pinchRef.current = { dist: newDist, midX: mid.x, midY: mid.y };
+    };
+
+    const onTouchEnd = () => { pinchRef.current = null; };
+
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
-  const zoomBy = (f: number) => setTransform((t) => ({ ...t, k: clamp(t.k * f, 0.2, 4) }));
+  // Zoom buttons use viewport centre (450, 350) as the fixed point
+  const zoomBy = (f: number) =>
+    setTransform((t) => {
+      const newK = clamp(t.k * f, 0.2, 4);
+      const px = (450 - t.x) / t.k;
+      const py = (350 - t.y) / t.k;
+      return { k: newK, x: 450 - px * newK, y: 350 - py * newK };
+    });
   const resetView = () => setTransform({ x: 0, y: 0, k: 1 });
+
+  // Zoom-to-fit: scales to show all currently rendered nodes with padding.
+  const fitAll = useCallback(() => {
+    if (simNodes.length === 0) return;
+    const xs = simNodes.map((n) => n.x);
+    const ys = simNodes.map((n) => n.y);
+    const pad = 60;
+    const minX = Math.min(...xs) - pad;
+    const maxX = Math.max(...xs) + pad;
+    const minY = Math.min(...ys) - pad;
+    const maxY = Math.max(...ys) + pad;
+    const k = clamp(Math.min(900 / (maxX - minX), 700 / (maxY - minY)), 0.15, 2.5);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    setTransform({ k, x: 450 - cx * k, y: 350 - cy * k });
+  }, [simNodes]);
 
   const selectedNodeData = selectedNode ? nodeMap.get(selectedNode) : undefined;
   const selectedEdges = useMemo(() => {
@@ -409,11 +538,16 @@ export function KnowledgeGraph({
       return next;
     });
 
-  const labelFor = (n: SimNode, isSelectedCtx: boolean) =>
-    labelMode === "all" ||
-    n.id === hoveredNode ||
-    isSelectedCtx ||
-    (labelMode === "hubs" && hubIds.has(n.id));
+  // Semantic-zoom label gate: labels only appear when zoom is high enough to read them.
+  // Hub labels (agents/members/top-degree) show at k≥0.28 (always visible at default k=1).
+  // All-other labels in "all" mode only show at k≥0.55, hiding the hairball at low zoom.
+  const labelFor = (n: SimNode, isSelectedOrNeighbour: boolean): boolean => {
+    if (isSelectedOrNeighbour || n.id === hoveredNode) return true;
+    if (labelMode === "none") return false;
+    const k = transform.k;
+    if (labelMode === "all") return k >= 0.55;
+    return hubIds.has(n.id) && k >= 0.28;
+  };
 
   return (
     <div className="space-y-3">
@@ -555,7 +689,7 @@ export function KnowledgeGraph({
                     x2={e.target.x}
                     y2={e.target.y}
                     stroke={isBridge ? PROVENANCE_META.shared.color : dim ? "var(--border)" : "var(--muted-foreground)"}
-                    strokeOpacity={dim ? 0.1 : isBridge ? 0.7 : 0.22}
+                    strokeOpacity={dim ? 0.05 : isBridge ? 0.7 : 0.22}
                     strokeWidth={isBridge ? 1.5 : 1}
                     strokeDasharray={isBridge ? "4 3" : undefined}
                     pointerEvents="none"
@@ -570,7 +704,7 @@ export function KnowledgeGraph({
                 const isSelected = n.id === selectedNode;
                 const isHovered = n.id === hoveredNode;
                 const isStale = stale.has(n.id);
-                const showLabel = labelFor(n, !!(isSelected || (selectedNode && neighbours.has(n.id))) || isHovered);
+                const showLabel = !suppressedLabels.has(n.id) && labelFor(n, !!(isSelected || (selectedNode && neighbours.has(n.id))) || isHovered);
                 return (
                   <g
                     key={n.id}
@@ -619,7 +753,8 @@ export function KnowledgeGraph({
           <div className="absolute right-2 top-2 flex flex-col gap-1">
             <button onClick={() => zoomBy(1.2)} className="h-7 w-7 rounded border border-border bg-background/90 text-sm text-foreground backdrop-blur hover:bg-muted">+</button>
             <button onClick={() => zoomBy(0.83)} className="h-7 w-7 rounded border border-border bg-background/90 text-sm text-foreground backdrop-blur hover:bg-muted">−</button>
-            <button onClick={resetView} className="h-7 w-7 rounded border border-border bg-background/90 text-[10px] text-foreground backdrop-blur hover:bg-muted" title="reset view">⤢</button>
+            <button onClick={fitAll} className="h-7 w-7 rounded border border-border bg-background/90 text-[10px] text-foreground backdrop-blur hover:bg-muted" title="fit all nodes">⊡</button>
+            <button onClick={resetView} className="h-7 w-7 rounded border border-border bg-background/90 text-[10px] text-foreground backdrop-blur hover:bg-muted" title="reset to 100%">⤢</button>
           </div>
 
           {/* stats */}
