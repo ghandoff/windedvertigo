@@ -102,6 +102,13 @@ export interface NotionIngestResult {
   counts: Record<string, number>;
 }
 
+// Former collective members — excluded from the knowledge graph permanently.
+// IDs are the normId(page.id) values (dashes stripped), matching the cv:member:<id> node format.
+const FORMER_MEMBER_IDS = new Set([
+  "184125678aee4186817e2b573574b6d6", // apoorva shivaram, phd
+  "1b2f59613704483a9c814da4389585ef", // marietta monge
+]);
+
 export async function ingestNotionCv(): Promise<NotionIngestResult> {
   const nodes: NodeInput[] = [];
   const edges: EdgeInput[] = [];
@@ -110,6 +117,7 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
   // ── members (human actors) ─────────────────────────────────
   const members = await fetchAll(DS.members, "kg:members");
   for (const p of members) {
+    if (FORMER_MEMBER_IDS.has(normId(p.id))) continue;
     const props = p.properties;
     const label = getTitle(props["first & last name"]);
     const id = nodeId("member", p.id);
