@@ -112,7 +112,8 @@ export async function reconcile(syncTs: string): Promise<ReconcileResult> {
     const { error: upErr } = await supabase
       .from("knowledge_nodes")
       .update({ kind: "shared", updated_at: syncTs })
-      .in("id", ids.slice(i, i + 500));
+      .in("id", ids.slice(i, i + 500))
+      .neq("kind", "co-created"); // co-created is a superset of shared — don't downgrade
     if (upErr) throw new Error(`[knowledge/reconcile] promote: ${upErr.message}`);
   }
 
