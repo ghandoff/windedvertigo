@@ -25,6 +25,16 @@ import {
 import { canonicalKey } from "./types";
 import type { NodeInput, EdgeInput } from "./supabase";
 
+// ── agent name → graph id (Notion multi-select option → agent:<slug>) ──
+const NOTION_AGENT: Record<string, string> = {
+  Mo: "mo",
+  cARL: "carl",
+  PaM: "pam",
+  Opsy: "opsy",
+  Biz: "biz",
+  Fin: "fin",
+};
+
 // ── data-source ids (collection UUIDs) ───────────────────────
 const DS = {
   members: "cc118d3a-960e-4cb6-b78e-f2709f3c64b7",
@@ -216,8 +226,14 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
     const label = getTitle(props["Entry"]) || autoTitle(props);
     const id = nodeId("cv-entry", p.id);
     const endDate = getDate(props["End Date"])?.start ?? getDate(props["Start Date"])?.start ?? null;
-    nodes.push(
-      baseNode("cv-entry", p, label, getText(props["Description"]) || getText(props["Proposal-Ready Blurb"]), {
+
+    // Phase 4: agent co-production fields
+    const agentContributors = getMultiSelect(props["Agent Contributors"]);
+    const agentDeliverables = getText(props["Agent Deliverables"]);
+    const hasDeliverable = agentContributors.length > 0 && agentDeliverables.length > 0;
+
+    nodes.push({
+      ...baseNode("cv-entry", p, label, getText(props["Description"]) || getText(props["Proposal-Ready Blurb"]), {
         type: getSelect(props["Type"]),
         subType: getSelect(props["Sub-type"]),
         status: getSelect(props["Status"]),
@@ -233,8 +249,12 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
         includeByDefault: getCheckbox(props["Include by Default"]),
         startDate: getDate(props["Start Date"])?.start ?? null,
         endDate,
+        agentContributors: agentContributors.length > 0 ? agentContributors : undefined,
       }),
-    );
+      // mark as co-created when an agent produced a named deliverable
+      ...(hasDeliverable ? { kind: "co-created" as const } : {}),
+    });
+
     edges.push(
       ...relEdges(id, props, "Skills Demonstrated", "skill", "demonstrates"),
       ...relEdges(id, props, "Methods & Tools Used", "method", "uses-method"),
@@ -242,6 +262,45 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
       ...relEdges(id, props, "Populations Served", "population", "serves-population"),
       ...relEdges(id, props, "Service Offering", "service", "exemplifies"),
     );
+
+    if (agentContributors.length > 0) {
+      if (hasDeliverable) {
+        // Emit a deliverable node keyed by entry id (stable, not label-dependent).
+        const dId = `deliverable:cv:${normId(p.id)}`;
+        nodes.push({
+          id: dId,
+          kind: "co-created",
+          category: "deliverable",
+          label: `${label} — agent deliverable`,
+          canonicalKey: canonicalKey(`deliverable ${label}`),
+          source: "notion-cv",
+          sourceRef: p.url,
+          description: agentDeliverables,
+          attrs: {
+            contributingAgents: agentContributors,
+            appliedInEntry: id,
+            artifactDescription: agentDeliverables,
+          },
+        });
+        // co-produced edges: each attributed agent → deliverable
+        for (const name of agentContributors) {
+          const slug = NOTION_AGENT[name];
+          if (slug) {
+            edges.push({ sourceId: `agent:${slug}`, targetId: dId, relationship: "co-produced", source: "notion-cv" });
+          }
+        }
+        // fed-into edge: deliverable → cv-entry
+        edges.push({ sourceId: dId, targetId: id, relationship: "fed-into", source: "notion-cv" });
+      } else {
+        // No separate deliverable text — emit lightweight co-designed edges directly.
+        for (const name of agentContributors) {
+          const slug = NOTION_AGENT[name];
+          if (slug) {
+            edges.push({ sourceId: `agent:${slug}`, targetId: id, relationship: "co-designed", source: "notion-cv" });
+          }
+        }
+      }
+    }
   }
   counts.entries = entries.length;
 

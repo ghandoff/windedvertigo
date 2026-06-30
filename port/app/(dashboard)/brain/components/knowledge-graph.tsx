@@ -28,7 +28,7 @@ interface SimEdge {
   relationship: string;
 }
 
-const KINDS: NodeKind[] = ["human", "agent", "shared"];
+const KINDS: NodeKind[] = ["human", "agent", "shared", "co-created"];
 const AGENTS: AgentId[] = ["mo", "carl", "pam", "opsy", "biz", "fin"];
 const nodeKind = (n: GraphNode): NodeKind => n.kind ?? "agent";
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -200,6 +200,14 @@ function Legend() {
             {l}
           </div>
         ))}
+        <div className="flex items-center gap-2 text-muted-foreground">
+          {/* split-circle: left half agent grey, right half human teal */}
+          <svg width={10} height={10} viewBox="0 0 10 10" style={{ flexShrink: 0 }}>
+            <path d="M5 5 L5 0 A5 5 0 0 0 5 10 Z" fill={AGENT_META.shared.color} />
+            <path d="M5 5 L5 0 A5 5 0 0 1 5 10 Z" fill={PROVENANCE_META.human.color} />
+          </svg>
+          co-created (agent + human)
+        </div>
       </div>
       <div>
         <p className="mb-1 font-medium text-foreground">agents (by owner)</p>
@@ -750,13 +758,29 @@ export function KnowledgeGraph({
                     {isStale && (
                       <circle cx={n.x} cy={n.y} r={r + 3} fill="none" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="2 2" opacity={dim ? 0.2 : 0.9} />
                     )}
-                    <circle
-                      cx={n.x}
-                      cy={n.y}
-                      r={r}
-                      fill={color}
-                      fillOpacity={dim ? 0.15 : n.category === "agent" ? 1 : 0.78}
-                    />
+                    {n.kind === "co-created" ? (
+                      // split-fill: left-half = owning agent colour, right-half = human teal
+                      <>
+                        <path
+                          d={`M ${n.x} ${n.y} L ${n.x} ${n.y - r} A ${r} ${r} 0 0 0 ${n.x} ${n.y + r} Z`}
+                          fill={AGENT_META[n.agent]?.color ?? AGENT_META.shared.color}
+                          fillOpacity={dim ? 0.15 : 0.85}
+                        />
+                        <path
+                          d={`M ${n.x} ${n.y} L ${n.x} ${n.y - r} A ${r} ${r} 0 0 1 ${n.x} ${n.y + r} Z`}
+                          fill={PROVENANCE_META.human.color}
+                          fillOpacity={dim ? 0.15 : 0.85}
+                        />
+                      </>
+                    ) : (
+                      <circle
+                        cx={n.x}
+                        cy={n.y}
+                        r={r}
+                        fill={color}
+                        fillOpacity={dim ? 0.15 : n.category === "agent" ? 1 : 0.78}
+                      />
+                    )}
                     {showLabel && (
                       <text
                         x={n.x}
@@ -850,6 +874,36 @@ export function KnowledgeGraph({
                 {selectedNodeData.description && (
                   <p className="text-xs leading-relaxed text-muted-foreground">{selectedNodeData.description}</p>
                 )}
+
+                {selectedNodeData.category === "cv-entry" && (() => {
+                  const coEdges = [
+                    ...selectedEdges.incoming.filter((e) => e.relationship === "co-designed" || e.relationship === "fed-into"),
+                    ...selectedEdges.outgoing.filter((e) => e.relationship === "fed-into"),
+                  ];
+                  const agents = [...new Set(
+                    coEdges.flatMap((e) => {
+                      const src = nodeMap.get(e.source);
+                      return src?.category === "agent" ? [src.label] : [];
+                    })
+                  )];
+                  const deliverables = coEdges
+                    .map((e) => nodeMap.get(e.source))
+                    .filter((n) => n?.category === "deliverable");
+                  if (agents.length === 0 && deliverables.length === 0) return null;
+                  return (
+                    <div className="rounded border border-border bg-muted/30 p-2 text-[11px]">
+                      <p className="mb-1 font-medium text-foreground">agent contributions</p>
+                      {agents.length > 0 && (
+                        <p className="text-muted-foreground">{agents.join(", ")} contributed to this engagement.</p>
+                      )}
+                      {deliverables.map((d) => d && (
+                        <p key={d.id} className="mt-0.5 text-muted-foreground">
+                          <button className="hover:underline" onClick={() => setSelectedNode(d.id)}>{d.label}</button>
+                        </p>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 <button
                   onClick={() => setFocusId(focusId === selectedNodeData.id ? null : selectedNodeData.id)}

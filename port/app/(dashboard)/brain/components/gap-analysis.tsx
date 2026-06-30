@@ -22,23 +22,25 @@ const TYPE_LABELS: Record<GapType, string> = {
   "framework-adoption":   "framework adoption",
   "population-coverage":  "population coverage",
   "service-coverage":     "service coverage",
-  "ungrounded-framework": "ungrounded framework",
+  "ungrounded-framework":       "ungrounded framework",
+  "unattributed-coproduction":  "unattributed co-production",
 };
 
 // Who owns each gap type and how to close it
 const GAP_ATTRIBUTION: Record<GapType, { owner: string; approach: string; canAssignCarl: boolean }> = {
-  "capability-gap":       { owner: "cARL + Garrett", approach: "cARL researches; Garrett adds to CV if validated", canAssignCarl: true },
-  "claimed-unevidenced":  { owner: "team member",    approach: "add a cv-entry demonstrating this skill",         canAssignCarl: false },
-  "evidence-asymmetry":   { owner: "team member",    approach: "add a cv-entry for this skill + member pair",     canAssignCarl: false },
-  "framework-adoption":   { owner: "cARL",           approach: "research how agents can apply this framework",    canAssignCarl: true },
-  "population-coverage":  { owner: "cARL + Garrett", approach: "add cv-entries for this population; cARL maps coverage", canAssignCarl: true },
-  "service-coverage":     { owner: "Garrett",        approach: "add recent service exemplars to CV",              canAssignCarl: false },
-  "ungrounded-framework": { owner: "cARL",           approach: "catalogue literature grounding this framework",   canAssignCarl: true },
-  "thin-bridge":          { owner: "cARL + Garrett", approach: "deepen concept links across the graph",           canAssignCarl: true },
-  "isolated":             { owner: "cARL",           approach: "connect this concept to the broader graph",       canAssignCarl: true },
-  "shallow-research":     { owner: "cARL",           approach: "deepen research coverage in this domain",         canAssignCarl: true },
-  "ungrounded-product":   { owner: "cARL + Mo",      approach: "ground product claims in the evidence base",      canAssignCarl: true },
-  "no-methodology":       { owner: "cARL + Garrett", approach: "identify an appropriate research methodology",    canAssignCarl: true },
+  "capability-gap":             { owner: "cARL + Garrett", approach: "cARL researches; Garrett adds to CV if validated", canAssignCarl: true },
+  "claimed-unevidenced":        { owner: "team member",    approach: "add a cv-entry demonstrating this skill",          canAssignCarl: false },
+  "evidence-asymmetry":         { owner: "team member",    approach: "add a cv-entry for this skill + member pair",      canAssignCarl: false },
+  "framework-adoption":         { owner: "cARL",           approach: "research how agents can apply this framework",     canAssignCarl: true },
+  "population-coverage":        { owner: "cARL + Garrett", approach: "add cv-entries for this population; cARL maps coverage", canAssignCarl: true },
+  "service-coverage":           { owner: "Garrett",        approach: "add recent service exemplars to CV",               canAssignCarl: false },
+  "ungrounded-framework":       { owner: "cARL",           approach: "catalogue literature grounding this framework",    canAssignCarl: true },
+  "unattributed-coproduction":  { owner: "Garrett",        approach: "update the Notion cv-entry's 'Agent Contributors' field", canAssignCarl: false },
+  "thin-bridge":                { owner: "cARL + Garrett", approach: "deepen concept links across the graph",            canAssignCarl: true },
+  "isolated":                   { owner: "cARL",           approach: "connect this concept to the broader graph",        canAssignCarl: true },
+  "shallow-research":           { owner: "cARL",           approach: "deepen research coverage in this domain",          canAssignCarl: true },
+  "ungrounded-product":         { owner: "cARL + Mo",      approach: "ground product claims in the evidence base",       canAssignCarl: true },
+  "no-methodology":             { owner: "cARL + Garrett", approach: "identify an appropriate research methodology",     canAssignCarl: true },
 };
 
 const sig = (g: Gap) => `${g.type}|${g.nodeIds.join(",")}`;

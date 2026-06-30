@@ -376,6 +376,37 @@ export function computeGaps(data: GraphData): Gap[] {
       });
   }
 
+  // 13. unattributed co-production: an agent self-logged a co-production edge
+  //     (source: agent-log) to a cv-entry that still has kind "human", meaning
+  //     the Notion "Agent Contributors" field hasn't been updated yet.
+  if (cvEntries.length > 0) {
+    const CO_REL = new Set(["co-designed", "fed-into"]);
+    cvEntries
+      .filter((entry) => entry.kind === "human")
+      .forEach((entry) => {
+        const agentEdges = (edgesByNode.get(entry.id) ?? []).filter((e) => {
+          const peer = nodeMap.get(other(e, entry.id));
+          return (
+            CO_REL.has(e.relationship) &&
+            e.kind === "agent-log" &&
+            peer?.category === "agent"
+          );
+        });
+        if (agentEdges.length > 0) {
+          const agentLabels = [
+            ...new Set(agentEdges.map((e) => nodeMap.get(other(e, entry.id))?.label ?? "an agent")),
+          ].join(", ");
+          gaps.push({
+            type: "unattributed-coproduction",
+            severity: "medium",
+            title: `"${entry.label}" has unattributed agent contributions`,
+            description: `${agentLabels} logged a co-production contribution to this cv-entry, but the Notion "Agent Contributors" field is still blank. update the entry to formally attribute this work.`,
+            nodeIds: [entry.id],
+          });
+        }
+      });
+  }
+
   // sort by severity
   const order = { high: 0, medium: 1, low: 2 };
   gaps.sort((a, b) => order[a.severity] - order[b.severity]);

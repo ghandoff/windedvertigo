@@ -14,7 +14,7 @@
 
 // ── actors / provenance ──────────────────────────────────────
 export type AgentId = "mo" | "carl" | "pam" | "opsy" | "biz" | "fin" | "shared";
-export type NodeKind = "human" | "agent" | "shared";
+export type NodeKind = "human" | "agent" | "shared" | "co-created";
 export type NodeSource = "notion-cv" | "agent-log" | "curated" | "derived";
 
 export type NodeCategory =
@@ -43,7 +43,8 @@ export type NodeCategory =
   | "framework"
   | "population"
   | "cv-entry"
-  | "literature";
+  | "literature"
+  | "deliverable";
 
 export interface GraphNode {
   id: string;
@@ -89,7 +90,8 @@ export type GapType =
   | "framework-adoption"
   | "population-coverage"
   | "service-coverage"
-  | "ungrounded-framework";
+  | "ungrounded-framework"
+  | "unattributed-coproduction";
 
 export interface Gap {
   type: GapType;
@@ -114,9 +116,10 @@ export const AGENT_META: Record<AgentId, { color: string; light: string; label: 
 
 /** Provenance colours — the human ↔ agent ↔ shared axis. */
 export const PROVENANCE_META: Record<NodeKind, { color: string; light: string; label: string }> = {
-  human:  { color: "#0d9488", light: "#5eead4", label: "human (CV)" },
-  agent:  { color: "#6b7280", light: "#d1d5db", label: "agent" },
-  shared: { color: "#eab308", light: "#fde047", label: "shared" },
+  human:        { color: "#0d9488", light: "#5eead4", label: "human (CV)" },
+  agent:        { color: "#6b7280", light: "#d1d5db", label: "agent" },
+  shared:       { color: "#eab308", light: "#fde047", label: "shared" },
+  "co-created": { color: "#7c3aed", light: "#c4b5fd", label: "co-created" },
 };
 
 /**
@@ -126,6 +129,9 @@ export const PROVENANCE_META: Record<NodeKind, { color: string; light: string; l
 export function getNodeColor(node: Pick<GraphNode, "kind" | "agent">): string {
   if (node.kind === "human") return PROVENANCE_META.human.color;
   if (node.kind === "shared") return PROVENANCE_META.shared.color;
+  // co-created: the SVG renderer draws a split-fill; return the human-teal side as
+  // the "representative" colour (used for selected/hovered rings, legend chips, etc.)
+  if (node.kind === "co-created") return PROVENANCE_META["co-created"].color;
   return AGENT_META[node.agent]?.color ?? PROVENANCE_META.agent.color;
 }
 
