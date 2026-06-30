@@ -264,6 +264,7 @@ export function KnowledgeGraph({
     }
   }, [initialFocus]);
 
+
   const adj = useMemo(() => buildAdjacency(data.edges), [data.edges]);
   const nodeMap = useMemo(() => new Map(data.nodes.map((n) => [n.id, n])), [data.nodes]);
 
@@ -535,6 +536,13 @@ export function KnowledgeGraph({
     setTransform({ k, x: 450 - cx * k, y: 350 - cy * k });
   }, [simNodes]);
 
+  // Auto-fit: whenever the sim recalculates (mount, filter change, search change), zoom
+  // to show every node including outliers. Does not fire on hover/drag/zoom — those only
+  // change `transform`, not `simNodes`.
+  useEffect(() => {
+    fitAll();
+  }, [fitAll]);
+
   const selectedNodeData = selectedNode ? nodeMap.get(selectedNode) : undefined;
   const selectedEdges = useMemo(() => {
     if (!selectedNode) return { outgoing: [] as GraphEdge[], incoming: [] as GraphEdge[] };
@@ -763,6 +771,24 @@ export function KnowledgeGraph({
                         {n.label.length > 22 ? n.label.slice(0, 20) + "…" : n.label}
                       </text>
                     )}
+                    {isHovered && (() => {
+                      const tipText = `${n.category} · ${nodeKind(n)}`;
+                      const tw = tipText.length * 5 + 14;
+                      const th = 16;
+                      // flip below if node is near the top of the canvas
+                      const above = n.y - r - 24 > 10;
+                      const ty = above ? n.y - r - 24 : n.y + r + 14;
+                      return (
+                        <g pointerEvents="none">
+                          <rect x={n.x - tw / 2} y={ty} width={tw} height={th} rx={3}
+                            fill="var(--popover, #111)" stroke="var(--border)" strokeWidth={0.5} opacity={0.93} />
+                          <text x={n.x} y={ty + 11} textAnchor="middle"
+                            fill="var(--muted-foreground)" fontSize={8} pointerEvents="none">
+                            {tipText}
+                          </text>
+                        </g>
+                      );
+                    })()}
                   </g>
                 );
               })}
