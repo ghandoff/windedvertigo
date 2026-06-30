@@ -8,9 +8,14 @@ import { GRAPH_DATA } from "./graph-data";
 import { canonicalKey } from "./types";
 import type { NodeInput, EdgeInput } from "./supabase";
 
-/** map a curated id to its graph id (agent nodes → "agent:<id>") */
+/** map a curated id to its graph id (agent nodes → "agent:<slug>").
+ * Strips any existing agent: prefix chain before re-applying one, so the
+ * function is idempotent regardless of how many layers the snapshot already has.
+ */
 function curatedId(id: string, isAgent: boolean): string {
-  return isAgent ? `agent:${id}` : id;
+  if (!isAgent) return id;
+  const slug = id.replace(/^(agent:)+/, "");
+  return `agent:${slug}`;
 }
 
 export function curatedGraphInputs(): { nodes: NodeInput[]; edges: EdgeInput[] } {
