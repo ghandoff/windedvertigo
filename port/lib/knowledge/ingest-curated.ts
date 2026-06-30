@@ -21,24 +21,34 @@ function curatedId(id: string, isAgent: boolean): string {
 export function curatedGraphInputs(): { nodes: NodeInput[]; edges: EdgeInput[] } {
   const agentIds = new Set(GRAPH_DATA.nodes.filter((n) => n.category === "agent").map((n) => n.id));
 
-  const nodes: NodeInput[] = GRAPH_DATA.nodes.map((n) => ({
-    id: curatedId(n.id, n.category === "agent"),
-    kind: "agent",
-    category: n.category,
-    label: n.label,
-    canonicalKey: canonicalKey(n.label),
-    source: "curated",
-    sourceRef: "const",
-    description: n.description,
-    attrs: { agent: n.agent, category: n.category },
-  }));
+  // Deduplicate by canonical id — the stale snapshot may have multiple nesting
+  // depths for the same agent node (e.g. agent:agent:carl AND agent:carl). Last
+  // entry wins, which is fine: all duplicates carry the same label/description.
+  const nodeMap = new Map<string, NodeInput>();
+  for (const n of GRAPH_DATA.nodes) {
+    const id = curatedId(n.id, n.category === "agent");
+    nodeMap.set(id, {
+      id,
+      kind: "agent",
+      category: n.category,
+      label: n.label,
+      canonicalKey: canonicalKey(n.label),
+      source: "curated",
+      sourceRef: "const",
+      description: n.description,
+      attrs: { agent: n.agent, category: n.category },
+    });
+  }
 
-  const edges: EdgeInput[] = GRAPH_DATA.edges.map((e) => ({
-    sourceId: curatedId(e.source, agentIds.has(e.source)),
-    targetId: curatedId(e.target, agentIds.has(e.target)),
-    relationship: e.relationship,
-    source: "curated",
-  }));
+  // Deduplicate edges by (sourceId, targetId, relationship) — same constraint as
+  // the DB unique index, so a batch can't conflict with itself.
+  const edgeMap = new Map<string, EdgeInput>();
+  for (const e of GRAPH_DATA.edges) {
+    const sourceId = curatedId(e.source, agentIds.has(e.source));
+    const targetId = curatedId(e.target, agentIds.has(e.target));
+    const key = `${sourceId}|${targetId}|${e.relationship}`;
+    edgeMap.set(key, { sourceId, targetId, relationship: e.relationship, source: "curated" });
+  }
 
-  return { nodes, edges };
+  return { nodes: [...nodeMap.values()], edges: [...edgeMap.values()] };
 }
