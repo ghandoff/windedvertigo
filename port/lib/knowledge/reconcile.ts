@@ -63,8 +63,48 @@ export async function reconcile(syncTs: string): Promise<ReconcileResult> {
     }
   }
 
-  // write the bridges
+  // write the same-as bridges
   await upsertEdges(bridges, syncTs);
+
+  // === Pass 2: slash-compound bridge ===
+  // The Haiku extractor sometimes creates concept nodes whose label is two concepts
+  // joined with " / " or " & " (e.g. "ai in education / embodied cognition").
+  // Bridge each compound node to its component concepts so it inherits their
+  // neighbourhood and doesn't strand as an isolated outlier.
+  const normalize = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+
+  const keyIndex = new Map<string, string>(); // canonical_key → node id
+  for (const n of nodes) {
+    if (n.canonical_key) keyIndex.set(n.canonical_key, n.id);
+  }
+
+  const { data: compoundNodes, error: cpErr } = await supabase
+    .from("knowledge_nodes")
+    .select("id, label")
+    .eq("category", "concept")
+    .or("label.like.% / %,label.like.% & %");
+  if (cpErr) console.warn("[knowledge/reconcile] slash-bridge fetch:", cpErr.message);
+
+  const slashBridges: EdgeInput[] = [];
+  for (const n of compoundNodes ?? []) {
+    if (!n.label) continue;
+    const parts = n.label.split(/ \/ | & /g).map((p: string) => p.trim()).filter(Boolean);
+    for (const part of parts) {
+      const ck = normalize(part);
+      const parentId = keyIndex.get(ck);
+      if (parentId && parentId !== n.id) {
+        slashBridges.push({
+          sourceId: n.id,
+          targetId: parentId,
+          relationship: "related-to",
+          source: "derived",
+          attrs: { reason: "slash-compound bridge" },
+        });
+      }
+    }
+  }
+  if (slashBridges.length > 0) await upsertEdges(slashBridges, syncTs);
 
   // promote both ends to kind: shared
   const ids = [...sharedIds];

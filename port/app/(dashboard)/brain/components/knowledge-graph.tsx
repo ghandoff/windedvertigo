@@ -40,7 +40,7 @@ function forceSimulation(nodes: SimNode[], edges: SimEdge[], width: number, heig
   const repulsion = -120;
   const linkDistance = 80;
   const linkStrength = 0.15;
-  const centerStrength = 0.05;
+  const centerStrength = 0.08; // was 0.05 — stronger pull prevents isolated nodes drifting far
 
   nodes.forEach((n, i) => {
     const angle = (2 * Math.PI * i) / nodes.length;
@@ -88,6 +88,20 @@ function forceSimulation(nodes: SimNode[], edges: SimEdge[], width: number, heig
       n.y = clamp(n.y + n.vy, 30, height - 30);
     });
   }
+
+  // Hard radius clamp: prevent isolated/low-degree nodes from stranding far from the mass.
+  // Connected nodes are already pulled by edges; this only bites for true outliers.
+  const maxR = Math.min(width, height) * 0.44;
+  const cx = width / 2, cy = height / 2;
+  nodes.forEach((n) => {
+    const dx = n.x - cx, dy = n.y - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > maxR) {
+      const s = maxR / dist;
+      n.x = cx + dx * s;
+      n.y = cy + dy * s;
+    }
+  });
 }
 
 function buildAdjacency(edges: GraphEdge[]) {
