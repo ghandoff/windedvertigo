@@ -210,15 +210,17 @@ function AttributionRow({
                 <CheckCircle className="w-3 h-3" />
                 {confirmed ? "confirmed" : "confirm"}
               </button>
-              <button
-                type="button"
-                onClick={handleEditOpen}
-                className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border hover:bg-muted text-muted-foreground transition-colors"
-                title="Reassign to different cv-entry"
-              >
-                <Pencil className="w-3 h-3" />
-                edit
-              </button>
+              {record.editable && (
+                <button
+                  type="button"
+                  onClick={handleEditOpen}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border hover:bg-muted text-muted-foreground transition-colors"
+                  title="Reassign to different cv-entry"
+                >
+                  <Pencil className="w-3 h-3" />
+                  edit
+                </button>
+              )}
             </>
           )}
         </div>
@@ -315,7 +317,7 @@ export function AttributionPanel({
     return true;
   });
 
-  const unreviewed = records.filter((r) => r.adjudicatorEditedAt === null && !r.currentCvEntryId);
+  const unreviewed = records.filter((r) => r.editable && r.adjudicatorEditedAt === null && !r.currentCvEntryId);
 
   return (
     <div className="space-y-4">

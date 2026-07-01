@@ -18,6 +18,8 @@ export interface AttributionRecord {
   currentMemberLabel: string | null;
   sourceRef: string | null;
   adjudicatorEditedAt: string | null;
+  /** true when the attribution can be reassigned (deliverable nodes only) */
+  editable: boolean;
 }
 
 export interface CvEntryOption {
@@ -116,8 +118,14 @@ export async function fetchAttributionData(): Promise<{
       : Array.isArray(attrs.agentContributors)
       ? (attrs.agentContributors as string[])
       : [];
-    const currentCvEntryId = fedIntoMap.get(node.id) ?? (attrs.appliedInEntry as string | null) ?? null;
-    const currentCvEntryLabel = currentCvEntryId ? (cvEntryLabelById.get(currentCvEntryId) ?? null) : null;
+
+    // For cv-entry nodes (kind=co-created), the node IS the cv-entry — find its member
+    // via the authored edge directly. For deliverable nodes, look up the fed-into target.
+    const isCvEntry = node.category === "cv-entry";
+    const currentCvEntryId = isCvEntry
+      ? node.id
+      : (fedIntoMap.get(node.id) ?? (attrs.appliedInEntry as string | null) ?? null);
+    const currentCvEntryLabel = isCvEntry ? node.label : (currentCvEntryId ? (cvEntryLabelById.get(currentCvEntryId) ?? null) : null);
     const currentMemberId = currentCvEntryId ? (cvEntryToMember.get(currentCvEntryId) ?? null) : null;
     const currentMemberLabel = currentMemberId ? (memberById.get(currentMemberId) ?? null) : null;
 
@@ -132,6 +140,7 @@ export async function fetchAttributionData(): Promise<{
       currentMemberLabel,
       sourceRef: node.source_ref,
       adjudicatorEditedAt: typeof attrs.adjudicatorEditedAt === "string" ? attrs.adjudicatorEditedAt : null,
+      editable: !isCvEntry,
     };
   });
 
