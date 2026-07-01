@@ -24,6 +24,7 @@ import {
 } from "@/lib/shared/notion/extractors";
 import { canonicalKey } from "./types";
 import type { NodeInput, EdgeInput } from "./supabase";
+import { supabase } from "@/lib/supabase/client";
 
 // ── agent name → graph id (Notion multi-select option → agent:<slug>) ──
 const NOTION_AGENT: Record<string, string> = {
@@ -123,6 +124,15 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
   const nodes: NodeInput[] = [];
   const edges: EdgeInput[] = [];
   const counts: Record<string, number> = {};
+
+  // Fetch deliverable node ids that already have a manually-corrected fed-into edge
+  // (source: "adjudicator"). The sync must not overwrite these corrections.
+  const { data: adjEdges } = await supabase
+    .from("knowledge_edges")
+    .select("source_id")
+    .eq("relationship", "fed-into")
+    .eq("source", "adjudicator");
+  const adjudicatedDeliverables = new Set((adjEdges ?? []).map((e: { source_id: string }) => e.source_id));
 
   // ── members (human actors) ─────────────────────────────────
   const members = await fetchAll(DS.members, "kg:members");
@@ -290,7 +300,10 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
           }
         }
         // fed-into edge: deliverable → cv-entry
-        edges.push({ sourceId: dId, targetId: id, relationship: "fed-into", source: "notion-cv" });
+        // Skip if an adjudicator has manually corrected this edge (source: "adjudicator" already exists).
+        if (!adjudicatedDeliverables.has(dId)) {
+          edges.push({ sourceId: dId, targetId: id, relationship: "fed-into", source: "notion-cv" });
+        }
       } else {
         // No separate deliverable text — emit lightweight co-designed edges directly.
         for (const name of agentContributors) {

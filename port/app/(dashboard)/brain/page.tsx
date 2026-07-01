@@ -2,16 +2,19 @@ import { PageHeader } from "@/app/components/page-header";
 import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { GRAPH_DATA } from "@/lib/knowledge/graph-data";
 import { fetchGraphData } from "@/lib/knowledge/supabase";
+import { fetchAttributionData } from "@/lib/knowledge/attribution";
 import { computeGaps } from "@/lib/knowledge/gaps";
 import type { GraphData, GraphNode } from "@/lib/knowledge/types";
 import { KnowledgeGraph } from "./components/knowledge-graph";
 import { GapAnalysis } from "./components/gap-analysis";
+import { AttributionPanel } from "./components/attribution-panel";
 
 export const dynamic = "force-dynamic";
 
 const TABS: readonly TabDef[] = [
   { key: "graph", label: "knowledge graph" },
   { key: "gaps", label: "gap analysis" },
+  { key: "attribution", label: "attribution" },
 ];
 
 // ── helpers ──────────────────────────────────────────────────
@@ -22,6 +25,22 @@ function countCategories(nodes: GraphNode[]) {
 
 function countKind(nodes: GraphNode[], kind: string) {
   return nodes.filter((n) => (n.kind ?? "agent") === kind).length;
+}
+
+// ── attribution tab (lazy — only fetches when the tab is active) ─────────
+
+async function AttributionTabContent() {
+  try {
+    const { records, cvEntryOptions } = await fetchAttributionData();
+    return <AttributionPanel records={records} cvEntryOptions={cvEntryOptions} />;
+  } catch (err) {
+    console.error("[brain/attribution] fetchAttributionData failed:", err);
+    return (
+      <div className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-6 text-center text-sm text-destructive">
+        could not load attribution data — check the server logs
+      </div>
+    );
+  }
 }
 
 // ── page ─────────────────────────────────────────────────────
@@ -95,6 +114,7 @@ export default async function BrainPage({
 
         {activeTab === "graph" && <KnowledgeGraph data={data} staleNodeIds={staleNodeIds} initialFocus={focus} />}
         {activeTab === "gaps" && <GapAnalysis data={data} gaps={gaps} />}
+        {activeTab === "attribution" && <AttributionTabContent />}
       </div>
     </>
   );
