@@ -229,18 +229,18 @@ function AttributionRow({
       {/* Current attribution */}
       {!editing && (
         <div className="flex items-center gap-1.5 text-xs">
-          {hasAttribution ? (
+          {record.currentMemberLabel ? (
+            <>
+              <span className="text-muted-foreground">credited to</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                {record.currentMemberLabel}
+              </span>
+            </>
+          ) : hasAttribution ? (
             <>
               <span className="text-muted-foreground">attributed to</span>
               <span className="font-medium">{record.currentCvEntryLabel ?? record.currentCvEntryId}</span>
-              {record.currentMemberLabel && (
-                <>
-                  <span className="text-muted-foreground">→</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                    {record.currentMemberLabel}
-                  </span>
-                </>
-              )}
+              <span className="text-muted-foreground text-[10px]">(no member linked — check notion)</span>
             </>
           ) : (
             <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
