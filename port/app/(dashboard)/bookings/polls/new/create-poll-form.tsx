@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, CalendarClock } from "lucide-react";
+import type { SuggestedSlot } from "@/lib/booking/collective-slots";
 
 interface Slot {
   key: number;
@@ -24,9 +25,14 @@ function SubmitButton() {
   );
 }
 
-export function CreatePollForm() {
+interface Props {
+  suggestedSlots?: SuggestedSlot[];
+}
+
+export function CreatePollForm({ suggestedSlots = [] }: Props) {
   const [slots, setSlots] = useState<Slot[]>([{ key: 0, startsAt: "", endsAt: "" }]);
   const [counter, setCounter] = useState(1);
+  const [loaded, setLoaded] = useState(false);
 
   function addSlot() {
     setSlots((prev) => [...prev, { key: counter, startsAt: "", endsAt: "" }]);
@@ -39,6 +45,14 @@ export function CreatePollForm() {
 
   function updateSlot(key: number, field: "startsAt" | "endsAt", value: string) {
     setSlots((prev) => prev.map((s) => (s.key === key ? { ...s, [field]: value } : s)));
+  }
+
+  function loadCollectiveSlots() {
+    if (suggestedSlots.length === 0) return;
+    const next = suggestedSlots.map((s, i) => ({ key: counter + i, startsAt: s.startsAt, endsAt: s.endsAt }));
+    setSlots(next);
+    setCounter((c) => c + suggestedSlots.length);
+    setLoaded(true);
   }
 
   return (
@@ -67,15 +81,34 @@ export function CreatePollForm() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <Label>candidate times</Label>
-          <button
-            type="button"
-            onClick={addSlot}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <Plus className="h-3 w-3" />
-            add slot
-          </button>
+          <div className="flex items-center gap-2">
+            {suggestedSlots.length > 0 && (
+              <button
+                type="button"
+                onClick={loadCollectiveSlots}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
+                title={`pre-fill ${suggestedSlots.length} slots from collective availability`}
+              >
+                <CalendarClock className="h-3 w-3" />
+                {loaded ? "re-load collective" : "load collective availability"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={addSlot}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="h-3 w-3" />
+              add slot
+            </button>
+          </div>
         </div>
+
+        {loaded && (
+          <p className="text-xs text-muted-foreground bg-muted/50 px-3 py-2 rounded-md">
+            pre-filled from collective working hours — remove slots that don&apos;t suit this meeting.
+          </p>
+        )}
 
         {slots.map((slot, i) => (
           <div key={slot.key} className="flex gap-2 items-start">

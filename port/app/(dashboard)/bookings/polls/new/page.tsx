@@ -8,8 +8,15 @@
 import { PageHeader } from "@/app/components/page-header";
 import Link from "next/link";
 import { CreatePollForm } from "./create-poll-form";
+import { listHosts } from "@/lib/booking/queries";
+import { suggestCollectiveSlots } from "@/lib/booking/collective-slots";
 
-export default function NewPollPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewPollPage() {
+  const hosts = await listHosts({ activeOnly: true }).catch(() => []);
+  const suggestedSlots = suggestCollectiveSlots(hosts, 14);
+
   return (
     <div>
       <PageHeader
@@ -24,7 +31,7 @@ export default function NewPollPage() {
         </Link>
       </PageHeader>
 
-      <CreatePollForm />
+      <CreatePollForm suggestedSlots={suggestedSlots} />
     </div>
   );
 }
