@@ -214,6 +214,41 @@ export async function pruneStaleNodes(syncTs: string): Promise<number> {
   return (data ?? []).length;
 }
 
+/**
+ * Delete all edges from a given node with a specific relationship.
+ * Used by the adjudicator to remove the old `fed-into` edge before
+ * inserting a corrected one with source: "adjudicator".
+ */
+export async function deleteEdgesFromNode(nodeId: string, relationship: string): Promise<void> {
+  const { error } = await supabase
+    .from("knowledge_edges")
+    .delete()
+    .eq("source_id", nodeId)
+    .eq("relationship", relationship);
+  if (error) throw new Error(`[knowledge/supabase] deleteEdgesFromNode: ${error.message}`);
+}
+
+/**
+ * Fetch a node, JSON-merge the patch into its `attrs`, and upsert back.
+ * Preserves any attrs fields not mentioned in the patch (incl. fields set
+ * by prior adjudicator edits). Throws if the node doesn't exist.
+ */
+export async function patchNodeAttrs(nodeId: string, patch: Record<string, unknown>): Promise<void> {
+  const { data, error } = await supabase
+    .from("knowledge_nodes")
+    .select("attrs")
+    .eq("id", nodeId)
+    .single();
+  if (error) throw new Error(`[knowledge/supabase] patchNodeAttrs fetch: ${error.message}`);
+  const merged = { ...(data.attrs ?? {}), ...patch };
+  const now = new Date().toISOString();
+  const { error: upErr } = await supabase
+    .from("knowledge_nodes")
+    .update({ attrs: merged, updated_at: now })
+    .eq("id", nodeId);
+  if (upErr) throw new Error(`[knowledge/supabase] patchNodeAttrs update: ${upErr.message}`);
+}
+
 /** Drop edges whose endpoints no longer exist (after a sync), keeping the graph clean. */
 export async function pruneDanglingEdges(): Promise<number> {
   const nodeIds = await selectAll<{ id: string }>("knowledge_nodes", "id");

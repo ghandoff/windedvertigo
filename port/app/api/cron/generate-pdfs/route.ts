@@ -51,7 +51,7 @@ function getPdfR2Client(): S3Client {
   return new S3Client({
     region: "auto",
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey },
+    credentialDefaultProvider: () => async () => ({ accessKeyId, secretAccessKey }),
   });
 }
 
