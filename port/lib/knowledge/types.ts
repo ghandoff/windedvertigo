@@ -15,7 +15,7 @@
 // ── actors / provenance ──────────────────────────────────────
 export type AgentId = "mo" | "carl" | "pam" | "opsy" | "biz" | "fin" | "shared";
 export type NodeKind = "human" | "agent" | "shared" | "co-created";
-export type NodeSource = "notion-cv" | "agent-log" | "curated" | "derived";
+export type NodeSource = "notion-cv" | "agent-log" | "curated" | "derived" | "adjudicator";
 
 export type NodeCategory =
   // agent-graph categories (curated)
