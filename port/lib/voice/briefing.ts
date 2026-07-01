@@ -11,6 +11,7 @@
  */
 
 import { getPamDecisions, getPamMemory, getPamCommitments } from "@/lib/supabase/pam";
+import { listPendingTriageActions } from "@/lib/supabase/meeting-action-items";
 import { getCmoDecisions, getCmoMemory } from "@/lib/supabase/cmo";
 import { getCarlDecisions, getCarlMemory, getCarlFindings } from "@/lib/supabase/carl";
 import {
@@ -99,7 +100,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 // ── pam ─────────────────────────────────────────────────────────────────────
 async function pamBriefing(): Promise<string> {
   const t = today();
-  const [decisions, memory, activeRaw, overdueRaw, projects, milestones, deals] = await Promise.all([
+  const [decisions, memory, activeRaw, overdueRaw, projects, milestones, deals, pendingActions] = await Promise.all([
     getPamDecisions({ days: 14 }),
     getPamMemory(),
     getPamCommitments({ due_after: t }),
@@ -107,6 +108,7 @@ async function pamBriefing(): Promise<string> {
     activeProjectsText().catch(() => "_unavailable_"),
     upcomingMilestonesText().catch(() => "_unavailable_"),
     openDealsText().catch(() => "_unavailable_"),
+    listPendingTriageActions(null, 15).catch(() => [] as Awaited<ReturnType<typeof listPendingTriageActions>>),
   ]);
   const active = activeRaw.filter((c) => !["done", "parked"].includes(c.status));
   const overdue = overdueRaw.filter(
@@ -135,6 +137,15 @@ async function pamBriefing(): Promise<string> {
   if (blocked.length) {
     lines.push("## blocked commitments");
     for (const c of blocked) lines.push(`- ${c.who}: ${c.what} — ${c.blocker ?? "blocker not specified"}`);
+    lines.push("");
+  }
+  if (pendingActions.length) {
+    lines.push(`## council action items awaiting review (${pendingActions.length})`);
+    for (const a of pendingActions) {
+      const owner = a.ownerName ?? a.ownerEmail ?? "unassigned";
+      const due = a.deadline ? ` (due ${a.deadline})` : "";
+      lines.push(`- [${owner}] ${a.title}${due}`);
+    }
     lines.push("");
   }
   lines.push("## active commitments");
