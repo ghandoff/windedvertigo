@@ -273,6 +273,19 @@ export async function ingestNotionCv(): Promise<NotionIngestResult> {
       ...relEdges(id, props, "Service Offering", "service", "exemplifies"),
     );
 
+    // Emit authored edges from the cv-entry's "Team Member" field (the other side of
+    // the "CV Entries (canonical)" relation on the member page). Reading both sides
+    // makes authored edges robust to Notion back-sync gaps where the member's list
+    // may not reflect a recently-added Team Member relation.
+    for (const memberId of getRelation(props["Team Member"] as never)) {
+      edges.push({
+        sourceId: nodeId("member", memberId),
+        targetId: id,
+        relationship: "authored",
+        source: "notion-cv" as const,
+      });
+    }
+
     if (agentContributors.length > 0) {
       if (hasDeliverable) {
         // Emit a deliverable node keyed by entry id (stable, not label-dependent).
