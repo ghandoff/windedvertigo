@@ -317,21 +317,23 @@ export function AttributionPanel({
     return true;
   });
 
-  const unreviewed = records.filter((r) => r.editable && r.adjudicatorEditedAt === null && !r.currentCvEntryId);
+  const unreviewed = records.filter((r) => r.adjudicatorEditedAt === null && !r.currentCvEntryId);
 
   return (
     <div className="space-y-4">
       {/* Header card */}
-      <div className="rounded-lg border border-border bg-card px-4 py-3 space-y-1">
-        <p className="text-sm font-medium">node attribution review</p>
-        <p className="text-xs text-muted-foreground">
-          each row is an agent-produced deliverable. confirm the attribution is correct, or
-          reassign to a different cv-entry to fix mis-attributions (e.g. work attributed to
-          the wrong team member after a notion sync).
+      <div className="rounded-lg border border-border bg-card px-4 py-3 space-y-1.5">
+        <p className="text-sm font-medium">agent deliverable attribution</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          each row is something an agent produced (a lit review, report, or evaluation instrument)
+          that fed into real client work. the <span className="font-medium text-foreground">attributed to</span> line
+          shows which team member's cv-entry gets credit for that engagement.
+          if it shows the wrong person, click <span className="font-medium text-foreground">edit</span> to
+          reassign it — the next notion sync won't overwrite your correction.
         </p>
         {unreviewed.length > 0 && (
-          <p className="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1">
-            {unreviewed.length} node{unreviewed.length !== 1 ? "s" : ""} with no cv-entry linked
+          <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+            {unreviewed.length} deliverable{unreviewed.length !== 1 ? "s" : ""} not yet linked to a cv-entry — run a knowledge sync or check notion
           </p>
         )}
       </div>

@@ -52,7 +52,8 @@ export async function fetchAttributionData(): Promise<{
     supabase
       .from("knowledge_nodes")
       .select("id, label, category, attrs, source_ref")
-      .eq("kind", "co-created"),
+      .eq("kind", "co-created")
+      .eq("category", "deliverable"),
 
     supabase
       .from("knowledge_edges")
@@ -109,25 +110,25 @@ export async function fetchAttributionData(): Promise<{
   // cv-entry label lookup
   const cvEntryLabelById = new Map(cvEntryNodes.map((e) => [e.id, e.label]));
 
-  // Assemble records
+  // Assemble records — deliverable nodes only (category = "deliverable")
   const records: AttributionRecord[] = coCreatedNodes.map((node) => {
     const attrs = node.attrs ?? {};
-    // deliverable nodes use contributingAgents; cv-entry nodes use agentContributors
     const contributingAgents = Array.isArray(attrs.contributingAgents)
       ? (attrs.contributingAgents as string[])
-      : Array.isArray(attrs.agentContributors)
-      ? (attrs.agentContributors as string[])
       : [];
 
-    // For cv-entry nodes (kind=co-created), the node IS the cv-entry — find its member
-    // via the authored edge directly. For deliverable nodes, look up the fed-into target.
-    const isCvEntry = node.category === "cv-entry";
-    const currentCvEntryId = isCvEntry
-      ? node.id
-      : (fedIntoMap.get(node.id) ?? (attrs.appliedInEntry as string | null) ?? null);
-    const currentCvEntryLabel = isCvEntry ? node.label : (currentCvEntryId ? (cvEntryLabelById.get(currentCvEntryId) ?? null) : null);
-    const currentMemberId = currentCvEntryId ? (cvEntryToMember.get(currentCvEntryId) ?? null) : null;
-    const currentMemberLabel = currentMemberId ? (memberById.get(currentMemberId) ?? null) : null;
+    // fed-into edge wins; fall back to attrs.appliedInEntry written by the last Notion sync
+    const currentCvEntryId =
+      fedIntoMap.get(node.id) ?? (attrs.appliedInEntry as string | null) ?? null;
+    const currentCvEntryLabel = currentCvEntryId
+      ? (cvEntryLabelById.get(currentCvEntryId) ?? null)
+      : null;
+    const currentMemberId = currentCvEntryId
+      ? (cvEntryToMember.get(currentCvEntryId) ?? null)
+      : null;
+    const currentMemberLabel = currentMemberId
+      ? (memberById.get(currentMemberId) ?? null)
+      : null;
 
     return {
       nodeId: node.id,
@@ -139,8 +140,9 @@ export async function fetchAttributionData(): Promise<{
       currentMemberId,
       currentMemberLabel,
       sourceRef: node.source_ref,
-      adjudicatorEditedAt: typeof attrs.adjudicatorEditedAt === "string" ? attrs.adjudicatorEditedAt : null,
-      editable: !isCvEntry,
+      adjudicatorEditedAt:
+        typeof attrs.adjudicatorEditedAt === "string" ? attrs.adjudicatorEditedAt : null,
+      editable: true,
     };
   });
 
