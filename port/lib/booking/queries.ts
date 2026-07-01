@@ -14,6 +14,11 @@ import type {
   EventType,
   Host,
   OauthToken,
+  Poll,
+  PollOption,
+  PollResponse,
+  PollResponseChoice,
+  PollOptionTally,
 } from "./types";
 
 // ── hosts ─────────────────────────────────────────────────────────
@@ -180,4 +185,112 @@ export async function listOverridesForHost(hostId: string): Promise<Availability
     .order("during", { ascending: true });
   if (error) throw new Error(`[booking/overrides] ${error.message}`);
   return (data ?? []) as AvailabilityOverride[];
+}
+
+// ── polls ─────────────────────────────────────────────────────────
+
+export async function listPolls(): Promise<Poll[]> {
+  const { data, error } = await bookingDb
+    .from("polls")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`[booking/polls] ${error.message}`);
+  return (data ?? []) as Poll[];
+}
+
+export async function getPollBySlug(slug: string): Promise<Poll | null> {
+  const { data, error } = await bookingDb
+    .from("polls")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw new Error(`[booking/polls] ${error.message}`);
+  return (data ?? null) as Poll | null;
+}
+
+export async function getPollById(id: string): Promise<Poll | null> {
+  const { data, error } = await bookingDb
+    .from("polls")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`[booking/polls] ${error.message}`);
+  return (data ?? null) as Poll | null;
+}
+
+export async function listPollOptions(pollId: string): Promise<PollOption[]> {
+  const { data, error } = await bookingDb
+    .from("poll_options")
+    .select("*")
+    .eq("poll_id", pollId)
+    .order("sort_order", { ascending: true });
+  if (error) throw new Error(`[booking/poll_options] ${error.message}`);
+  return (data ?? []) as PollOption[];
+}
+
+export async function getPollResults(pollId: string): Promise<{
+  responses: PollResponse[];
+  choices: PollResponseChoice[];
+}> {
+  const { data: responses, error: rErr } = await bookingDb
+    .from("poll_responses")
+    .select("*")
+    .eq("poll_id", pollId)
+    .order("created_at", { ascending: true });
+  if (rErr) throw new Error(`[booking/poll_responses] ${rErr.message}`);
+
+  const responseIds = (responses ?? []).map((r) => (r as PollResponse).id);
+  if (responseIds.length === 0) {
+    return { responses: [], choices: [] };
+  }
+
+  const { data: choices, error: cErr } = await bookingDb
+    .from("poll_response_choices")
+    .select("*")
+    .in("response_id", responseIds);
+  if (cErr) throw new Error(`[booking/poll_response_choices] ${cErr.message}`);
+
+  return {
+    responses: (responses ?? []) as PollResponse[],
+    choices: (choices ?? []) as PollResponseChoice[],
+  };
+}
+
+/** Computes per-slot tallies from raw responses + choices. Pure function — no DB call. */
+export function computeTallies(
+  options: PollOption[],
+  responses: PollResponse[],
+  choices: PollResponseChoice[],
+): PollOptionTally[] {
+  const responseById = new Map(responses.map((r) => [r.id, r]));
+  const choicesByOption = new Map<string, PollResponseChoice[]>();
+  for (const opt of options) choicesByOption.set(opt.id, []);
+  for (const c of choices) {
+    const list = choicesByOption.get(c.option_id);
+    if (list) list.push(c);
+  }
+
+  const tallies = options.map((opt) => {
+    const optChoices = choicesByOption.get(opt.id) ?? [];
+    let yes = 0, if_need_be = 0, no = 0;
+    const respondents: PollOptionTally["respondents"] = [];
+    for (const c of optChoices) {
+      if (c.availability === "yes") yes++;
+      else if (c.availability === "if_need_be") if_need_be++;
+      else no++;
+      const resp = responseById.get(c.response_id);
+      if (resp) respondents.push({ name: resp.respondent_name, availability: c.availability });
+    }
+    return { option: opt, yes, if_need_be, no, respondents, isBest: false };
+  });
+
+  // best slot = highest yes count, then yes+if_need_be as tiebreaker
+  if (tallies.length > 0) {
+    const best = tallies.reduce((a, b) =>
+      b.yes > a.yes || (b.yes === a.yes && b.if_need_be > a.if_need_be) ? b : a,
+    );
+    if (best.yes + best.if_need_be > 0) best.isBest = true;
+  }
+
+  return tallies;
 }

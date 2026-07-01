@@ -103,3 +103,51 @@ export function parseTstzrange(literal: string): BookingRange {
 export function tstzrange(start: Date, end: Date): string {
   return `[${start.toISOString()},${end.toISOString()})`;
 }
+
+// ── polls ─────────────────────────────────────────────────────────
+
+export type PollAvailability = "yes" | "if_need_be" | "no";
+
+export interface Poll {
+  id: string;
+  slug: string;
+  edit_token: string;
+  title: string;
+  description: string | null;
+  created_by_host_id: string | null;
+  locked_option_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PollOption {
+  id: string;
+  poll_id: string;
+  starts_at: string;
+  ends_at: string;
+  sort_order: number;
+}
+
+export interface PollResponse {
+  id: string;
+  poll_id: string;
+  respondent_name: string;
+  created_at: string;
+}
+
+export interface PollResponseChoice {
+  id: string;
+  response_id: string;
+  option_id: string;
+  availability: PollAvailability;
+}
+
+/** Aggregated tally for one option — computed client-side or server-side. */
+export interface PollOptionTally {
+  option: PollOption;
+  yes: number;
+  if_need_be: number;
+  no: number;
+  respondents: { name: string; availability: PollAvailability }[];
+  isBest: boolean;
+}
