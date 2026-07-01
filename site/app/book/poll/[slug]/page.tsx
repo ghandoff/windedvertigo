@@ -1,8 +1,8 @@
 /**
- * /book/poll/[slug] — anonymous respond page for a group availability poll.
+ * /book/poll/[slug] — public respond page for a group availability poll.
  *
- * Loads poll metadata + current tally server-side; interactive form is a
- * client component that POSTs to /api/poll/[slug]/respond.
+ * Dark-themed, Doodle-style calendar grid. Passes existing choices to the
+ * client grid so it can render a heat-map without a re-fetch after submit.
  */
 
 import type { Metadata } from "next";
@@ -11,7 +11,6 @@ import { select, selectOne } from "@/lib/booking/supabase";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PollRespondForm } from "./poll-respond-form";
-import { PollResultsGrid } from "./poll-results-grid";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +24,6 @@ interface Poll {
   title: string;
   description: string | null;
   locked_option_id: string | null;
-  created_at: string;
 }
 
 interface PollOption {
@@ -40,11 +38,9 @@ interface PollResponse {
   id: string;
   poll_id: string;
   respondent_name: string;
-  created_at: string;
 }
 
 interface PollResponseChoice {
-  id: string;
   response_id: string;
   option_id: string;
   availability: "yes" | "if_need_be" | "no";
@@ -62,7 +58,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
   } catch {}
-  return { title: "group poll · winded.vertigo", robots: { index: false, follow: false } };
+  return {
+    title: "group poll · winded.vertigo",
+    robots: { index: false, follow: false },
+  };
 }
 
 export default async function PollRespondPage({ params }: Props) {
@@ -73,11 +72,11 @@ export default async function PollRespondPage({ params }: Props) {
 
   const [options, responses] = await Promise.all([
     select<PollOption>("poll_options", `poll_id=eq.${poll.id}&order=sort_order.asc`),
-    select<PollResponse>("poll_responses", `poll_id=eq.${poll.id}&order=created_at.asc`),
+    select<PollResponse>("poll_responses", `poll_id=eq.${poll.id}`),
   ]);
 
   const responseIds = responses.map((r) => r.id);
-  const realChoices =
+  const existingChoices =
     responseIds.length > 0
       ? await select<PollResponseChoice>(
           "poll_response_choices",
@@ -85,61 +84,75 @@ export default async function PollRespondPage({ params }: Props) {
         )
       : [];
 
-  const locked = poll.locked_option_id
-    ? options.find((o) => o.id === poll.locked_option_id) ?? null
-    : null;
+  const locked =
+    poll.locked_option_id
+      ? options.find((o) => o.id === poll.locked_option_id) ?? null
+      : null;
+
+  function formatLocked(opt: PollOption) {
+    const start = new Date(opt.starts_at);
+    const end = new Date(opt.ends_at);
+    return `${start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} · ${start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}–${end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
+  }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div style={{ background: "#273248", color: "#fff", minHeight: "100vh" }}>
       <SiteHeader />
 
-      <main className="flex-1 mx-auto w-full max-w-2xl px-4 py-12">
+      <main
+        className="mx-auto w-full max-w-4xl px-4 pb-16"
+        style={{ paddingTop: 120 }}
+      >
+        {/* Header */}
         <div className="mb-8">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">group playdate</p>
-          <h1 className="text-2xl font-semibold">{poll.title}</h1>
+          <p
+            className="text-xs uppercase tracking-widest mb-2"
+            style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}
+          >
+            group playdate
+          </p>
+          <h1 className="text-3xl font-bold lowercase" style={{ letterSpacing: "-0.01em" }}>
+            {poll.title}
+          </h1>
           {poll.description && (
-            <p className="mt-2 text-sm text-muted-foreground">{poll.description}</p>
-          )}
-          {locked && (
-            <div className="mt-4 rounded-md border border-green-400/60 bg-green-50/30 dark:bg-green-950/10 p-3 text-sm">
-              <span className="font-medium text-green-700 dark:text-green-400">time confirmed: </span>
-              <span className="text-muted-foreground">
-                {formatSlotLocal(locked.starts_at, locked.ends_at)}
-              </span>
-            </div>
+            <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+              {poll.description}
+            </p>
           )}
         </div>
 
-        <PollResultsGrid
-          options={options}
-          responses={responses}
-          choices={realChoices}
-          lockedOptionId={poll.locked_option_id}
-        />
-
-        {!poll.locked_option_id && (
-          <div className="mt-8 rounded-md border p-6">
-            <h2 className="text-sm font-medium mb-4">add your availability</h2>
-            <PollRespondForm
-              pollSlug={slug}
-              options={options}
-              existingResponseCount={responses.length}
-            />
+        {/* Locked banner */}
+        {locked && (
+          <div
+            className="mb-6 rounded-xl px-5 py-4"
+            style={{
+              background: "rgba(34,197,94,0.08)",
+              border: "1px solid rgba(34,197,94,0.25)",
+            }}
+          >
+            <p className="text-sm font-semibold" style={{ color: "#86efac" }}>
+              time confirmed ✓
+            </p>
+            <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+              {formatLocked(locked)}
+            </p>
           </div>
         )}
+
+        {/* Grid + form */}
+        <PollRespondForm
+          pollSlug={slug}
+          options={options}
+          existingChoices={existingChoices.map((c) => ({
+            option_id: c.option_id,
+            availability: c.availability,
+          }))}
+          totalResponses={responses.length}
+          lockedOptionId={poll.locked_option_id}
+        />
       </main>
 
       <SiteFooter />
     </div>
   );
-}
-
-function formatSlotLocal(startsAt: string, endsAt: string) {
-  const start = new Date(startsAt);
-  const end = new Date(endsAt);
-  // Server renders in UTC; client will hydrate with local timezone via the client component
-  const date = start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-  const t1 = start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
-  const t2 = end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  return `${date} · ${t1}–${t2}`;
 }

@@ -119,10 +119,10 @@ export default async function BookingsPage({ searchParams }: Props) {
           calendar connections
         </Link>
         <Link
-          href="/bookings/polls/new"
+          href="/bookings/polls"
           className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
         >
-          + group poll
+          group polls
         </Link>
       </PageHeader>
 

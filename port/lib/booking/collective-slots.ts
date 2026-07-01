@@ -98,22 +98,27 @@ export function suggestCollectiveSlots(
       month: "short",
     });
 
+    const localDateStr = date.toLocaleDateString("en-CA", { timeZone: tz }); // YYYY-MM-DD
+
     for (const [startTime, endTime] of windows) {
-      // Build a Date object for the start/end by combining the calendar date with the time
       const [sh, sm] = startTime.split(":").map(Number);
       const [eh, em] = endTime.split(":").map(Number);
+      const windowStartMins = sh * 60 + sm;
+      const windowEndMins = eh * 60 + em;
 
-      // Build wall-clock date in local tz
-      const localDateStr = date.toLocaleDateString("en-CA", { timeZone: tz }); // YYYY-MM-DD
-
-      const startsAt = `${localDateStr}T${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`;
-      const endsAt = `${localDateStr}T${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}`;
-
-      slots.push({
-        startsAt,
-        endsAt,
-        label: `${dateLabel} · ${startTime}–${endTime}`,
-      });
+      // Decompose each working window into 30-minute blocks (Doodle-style).
+      for (let slotStart = windowStartMins; slotStart < windowEndMins; slotStart += 30) {
+        const slotEnd = Math.min(slotStart + 30, windowEndMins);
+        const sh2 = Math.floor(slotStart / 60), sm2 = slotStart % 60;
+        const eh2 = Math.floor(slotEnd / 60), em2 = slotEnd % 60;
+        const s = `${String(sh2).padStart(2, "0")}:${String(sm2).padStart(2, "0")}`;
+        const e = `${String(eh2).padStart(2, "0")}:${String(em2).padStart(2, "0")}`;
+        slots.push({
+          startsAt: `${localDateStr}T${s}`,
+          endsAt: `${localDateStr}T${e}`,
+          label: `${dateLabel} · ${s}–${e}`,
+        });
+      }
     }
   }
 
