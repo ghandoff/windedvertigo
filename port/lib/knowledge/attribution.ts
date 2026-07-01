@@ -110,8 +110,11 @@ export async function fetchAttributionData(): Promise<{
   // Assemble records
   const records: AttributionRecord[] = coCreatedNodes.map((node) => {
     const attrs = node.attrs ?? {};
+    // deliverable nodes use contributingAgents; cv-entry nodes use agentContributors
     const contributingAgents = Array.isArray(attrs.contributingAgents)
       ? (attrs.contributingAgents as string[])
+      : Array.isArray(attrs.agentContributors)
+      ? (attrs.agentContributors as string[])
       : [];
     const currentCvEntryId = fedIntoMap.get(node.id) ?? (attrs.appliedInEntry as string | null) ?? null;
     const currentCvEntryLabel = currentCvEntryId ? (cvEntryLabelById.get(currentCvEntryId) ?? null) : null;
