@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 
 interface PollOption {
   id: string;
@@ -45,15 +46,23 @@ const CHOICE_STYLES: Record<Availability, { active: string; idle: string; label:
   },
 };
 
-export function PollRespondForm({ pollSlug, options, existingResponseCount }: Props) {
+export function PollRespondForm({ pollSlug, options: initialOptions, existingResponseCount }: Props) {
   const router = useRouter();
   const [tz, setTz] = useState("UTC");
   const [name, setName] = useState("");
+  const [options, setOptions] = useState<PollOption[]>(initialOptions);
   const [choices, setChoices] = useState<Record<string, Availability>>(() =>
-    Object.fromEntries(options.map((o) => [o.id, "no" as Availability])),
+    Object.fromEntries(initialOptions.map((o) => [o.id, "no" as Availability])),
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Propose-a-slot state
+  const [showPropose, setShowPropose] = useState(false);
+  const [proposeStart, setProposeStart] = useState("");
+  const [proposeEnd, setProposeEnd] = useState("");
+  const [proposing, setProposing] = useState(false);
+  const [proposeError, setProposeError] = useState<string | null>(null);
 
   useEffect(() => {
     setTz(Intl.DateTimeFormat().resolvedOptions().timeZone);
@@ -61,6 +70,35 @@ export function PollRespondForm({ pollSlug, options, existingResponseCount }: Pr
 
   function setChoice(optionId: string, val: Availability) {
     setChoices((prev) => ({ ...prev, [optionId]: val }));
+  }
+
+  async function handleProposeSlot() {
+    if (!proposeStart || !proposeEnd) { setProposeError("both start and end are required"); return; }
+    setProposing(true);
+    setProposeError(null);
+    try {
+      const res = await fetch(`/api/poll/${pollSlug}/options`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startsAt: new Date(proposeStart).toISOString(),
+          endsAt: new Date(proposeEnd).toISOString(),
+        }),
+      });
+      const data = await res.json().catch(() => ({})) as { ok?: boolean; option?: PollOption; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "something went wrong");
+      const newOption = data.option!;
+      setOptions((prev) => [...prev, newOption]);
+      // pre-select "yes" for the time the respondent just proposed
+      setChoices((prev) => ({ ...prev, [newOption.id]: "yes" }));
+      setProposeStart("");
+      setProposeEnd("");
+      setShowPropose(false);
+    } catch (err) {
+      setProposeError(err instanceof Error ? err.message : "something went wrong");
+    } finally {
+      setProposing(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -104,7 +142,18 @@ export function PollRespondForm({ pollSlug, options, existingResponseCount }: Pr
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs text-muted-foreground">times shown in {tz}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">times shown in {tz}</p>
+          <button
+            type="button"
+            onClick={() => setShowPropose((v) => !v)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <Plus className="h-3 w-3" />
+            suggest a time
+          </button>
+        </div>
+
         {options.map((opt) => {
           const current = choices[opt.id] ?? "no";
           return (
@@ -133,6 +182,50 @@ export function PollRespondForm({ pollSlug, options, existingResponseCount }: Pr
             </div>
           );
         })}
+
+        {showPropose && (
+          <div className="rounded-md border border-dashed border-primary/40 bg-primary/5 p-3 space-y-3">
+            <p className="text-xs font-medium text-primary">suggest another time</p>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="text-xs text-muted-foreground block mb-1">start</label>
+                <input
+                  type="datetime-local"
+                  value={proposeStart}
+                  onChange={(e) => setProposeStart(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs text-muted-foreground block mb-1">end</label>
+                <input
+                  type="datetime-local"
+                  value={proposeEnd}
+                  onChange={(e) => setProposeEnd(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                />
+              </div>
+            </div>
+            {proposeError && <p className="text-xs text-destructive">{proposeError}</p>}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleProposeSlot}
+                disabled={proposing}
+                className="rounded-md bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+              >
+                {proposing ? "adding…" : "add to poll"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowPropose(false); setProposeError(null); }}
+                className="rounded-md border border-input px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}

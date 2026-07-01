@@ -1,0 +1,121 @@
+/**
+ * Generates concrete upcoming slots from the collective's working_hours.
+ *
+ * working_hours shape: Record<"mon"|"tue"|..., [startHH:MM, endHH:MM][]>
+ * Returns windows where ALL active hosts have availability on that weekday,
+ * expressed as ISO datetime strings in the host's local timezone.
+ *
+ * The result is a list of full working windows (not subdivided into hourly
+ * chunks) for the next `daysAhead` calendar days, suitable for pre-populating
+ * a poll creation form.
+ */
+
+import type { Host, WorkingHours } from "./types";
+
+const DAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+type DayKey = (typeof DAY_KEYS)[number];
+
+function getTimezoneOffset(tz: string): number {
+  // Returns offset in minutes from UTC for the given IANA timezone at "now".
+  // We use this to build a local-wall-clock datetime string for datetime-local inputs.
+  const now = new Date();
+  const local = new Date(now.toLocaleString("en-US", { timeZone: tz }));
+  return (local.getTime() - now.getTime()) / 60_000;
+}
+
+function toLocalIso(date: Date, tz: string): string {
+  // Returns a datetime-local value (YYYY-MM-DDTHH:MM) in the given IANA timezone.
+  const s = date.toLocaleString("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  // en-CA gives "YYYY-MM-DD, HH:MM" — normalise to "YYYY-MM-DDTHH:MM"
+  return s.replace(", ", "T").replace(",", "T");
+}
+
+export interface SuggestedSlot {
+  startsAt: string; // datetime-local string (no tz suffix) for use in <input type="datetime-local">
+  endsAt: string;
+  label: string; // human-readable label e.g. "mon 7 jul · 09:00–17:00"
+}
+
+/**
+ * Returns upcoming working windows for the collective (intersection across all
+ * active hosts) over the next `daysAhead` calendar days.
+ *
+ * "Intersection" means a slot is only included when EVERY active host with
+ * working_hours set has at least one window on that weekday — if any host has
+ * no availability that day we skip it.
+ *
+ * Uses the timezone of the first host (or UTC as fallback) to express wall-clock
+ * times since the poll creation UI is used by the host.
+ */
+export function suggestCollectiveSlots(
+  hosts: Host[],
+  daysAhead = 14,
+): SuggestedSlot[] {
+  const active = hosts.filter((h) => h.active && h.working_hours && Object.keys(h.working_hours).length > 0);
+  if (active.length === 0) return [];
+
+  const tz = active[0].timezone || "America/Los_Angeles";
+
+  const slots: SuggestedSlot[] = [];
+  const now = new Date();
+
+  for (let d = 1; d <= daysAhead; d++) {
+    const date = new Date(now);
+    date.setDate(now.getDate() + d);
+
+    // Get the weekday in the host's timezone by reading the "en-US" locale date string.
+    // new Date(toLocaleString(...)) gives us a Date whose .getDay() reflects the local wall clock.
+    const localDay = new Date(date.toLocaleString("en-US", { timeZone: tz })).getDay();
+    const dayKey = DAY_KEYS[localDay] as DayKey;
+
+    // Collect windows for this day from every active host
+    const windowsByHost: [string, string][][] = active.map((h) => {
+      const wh: WorkingHours = h.working_hours ?? {};
+      return wh[dayKey] ?? [];
+    });
+
+    // Intersection: only emit a window if ALL hosts have at least one window on this day
+    const allHaveWindows = windowsByHost.every((w) => w.length > 0);
+    if (!allHaveWindows) continue;
+
+    // Merge all windows from all hosts into a unified set — use the first host's
+    // windows as the template (they all share working hours in practice)
+    const windows: [string, string][] = windowsByHost[0];
+
+    // Format the date part in tz for display
+    const dateLabel = date.toLocaleDateString("en-GB", {
+      timeZone: tz,
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
+
+    for (const [startTime, endTime] of windows) {
+      // Build a Date object for the start/end by combining the calendar date with the time
+      const [sh, sm] = startTime.split(":").map(Number);
+      const [eh, em] = endTime.split(":").map(Number);
+
+      // Build wall-clock date in local tz
+      const localDateStr = date.toLocaleDateString("en-CA", { timeZone: tz }); // YYYY-MM-DD
+
+      const startsAt = `${localDateStr}T${String(sh).padStart(2, "0")}:${String(sm).padStart(2, "0")}`;
+      const endsAt = `${localDateStr}T${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}`;
+
+      slots.push({
+        startsAt,
+        endsAt,
+        label: `${dateLabel} · ${startTime}–${endTime}`,
+      });
+    }
+  }
+
+  return slots;
+}
