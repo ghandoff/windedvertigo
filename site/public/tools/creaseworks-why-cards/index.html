@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>creaseworks · why-cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cadet:#273248; --redwood:#b15043; --sienna:#cb7858; --champagne:#ffebd2; --white:#fff;
+    --cadet-soft:#3a4a68; --ink:#273248;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 1px 1px, rgba(39,50,72,.10) 1.4px, transparent 0) 0 0/26px 26px,
+      var(--champagne);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:48px 28px 80px}
+
+  /* header */
+  header.hero{position:relative;overflow:hidden;background:var(--cadet);color:var(--champagne);
+    border-radius:28px;padding:44px 46px;margin-bottom:40px}
+  .wordmark{font-weight:900;letter-spacing:-.02em;font-size:20px;color:var(--champagne)}
+  .wordmark span{color:var(--sienna)}
+  .hero h1{font-weight:900;letter-spacing:-.03em;line-height:.98;margin:18px 0 6px;
+    font-size:clamp(34px,6vw,64px)}
+  .hero .kick{font-weight:600;text-transform:none;color:var(--sienna);font-size:15px;letter-spacing:.14em}
+  .hero .big-idea{font-weight:300;font-size:clamp(17px,2.2vw,23px);max-width:760px;margin-top:12px;color:#f3ddc4}
+  .hero .big-idea b{font-weight:800;color:var(--white)}
+  /* hero accents */
+  .hero .acc{position:absolute;opacity:.5;pointer-events:none}
+  .wedge{width:0;height:0}
+  .dotrow{position:absolute;display:flex;gap:10px}
+  .dot{width:9px;height:9px;border-radius:50%}
+
+  /* grid */
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:26px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+
+  /* card */
+  .card{position:relative;background:var(--white);border-radius:22px;padding:30px 30px 24px;
+    box-shadow:0 10px 30px rgba(39,50,72,.10);overflow:hidden;border:1px solid rgba(39,50,72,.08)}
+  .card .stripe{position:absolute;top:0;left:0;right:0;height:8px}
+  .num{position:absolute;top:8px;right:18px;font-weight:900;font-size:120px;line-height:1;
+    color:rgba(39,50,72,.06);letter-spacing:-.04em;pointer-events:none}
+  .dogear{position:absolute;top:0;right:0;width:0;height:0;border-style:solid;
+    border-width:0 40px 40px 0;border-color:transparent}
+  .cardhead{display:flex;align-items:center;gap:12px;position:relative;z-index:2;margin-bottom:6px}
+  .icon{flex:0 0 auto}
+  .title{font-weight:900;letter-spacing:-.02em;font-size:24px;line-height:1.05}
+  .facet{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;
+    padding:4px 10px;border-radius:999px;color:var(--white);margin-top:8px}
+
+  .ribbon{position:relative;background:var(--cadet);color:var(--champagne);font-weight:600;
+    font-size:17px;line-height:1.35;padding:14px 18px;border-radius:12px;margin:16px 0 18px}
+  .ribbon:before{content:"";position:absolute;left:20px;bottom:-9px;width:18px;height:18px;
+    background:var(--cadet);transform:rotate(45deg)}
+
+  .lbl{font-size:11px;font-weight:800;letter-spacing:.13em;color:var(--redwood);
+    display:flex;align-items:center;gap:7px;margin:14px 0 4px}
+  .lbl .tri{width:0;height:0;border-style:solid;border-width:5px 0 5px 8px;
+    border-color:transparent transparent transparent var(--sienna)}
+  .piece{font-weight:600;font-size:16px;line-height:1.4;color:var(--cadet)}
+  .body{font-size:14px;line-height:1.5;color:#3a4358}
+  .crease{border:none;border-top:2px dashed rgba(39,50,72,.22);margin:16px 0}
+
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:480px){.duo{grid-template-columns:1fr}}
+  .box{background:var(--champagne);border-radius:12px;padding:12px 14px}
+  .fitbox{background:#f5ede1;border:1.5px dashed var(--sienna);border-radius:12px;padding:12px 14px}
+
+  .refs{font-size:12px;color:var(--cadet-soft);margin-top:14px;font-weight:600}
+  .refs .rl{font-weight:800;letter-spacing:.1em;color:var(--redwood);font-size:10px}
+  .foot{font-size:12px;color:#8a8172;font-style:normal;margin-top:12px;
+    border-top:1px solid rgba(39,50,72,.12);padding-top:10px}
+
+  /* closing legend */
+  footer.legend{margin-top:44px;background:var(--cadet);color:var(--champagne);
+    border-radius:24px;padding:34px 38px;position:relative;overflow:hidden}
+  footer.legend h2{font-weight:900;font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
+  footer.legend p{font-weight:300;color:#f3ddc4;margin:0 0 20px;max-width:720px}
+  .faces{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:820px){.faces{grid-template-columns:1fr 1fr}}
+  .face{background:rgba(255,255,255,.07);border-radius:14px;padding:14px 16px}
+  .face .ft{font-weight:800;font-size:14px;margin-bottom:4px}
+  .face .fg{font-size:12px;color:#e7d3bd}
+  .signoff{margin-top:22px;font-weight:600;color:var(--sienna)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="dotrow" style="top:22px;right:34px">
+      <span class="dot" style="background:var(--sienna)"></span>
+      <span class="dot" style="background:var(--redwood)"></span>
+      <span class="dot" style="background:var(--champagne)"></span>
+    </div>
+    <svg class="acc" style="right:-30px;bottom:-30px" width="220" height="220" viewBox="0 0 220 220" fill="none">
+      <path d="M20 200 L110 20 L200 200 Z" stroke="#cb7858" stroke-width="3" opacity=".5"/>
+      <path d="M60 200 L110 90 L160 200" stroke="#ffebd2" stroke-width="3" opacity=".4"/>
+    </svg>
+    <svg class="acc" style="left:-24px;top:-24px" width="150" height="150" viewBox="0 0 150 150" fill="none">
+      <circle cx="75" cy="75" r="60" stroke="#b15043" stroke-width="3" stroke-dasharray="6 9" opacity=".5"/>
+    </svg>
+    <div class="wordmark">winded<span>.</span>vertigo</div>
+    <div class="kick" style="margin-top:16px">the why behind the games</div>
+    <h1>creaseworks<br>eleven pieces of one idea</h1>
+    <p class="big-idea"><b>everything can be anything, so you never need anything.</b> nothing is fixed, nothing is finished. each game below is one piece of that idea. a read to play with, not the final word.</p>
+  </header>
+
+  <main class="grid">
+
+  <!-- 1 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--cadet)"></div>
+    <div class="dogear" style="border-color:transparent var(--sienna) transparent transparent"></div>
+    <div class="num">01</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="9" y="6" width="22" height="28" rx="2" stroke="#273248" stroke-width="2.4"/><path d="M9 18 L31 15 M12 27 L31 24" stroke="#cb7858" stroke-width="2"/><circle cx="16" cy="21" r="1.8" fill="#273248"/><circle cx="24" cy="20" r="1.8" fill="#273248"/><path d="M15 26 Q20 29 25 25" stroke="#b15043" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <div><div class="title">character from a crease</div>
+      <span class="facet" style="background:var(--cadet)">things aren't fixed</span></div>
+    </div>
+    <div class="ribbon">"i didn't draw him. i found him in the folds."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">a plain scrap turns out to be hiding a face. proof that a thing isn't only what it seems.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">low stakes, no right answer, and it shifts what an object can be. the deeper connection is light. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">a mark can hand you a shape you never invented.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">the brain fills in shapes from tiny hints (predictive processing), and it loves spotting patterns.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Clark, 2016 · Berlyne, 1960</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 2 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--cadet)"></div>
+    <div class="dogear" style="border-color:transparent var(--sienna) transparent transparent"></div>
+    <div class="num">02</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M12 12 h16 l-2 16 h-12 z" stroke="#273248" stroke-width="2.4" fill="none"/><path d="M30 10 a6 4 0 0 1 6 4" stroke="#cb7858" stroke-width="2" fill="none"/><path d="M8 30 q4 6 12 4" stroke="#b15043" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <div><div class="title">function swap, same form</div>
+      <span class="facet" style="background:var(--cadet)">things aren't fixed</span></div>
+    </div>
+    <div class="ribbon">"same cup. whole new everything."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">a thing's use comes unfixed. one cup, endless jobs. the big idea said most plainly.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">no right answer, low stakes, and it is the "shift what an object can be" move itself. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">one object, lots of jobs.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">it loosens functional fixedness (the old candle puzzle) and builds the knack of thinking up many uses.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Duncker, 1945 · Guilford, 1967</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 3 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--redwood)"></div>
+    <div class="dogear" style="border-color:transparent var(--redwood) transparent transparent"></div>
+    <div class="num">03</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="8" y="8" width="24" height="24" rx="4" stroke="#273248" stroke-width="2.4"/><circle cx="15" cy="15" r="2.2" fill="#b15043"/><circle cx="25" cy="25" r="2.2" fill="#b15043"/><circle cx="25" cy="15" r="2.2" fill="#cb7858"/><circle cx="15" cy="25" r="2.2" fill="#cb7858"/></svg>
+      <div><div class="title">design a rule, not an object</div>
+      <span class="facet" style="background:var(--redwood)">you can remake it</span></div>
+    </div>
+    <div class="ribbon">"new rule: everything has to touch something blue."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">even the rules come unfixed. you can change the game, not just play inside it.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">low stakes and no right answer, and it hands over the frame. it leans on rules more than materials, and the deeper connection is light. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">make the rule, not just the thing.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">inventing rules is real play, and a good limit sparks ideas instead of shrinking them.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Caillois, 1958/1961</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 4 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--sienna)"></div>
+    <div class="dogear" style="border-color:transparent var(--sienna) transparent transparent"></div>
+    <div class="num">04</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="16" cy="16" r="7" stroke="#273248" stroke-width="2.4"/><circle cx="16" cy="16" r="2" fill="#cb7858"/><path d="M26 24 l7 7 M24 26 l7 7" stroke="#b15043" stroke-width="2.2" stroke-linecap="round"/><circle cx="29" cy="14" r="3" stroke="#273248" stroke-width="2"/></svg>
+      <div><div class="title">take-apart archaeology</div>
+      <span class="facet" style="background:var(--sienna)">connected + alive</span></div>
+    </div>
+    <div class="ribbon">"who made this? where has it been?"</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">an object isn't a dead end, it's a hundred other hands. the connected, alive side of the idea.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">opens the deeper connection (the traces, the makers), low stakes, no right answer. it needs a take-apart-able object, so the way in can narrow. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">take it apart to find out what it was.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">learning by taking things apart (tinkering), and following the traces back to where a thing comes from.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Papert, 1980 · Resnick, 2017</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 5 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--redwood)"></div>
+    <div class="dogear" style="border-color:transparent var(--redwood) transparent transparent"></div>
+    <div class="num">05</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 31 C6 22 8 10 15 10 c3 0 5 2 5 2 s2-2 5-2 c7 0 9 12 -5 21 z" stroke="#273248" stroke-width="2.4" fill="none"/><path d="M14 18 l12 6" stroke="#b15043" stroke-width="2" stroke-dasharray="2 3"/></svg>
+      <div><div class="title">mend a stuffed friend</div>
+      <span class="facet" style="background:var(--redwood)">you can remake it</span></div>
+    </div>
+    <div class="ribbon">"it wasn't broken. it was just between shapes."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">broken isn't fixed either. it's the start of the next thing. nothing finished, nothing wasted.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">repair and nothing wasted, low stakes. it needs a broken toy, and the shift-what-it-can-be move is softer here. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">repair it instead of tossing it.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">mistakes become material (productive failure), and repair is problem-solving you can hold in your hands.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Kapur, 2008</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 6 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--cadet)"></div>
+    <div class="dogear" style="border-color:transparent var(--sienna) transparent transparent"></div>
+    <div class="num">06</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M12 26 a6 6 0 0 1 1-12 a7 7 0 0 1 13-2 a6 6 0 0 1 2 14 z" stroke="#273248" stroke-width="2.4" fill="none"/><path d="M16 20 q3 3 7 0" stroke="#b15043" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <div><div class="title">cloud-cartographer</div>
+      <span class="facet" style="background:var(--cadet)">things aren't fixed</span></div>
+    </div>
+    <div class="ribbon">"it was a dragon. now it's something else."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">the shapeless is full of pictures, and they don't have to settle. the nothing-is-finished side of the idea.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">no right answer, and it grows comfort with the unfinished. it is sight-led, so the way in for every child needs work. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">find a shape, and let it stay unfinished.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">seeing pictures in a blur, and getting comfy with not knowing.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Frenkel-Brunswik, 1949 · Berlyne, 1960</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 7 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--cadet)"></div>
+    <div class="dogear" style="border-color:transparent var(--sienna) transparent transparent"></div>
+    <div class="num">07</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="17" cy="17" r="9" stroke="#273248" stroke-width="2.4"/><path d="M24 24 l8 8" stroke="#b15043" stroke-width="2.4" stroke-linecap="round"/><path d="M13 17 h8 M17 13 v8" stroke="#cb7858" stroke-width="2" stroke-linecap="round"/></svg>
+      <div><div class="title">function-tag-scavenger</div>
+      <span class="facet" style="background:var(--cadet)">things aren't fixed</span></div>
+    </div>
+    <div class="ribbon">"find something that scoops. something that connects."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">the whole house comes unfixed at once. everything is what it can do, not what it's called.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">no right answer, and it opens up what ordinary objects can be, house-wide. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">search by what it does, not what it's called.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">tell a child what a thing is for and they explore it less, so we keep it open.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Bonawitz et al., 2011 · Duncker, 1945</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 8 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--sienna)"></div>
+    <div class="dogear" style="border-color:transparent var(--sienna) transparent transparent"></div>
+    <div class="num">08</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 32 C10 28 10 12 30 8 C30 24 26 30 20 32 Z" stroke="#273248" stroke-width="2.4" fill="none"/><path d="M24 12 L18 28" stroke="#b15043" stroke-width="2"/><path d="M22 17 l-4 2 M23 21 l-4 2" stroke="#cb7858" stroke-width="1.6"/></svg>
+      <div><div class="title">leaf-press-telegraph</div>
+      <span class="facet" style="background:var(--sienna)">connected + alive</span></div>
+    </div>
+    <div class="ribbon">"a leaf turns into a message, and a story."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">even a fallen leaf is a story and a hundred uses. the everything-is-connected side of the idea.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">no right answer, alternative uses, and a light trace to the living world. it needs outdoor or natural materials. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">use found nature in a new way, and really look at it.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">fresh uses for ordinary things, and curiosity about where a thing came from.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Guilford, 1967 · Loewenstein, 1994</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 9 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--sienna)"></div>
+    <div class="dogear" style="border-color:transparent var(--sienna) transparent transparent"></div>
+    <div class="num">09</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="15" cy="14" r="6" stroke="#273248" stroke-width="2.4"/><path d="M15 4 v3 M15 21 v3 M5 14 h3 M22 14 h3 M8 7 l2 2 M22 7 l-2 2" stroke="#cb7858" stroke-width="1.8" stroke-linecap="round"/><path d="M20 20 L34 34 L26 34 Z" fill="#b15043" opacity=".55"/></svg>
+      <div><div class="title">shadow-tracker</div>
+      <span class="facet" style="background:var(--sienna)">connected + alive</span></div>
+    </div>
+    <div class="ribbon">"it moved while i wasn't looking."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">even the still world isn't still. it's quietly moving and alive.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">no right answer, and it turns wonder toward change. it is sight-led and sun-led, so the way in for every child needs work. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">stay still, and watch the world move.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">change pulls our curiosity, and guessing then checking is how children learn.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Berlyne, 1960 · Gopnik, 2020</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 10 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--cadet)"></div>
+    <div class="dogear" style="border-color:transparent var(--redwood) transparent transparent"></div>
+    <div class="num">10</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="7" y="20" width="11" height="11" rx="2" stroke="#273248" stroke-width="2.4"/><path d="M27 20 l6 11 h-12 z" stroke="#b15043" stroke-width="2.4" fill="none"/><path d="M14 14 q6 -6 12 0" stroke="#cb7858" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M25 12 l2 2 -3 1" fill="#cb7858"/></svg>
+      <div><div class="title">transfer test / find again</div>
+      <span class="facet" style="background:var(--cadet-soft)">it travels</span></div>
+    </div>
+    <div class="ribbon">"it worked in blocks. will it work in sticks?"</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">the idea doesn't stay in the game. it travels out into everything else. the idea travelling.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">leaves a return that travels, low stakes, no right answer. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">do it with one material, then find it again in another.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">carrying an idea to a new place (transfer), and noticing what each material lets you do.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Barnett and Ceci, 2002 · Gibson, 1979</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  <!-- 11 -->
+  <article class="card">
+    <div class="stripe" style="background:var(--redwood)"></div>
+    <div class="dogear" style="border-color:transparent var(--redwood) transparent transparent"></div>
+    <div class="num">11</div>
+    <div class="cardhead">
+      <svg class="icon" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M12 20 a8 8 0 1 1 3 6" stroke="#273248" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M12 14 l0 6 6 0" stroke="#b15043" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <div><div class="title">kek loop</div>
+      <span class="facet" style="background:var(--redwood)">you can remake it</span></div>
+    </div>
+    <div class="ribbon">"tallest. then silliest. then wind-proof."</div>
+    <div class="lbl"><span class="tri"></span>this game's piece of it</div>
+    <div class="piece">not even "done" is fixed. change the goal and the whole thing is new again. the idea as an engine.</div>
+    <div class="fitbox"><div class="lbl" style="margin-top:0">fits creaseworks?</div><div class="body">low stakes, no right answer, and fast iteration keeps a game alive. the deeper connection is light. (you decide.)</div></div>
+    <hr class="crease"/>
+    <div class="duo">
+      <div class="box"><div class="lbl" style="margin-top:0">the move</div><div class="body">change the goal, adapt, go again.</div></div>
+      <div class="box"><div class="lbl" style="margin-top:0">underneath</div><div class="body">updating your best guess as you go, in fast little rounds.</div></div>
+    </div>
+    <div class="refs"><span class="rl">references</span> &nbsp;Clark, 2016 · Siegler, 2007</div>
+    <div class="foot">a read to play with, not the final word</div>
+  </article>
+
+  </main>
+
+  <footer class="legend">
+    <svg class="acc" style="position:absolute;right:-20px;top:-20px;opacity:.4" width="160" height="160" viewBox="0 0 160 160"><path d="M20 140 L80 20 L140 140 Z" stroke="#cb7858" stroke-width="3" fill="none"/></svg>
+    <h2>eleven pieces, one picture</h2>
+    <p>no single game carries the whole why. together they make one idea: everything can be anything, so you never need anything.</p>
+    <div class="faces">
+      <div class="face"><div class="ft" style="color:#9fb0cf">things aren't fixed</div><div class="fg">crease · swap · cloud · scavenger</div></div>
+      <div class="face"><div class="ft" style="color:#e39079">you can remake it</div><div class="fg">design a rule · mend · kek loop</div></div>
+      <div class="face"><div class="ft" style="color:#d99a78">connected + alive</div><div class="fg">take-apart · leaf-press · shadow</div></div>
+      <div class="face"><div class="ft" style="color:#c9d4e6">it travels</div><div class="fg">transfer / find again</div></div>
+    </div>
+    <div class="signoff">winded.vertigo · a read to play with, not the final word</div>
+  </footer>
+
+</div>
+</body>
+</html>
