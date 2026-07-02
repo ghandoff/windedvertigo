@@ -159,6 +159,14 @@ export async function addPollOptions(
   return (options ?? []) as PollOption[];
 }
 
+export async function updatePollInvitees(pollId: string, emails: string[]): Promise<void> {
+  const { error } = await bookingDb
+    .from("polls")
+    .update({ invitee_emails: emails })
+    .eq("id", pollId);
+  if (error) throw new Error(`[booking/polls] updatePollInvitees: ${error.message}`);
+}
+
 export async function deletePoll(pollId: string): Promise<void> {
   const { data: opts } = await bookingDb
     .from("poll_options")

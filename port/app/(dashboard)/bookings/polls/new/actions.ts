@@ -1,6 +1,6 @@
 "use server";
 
-import { createPoll } from "@/lib/booking/mutations";
+import { createPoll, updatePollInvitees } from "@/lib/booking/mutations";
 import { getHostByEmail, getPollById } from "@/lib/booking/queries";
 import { auth } from "@/lib/auth";
 import { sendOutreachEmail } from "@/lib/email/resend";
@@ -60,6 +60,10 @@ export async function sendPollInvitesAction(pollId: string, emails: string[]): P
   const shareUrl = poll
     ? `${process.env.SITE_ORIGIN ?? ""}/book/poll/${poll.slug}`
     : "";
+
+  await updatePollInvitees(pollId, emails).catch((err) =>
+    console.error("[sendPollInvitesAction] failed to store invitees:", err),
+  );
 
   for (const to of emails) {
     try {

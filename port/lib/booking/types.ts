@@ -119,6 +119,7 @@ export interface Poll {
   locked_option_id: string | null;
   created_at: string;
   updated_at: string;
+  invitee_emails: string[];
 }
 
 export interface PollOption {

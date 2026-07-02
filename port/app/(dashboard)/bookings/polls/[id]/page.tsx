@@ -15,6 +15,7 @@ import { LockPollButton } from "./lock-poll-button";
 import { DurationRecommender } from "./duration-recommender";
 import { DeletePollButton } from "./delete-poll-button";
 import { AddSlotsForm } from "./add-slots-form";
+import { RemindSection } from "./remind-section";
 
 export const dynamic = "force-dynamic";
 
@@ -181,6 +182,17 @@ export default async function PollHostPage({ params }: Props) {
         responses={responses as { id: string; respondent_name: string }[]}
         choices={choices as { response_id: string; option_id: string; availability: "yes" | "if_need_be" | "no" }[]}
       />
+
+      {/* Remind non-responders — only shown when invitees were recorded */}
+      {(poll.invitee_emails ?? []).length > 0 && (
+        <div className="mt-6">
+          <RemindSection
+            pollId={poll.id}
+            inviteeEmails={poll.invitee_emails ?? []}
+            respondentNames={responses.map((r) => r.respondent_name)}
+          />
+        </div>
+      )}
     </div>
   );
 }

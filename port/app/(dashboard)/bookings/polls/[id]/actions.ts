@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { lockPollOption, unlockPoll, addPollOptions, deletePoll } from "@/lib/booking/mutations";
+import { getPollById } from "@/lib/booking/queries";
+import { sendOutreachEmail } from "@/lib/email/resend";
 
 export async function lockOptionAction(pollId: string, optionId: string) {
   await lockPollOption(pollId, optionId);
@@ -34,4 +36,24 @@ export async function deletePollAction(pollId: string) {
   await deletePoll(pollId);
   revalidatePath("/bookings");
   redirect("/bookings");
+}
+
+export async function sendPollReminderAction(pollId: string, emails: string[]): Promise<void> {
+  const poll = await getPollById(pollId).catch(() => null);
+  if (!poll) return;
+  const shareUrl = `${process.env.SITE_ORIGIN ?? ""}/book/poll/${poll.slug}`;
+
+  for (const to of emails) {
+    try {
+      await sendOutreachEmail({
+        to,
+        from: `winded.vertigo polls <polls@windedvertigo.com>`,
+        subject: `reminder: vote on "${poll.title}"`,
+        html: `<p>a friendly reminder — your vote is still needed for <strong>${poll.title}</strong>.</p><p><a href="${shareUrl}">cast your vote here</a></p>`,
+        text: `a friendly reminder — your vote is still needed for "${poll.title}".\n\n${shareUrl}`,
+      });
+    } catch (err) {
+      console.error(`[sendPollReminderAction] failed to send to ${to}:`, err);
+    }
+  }
 }
