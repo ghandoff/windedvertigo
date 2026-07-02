@@ -690,11 +690,11 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
   // anything else — Feedly/RSS feeds often carry these verbatim from Google News.
   const url = sanitiseIngestUrl(input.url);
 
-  // ── Deduplication ─────────────────────────────────────
+  // ── Phase-1 dedup: URL / dedupKey (fast, pre-triage) ──
   // Use dedupKey when provided (e.g. gmail:message:{id}), otherwise fall back to url.
   const deduplicateBy = dedupKey ?? url;
   if (deduplicateBy) {
-    const { data: recent } = await queryRfpOpportunities(undefined, { pageSize: 100 });
+    const { data: recent } = await queryRfpOpportunities(undefined, { pageSize: 500 });
     // Check against stored URL (canonical) and also dedupKey stored in URL field for
     // legacy records that still have gmail:message: pseudo-URLs.
     const duplicate = recent.find(
@@ -710,6 +710,20 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
 
   if (!triage.isOpportunity) {
     return { created: false, skipped: triage.skipReason ?? "not an opportunity", triage };
+  }
+
+  // ── Phase-2 dedup: normalised name (post-triage, catches cross-source dupes) ──
+  // The same opportunity can arrive via email and RSS with different URLs but the
+  // same canonical name after LLM triage. Without this check, both sources create
+  // separate Notion pages → two Supabase rows → duplicate Kanban cards.
+  if (triage.opportunityName) {
+    const { data: byName } = await queryRfpOpportunities(undefined, { pageSize: 500 });
+    const nameDupe = byName.find(
+      (o) => o.opportunityName.trim().toLowerCase() === triage.opportunityName.trim().toLowerCase(),
+    );
+    if (nameDupe) {
+      return { created: false, skipped: "duplicate", existingId: nameDupe.id };
+    }
   }
 
   // ── Create in Notion ──────────────────────────────────
