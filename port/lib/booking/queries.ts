@@ -204,20 +204,30 @@ export interface PollWithMeta extends Poll {
 }
 
 export async function listPollsWithCounts(): Promise<PollWithMeta[]> {
-  const { data, error } = await bookingDb
-    .from("polls")
-    .select("*, poll_responses(count), poll_options(ends_at)")
-    .order("created_at", { ascending: false });
-  if (error) throw new Error(`[booking/polls] ${error.message}`);
+  const [pollsResult, responsesResult, optionsResult] = await Promise.all([
+    bookingDb.from("polls").select("*").order("created_at", { ascending: false }),
+    bookingDb.from("poll_responses").select("poll_id"),
+    bookingDb.from("poll_options").select("poll_id, ends_at"),
+  ]);
+  if (pollsResult.error) throw new Error(`[booking/polls] ${pollsResult.error.message}`);
+
+  const responseCountMap = new Map<string, number>();
+  for (const r of (responsesResult.data ?? [])) {
+    responseCountMap.set(r.poll_id, (responseCountMap.get(r.poll_id) ?? 0) + 1);
+  }
+
+  const optionsByPoll = new Map<string, string[]>();
+  for (const o of (optionsResult.data ?? [])) {
+    if (!optionsByPoll.has(o.poll_id)) optionsByPoll.set(o.poll_id, []);
+    optionsByPoll.get(o.poll_id)!.push(o.ends_at);
+  }
+
   const now = Date.now();
-  return (data ?? []).map((row) => {
-    const responseCount =
-      (row.poll_responses as { count: number }[] | null)?.[0]?.count ?? 0;
-    const options = (row.poll_options as { ends_at: string }[] | null) ?? [];
+  return (pollsResult.data ?? []).map((poll) => {
+    const responseCount = responseCountMap.get(poll.id) ?? 0;
+    const ends = optionsByPoll.get(poll.id) ?? [];
     const allOptionsPast =
-      options.length > 0 &&
-      options.every((o) => new Date(o.ends_at).getTime() < now);
-    const { poll_responses: _r, poll_options: _o, ...poll } = row;
+      ends.length > 0 && ends.every((e) => new Date(e).getTime() < now);
     return { ...poll, responseCount, allOptionsPast } as PollWithMeta;
   });
 }

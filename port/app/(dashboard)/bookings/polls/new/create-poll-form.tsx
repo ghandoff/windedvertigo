@@ -27,6 +27,9 @@ interface Props {
   suggestedSlots?: SuggestedSlot[];
   initialFrom?: string;
   initialTo?: string;
+  initialFromTime?: string;
+  initialToTime?: string;
+  creatorTz?: string;
 }
 
 function slotKey(s: string, e: string) { return `${s}|${e}`; }
@@ -55,7 +58,7 @@ function fmtDateHeader(dateStr: string): string {
   return d.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
 }
 
-export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: Props) {
+export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, initialFromTime, initialToTime, creatorTz }: Props) {
   const router = useRouter();
   const [state, formAction] = useActionState(createPollAction, null);
 
@@ -73,8 +76,19 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: 
   const [toDate, setToDate] = useState<string>(
     () => initialTo ?? offsetDateStr(28),
   );
+  const [fromTime, setFromTime] = useState<string>(initialFromTime ?? "");
+  const [toTime, setToTime] = useState<string>(initialToTime ?? "");
   // drag-select: null when not dragging, otherwise the operation to apply
   const dragOpRef = useRef<"select" | "deselect" | null>(null);
+
+  function buildUrl(fd: string, td: string, ft: string, tt: string) {
+    const p = new URLSearchParams();
+    if (fd) p.set("from", fd);
+    if (td) p.set("to", td);
+    if (ft) p.set("fromTime", ft);
+    if (tt) p.set("toTime", tt);
+    return `/bookings/polls/new?${p.toString()}`;
+  }
 
   useEffect(() => {
     const end = () => { dragOpRef.current = null; };
@@ -192,7 +206,7 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: 
         {useGrid ? (
           <>
             {/* Date range picker — navigates to ?from=...&to=... so the server re-renders with new slots */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span>date range</span>
               <Input
                 type="date"
@@ -200,7 +214,7 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: 
                 onChange={(e) => {
                   setFromDate(e.target.value);
                   if (e.target.value && toDate && toDate > e.target.value) {
-                    router.push(`/bookings/polls/new?from=${e.target.value}&to=${toDate}`);
+                    router.push(buildUrl(e.target.value, toDate, fromTime, toTime));
                   }
                 }}
                 className="h-7 text-xs w-36 px-2"
@@ -212,11 +226,38 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: 
                 onChange={(e) => {
                   setToDate(e.target.value);
                   if (fromDate && e.target.value && e.target.value > fromDate) {
-                    router.push(`/bookings/polls/new?from=${fromDate}&to=${e.target.value}`);
+                    router.push(buildUrl(fromDate, e.target.value, fromTime, toTime));
                   }
                 }}
                 className="h-7 text-xs w-36 px-2"
               />
+              <span className="ml-2">time range</span>
+              <Input
+                type="time"
+                value={fromTime}
+                onChange={(e) => {
+                  setFromTime(e.target.value);
+                  if (fromDate && toDate) {
+                    router.push(buildUrl(fromDate, toDate, e.target.value, toTime));
+                  }
+                }}
+                className="h-7 text-xs w-28 px-2"
+              />
+              <span>–</span>
+              <Input
+                type="time"
+                value={toTime}
+                onChange={(e) => {
+                  setToTime(e.target.value);
+                  if (fromDate && toDate) {
+                    router.push(buildUrl(fromDate, toDate, fromTime, e.target.value));
+                  }
+                }}
+                className="h-7 text-xs w-28 px-2"
+              />
+              {creatorTz && (
+                <span className="text-[10px] opacity-60">{creatorTz}</span>
+              )}
             </div>
 
             <p className="text-xs text-muted-foreground">

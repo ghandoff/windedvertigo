@@ -8,17 +8,18 @@
 import { PageHeader } from "@/app/components/page-header";
 import Link from "next/link";
 import { CreatePollForm } from "./create-poll-form";
-import { listHosts } from "@/lib/booking/queries";
+import { listHosts, getHostByEmail } from "@/lib/booking/queries";
 import { suggestCollectiveSlots } from "@/lib/booking/collective-slots";
+import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 interface Props {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; fromTime?: string; toTime?: string }>;
 }
 
 export default async function NewPollPage({ searchParams }: Props) {
-  const { from, to } = await searchParams;
+  const { from, to, fromTime, toTime } = await searchParams;
 
   // Parse date range from URL params; fall back to the default 28-day window.
   let startDate: Date | undefined;
@@ -36,8 +37,21 @@ export default async function NewPollPage({ searchParams }: Props) {
     }
   }
 
+  // Resolve the logged-in creator's host record for timezone + display hours.
+  const session = await auth();
+  const creatorHost = session?.user?.email
+    ? await getHostByEmail(session.user.email).catch(() => null)
+    : null;
+
   const hosts = await listHosts({ activeOnly: true }).catch(() => []);
-  const suggestedSlots = suggestCollectiveSlots(hosts, daysAhead, startDate);
+  const suggestedSlots = suggestCollectiveSlots(
+    hosts,
+    daysAhead,
+    startDate,
+    creatorHost ?? undefined,
+    fromTime,
+    toTime,
+  );
 
   return (
     <div>
@@ -53,7 +67,14 @@ export default async function NewPollPage({ searchParams }: Props) {
         </Link>
       </PageHeader>
 
-      <CreatePollForm suggestedSlots={suggestedSlots} initialFrom={from} initialTo={to} />
+      <CreatePollForm
+        suggestedSlots={suggestedSlots}
+        initialFrom={from}
+        initialTo={to}
+        initialFromTime={fromTime}
+        initialToTime={toTime}
+        creatorTz={creatorHost?.timezone}
+      />
     </div>
   );
 }
