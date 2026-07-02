@@ -54,10 +54,14 @@ export interface SuggestedSlot {
  *
  * Uses the timezone of the first host (or UTC as fallback) to express wall-clock
  * times since the poll creation UI is used by the host.
+ *
+ * @param startDate Optional start date (defaults to tomorrow). Allows date-range
+ *   pickers to show slots weeks or months ahead.
  */
 export function suggestCollectiveSlots(
   hosts: Host[],
-  daysAhead = 14,
+  daysAhead = 28,
+  startDate?: Date,
 ): SuggestedSlot[] {
   const active = hosts.filter((h) => h.active && h.working_hours && Object.keys(h.working_hours).length > 0);
   if (active.length === 0) return [];
@@ -67,9 +71,15 @@ export function suggestCollectiveSlots(
   const slots: SuggestedSlot[] = [];
   const now = new Date();
 
-  for (let d = 1; d <= daysAhead; d++) {
-    const date = new Date(now);
-    date.setDate(now.getDate() + d);
+  // Base at noon to avoid DST edge cases when computing weekday in remote timezones.
+  // When no startDate is given, start from tomorrow (matching the original d=1 behaviour).
+  const base = startDate
+    ? new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 12)
+    : new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12);
+
+  for (let d = 0; d < daysAhead; d++) {
+    const date = new Date(base);
+    date.setDate(base.getDate() + d);
 
     // Get the weekday in the host's timezone by reading the "en-US" locale date string.
     // new Date(toLocaleString(...)) gives us a Date whose .getDay() reflects the local wall clock.

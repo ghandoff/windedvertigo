@@ -369,7 +369,15 @@ export function PollRespondForm({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 mt-3 mb-6 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="flex flex-wrap items-center gap-4 mt-3 mb-6 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+        {!submitted && !isLocked && (
+          <span className="flex items-center gap-1.5">
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.22)", display: "inline-block" }}
+            />
+            available — click to select
+          </span>
+        )}
         {!submitted && !isLocked && (
           <span className="flex items-center gap-1.5">
             <span

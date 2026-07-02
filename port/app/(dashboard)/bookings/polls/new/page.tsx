@@ -13,9 +13,31 @@ import { suggestCollectiveSlots } from "@/lib/booking/collective-slots";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewPollPage() {
+interface Props {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}
+
+export default async function NewPollPage({ searchParams }: Props) {
+  const { from, to } = await searchParams;
+
+  // Parse date range from URL params; fall back to the default 28-day window.
+  let startDate: Date | undefined;
+  let daysAhead = 28;
+  if (from) {
+    const parsed = new Date(`${from}T12:00:00`);
+    if (!isNaN(parsed.getTime())) {
+      startDate = parsed;
+      if (to) {
+        const endParsed = new Date(`${to}T12:00:00`);
+        if (!isNaN(endParsed.getTime()) && endParsed > parsed) {
+          daysAhead = Math.max(1, Math.min(180, Math.round((endParsed.getTime() - parsed.getTime()) / 86_400_000)));
+        }
+      }
+    }
+  }
+
   const hosts = await listHosts({ activeOnly: true }).catch(() => []);
-  const suggestedSlots = suggestCollectiveSlots(hosts, 28);
+  const suggestedSlots = suggestCollectiveSlots(hosts, daysAhead, startDate);
 
   return (
     <div>
@@ -31,7 +53,7 @@ export default async function NewPollPage() {
         </Link>
       </PageHeader>
 
-      <CreatePollForm suggestedSlots={suggestedSlots} />
+      <CreatePollForm suggestedSlots={suggestedSlots} initialFrom={from} initialTo={to} />
     </div>
   );
 }

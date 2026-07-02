@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { createPollAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,9 +22,19 @@ function SubmitButton() {
   );
 }
 
-interface Props { suggestedSlots?: SuggestedSlot[]; }
+interface Props {
+  suggestedSlots?: SuggestedSlot[];
+  initialFrom?: string;
+  initialTo?: string;
+}
 
 function slotKey(s: string, e: string) { return `${s}|${e}`; }
+
+function offsetDateStr(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toLocaleDateString("en-CA"); // YYYY-MM-DD
+}
 
 function parseTimeMins(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
@@ -43,7 +54,8 @@ function fmtDateHeader(dateStr: string): string {
   return d.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
 }
 
-export function CreatePollForm({ suggestedSlots = [] }: Props) {
+export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: Props) {
+  const router = useRouter();
   const initialSelected = useMemo(
     () => new Set(suggestedSlots.map((s) => slotKey(s.startsAt, s.endsAt))),
     [suggestedSlots],
@@ -51,6 +63,13 @@ export function CreatePollForm({ suggestedSlots = [] }: Props) {
   const [selected, setSelected] = useState<Set<string>>(initialSelected);
   const [manualSlots, setManualSlots] = useState<ManualSlot[]>([{ key: 0, startsAt: "", endsAt: "" }]);
   const [manualCounter, setManualCounter] = useState(1);
+  // Lazy-init date range from URL params or compute sensible defaults from today.
+  const [fromDate, setFromDate] = useState<string>(
+    () => initialFrom ?? offsetDateStr(1),
+  );
+  const [toDate, setToDate] = useState<string>(
+    () => initialTo ?? offsetDateStr(28),
+  );
   // drag-select: null when not dragging, otherwise the operation to apply
   const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
@@ -159,10 +178,50 @@ export function CreatePollForm({ suggestedSlots = [] }: Props) {
 
         {useGrid ? (
           <>
+            {/* Date range picker — navigates to ?from=...&to=... so the server re-renders with new slots */}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>date range</span>
+              <Input
+                type="date"
+                value={fromDate}
+                onChange={(e) => {
+                  setFromDate(e.target.value);
+                  if (e.target.value && toDate && toDate > e.target.value) {
+                    router.push(`/bookings/polls/new?from=${e.target.value}&to=${toDate}`);
+                  }
+                }}
+                className="h-7 text-xs w-36 px-2"
+              />
+              <span>–</span>
+              <Input
+                type="date"
+                value={toDate}
+                onChange={(e) => {
+                  setToDate(e.target.value);
+                  if (fromDate && e.target.value && e.target.value > fromDate) {
+                    router.push(`/bookings/polls/new?from=${fromDate}&to=${e.target.value}`);
+                  }
+                }}
+                className="h-7 text-xs w-36 px-2"
+              />
+            </div>
+
             <p className="text-xs text-muted-foreground">
               pre-filled from collective working hours — click or drag to select/deselect.
               each cell = 30 min.
             </p>
+
+            {/* Legend */}
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-3 h-3 rounded-sm bg-primary/60" />
+                included in poll
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-3 h-3 rounded-sm bg-muted/50 border border-border" />
+                available (not included)
+              </span>
+            </div>
 
             {/* Calendar grid — explicit grid positioning to avoid fragment issues */}
             <div className="overflow-x-auto rounded-md border">
