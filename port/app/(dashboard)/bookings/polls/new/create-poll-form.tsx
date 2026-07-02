@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useActionState } from "react";
+import { useState, useEffect, useRef, useMemo, useActionState, useCallback } from "react";
 import { useFormStatus } from "react-dom";
+
+const DRAFT_KEY = "poll-draft-v1";
+
+interface PollDraft {
+  title: string;
+  description: string;
+  fromDate: string;
+  toDate: string;
+  fromTime: string;
+  toTime: string;
+}
 import { useRouter } from "next/navigation";
 import { createPollAction } from "./actions";
 import { SharePrompt } from "./share-prompt";
@@ -69,15 +80,80 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, in
   const [selected, setSelected] = useState<Set<string>>(initialSelected);
   const [manualSlots, setManualSlots] = useState<ManualSlot[]>([{ key: 0, startsAt: "", endsAt: "" }]);
   const [manualCounter, setManualCounter] = useState(1);
-  // Lazy-init date range from URL params or compute sensible defaults from today.
-  const [fromDate, setFromDate] = useState<string>(
-    () => initialFrom ?? offsetDateStr(1),
-  );
-  const [toDate, setToDate] = useState<string>(
-    () => initialTo ?? offsetDateStr(28),
-  );
+  const [fromDate, setFromDate] = useState<string>(() => initialFrom ?? offsetDateStr(1));
+  const [toDate, setToDate] = useState<string>(() => initialTo ?? offsetDateStr(28));
   const [fromTime, setFromTime] = useState<string>(initialFromTime ?? "");
   const [toTime, setToTime] = useState<string>(initialToTime ?? "");
+
+  // Controlled title + description so we can auto-save drafts
+  const [title, setTitle] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      return raw ? (JSON.parse(raw) as PollDraft).title : "";
+    } catch { return ""; }
+  });
+  const [description, setDescription] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      return raw ? (JSON.parse(raw) as PollDraft).description : "";
+    } catch { return ""; }
+  });
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+
+  // On mount: detect if a draft exists and surface a restore banner
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as PollDraft;
+      if (draft.title || draft.description) setDraftRestored(true);
+      // Navigate to the saved date/time range if it differs from current URL
+      if ((draft.fromDate && draft.fromDate !== initialFrom) ||
+          (draft.toDate && draft.toDate !== initialTo) ||
+          (draft.fromTime && draft.fromTime !== initialFromTime) ||
+          (draft.toTime && draft.toTime !== initialToTime)) {
+        const p = new URLSearchParams();
+        if (draft.fromDate) p.set("from", draft.fromDate);
+        if (draft.toDate) p.set("to", draft.toDate);
+        if (draft.fromTime) p.set("fromTime", draft.fromTime);
+        if (draft.toTime) p.set("toTime", draft.toTime);
+        router.replace(`/bookings/polls/new?${p.toString()}`);
+      }
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save draft whenever title / description / date-time range changes
+  const saveDraft = useCallback(() => {
+    try {
+      const draft: PollDraft = { title, description, fromDate, toDate, fromTime, toTime };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      setDraftSavedAt(Date.now());
+    } catch { /* ignore */ }
+  }, [title, description, fromDate, toDate, fromTime, toTime]);
+
+  useEffect(() => {
+    const id = setTimeout(saveDraft, 500);
+    return () => clearTimeout(id);
+  }, [saveDraft]);
+
+  function clearDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+    setDraftRestored(false);
+    setDraftSavedAt(null);
+    setTitle("");
+    setDescription("");
+  }
+
+  // Clear draft on successful submit
+  useEffect(() => {
+    if (state?.slug) {
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+    }
+  }, [state?.slug]);
   // drag-select: null when not dragging, otherwise the operation to apply
   const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
@@ -149,6 +225,20 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, in
 
   return (
     <form action={formAction} className="space-y-6 max-w-3xl">
+      {/* Draft restore banner */}
+      {draftRestored && (
+        <div className="flex items-center justify-between rounded-md border border-amber-400/40 bg-amber-50/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+          <span>draft restored — your progress was saved.</span>
+          <button type="button" onClick={clearDraft} className="underline underline-offset-2 hover:opacity-70">
+            discard
+          </button>
+        </div>
+      )}
+      {/* Auto-save indicator (only show if draft exists but wasn't just restored) */}
+      {!draftRestored && draftSavedAt && (
+        <p className="text-[10px] text-muted-foreground/60">draft saved</p>
+      )}
+
       {useGrid &&
         selectedArr.map(({ startsAt, endsAt }) => (
           <span key={slotKey(startsAt, endsAt)}>
@@ -163,6 +253,8 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, in
           id="title"
           name="title"
           required
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. q3 strategy session"
           className="lowercase"
         />
@@ -176,6 +268,8 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, in
         <Textarea
           id="description"
           name="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="what's this meeting for? any context helps."
           rows={2}
         />

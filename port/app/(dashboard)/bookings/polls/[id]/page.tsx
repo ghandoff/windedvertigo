@@ -75,6 +75,12 @@ export default async function PollHostPage({ params }: Props) {
         )}
         <div className="flex items-center gap-4 ml-auto">
           <AddSlotsForm pollId={poll.id} />
+          <Link
+            href={`/bookings/polls/${poll.id}/edit`}
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            edit poll
+          </Link>
           <DeletePollButton pollId={poll.id} pollTitle={poll.title} />
         </div>
       </div>
