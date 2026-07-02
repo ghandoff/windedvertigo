@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useFormStatus } from "react-dom";
 import { createPollAction } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,14 @@ export function CreatePollForm({ suggestedSlots = [] }: Props) {
   const [selected, setSelected] = useState<Set<string>>(initialSelected);
   const [manualSlots, setManualSlots] = useState<ManualSlot[]>([{ key: 0, startsAt: "", endsAt: "" }]);
   const [manualCounter, setManualCounter] = useState(1);
+  // drag-select: null when not dragging, otherwise the operation to apply
+  const dragOpRef = useRef<"select" | "deselect" | null>(null);
+
+  useEffect(() => {
+    const end = () => { dragOpRef.current = null; };
+    document.addEventListener("mouseup", end);
+    return () => document.removeEventListener("mouseup", end);
+  }, []);
 
   const { dates, timeRows, cellMap } = useMemo(() => {
     if (suggestedSlots.length === 0) return { dates: [], timeRows: [] as number[], cellMap: new Map<string, SuggestedSlot>() };
@@ -152,7 +160,7 @@ export function CreatePollForm({ suggestedSlots = [] }: Props) {
         {useGrid ? (
           <>
             <p className="text-xs text-muted-foreground">
-              pre-filled from collective working hours — click any cell to deselect it.
+              pre-filled from collective working hours — click or drag to select/deselect.
               each cell = 30 min.
             </p>
 
@@ -194,7 +202,7 @@ export function CreatePollForm({ suggestedSlots = [] }: Props) {
                   </div>
                 ))}
 
-                {/* Cells */}
+                {/* Cells — drag-select: mousedown starts a select/deselect operation, mouseenter applies it */}
                 {timeRows.map((rowMins, ri) =>
                   dates.map((date, ci) => {
                     const s = cellMap.get(`${date}|${rowMins}`);
@@ -203,8 +211,30 @@ export function CreatePollForm({ suggestedSlots = [] }: Props) {
                       <div
                         key={`${date}-${rowMins}`}
                         style={{ gridRow: ri + 2, gridColumn: ci + 2 }}
-                        onClick={s ? () => toggleCell(s) : undefined}
-                        title={s ? `${s.label}${isSel ? " — click to deselect" : " — click to select"}` : undefined}
+                        onMouseDown={s ? (e) => {
+                          e.preventDefault();
+                          const k = slotKey(s.startsAt, s.endsAt);
+                          const op = selected.has(k) ? "deselect" : "select";
+                          dragOpRef.current = op;
+                          setSelected((prev) => {
+                            const next = new Set(prev);
+                            if (op === "select") next.add(k);
+                            else next.delete(k);
+                            return next;
+                          });
+                        } : undefined}
+                        onMouseEnter={s ? () => {
+                          if (dragOpRef.current !== null) {
+                            const k = slotKey(s.startsAt, s.endsAt);
+                            setSelected((prev) => {
+                              const next = new Set(prev);
+                              if (dragOpRef.current === "select") next.add(k);
+                              else next.delete(k);
+                              return next;
+                            });
+                          }
+                        } : undefined}
+                        title={s ? `${s.label}${isSel ? " — deselect" : " — select"}` : undefined}
                         className={`border-r border-b border-border/40 transition-colors ${
                           s
                             ? isSel

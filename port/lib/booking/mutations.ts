@@ -131,3 +131,47 @@ export async function unlockPoll(pollId: string): Promise<void> {
     .eq("id", pollId);
   if (error) throw new Error(`[booking/polls] unlockPoll: ${error.message}`);
 }
+
+export async function addPollOptions(
+  pollId: string,
+  slots: { startsAt: string; endsAt: string }[],
+): Promise<PollOption[]> {
+  const { data: existing } = await bookingDb
+    .from("poll_options")
+    .select("sort_order")
+    .eq("poll_id", pollId)
+    .order("sort_order", { ascending: false })
+    .limit(1);
+  const maxOrder = (existing?.[0] as { sort_order: number } | undefined)?.sort_order ?? -1;
+
+  const optionRows = slots.map((s, i) => ({
+    poll_id: pollId,
+    starts_at: s.startsAt,
+    ends_at: s.endsAt,
+    sort_order: maxOrder + 1 + i,
+  }));
+
+  const { data: options, error } = await bookingDb
+    .from("poll_options")
+    .insert(optionRows)
+    .select("*");
+  if (error) throw new Error(`[booking/poll_options] addPollOptions: ${error.message}`);
+  return (options ?? []) as PollOption[];
+}
+
+export async function deletePoll(pollId: string): Promise<void> {
+  const { data: opts } = await bookingDb
+    .from("poll_options")
+    .select("id")
+    .eq("poll_id", pollId);
+  const optionIds = (opts ?? []).map((o: { id: string }) => o.id);
+
+  if (optionIds.length > 0) {
+    await bookingDb.from("poll_response_choices").delete().in("option_id", optionIds);
+  }
+  await bookingDb.from("poll_responses").delete().eq("poll_id", pollId);
+  await bookingDb.from("poll_options").delete().eq("poll_id", pollId);
+
+  const { error } = await bookingDb.from("polls").delete().eq("id", pollId);
+  if (error) throw new Error(`[booking/polls] deletePoll: ${error.message}`);
+}

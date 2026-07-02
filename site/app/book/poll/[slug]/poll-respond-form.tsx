@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 interface PollOption {
   id: string;
@@ -55,6 +55,9 @@ function buildGrid(options: PollOption[], tz: string): GridData {
     const date = getLocalDate(opt.starts_at, tz);
     const startMins = getLocalMins(opt.starts_at, tz);
     const endMins = getLocalMins(opt.ends_at, tz);
+    // Guard: zero-duration options (starts_at == ends_at) should produce no cells.
+    // Without this, the `endMins < startMins` midnight-crossing path yields 1440.
+    if (endMins === startMins) continue;
     const durationMins =
       endMins > startMins ? endMins - startMins : endMins + 1440 - startMins;
 
@@ -113,9 +116,17 @@ export function PollRespondForm({
   const [error, setError] = useState<string | null>(null);
   const [localChoices, setLocalChoices] = useState<PollResponseChoice[]>(existingChoices);
   const [localTotal, setLocalTotal] = useState(totalResponses);
+  // drag-select: "select" or "deselect" — null when not dragging
+  const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
   useEffect(() => {
     setTz(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
+
+  useEffect(() => {
+    const end = () => { dragOpRef.current = null; };
+    document.addEventListener("mouseup", end);
+    return () => document.removeEventListener("mouseup", end);
   }, []);
 
   const grid = useMemo(() => buildGrid(options, tz), [options, tz]);
@@ -179,16 +190,24 @@ export function PollRespondForm({
 
   if (grid.dates.length === 0) {
     return (
-      <p style={{ color: "rgba(255,255,255,0.5)" }} className="text-sm text-center py-8">
-        no time slots to display.
-      </p>
+      <div
+        className="rounded-xl px-5 py-6 text-center"
+        style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}
+      >
+        <p className="text-sm font-medium mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+          no time slots available
+        </p>
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+          the organiser may need to recreate this poll with valid time windows.
+        </p>
+      </div>
     );
   }
 
   const isLocked = Boolean(lockedOptionId);
-  const CELL_H = 24; // px per 30-min row
-  const DAY_COL_W = 88; // px per day column
-  const LABEL_COL = 52; // px for time labels
+  const CELL_H = 28; // px per 30-min row
+  const DAY_COL_W = 96; // px per day column
+  const LABEL_COL = 56; // px for time labels
 
   return (
     <div>
@@ -208,7 +227,7 @@ export function PollRespondForm({
           style={{
             display: "grid",
             gridTemplateColumns: `${LABEL_COL}px repeat(${grid.dates.length}, minmax(${DAY_COL_W}px, 1fr))`,
-            gridTemplateRows: `36px repeat(${grid.timeRows.length}, ${CELL_H}px)`,
+            gridTemplateRows: `40px repeat(${grid.timeRows.length}, ${CELL_H}px)`,
             minWidth: `${LABEL_COL + grid.dates.length * DAY_COL_W}px`,
           }}
         >
@@ -217,8 +236,8 @@ export function PollRespondForm({
             style={{
               gridRow: 1,
               gridColumn: 1,
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-              borderRight: "1px solid rgba(255,255,255,0.08)",
+              borderBottom: "1px solid rgba(255,255,255,0.10)",
+              borderRight: "1px solid rgba(255,255,255,0.10)",
             }}
           />
 
@@ -229,12 +248,12 @@ export function PollRespondForm({
               style={{
                 gridRow: 1,
                 gridColumn: ci + 2,
-                borderBottom: "1px solid rgba(255,255,255,0.08)",
-                borderRight: ci < grid.dates.length - 1 ? "1px solid rgba(255,255,255,0.08)" : undefined,
-                color: "rgba(255,255,255,0.55)",
+                borderBottom: "1px solid rgba(255,255,255,0.10)",
+                borderRight: ci < grid.dates.length - 1 ? "1px solid rgba(255,255,255,0.10)" : undefined,
+                color: "rgba(255,255,255,0.75)",
                 fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: "0.04em",
+                fontWeight: 700,
+                letterSpacing: "0.05em",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -252,15 +271,16 @@ export function PollRespondForm({
               style={{
                 gridRow: ri + 2,
                 gridColumn: 1,
-                borderRight: "1px solid rgba(255,255,255,0.08)",
-                borderTop: rowMins % 60 === 0 ? "1px solid rgba(255,255,255,0.08)" : undefined,
-                color: "rgba(255,255,255,0.35)",
+                borderRight: "1px solid rgba(255,255,255,0.10)",
+                borderTop: rowMins % 60 === 0 ? "1px solid rgba(255,255,255,0.10)" : undefined,
+                color: rowMins % 60 === 0 ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)",
                 fontSize: 10,
+                fontWeight: rowMins % 60 === 0 ? 600 : 400,
                 display: "flex",
                 alignItems: "flex-start",
                 justifyContent: "flex-end",
                 paddingRight: 8,
-                paddingTop: rowMins % 60 === 0 ? 3 : 0,
+                paddingTop: rowMins % 60 === 0 ? 4 : 0,
               }}
             >
               {fmtTimeMins(rowMins)}
@@ -285,33 +305,62 @@ export function PollRespondForm({
 
               if (optionId) {
                 if (isMine) {
-                  bg = "rgba(45, 212, 191, 0.65)";
-                  borderColor = "rgba(45,212,191,0.6)";
+                  bg = "rgba(45, 212, 191, 0.70)";
+                  borderColor = "rgba(45,212,191,0.7)";
                 } else if (isLockedSlot) {
                   bg = "rgba(34,197,94,0.35)";
                   borderColor = "rgba(34,197,94,0.5)";
                 } else if (heat > 0) {
-                  bg = `rgba(45, 212, 191, ${Math.max(0.06, heat * 0.28)})`;
-                  borderColor = "rgba(255,255,255,0.06)";
+                  bg = `rgba(45, 212, 191, ${Math.max(0.18, heat * 0.55)})`;
+                  borderColor = "rgba(45,212,191,0.3)";
                 } else {
-                  bg = "rgba(255,255,255,0.04)";
-                  borderColor = "rgba(255,255,255,0.06)";
+                  bg = "rgba(255,255,255,0.11)";
+                  borderColor = "rgba(255,255,255,0.14)";
                 }
               }
 
               return (
                 <div
                   key={`${date}-${rowMins}`}
-                  onClick={optionId && !submitted && !isLocked ? () => toggleOption(optionId) : undefined}
+                  onMouseDown={optionId && !submitted && !isLocked ? (e) => {
+                    e.preventDefault(); // prevent text selection during drag
+                    const op = mySelections.has(optionId) ? "deselect" : "select";
+                    dragOpRef.current = op;
+                    setMySelections((prev) => {
+                      const next = new Set(prev);
+                      if (op === "select") next.add(optionId);
+                      else next.delete(optionId);
+                      return next;
+                    });
+                  } : undefined}
                   style={{
                     gridRow: ri + 2,
                     gridColumn: ci + 2,
                     backgroundColor: bg,
-                    borderTop: `1px solid ${atHourBoundary ? "rgba(255,255,255,0.08)" : borderColor}`,
-                    borderRight: !isLastCol ? `1px solid rgba(255,255,255,0.06)` : undefined,
+                    borderTop: `1px solid ${atHourBoundary ? "rgba(255,255,255,0.12)" : (optionId ? borderColor : "rgba(255,255,255,0.04)")}`,
+                    borderRight: !isLastCol ? `1px solid rgba(255,255,255,0.08)` : undefined,
                     cursor: optionId && !submitted && !isLocked ? "pointer" : "default",
-                    transition: "background-color 0.1s ease",
+                    transition: dragOpRef.current ? undefined : "background-color 0.12s ease",
                   }}
+                  onMouseEnter={optionId && !submitted && !isLocked ? (e) => {
+                    if (dragOpRef.current !== null) {
+                      // during drag: apply the stored operation
+                      setMySelections((prev) => {
+                        const next = new Set(prev);
+                        if (dragOpRef.current === "select") next.add(optionId);
+                        else next.delete(optionId);
+                        return next;
+                      });
+                    } else if (!isMine) {
+                      // hover highlight when not dragging
+                      (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(45,212,191,0.22)";
+                    }
+                  } : undefined}
+                  onMouseLeave={optionId && !submitted && !isLocked ? (e) => {
+                    if (dragOpRef.current === null) {
+                      (e.currentTarget as HTMLElement).style.backgroundColor = bg;
+                    }
+                  } : undefined}
                 />
               );
             }),
@@ -332,7 +381,7 @@ export function PollRespondForm({
         {localTotal > 0 && (
           <span className="flex items-center gap-1.5">
             <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.2)", display: "inline-block" }}
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.35)", display: "inline-block" }}
             />
             others available
           </span>
@@ -396,10 +445,14 @@ export function PollRespondForm({
               />
             </div>
 
-            {mySelections.size > 0 && (
+            {mySelections.size > 0 ? (
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
                 {mySelections.size} slot{mySelections.size !== 1 ? "s" : ""} selected —{" "}
-                click submit to record your availability.
+                click or drag to adjust, then submit.
+              </p>
+            ) : (
+              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+                click cells to select, or drag across multiple to select a range.
               </p>
             )}
 

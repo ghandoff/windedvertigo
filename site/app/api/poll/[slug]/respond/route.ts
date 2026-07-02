@@ -3,6 +3,7 @@
  *
  * Accepts an anonymous availability response for a group poll.
  * Creates a poll_response row + one poll_response_choice per option.
+ * After insert, notifies the poll organiser via email (fire-and-forget).
  *
  * Body: { name: string; choices: Record<optionId, "yes"|"if_need_be"|"no"> }
  * Auth: none — anonymous submission, RLS allows anon insert.
@@ -10,11 +11,12 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { select, selectOne, insert } from "@/lib/booking/supabase";
+import { sendPollResponseNotification } from "@/lib/booking/email";
 
 type Availability = "yes" | "if_need_be" | "no";
 const VALID_AVAIL = new Set<Availability>(["yes", "if_need_be", "no"]);
 
-interface Poll { id: string; locked_option_id: string | null }
+interface Poll { id: string; slug: string; title: string; locked_option_id: string | null; created_by_host_id: string | null }
 interface PollOption { id: string; poll_id: string }
 interface PollResponse { id: string }
 
@@ -77,6 +79,33 @@ export async function POST(
 
   if (choiceRows.length > 0) {
     await insert("poll_response_choices", choiceRows);
+  }
+
+  // notify the poll organiser (best-effort — don't fail the response if this errors)
+  if (poll.created_by_host_id) {
+    try {
+      const [host] = await select<{ email: string; display_name: string }>(
+        "hosts",
+        `id=eq.${poll.created_by_host_id}`,
+      );
+      if (host?.email) {
+        // Count total responses for this poll (including the one just inserted)
+        const allResponses = await select<{ id: string }>(
+          "poll_responses",
+          `poll_id=eq.${poll.id}`,
+        ).catch(() => []);
+        const portOrigin = process.env.PORT_ORIGIN ?? "https://port.windedvertigo.com";
+        await sendPollResponseNotification({
+          pollTitle: poll.title,
+          respondentName: name.trim(),
+          portPollUrl: `${portOrigin}/bookings/polls/${poll.id}`,
+          hostEmail: host.email,
+          responseCount: allResponses.length,
+        });
+      }
+    } catch (err) {
+      console.error("[poll/respond] notification failed:", err);
+    }
   }
 
   return NextResponse.json({ ok: true, responseId: response.id });

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NewPollPage() {
   const hosts = await listHosts({ activeOnly: true }).catch(() => []);
-  const suggestedSlots = suggestCollectiveSlots(hosts, 14);
+  const suggestedSlots = suggestCollectiveSlots(hosts, 28);
 
   return (
     <div>
