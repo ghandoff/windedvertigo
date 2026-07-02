@@ -51,10 +51,10 @@ export default async function PollHostPage({ params }: Props) {
     <div>
       <PageHeader title={poll.title} description={poll.description ?? "group availability poll"}>
         <Link
-          href="/bookings"
+          href="/bookings/polls"
           className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
         >
-          ← bookings
+          ← polls
         </Link>
         <CopyLinkButton url={shareUrl} label="copy share link" />
       </PageHeader>

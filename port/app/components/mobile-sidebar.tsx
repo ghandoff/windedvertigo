@@ -24,19 +24,17 @@ const OWNER_EMAIL = "garrett@windedvertigo.com";
 
 function SectionGroup({
   section,
-  pathname,
+  activeHref,
   onNavigate,
   ownerEmail,
 }: {
   section: NavSection;
-  pathname: string;
+  activeHref: string | null;
   onNavigate: () => void;
   ownerEmail: string | undefined;
 }) {
   const visibleItems = section.items.filter((item) => !item.ownerOnly || ownerEmail === OWNER_EMAIL);
-  const hasActiveChild = visibleItems.some((item) =>
-    isNavItemActive(item.href, pathname),
-  );
+  const hasActiveChild = visibleItems.some((item) => item.href === activeHref);
   const [open, setOpen] = useState(section.defaultOpen || hasActiveChild);
 
   if (visibleItems.length === 0) return null;
@@ -58,7 +56,7 @@ function SectionGroup({
       {open && (
         <div className="space-y-0.5">
           {visibleItems.map((item) => {
-            const isActive = isNavItemActive(item.href, pathname);
+            const isActive = item.href === activeHref;
             return (
               <Link
                 key={item.href}
@@ -94,6 +92,11 @@ export function MobileSidebar() {
   const pathname = usePathname();
   const user = useUser();
 
+  const allHrefs = NAV_SECTIONS.flatMap(s => s.items.map(i => i.href));
+  const activeHref = allHrefs
+    .filter(h => h === "/" ? pathname === "/" : pathname === h || pathname.startsWith(h + "/"))
+    .sort((a, b) => b.length - a.length)[0] ?? null;
+
   return (
     <div className="md:hidden flex h-14 items-center px-4 border-b bg-sidebar text-white">
       <Sheet open={open} onOpenChange={setOpen}>
@@ -118,7 +121,7 @@ export function MobileSidebar() {
               <SectionGroup
                 key={section.title}
                 section={section}
-                pathname={pathname}
+                activeHref={activeHref}
                 onNavigate={() => setOpen(false)}
                 ownerEmail={user?.email}
               />

@@ -16,6 +16,7 @@ export interface Host {
   email: string;
   timezone: string;
   working_hours: WorkingHours;
+  poll_hours?: WorkingHours | null;
   buffer_before_min: number;
   buffer_after_min: number;
   active: boolean;

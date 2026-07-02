@@ -31,6 +31,7 @@ import {
   Briefcase,
   BarChart2,
   Waypoints,
+  ClipboardList,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -98,6 +99,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "campaigns", href: "/campaigns", icon: Megaphone },
       { label: "events", href: "/events", icon: CalendarDays },
       { label: "bookings", href: "/bookings", icon: CalendarClock },
+      { label: "polls", href: "/bookings/polls", icon: ClipboardList },
     ],
   },
   {

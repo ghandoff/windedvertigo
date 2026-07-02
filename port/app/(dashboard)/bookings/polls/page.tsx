@@ -17,12 +17,6 @@ export default async function PollsIndexPage() {
         title="group polls"
         description="find a time that works for everyone — share the link, collect availability."
       >
-        <Link
-          href="/bookings"
-          className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
-        >
-          ← bookings
-        </Link>
         <Link href="/bookings/polls/new">
           <Button size="sm" className="text-xs h-7">
             <Plus className="h-3 w-3 mr-1" />

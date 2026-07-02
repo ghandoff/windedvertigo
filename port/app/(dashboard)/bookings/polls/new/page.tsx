@@ -46,10 +46,10 @@ export default async function NewPollPage({ searchParams }: Props) {
         description="pick a few candidate times — share the link and let everyone weigh in."
       >
         <Link
-          href="/bookings"
+          href="/bookings/polls"
           className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
         >
-          ← back to bookings
+          ← back to polls
         </Link>
       </PageHeader>
 

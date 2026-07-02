@@ -63,7 +63,10 @@ export function suggestCollectiveSlots(
   daysAhead = 28,
   startDate?: Date,
 ): SuggestedSlot[] {
-  const active = hosts.filter((h) => h.active && h.working_hours && Object.keys(h.working_hours).length > 0);
+  const active = hosts.filter((h) => {
+    const hours = h.poll_hours ?? h.working_hours;
+    return h.active && hours && Object.keys(hours).length > 0;
+  });
   if (active.length === 0) return [];
 
   const tz = active[0].timezone || "America/Los_Angeles";
@@ -88,7 +91,7 @@ export function suggestCollectiveSlots(
 
     // Collect windows for this day from every active host
     const windowsByHost: [string, string][][] = active.map((h) => {
-      const wh: WorkingHours = h.working_hours ?? {};
+      const wh: WorkingHours = h.poll_hours ?? h.working_hours ?? {};
       return wh[dayKey] ?? [];
     });
 
