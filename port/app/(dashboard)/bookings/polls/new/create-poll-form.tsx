@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createPollAction } from "./actions";
+import { SharePrompt } from "./share-prompt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +57,8 @@ function fmtDateHeader(dateStr: string): string {
 
 export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: Props) {
   const router = useRouter();
+  const [state, formAction] = useActionState(createPollAction, null);
+
   const initialSelected = useMemo(
     () => new Set(suggestedSlots.map((s) => slotKey(s.startsAt, s.endsAt))),
     [suggestedSlots],
@@ -120,8 +123,18 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo }: 
 
   const useGrid = suggestedSlots.length > 0;
 
+  if (state?.slug) {
+    return (
+      <SharePrompt
+        shareUrl={state.shareUrl}
+        slug={state.slug}
+        pollId={state.pollId}
+      />
+    );
+  }
+
   return (
-    <form action={createPollAction} className="space-y-6 max-w-3xl">
+    <form action={formAction} className="space-y-6 max-w-3xl">
       {useGrid &&
         selectedArr.map(({ startsAt, endsAt }) => (
           <span key={slotKey(startsAt, endsAt)}>

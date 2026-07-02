@@ -198,6 +198,30 @@ export async function listPolls(): Promise<Poll[]> {
   return (data ?? []) as Poll[];
 }
 
+export interface PollWithMeta extends Poll {
+  responseCount: number;
+  allOptionsPast: boolean;
+}
+
+export async function listPollsWithCounts(): Promise<PollWithMeta[]> {
+  const { data, error } = await bookingDb
+    .from("polls")
+    .select("*, poll_responses(count), poll_options(ends_at)")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`[booking/polls] ${error.message}`);
+  const now = Date.now();
+  return (data ?? []).map((row) => {
+    const responseCount =
+      (row.poll_responses as { count: number }[] | null)?.[0]?.count ?? 0;
+    const options = (row.poll_options as { ends_at: string }[] | null) ?? [];
+    const allOptionsPast =
+      options.length > 0 &&
+      options.every((o) => new Date(o.ends_at).getTime() < now);
+    const { poll_responses: _r, poll_options: _o, ...poll } = row;
+    return { ...poll, responseCount, allOptionsPast } as PollWithMeta;
+  });
+}
+
 export async function getPollBySlug(slug: string): Promise<Poll | null> {
   const { data, error } = await bookingDb
     .from("polls")

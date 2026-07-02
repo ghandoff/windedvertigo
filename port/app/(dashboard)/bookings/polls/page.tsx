@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { PageHeader } from "@/app/components/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { listPolls } from "@/lib/booking/queries";
-import { Users, Plus, ExternalLink } from "lucide-react";
+import { listPollsWithCounts } from "@/lib/booking/queries";
+import { PollsList } from "./polls-list";
+import { Users, Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function PollsIndexPage() {
-  const polls = await listPolls();
+  const polls = await listPollsWithCounts();
   const siteOrigin = process.env.SITE_ORIGIN ?? "https://windedvertigo.com";
 
   return (
@@ -37,70 +37,7 @@ export default async function PollsIndexPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-2">
-          {polls.map((poll) => {
-            const shareUrl = `${siteOrigin}/book/poll/${poll.slug}`;
-            return (
-              <div
-                key={poll.id}
-                className="rounded-md border p-4 flex items-center justify-between gap-4 hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/bookings/polls/${poll.id}`}
-                      className="font-medium text-sm hover:underline underline-offset-4"
-                    >
-                      {poll.title}
-                    </Link>
-                    <Badge variant="outline" className="text-xs">
-                      {poll.locked_option_id ? (
-                        <>
-                          <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-green-500" />
-                          locked
-                        </>
-                      ) : (
-                        <>
-                          <span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-amber-400" />
-                          open
-                        </>
-                      )}
-                    </Badge>
-                  </div>
-                  {poll.description && (
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-md">
-                      {poll.description}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    created{" "}
-                    {new Date(poll.created_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  <Link
-                    href={shareUrl}
-                    target="_blank"
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    share link
-                  </Link>
-                  <Link href={`/bookings/polls/${poll.id}`}>
-                    <Button variant="outline" size="sm" className="text-xs h-7">
-                      view results
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <PollsList polls={polls} siteOrigin={siteOrigin} />
       )}
     </div>
   );
