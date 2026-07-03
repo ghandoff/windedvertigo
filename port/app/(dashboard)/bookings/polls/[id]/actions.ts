@@ -41,7 +41,7 @@ export async function deletePollAction(pollId: string) {
 export async function sendPollReminderAction(pollId: string, emails: string[]): Promise<void> {
   const poll = await getPollById(pollId).catch(() => null);
   if (!poll) return;
-  const shareUrl = `${process.env.SITE_ORIGIN ?? ""}/book/poll/${poll.slug}`;
+  const shareUrl = `${process.env.SITE_ORIGIN ?? "https://windedvertigo.com"}/book/poll/${poll.slug}`;
 
   for (const to of emails) {
     try {

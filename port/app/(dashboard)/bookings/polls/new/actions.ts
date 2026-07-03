@@ -51,14 +51,14 @@ export async function createPollAction(
   return {
     slug: poll.slug,
     pollId: poll.id,
-    shareUrl: `${process.env.SITE_ORIGIN ?? ""}/book/poll/${poll.slug}`,
+    shareUrl: `${process.env.SITE_ORIGIN ?? "https://windedvertigo.com"}/book/poll/${poll.slug}`,
   };
 }
 
 export async function sendPollInvitesAction(pollId: string, emails: string[]): Promise<void> {
   const poll = await getPollById(pollId).catch(() => null);
   const shareUrl = poll
-    ? `${process.env.SITE_ORIGIN ?? ""}/book/poll/${poll.slug}`
+    ? `${process.env.SITE_ORIGIN ?? "https://windedvertigo.com"}/book/poll/${poll.slug}`
     : "";
 
   await updatePollInvitees(pollId, emails).catch((err) =>
