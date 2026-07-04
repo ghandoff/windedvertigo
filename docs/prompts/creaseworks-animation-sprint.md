@@ -171,3 +171,21 @@ the cheapest/highest-certainty wins.
 - [ ] one cartoon short drafted or finished
 - [ ] fruitstand review note drafted: does it look like us / what did it cost /
       which surface first — feeding a decision logged to `docs/cmo/decisions-log.md`
+
+---
+
+## sprint log
+
+> one dated line per session — what got done, what's next, any blockers.
+> future sessions starting with "continue the animation sprint" read this log
+> and the latest `.brain/memory/handoff/` note to orient.
+
+### 2026-07-04 — session 0 (kickoff)
+
+- confirmed both sprint docs exist and are complete (plan + research)
+- scaffolded `docs/creaseworks-animation/characters/` and `docs/creaseworks-animation/shorts/`
+- opened sprint branch `feat/animation-sprint`
+- reviewed npm workspaces layout: root `package.json` manages `packages/*`; existing `@windedvertigo/tokens` sets the pattern for `motion-kit`
+- no code written yet — awaiting go-ahead on A-1
+- **next session:** workstream A-1 — scaffold `packages/motion-kit/`, define motion tokens, implement `MotionGate`, build ≥5 primitives
+- **standing blocker:** remotion licence: free ≤3 people — confirm collective headcount interpretation before workstream C ships publicly
