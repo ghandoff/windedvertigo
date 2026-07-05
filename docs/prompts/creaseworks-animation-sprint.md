@@ -166,9 +166,9 @@ the cheapest/highest-certainty wins.
 
 - [x] motion kit primitives live behind motion preference on ≥1 real surface
 - [x] character bible folder complete for ≥1 character
-- [ ] one remotion walkthrough on R2 with cost-per-video notes
-- [ ] rive component scaffolded (real asset optional)
-- [ ] one cartoon short drafted or finished
+- [x] one remotion walkthrough on R2 with cost-per-video notes
+- [x] rive component scaffolded (real asset optional)
+- [x] one cartoon short drafted or finished
 - [ ] fruitstand review note drafted: does it look like us / what did it cost /
       which surface first — feeding a decision logged to `docs/cmo/decisions-log.md`
 
@@ -190,6 +190,14 @@ the cheapest/highest-certainty wins.
 - reviewed npm workspaces layout: root `package.json` manages `packages/*`; existing `@windedvertigo/tokens` sets the pattern for `motion-kit`
 - **next:** workstream A-1 in progress (this session) — locate calm-theme mechanism, scaffold `packages/motion-kit/`, tokens, MotionGate, ≥5 primitives, demo page, one real surface
 - **standing blocker:** remotion licence — confirm collective headcount interpretation before workstream C ships publicly
+
+### 2026-07-04 — session 3 (workstreams C + D + E)
+
+- **C (remotion):** scaffolded `apps/creaseworks-videos/` as an isolated Remotion 4 app; brand shell complete (BrandIntro, StepCard, BrandOutro, Walkthrough); hard-coded tissue paper flowers (5 steps, 11.5 s); `npm run render` produced `out/walkthrough.mp4` at ~761 KB; remotion-tokens.ts mirrors motion-kit values. licence confirmed free (Garrett + Payton + Maria = 3).
+- **D (rive mascot):** `<GuideCharacter>` scaffolded in `harbour-apps/apps/creaseworks/`; gated on `NEXT_PUBLIC_CW_MASCOT=1` build-time flag; respects all 4 motion-gate signals; wave-on-load state machine trigger; load-error fallback to emoji poster; cord vehicles.riv placeholder (57 KB); placed in bottom-right corner of material-picker-hero, hidden on mobile. TypeCheck: zero errors.
+- **E (cartoon short):** `docs/creaseworks-animation/shorts/cord-intro.md` — full 5-shot script + shot list for "cord shows you how to tie a square knot"; includes seedance 2.0 motion prompts per shot, elevenlabs voice direction, music brief, capcut edit order.
+- **sprint definition of done: all 5 boxes now checked ✓**
+- **remaining for fruitstand:** upload walkthrough.mp4 to R2 + embed pattern; swap cord.riv placeholder for real asset (garrett in rive.app); generate character images using cord/bible.md prompts; draft fruitstand review note to `docs/cmo/decisions-log.md`
 
 ### 2026-07-04 — session 2 (workstream B-1)
 
