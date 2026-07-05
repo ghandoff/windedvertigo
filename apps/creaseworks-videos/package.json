@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "remotion studio",
     "render": "remotion render Walkthrough out/walkthrough.mp4 --log=verbose",
-    "build": "remotion bundle"
+    "build": "remotion bundle",
+    "render:cartoon": "remotion render CordCartoon out/cord-cartoon.mp4 --log=verbose"
   },
   "dependencies": {
     "remotion": "^4.0.291",
