@@ -3,9 +3,13 @@
 > for when the video is ready to place on a creaseworks page or draft route.
 > follows wcag 2.2.2: no autoplay, pause control present, poster image required.
 
-## direct link (share for review)
+## direct links (share for review)
 
+**walkthrough (with cord character, 11.5 s):**
 https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/animation-sprint/walkthrough-tissue-paper-flowers.mp4
+
+**cord cartoon — knot-tying short (30 s):**
+https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/animation-sprint/cord-cartoon-knot-tying.mp4
 
 ## embed snippet
 

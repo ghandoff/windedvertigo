@@ -180,6 +180,18 @@ the cheapest/highest-certainty wins.
 > future sessions starting with "continue the animation sprint" read this log
 > and the latest `.brain/memory/handoff/` note to orient.
 
+### 2026-07-05 — session 4 (cord character + cartoon render)
+
+- **Cord.tsx**: frame-accurate SVG character for Remotion — breathing via `Math.sin`, blink every 120 frames, `expression` prop (neutral/excited/thinking). Zero CSS animations.
+- **Walkthrough.tsx upgraded**: cord slides in from left (0–20 frames), nods at each new step; step cards moved to right 60%, dark-mode cream-on-cadet (no white card).
+- **CordCartoon.tsx**: 900-frame (30 s) knot-tying cartoon; 5 shots via `<Sequence>` — wakeup spring scale, two-ends intro, crossing paths via strokeDashoffset, mirrored crossing, celebration spring.
+- **Root.tsx**: registers both Walkthrough + CordCartoon compositions.
+- **Rive placeholder upgraded**: swapped `vehicles.riv` for `animated-login-screen.riv` (41 KB, real character animations). Committed to harbour-apps main.
+- **Both videos rendered and on R2**: walkthrough (710 KB) + cord-cartoon (1.9 MB).
+  - walkthrough: https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/animation-sprint/walkthrough-tissue-paper-flowers.mp4
+  - cartoon: https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/animation-sprint/cord-cartoon-knot-tying.mp4
+- **Next**: push sprint branch, merge PR #326, update fruitstand review in decisions-log.md
+
 ### 2026-07-04 — session 0 (kickoff)
 
 - confirmed both sprint docs exist and are complete (plan + research)
