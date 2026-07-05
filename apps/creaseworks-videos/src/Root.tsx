@@ -1,5 +1,5 @@
 import React from "react";
-import { Composition } from "remotion";
+import { Composition, staticFile } from "remotion";
 import { Walkthrough } from "./Walkthrough";
 import { CordCartoon } from "./CordCartoon";
 import { SceneVideo } from "./SceneVideo";
@@ -29,6 +29,9 @@ export const RemotionRoot: React.FC = () => {
         fps={30}
         width={1920}
         height={1080}
+        defaultProps={{
+          table: staticFile("playdate-table.jpg"),
+        }}
       />
     </>
   );
