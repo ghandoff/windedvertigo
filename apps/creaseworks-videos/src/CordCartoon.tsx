@@ -1,16 +1,16 @@
 import React from "react";
 import { Sequence, useCurrentFrame, interpolate, AbsoluteFill } from "remotion";
 import { Cord } from "./Cord";
+import { PaperBackground, PAPER_BG, GRID_COLOR, INK_WARM, TERRACOTTA } from "./PaperBackground";
 
-const BG = "#273248";
-const CREAM = "#f7f5f2";
+const BG = PAPER_BG;
 const ROPE = "#d89f3a";
-const INK = "#241c1e";
+const INK = INK_WARM;
 
 const textStyle: React.CSSProperties = {
   fontFamily: "Inter, system-ui, sans-serif",
   fontSize: 36,
-  color: CREAM,
+  color: INK_WARM,
   textAlign: "center",
   maxWidth: 900,
   lineHeight: 1.4,
@@ -33,7 +33,7 @@ const Shot1: React.FC = () => {
   });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: BG, alignItems: "center", justifyContent: "center" }}>
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}><PaperBackground />
       <div style={{ transform: `scale(${scale})` }}>
         <Cord expression="excited" />
       </div>
@@ -67,7 +67,7 @@ const Shot2: React.FC = () => {
   const loopPath = "M 0 0 Q 20 -30 40 0 Q 20 30 0 0";
 
   return (
-    <AbsoluteFill style={{ backgroundColor: BG, alignItems: "center", justifyContent: "center" }}>
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}><PaperBackground />
       {/* left loop */}
       <svg
         viewBox="-10 -40 60 80"
@@ -128,7 +128,7 @@ const Shot3: React.FC = () => {
   });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: BG }}>
+    <AbsoluteFill><PaperBackground />
       {/* crossing path */}
       <svg
         viewBox="0 0 1920 1080"
@@ -180,7 +180,7 @@ const Shot3: React.FC = () => {
           opacity: text2Opacity,
         }}
       >
-        <span style={{ ...textStyle, fontSize: 28, color: "#a8b0bf" }}>
+        <span style={{ ...textStyle, fontSize: 28, color: "rgba(42,35,24,0.5)" }}>
           see? it's just a loop that holds itself.
         </span>
       </div>
@@ -203,7 +203,7 @@ const Shot4: React.FC = () => {
   });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: BG }}>
+    <AbsoluteFill><PaperBackground />
       {/* mirrored crossing path */}
       <svg
         viewBox="0 0 1920 1080"
@@ -278,7 +278,7 @@ const Shot5: React.FC = () => {
   });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: BG, alignItems: "center", justifyContent: "center" }}>
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}><PaperBackground />
       {/* square knot illustration */}
       <svg
         viewBox="0 0 300 150"
@@ -337,17 +337,17 @@ const Shot5: React.FC = () => {
           opacity: text2Opacity,
         }}
       >
-        <span style={{ ...textStyle, fontSize: 28, color: "#a8b0bf" }}>
+        <span style={{ ...textStyle, fontSize: 28, color: "rgba(42,35,24,0.5)" }}>
           if it tangles up — that just means you're practising.
         </span>
       </div>
 
-      {/* brand fade overlay */}
+      {/* brand fade — parchment washes in, ink wordmark */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          backgroundColor: INK,
+          backgroundColor: PAPER_BG,
           opacity: overlayOpacity,
           display: "flex",
           alignItems: "center",
@@ -358,7 +358,7 @@ const Shot5: React.FC = () => {
           style={{
             fontFamily: "Inter, system-ui, sans-serif",
             fontSize: 48,
-            color: CREAM,
+            color: INK_WARM,
             letterSpacing: "0.08em",
           }}
         >
@@ -371,7 +371,7 @@ const Shot5: React.FC = () => {
 
 export const CordCartoon: React.FC = () => {
   return (
-    <AbsoluteFill style={{ backgroundColor: BG }}>
+    <AbsoluteFill><PaperBackground />
       <Sequence from={0} durationInFrames={180}>
         <Shot1 />
       </Sequence>

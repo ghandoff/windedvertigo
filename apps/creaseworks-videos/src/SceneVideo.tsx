@@ -20,17 +20,14 @@ import {
   AbsoluteFill,
   Img,
 } from "remotion";
-import { brand } from "./remotion-tokens";
+import { PaperBackground, PAPER_BG, GRID_COLOR, INK_WARM, SAGE, TERRACOTTA, DUSTY_TEAL, ROSY } from "./PaperBackground";
 
-// ─── palette ─────────────────────────────────────────────────────────────────
-const PAPER = "#faf7f2";  // warm off-white — craft paper feel
+// ─── palette — matches confirmed aesthetic direction (style-references/aesthetic-direction.md)
+const PAPER = PAPER_BG;
 const WARM_MID = "#e8e0d5";
-const CADET = brand.cadet;
-const REDWOOD = brand.redwood;
+const INK = INK_WARM;           // warm dark brown-black
 const ROPE_GOLD = "#d89f3a";
-const TWIG_GREEN = "#5a7a4a";
-const INK = "#241c1e";
-const CREAM = brand.cream;
+const TWIG_GREEN = SAGE;
 
 const SHOT_FRAMES = 150; // 5 s per shot
 const TOTAL_FRAMES = SHOT_FRAMES * 5; // 750 frames = 25 s
@@ -54,8 +51,9 @@ const Caption: React.FC<{ text: string; subtext?: string }> = ({ text, subtext }
         bottom: 0,
         left: 0,
         right: 0,
-        padding: "40px 80px 56px",
-        background: "linear-gradient(to top, rgba(36,28,30,0.72) 0%, transparent 100%)",
+        padding: "32px 80px 52px",
+        // warm paper strip at bottom — ink text on light, not cream on dark
+        background: "linear-gradient(to top, rgba(245,240,232,0.95) 60%, rgba(245,240,232,0) 100%)",
         opacity,
         transform: `translateY(${y}px)`,
       }}
@@ -63,9 +61,9 @@ const Caption: React.FC<{ text: string; subtext?: string }> = ({ text, subtext }
       <div
         style={{
           fontFamily: "Inter, system-ui, sans-serif",
-          fontSize: 40,
+          fontSize: 38,
           fontWeight: 500,
-          color: CREAM,
+          color: INK,
           letterSpacing: "-0.01em",
           lineHeight: 1.3,
         }}
@@ -76,9 +74,9 @@ const Caption: React.FC<{ text: string; subtext?: string }> = ({ text, subtext }
         <div
           style={{
             fontFamily: "Inter, system-ui, sans-serif",
-            fontSize: 26,
-            color: "rgba(247,245,242,0.65)",
-            marginTop: 8,
+            fontSize: 24,
+            color: "rgba(42,35,24,0.55)",
+            marginTop: 6,
             fontWeight: 400,
           }}
         >
@@ -139,8 +137,14 @@ const KenBurns: React.FC<{
 // Scene A: kids gathered around a craft table (aerial view)
 const TableSceneSVG: React.FC = () => (
   <svg viewBox="0 0 1920 1080" width={1920} height={1080} style={{ position: "absolute" }}>
-    {/* background */}
-    <rect width={1920} height={1080} fill={PAPER} />
+    {/* parchment background + grid */}
+    <rect width={1920} height={1080} fill={PAPER_BG} />
+    {Array.from({ length: 45 }).map((_, i) => (
+      <line key={`v${i}`} x1={i * 44} y1={0} x2={i * 44} y2={1080} stroke={GRID_COLOR} strokeWidth={0.8} />
+    ))}
+    {Array.from({ length: 26 }).map((_, i) => (
+      <line key={`h${i}`} x1={0} y1={i * 44} x2={1920} y2={i * 44} stroke={GRID_COLOR} strokeWidth={0.8} />
+    ))}
 
     {/* table — warm wood rectangle */}
     <rect x={560} y={300} width={800} height={480} rx={32} fill={WARM_MID} stroke="#c8bdb0" strokeWidth={3} />
@@ -186,12 +190,12 @@ const TableSceneSVG: React.FC = () => (
     {/* four kids sitting around the table — circles + shoulder arcs */}
     {/* top — two kids */}
     <g transform="translate(760 305)">
-      <ellipse cx={0} cy={0} rx={44} ry={24} fill={CADET} opacity={0.9} />
-      <circle cx={0} cy={-54} r={36} fill={CADET} />
+      <ellipse cx={0} cy={0} rx={44} ry={24} fill={DUSTY_TEAL} opacity={0.9} />
+      <circle cx={0} cy={-54} r={36} fill={DUSTY_TEAL} />
     </g>
     <g transform="translate(1000 295)">
-      <ellipse cx={0} cy={0} rx={44} ry={24} fill={REDWOOD} opacity={0.9} />
-      <circle cx={0} cy={-54} r={36} fill={REDWOOD} />
+      <ellipse cx={0} cy={0} rx={44} ry={24} fill={TERRACOTTA} opacity={0.9} />
+      <circle cx={0} cy={-54} r={36} fill={TERRACOTTA} />
     </g>
 
     {/* bottom — two kids */}
@@ -211,8 +215,8 @@ const TableSceneSVG: React.FC = () => (
     </g>
 
     {/* placeholder label */}
-    <rect x={40} y={40} width={320} height={44} rx={8} fill={CADET} opacity={0.8} />
-    <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={CREAM} letterSpacing="0.04em">
+    <rect x={40} y={40} width={340} height={44} rx={8} fill={TERRACOTTA} opacity={0.18} />
+    <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={INK_WARM} letterSpacing="0.04em" opacity={0.7}>
       📸 image slot: table scene
     </text>
   </svg>
@@ -277,8 +281,8 @@ const HandsSceneSVG: React.FC = () => (
       ))}
     </g>
 
-    <rect x={40} y={40} width={360} height={44} rx={8} fill={CADET} opacity={0.8} />
-    <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={CREAM} letterSpacing="0.04em">
+    <rect x={40} y={40} width={380} height={44} rx={8} fill={TERRACOTTA} opacity={0.18} />
+    <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={INK_WARM} letterSpacing="0.04em" opacity={0.7}>
       📸 image slot: hands close-up
     </text>
   </svg>
@@ -328,8 +332,8 @@ const FoldingSceneSVG: React.FC<{ frame: number }> = ({ frame }) => {
       <ellipse cx={760 + foldCount * 60 + 50} cy={540} rx={50} ry={80}
         fill="#f5c5a3" transform={`rotate(10 ${760 + foldCount * 60 + 50} 540)`} />
 
-      <rect x={40} y={40} width={360} height={44} rx={8} fill={CADET} opacity={0.8} />
-      <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={CREAM} letterSpacing="0.04em">
+      <rect x={40} y={40} width={370} height={44} rx={8} fill={TERRACOTTA} opacity={0.18} />
+      <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={INK_WARM} letterSpacing="0.04em" opacity={0.7}>
         📸 image slot: folding step
       </text>
     </svg>
@@ -380,8 +384,8 @@ const FlowerSceneSVG: React.FC = () => (
         transform={`rotate(${-8 + i*4} ${900 + i*42} 900)`} />
     ))}
 
-    <rect x={40} y={40} width={360} height={44} rx={8} fill={CADET} opacity={0.8} />
-    <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={CREAM} letterSpacing="0.04em">
+    <rect x={40} y={40} width={370} height={44} rx={8} fill={TERRACOTTA} opacity={0.18} />
+    <text x={56} y={70} fontFamily="Inter, sans-serif" fontSize={20} fill={INK_WARM} letterSpacing="0.04em" opacity={0.7}>
       📸 image slot: finished flower
     </text>
   </svg>
@@ -414,13 +418,8 @@ const TitleCard: React.FC<{ activityName: string; imageSrc?: string }> = ({
   });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: CADET }}>
-      {/* subtle texture */}
-      <svg viewBox="0 0 1920 1080" width={1920} height={1080} style={{ position: "absolute", opacity: 0.04 }}>
-        {Array.from({ length: 30 }).map((_, i) => (
-          <line key={i} x1={0} y1={i * 36} x2={1920} y2={i * 36} stroke={CREAM} strokeWidth={1} />
-        ))}
-      </svg>
+    <AbsoluteFill>
+      <PaperBackground />
 
       <div
         style={{
@@ -439,7 +438,7 @@ const TitleCard: React.FC<{ activityName: string; imageSrc?: string }> = ({
             fontFamily: "Inter, system-ui, sans-serif",
             fontSize: 22,
             fontWeight: 500,
-            color: "rgba(247,245,242,0.5)",
+            color: "rgba(42,35,24,0.4)",
             letterSpacing: "0.18em",
             textTransform: "lowercase",
             opacity: subtitleOpacity,
@@ -448,13 +447,13 @@ const TitleCard: React.FC<{ activityName: string; imageSrc?: string }> = ({
           creaseworks playdate
         </div>
 
-        {/* activity name */}
+        {/* activity name — warm ink on parchment */}
         <div
           style={{
             fontFamily: "Inter, system-ui, sans-serif",
             fontSize: 96,
             fontWeight: 600,
-            color: CREAM,
+            color: INK,
             letterSpacing: "-0.02em",
             lineHeight: 1.1,
             textAlign: "center",
@@ -466,22 +465,22 @@ const TitleCard: React.FC<{ activityName: string; imageSrc?: string }> = ({
           {activityName}
         </div>
 
-        {/* redwood underline */}
+        {/* terracotta underline — matches style palette */}
         <div
           style={{
             width: interpolate(frame, [60, 100], [0, 320], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            height: 4,
-            backgroundColor: REDWOOD,
+            height: 3,
+            backgroundColor: TERRACOTTA,
             borderRadius: 2,
           }}
         />
       </div>
 
-      {/* exit fade */}
-      <div style={{ position: "absolute", inset: 0, backgroundColor: INK, opacity: exitOpacity }} />
+      {/* exit fade to parchment */}
+      <div style={{ position: "absolute", inset: 0, backgroundColor: PAPER_BG, opacity: exitOpacity }} />
     </AbsoluteFill>
   );
 };
