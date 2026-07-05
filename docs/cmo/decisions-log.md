@@ -113,3 +113,56 @@ payton reported having "multiple conversations" with Mo via her cowork setup. th
 - **first real surfaces:** `site/components/team-grid.tsx` (Stagger on /we/ team grid), `site/components/collaborator-strip.tsx` (FadeIn on compact collaborator list on the /do/ page).
 
 - **remotion licence still open:** workstream C needs garrett to confirm collective headcount before we evaluate the Remotion licence tier.
+
+---
+
+## 2026-07-04 — garrett (animation sprint — fruitstand review)
+
+**sprint complete. fruitstand review below.**
+
+---
+
+### what we built and what it cost
+
+| prototype | what it is | cost to build | cost to run | status |
+|---|---|---|---|---|
+| **motion kit** | reusable animation library, built into the product | 1 claude session | $0/mo (zero new deps) | live on /we/ and /do/ pages |
+| **remotion walkthrough** | 11.5 s video generated from code (tissue paper flowers demo) | 1 claude session | $0/mo (render is local; r2 storage is pennies) | [watch the prototype](https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/animation-sprint/walkthrough-tissue-paper-flowers.mp4) |
+| **rive mascot (cord)** | interactive character on the creaseworks landing page | 1 claude session | $0/mo until we need the rive.app editor at team scale ($9/mo/seat) | scaffolded; hidden until garrett exports a real cord.riv |
+| **character bibles** | written specs for all 7 materials characters | 1 claude session | $0 | committed, ready for image generation in nano banana pro |
+| **cartoon short script** | 30-second cord knot-tying script with shot list, voice notes, music brief | 1 claude session | depends on tool subscriptions (higgsfield, elevenlabs, suno) | ready for payton to produce |
+
+---
+
+### does it look like us?
+
+**motion kit — yes.** the primitives feel right: calm, purposeful, nothing decorative. reduced-motion gate works. this is now part of the product.
+
+**remotion video — promising, needs taste work.** the structure is correct — lowercase copy, brand colours, step-card format. what's missing is the warmth. the current version reads like a slide deck that got animated rather than something made by hand. recommend: shorter step durations, softer transitions, and character illustration in the cards once we have cord images. the prototype proves the thesis (one template = infinite videos) — the taste question is still open.
+
+**rive mascot — too early to judge.** the placeholder asset is a car animation, not cord. the component is wired correctly and ready to swap. reserve judgement until garrett has exported a real cord.riv from rive.app.
+
+**cartoon short — strongest brand fit (on paper).** cord's voice as written in the script is exactly the register we want: patient, plain, "let's" language, never makes a tangle feel like a mistake. the question is whether higgsfield/seedance 2.0 can hold cord's visual consistency across 5 shots. that's the experiment.
+
+---
+
+### which surface first?
+
+recommendation: **motion kit + the cartoon short** are the two paths worth investing in immediately.
+
+- motion kit is already in the product and costs nothing ongoing. expand it.
+- the cartoon short is the highest brand-expression prototype — and the experiment (can seedance hold cord across shots?) has a concrete answer within one production session with payton.
+
+remotion is compelling for operational scale (one render per playdate, zero marginal cost) but needs more taste investment before showing to partners or families. revisit once we have real cord imagery to put in the cards.
+
+rive mascot: worth pursuing, but the bottleneck is the rive.app authoring step (garrett or payton in the editor). prioritise after the cartoon short experiment has run.
+
+---
+
+### what the next fruitstand conversation should cover
+
+three questions for the collective:
+
+1. **does cord's voice feel right?** read the first two lines of `docs/creaseworks-animation/shorts/cord-intro.md` aloud. does that sound like a character you'd introduce to a six-year-old? or does it need adjusting?
+2. **do we want a child or adult narrator?** the script reads adult-but-warm. a child narrator would be more unexpected and more on-brand with the kid-led ethos. elevenlabs has child voice options.
+3. **is the "if it tangles up, that just means you're practising" line on-brand?** it's the heart of cord's personality — but worth the collective saying yes explicitly before it goes in front of families.
