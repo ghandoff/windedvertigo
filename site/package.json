@@ -14,6 +14,7 @@
     "@windedvertigo/booking": "*",
     "@windedvertigo/email-templates": "*",
     "@windedvertigo/notion": "*",
+    "@windedvertigo/motion-kit": "*",
     "@windedvertigo/tokens": "*",
     "@aws-sdk/client-s3": "^3.1015.0",
     "@notionhq/client": "^5.19.0",

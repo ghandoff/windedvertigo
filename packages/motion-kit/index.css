@@ -1,0 +1,65 @@
+/**
+ * @windedvertigo/motion-kit — CSS custom properties
+ *
+ * Import this in any app's global CSS to get the token variables.
+ * Mirrors tokens.ts exactly — update both files together.
+ *
+ * Usage: import '@windedvertigo/motion-kit/index.css'
+ *
+ * When the user has opted into reduced motion (any of three signals below),
+ * all durations collapse to 0ms so CSS transitions/animations also go silent.
+ * JS components should additionally check useMotionGate() — but this CSS
+ * layer gives a safety net even without JS.
+ */
+
+:root {
+  /* ── duration ────────────────────────────────────────────────── */
+  --motion-duration-instant:   0ms;
+  --motion-duration-fast:      120ms;
+  --motion-duration-base:      240ms;
+  --motion-duration-slow:      400ms;
+  --motion-duration-cinematic: 700ms;
+
+  /* ── easing ──────────────────────────────────────────────────── */
+  --motion-ease-enter:  cubic-bezier(0.0, 0.0, 0.2, 1.0);
+  --motion-ease-exit:   cubic-bezier(0.4, 0.0, 1.0, 1.0);
+  --motion-ease-sharp:  cubic-bezier(0.4, 0.0, 0.6, 1.0);
+
+  /* ── distance ────────────────────────────────────────────────── */
+  --motion-distance-xs:  4px;
+  --motion-distance-sm:  8px;
+  --motion-distance-md:  16px;
+  --motion-distance-lg:  32px;
+  --motion-distance-xl:  64px;
+
+  /* ── stagger ─────────────────────────────────────────────────── */
+  --motion-stagger-tight:  30ms;
+  --motion-stagger-base:   60ms;
+  --motion-stagger-loose:  100ms;
+}
+
+/*
+ * Reduced-motion safety net — all three signals that mean "stay still":
+ *   1. OS-level prefers-reduced-motion
+ *   2. creaseworks .reduce-motion class (user's in-app toggle)
+ *   3. creaseworks .calm-theme class (sensory sensitivity — implies stillness)
+ *
+ * Collapses all custom-property durations to 0ms. Individual component
+ * CSS can reference these directly and will automatically go silent.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast:      0ms;
+    --motion-duration-base:      0ms;
+    --motion-duration-slow:      0ms;
+    --motion-duration-cinematic: 0ms;
+  }
+}
+
+.reduce-motion,
+.calm-theme {
+  --motion-duration-fast:      0ms;
+  --motion-duration-base:      0ms;
+  --motion-duration-slow:      0ms;
+  --motion-duration-cinematic: 0ms;
+}

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>motion kit — winded.vertigo animation primitives</title>
+  <style>
+    /* ── tokens (mirrors packages/motion-kit/index.css) ────────── */
+    :root {
+      --motion-duration-instant:   0ms;
+      --motion-duration-fast:      120ms;
+      --motion-duration-base:      240ms;
+      --motion-duration-slow:      400ms;
+      --motion-duration-cinematic: 700ms;
+      --motion-ease-enter:  cubic-bezier(0.0, 0.0, 0.2, 1.0);
+      --motion-ease-exit:   cubic-bezier(0.4, 0.0, 1.0, 1.0);
+      --motion-distance-sm:  8px;
+      --motion-distance-md:  16px;
+      --motion-distance-lg:  32px;
+
+      /* brand */
+      --wv-cadet:     #273248;
+      --wv-redwood:   #b15043;
+      --wv-sienna:    #cb7858;
+      --wv-white:     #ffffff;
+      --wv-surface:   #f8f7f5;
+      --wv-border:    #e5e0da;
+      --wv-text:      #273248;
+      --wv-text-muted: #6b7280;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :root {
+        --motion-duration-fast:      0ms;
+        --motion-duration-base:      0ms;
+        --motion-duration-slow:      0ms;
+        --motion-duration-cinematic: 0ms;
+      }
+    }
+
+    .reduce-motion, .calm-theme {
+      --motion-duration-fast:      0ms;
+      --motion-duration-base:      0ms;
+      --motion-duration-slow:      0ms;
+      --motion-duration-cinematic: 0ms;
+    }
+
+    /* ── base ───────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      background: var(--wv-surface);
+      color: var(--wv-text);
+      font-size: 15px;
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .page { max-width: 760px; margin: 0 auto; }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.25rem;
+    }
+
+    h2 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--wv-text-muted);
+      margin-bottom: 1rem;
+      margin-top: 3rem;
+    }
+
+    .subtitle {
+      color: var(--wv-text-muted);
+      font-size: 0.9375rem;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── motion toggle (the key control) ───────────────────────── */
+    .motion-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: white;
+      border: 1px solid var(--wv-border);
+      border-radius: 10px;
+      padding: 0.875rem 1.125rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .motion-bar label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .motion-bar .hint {
+      font-size: 0.8125rem;
+      color: var(--wv-text-muted);
+    }
+
+    .toggle-btn {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--wv-border);
+      border: none;
+      cursor: pointer;
+      transition: background 200ms;
+      flex-shrink: 0;
+    }
+
+    .toggle-btn.on { background: var(--wv-redwood); }
+
+    .toggle-btn::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+      transition: transform 200ms;
+    }
+
+    .toggle-btn.on::after { transform: translateX(20px); }
+
+    /* ── demo cards ─────────────────────────────────────────────── */
+    .demo-card {
+      background: white;
+      border: 1px solid var(--wv-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .demo-card .label {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--wv-text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .replay-btn {
+      font-size: 0.8125rem;
+      color: var(--wv-redwood);
+      background: none;
+      border: 1px solid var(--wv-redwood);
+      border-radius: 6px;
+      padding: 0.25rem 0.75rem;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 1rem;
+    }
+
+    .replay-btn:hover { background: #fdf3f1; }
+
+    /* ── primitive-specific styles ─────────────────────────────── */
+
+    /* FadeIn */
+    #demo-fadein .box {
+      width: 120px; height: 48px;
+      background: var(--wv-cadet);
+      border-radius: 8px;
+      opacity: 0;
+    }
+
+    /* SlideUp */
+    #demo-slideup .box {
+      width: 120px; height: 48px;
+      background: var(--wv-redwood);
+      border-radius: 8px;
+      opacity: 0;
+    }
+
+    /* Stagger */
+    #demo-stagger .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+
+    #demo-stagger .card {
+      height: 72px;
+      background: var(--wv-sienna);
+      border-radius: 10px;
+      opacity: 0;
+    }
+
+    /* BouncePop */
+    #demo-bouncepop .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--wv-cadet);
+      color: white;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      opacity: 0;
+      transform: scale(0.82);
+    }
+
+    /* UnderlineDraw */
+    #demo-underline .headline {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    #demo-underline .underline-target {
+      position: relative;
+      display: inline-block;
+      padding-bottom: 6px;
+    }
+
+    #demo-underline .underline-svg {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 9px;
+      overflow: visible;
+    }
+
+    #demo-underline .underline-path {
+      stroke: var(--wv-redwood);
+      stroke-width: 3;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+    }
+
+    /* ── status indicator ───────────────────────────────────────── */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      background: white;
+      border: 1px solid var(--wv-border);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      margin-top: 2.5rem;
+    }
+
+    .status-pill .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    .status-pill.reduced .dot { background: var(--wv-redwood); }
+    .status-pill.reduced .dot-label { color: var(--wv-redwood); }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <h1>motion kit</h1>
+  <p class="subtitle">winded.vertigo animation primitives · <code>@windedvertigo/motion-kit</code></p>
+
+  <!-- motion toggle -->
+  <div class="motion-bar" id="motion-bar">
+    <div>
+      <label for="motion-toggle">reduced motion</label><br>
+      <span class="hint">mirrors the creaseworks calm-theme / reduce-motion toggle</span>
+    </div>
+    <button class="toggle-btn" id="motion-toggle" role="switch" aria-checked="false" aria-label="toggle reduced motion">
+    </button>
+  </div>
+
+  <!-- FadeIn -->
+  <h2>FadeIn</h2>
+  <div class="demo-card" id="demo-fadein">
+    <div class="label">opacity 0 → 1 on mount</div>
+    <div class="box" id="fadein-box"></div>
+    <button class="replay-btn" data-demo="fadein">replay</button>
+  </div>
+
+  <!-- SlideUp -->
+  <h2>SlideUp</h2>
+  <div class="demo-card" id="demo-slideup">
+    <div class="label">opacity + translateY 16px → 0 on mount</div>
+    <div class="box" id="slideup-box"></div>
+    <button class="replay-btn" data-demo="slideup">replay</button>
+  </div>
+
+  <!-- Stagger -->
+  <h2>Stagger</h2>
+  <div class="demo-card" id="demo-stagger">
+    <div class="label">each child enters with 60ms offset</div>
+    <div class="grid">
+      <div class="card" id="s0"></div>
+      <div class="card" id="s1"></div>
+      <div class="card" id="s2"></div>
+      <div class="card" id="s3"></div>
+      <div class="card" id="s4"></div>
+      <div class="card" id="s5"></div>
+    </div>
+    <button class="replay-btn" data-demo="stagger">replay</button>
+  </div>
+
+  <!-- BouncePop -->
+  <h2>BouncePop</h2>
+  <div class="demo-card" id="demo-bouncepop">
+    <div class="label">spring scale 0.82 → 1 on mount</div>
+    <div class="badge" id="bounce-badge">✦ playdate ready</div>
+    <button class="replay-btn" data-demo="bouncepop">replay</button>
+  </div>
+
+  <!-- UnderlineDraw -->
+  <h2>UnderlineDraw</h2>
+  <div class="demo-card" id="demo-underline">
+    <div class="label">SVG path draws beneath text</div>
+    <p class="headline">
+      find, fold, <span class="underline-target">
+        unfold
+        <svg class="underline-svg" aria-hidden="true" preserveAspectRatio="none">
+          <path class="underline-path" id="underline-path"
+            d="M2,4 Q25%,1 50%,4 Q75%,7 100%,4"
+            vector-effect="non-scaling-stroke"
+          />
+        </svg>
+      </span>, find again.
+    </p>
+    <button class="replay-btn" data-demo="underline">replay</button>
+  </div>
+
+  <!-- status -->
+  <div class="status-pill" id="status-pill">
+    <div class="dot"></div>
+    <span class="dot-label" id="status-label">motion enabled</span>
+  </div>
+
+</div>
+
+<!-- GSAP via CDN (demo page only — React apps use motion/react package) -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ── reduced-motion gate ──────────────────────────────────────── */
+
+  let forceReduced = false; // the manual toggle on this page
+
+  function shouldAnimate() {
+    if (forceReduced) return false;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+    if (document.documentElement.classList.contains("reduce-motion")) return false;
+    if (document.documentElement.classList.contains("calm-theme")) return false;
+    return true;
+  }
+
+  /* ── GSAP animations (each returns a GSAP timeline) ────────────── */
+
+  /* Tokens — mirrors packages/motion-kit/tokens.ts */
+  var dur = { fast: 0.12, base: 0.24, slow: 0.40, cinematic: 0.70 };
+  var ease = { enter: "power2.out", spring: "back.out(1.7)" };
+
+  function animFadeIn(el) {
+    gsap.killTweensOf(el);
+    if (!shouldAnimate()) { gsap.set(el, { opacity: 1 }); return; }
+    gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: dur.base, ease: ease.enter });
+  }
+
+  function animSlideUp(el) {
+    gsap.killTweensOf(el);
+    if (!shouldAnimate()) { gsap.set(el, { opacity: 1, y: 0 }); return; }
+    gsap.fromTo(el,
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: dur.base, ease: ease.enter }
+    );
+  }
+
+  function animStagger(els) {
+    gsap.killTweensOf(els);
+    if (!shouldAnimate()) { gsap.set(els, { opacity: 1, y: 0 }); return; }
+    gsap.fromTo(els,
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: dur.base, ease: ease.enter, stagger: 0.06 }
+    );
+  }
+
+  function animBouncePop(el) {
+    gsap.killTweensOf(el);
+    if (!shouldAnimate()) { gsap.set(el, { opacity: 1, scale: 1 }); return; }
+    gsap.fromTo(el,
+      { opacity: 0, scale: 0.82 },
+      { opacity: 1, scale: 1, duration: dur.slow, ease: ease.spring }
+    );
+  }
+
+  function animUnderline(path) {
+    gsap.killTweensOf(path);
+    if (!shouldAnimate()) {
+      gsap.set(path, { strokeDashoffset: 0, opacity: 1 });
+      return;
+    }
+    gsap.fromTo(path,
+      { strokeDashoffset: 1, opacity: 0 },
+      {
+        strokeDashoffset: 0, opacity: 1,
+        duration: dur.slow, delay: 0.08,
+        ease: ease.enter,
+        attr: { "stroke-dashoffset": 0 }
+      }
+    );
+    /* GSAP doesn't natively drive SVG pathLength like motion/react does.
+       Instead we use a large stroke-dasharray that covers the full path length.
+       We set this via a one-time measurement after the SVG renders. */
+    var len = path.getTotalLength ? path.getTotalLength() : 200;
+    gsap.set(path, { strokeDasharray: len });
+    gsap.fromTo(path,
+      { strokeDashoffset: len, opacity: 0 },
+      { strokeDashoffset: 0, opacity: 1, duration: dur.slow, delay: 0.08, ease: ease.enter }
+    );
+  }
+
+  /* ── initial run ─────────────────────────────────────────────── */
+
+  function runAll() {
+    animFadeIn(document.getElementById("fadein-box"));
+    animSlideUp(document.getElementById("slideup-box"));
+    animStagger([].slice.call(document.querySelectorAll("#demo-stagger .card")));
+    animBouncePop(document.getElementById("bounce-badge"));
+    animUnderline(document.getElementById("underline-path"));
+  }
+
+  /* short delay so the page paint is done */
+  setTimeout(runAll, 100);
+
+  /* ── replay buttons ──────────────────────────────────────────── */
+
+  document.querySelectorAll(".replay-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var demo = btn.getAttribute("data-demo");
+      if (demo === "fadein") animFadeIn(document.getElementById("fadein-box"));
+      if (demo === "slideup") animSlideUp(document.getElementById("slideup-box"));
+      if (demo === "stagger") animStagger([].slice.call(document.querySelectorAll("#demo-stagger .card")));
+      if (demo === "bouncepop") animBouncePop(document.getElementById("bounce-badge"));
+      if (demo === "underline") animUnderline(document.getElementById("underline-path"));
+    });
+  });
+
+  /* ── reduced-motion toggle ────────────────────────────────────── */
+
+  var toggleBtn = document.getElementById("motion-toggle");
+  var statusPill = document.getElementById("status-pill");
+  var statusLabel = document.getElementById("status-label");
+
+  function updateStatus() {
+    var animating = shouldAnimate();
+    toggleBtn.setAttribute("aria-checked", String(forceReduced));
+    toggleBtn.classList.toggle("on", forceReduced);
+    statusPill.classList.toggle("reduced", !animating);
+    statusLabel.textContent = animating ? "motion enabled" : "motion disabled (reduced)";
+  }
+
+  toggleBtn.addEventListener("click", function () {
+    forceReduced = !forceReduced;
+    /* Also toggle the CSS class on <html> so the CSS token layer matches.
+       This demonstrates exactly what the creaseworks toggle does. */
+    document.documentElement.classList.toggle("reduce-motion", forceReduced);
+    updateStatus();
+    /* Re-run all animations so you can see the instant difference */
+    runAll();
+  });
+
+  /* Also respond to OS-level preference changes */
+  window.matchMedia("(prefers-reduced-motion: reduce)")
+    .addEventListener("change", function () { updateStatus(); runAll(); });
+
+  updateStatus();
+}());
+</script>
+</body>
+</html>

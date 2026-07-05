@@ -1,3 +1,6 @@
+"use client";
+
+import { FadeIn } from "@windedvertigo/motion-kit";
 import { COLLABORATORS, type Collaborator } from "@/lib/collaborators";
 
 function CollabItem({ c }: { c: Collaborator }) {
@@ -56,11 +59,13 @@ export function CollaboratorStrip({ compact = false }: { compact?: boolean }) {
       )}
 
       {compact && (
-        <ul className="collab-compact-list">
-          {COLLABORATORS.map((c) => (
-            <CollabItem key={c.name} c={c} />
-          ))}
-        </ul>
+        <FadeIn>
+          <ul className="collab-compact-list">
+            {COLLABORATORS.map((c) => (
+              <CollabItem key={c.name} c={c} />
+            ))}
+          </ul>
+        </FadeIn>
       )}
     </section>
   );

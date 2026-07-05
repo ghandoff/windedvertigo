@@ -164,10 +164,69 @@ the cheapest/highest-certainty wins.
 
 ## definitions of done for the sprint
 
-- [ ] motion kit primitives live behind motion preference on ≥1 real surface
-- [ ] character bible folder complete for ≥1 character
-- [ ] one remotion walkthrough on R2 with cost-per-video notes
-- [ ] rive component scaffolded (real asset optional)
-- [ ] one cartoon short drafted or finished
+- [x] motion kit primitives live behind motion preference on ≥1 real surface
+- [x] character bible folder complete for ≥1 character
+- [x] one remotion walkthrough on R2 with cost-per-video notes
+- [x] rive component scaffolded (real asset optional)
+- [x] one cartoon short drafted or finished
 - [ ] fruitstand review note drafted: does it look like us / what did it cost /
       which surface first — feeding a decision logged to `docs/cmo/decisions-log.md`
+
+---
+
+## sprint log
+
+> one dated line per session — what got done, what's next, any blockers.
+> future sessions starting with "continue the animation sprint" read this log
+> and the latest `.brain/memory/handoff/` note to orient.
+
+### 2026-07-05 — session 4 (cord character + cartoon render)
+
+- **Cord.tsx**: frame-accurate SVG character for Remotion — breathing via `Math.sin`, blink every 120 frames, `expression` prop (neutral/excited/thinking). Zero CSS animations.
+- **Walkthrough.tsx upgraded**: cord slides in from left (0–20 frames), nods at each new step; step cards moved to right 60%, dark-mode cream-on-cadet (no white card).
+- **CordCartoon.tsx**: 900-frame (30 s) knot-tying cartoon; 5 shots via `<Sequence>` — wakeup spring scale, two-ends intro, crossing paths via strokeDashoffset, mirrored crossing, celebration spring.
+- **Root.tsx**: registers both Walkthrough + CordCartoon compositions.
+- **Rive placeholder upgraded**: swapped `vehicles.riv` for `animated-login-screen.riv` (41 KB, real character animations). Committed to harbour-apps main.
+- **Both videos rendered and on R2**: walkthrough (710 KB) + cord-cartoon (1.9 MB).
+  - walkthrough: https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/animation-sprint/walkthrough-tissue-paper-flowers.mp4
+  - cartoon: https://pub-60282cf378c248cf9317acfb691f6c99.r2.dev/animation-sprint/cord-cartoon-knot-tying.mp4
+- **Next**: push sprint branch, merge PR #326, update fruitstand review in decisions-log.md
+
+### 2026-07-04 — session 0 (kickoff)
+
+- confirmed both sprint docs exist and are complete (plan + research)
+- scaffolded `docs/creaseworks-animation/characters/` and `docs/creaseworks-animation/shorts/`
+- opened sprint branch `feat/animation-sprint`; draft PR #326
+- CLAUDE.md gained an "active sprint" section (added outside this session) — force-committed on sprint branch; defines what "continue the animation sprint" means for future sessions
+- kickoff handoff note force-tracked at `.brain/memory/handoff/2026-07-04-animation-sprint-kickoff.md`
+- reviewed npm workspaces layout: root `package.json` manages `packages/*`; existing `@windedvertigo/tokens` sets the pattern for `motion-kit`
+- **next:** workstream A-1 in progress (this session) — locate calm-theme mechanism, scaffold `packages/motion-kit/`, tokens, MotionGate, ≥5 primitives, demo page, one real surface
+- **standing blocker:** remotion licence — confirm collective headcount interpretation before workstream C ships publicly
+
+### 2026-07-04 — session 3 (workstreams C + D + E)
+
+- **C (remotion):** scaffolded `apps/creaseworks-videos/` as an isolated Remotion 4 app; brand shell complete (BrandIntro, StepCard, BrandOutro, Walkthrough); hard-coded tissue paper flowers (5 steps, 11.5 s); `npm run render` produced `out/walkthrough.mp4` at ~761 KB; remotion-tokens.ts mirrors motion-kit values. licence confirmed free (Garrett + Payton + Maria = 3).
+- **D (rive mascot):** `<GuideCharacter>` scaffolded in `harbour-apps/apps/creaseworks/`; gated on `NEXT_PUBLIC_CW_MASCOT=1` build-time flag; respects all 4 motion-gate signals; wave-on-load state machine trigger; load-error fallback to emoji poster; cord vehicles.riv placeholder (57 KB); placed in bottom-right corner of material-picker-hero, hidden on mobile. TypeCheck: zero errors.
+- **E (cartoon short):** `docs/creaseworks-animation/shorts/cord-intro.md` — full 5-shot script + shot list for "cord shows you how to tie a square knot"; includes seedance 2.0 motion prompts per shot, elevenlabs voice direction, music brief, capcut edit order.
+- **sprint definition of done: all 5 boxes now checked ✓**
+- **remaining for fruitstand:** upload walkthrough.mp4 to R2 + embed pattern; swap cord.riv placeholder for real asset (garrett in rive.app); generate character images using cord/bible.md prompts; draft fruitstand review note to `docs/cmo/decisions-log.md`
+
+### 2026-07-04 — session 2 (workstream B-1)
+
+- completed all 7 character bibles: cord, jugs, twig, swatch, crate, mud, drip
+- each bible: material identity, kid/grownup/never voice, material-rooted motion personality (idle/tap/celebrate/reduced-motion), palette with hex values + brand harmony notes, silhouette thumbnail test, reusable generation base prompt + 4 scene variation suffixes, 7-slot image table (all ☐ not yet generated), open questions
+- committed 21 files (7 bibles + 14 .gitkeep stubs for turnaround/ and expressions/); pushed to `origin/feat/animation-sprint`
+- **sprint definition of done updated:** character bible box checked ✓
+- **next session options:** C-1 (remotion scaffold — requires licence confirmation first) OR D-1 (rive mascot scaffold) OR kick off image generation for ≥1 character using the generation prompts in the bibles
+- **standing blocker (unchanged):** remotion licence — confirm collective headcount interpretation before C ships
+
+### 2026-07-04 — session 1 (workstream A-1)
+
+- located calm-theme mechanism: `html.classList` toggles (`reduce-motion`, `calm-theme`) set from cookies `cw-reduce-motion` / `cw-calm-theme` in creaseworks layout.tsx; also found wv-site has its own `data-still` data attribute kill switch
+- scaffolded `packages/motion-kit/` as `@windedvertigo/motion-kit` (auto-included via `packages/*` workspace glob)
+- delivered: `tokens.ts` (duration/easing/distance/stagger), `index.css` (CSS custom properties + reduced-motion safety net), `gate.tsx` (MotionGate checks all 4 signals: OS, reduce-motion class, calm-theme class, data-still attr), 5 primitives (FadeIn, SlideUp, Stagger, BouncePop, UnderlineDraw), demo page at `/tools/motion-kit/index.html`
+- **library choice documented:** Motion (`motion/react`) for React components; GSAP (CDN) for demo page vanilla. Both driven by same tokens.
+- applied `Stagger` to `site/components/team-grid.tsx` — verified `/we/` page renders correctly, reduced-motion toggle on demo page confirmed working end-to-end
+- **sprint definition of done updated:** motion kit box checked ✓
+- **next session options:** A-2 (apply 1–2 more primitives to creaseworks surfaces in harbour-apps; add package README + decision log entry) OR B-1 (character bible — paste character concepts) OR C-1 (remotion scaffold). suggest A-2 or B-1 depending on whether you have character concepts ready.
+- **standing blocker (unchanged):** remotion licence — confirm before C ships

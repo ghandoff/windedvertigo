@@ -9,6 +9,15 @@
 > `docs/decisions/CLAUDE-full-snapshot-2026-06-19.md`). Add new war-stories there,
 > not here — over-stuffed always-loaded rules anchor newer Claude versions.
 
+## active sprint — creaseworks animation (remove after ~2026-07-19)
+
+plan + state: `docs/prompts/creaseworks-animation-sprint.md` (sprint log + checkboxes)
+· research: `research/creaseworks-animation-pipeline-options-2026-07.md`
+· branch: `feat/animation-sprint` (draft PR #326).
+if garrett says **"continue the animation sprint"**, that means: read the sprint
+plan's log + checkboxes and the freshest handoff notes in `.brain/memory/handoff/`,
+report where things stand, and propose the next step — wait for a go before building.
+
 ## what lives here
 
 - **site/** — the main `windedvertigo.com` Next.js app (deployed to CF as the

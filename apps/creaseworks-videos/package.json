@@ -1,0 +1,23 @@
+{
+  "name": "@windedvertigo/creaseworks-videos",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render Walkthrough out/walkthrough.mp4 --log=verbose",
+    "build": "remotion bundle",
+    "render:cartoon": "remotion render CordCartoon out/cord-cartoon.mp4 --log=verbose",
+    "render:scene": "remotion render SceneVideo out/scene-video.mp4 --log=verbose"
+  },
+  "dependencies": {
+    "remotion": "^4.0.291",
+    "@remotion/cli": "^4.0.291",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5.5.3"
+  }
+}
