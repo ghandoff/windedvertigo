@@ -164,7 +164,7 @@ the cheapest/highest-certainty wins.
 
 ## definitions of done for the sprint
 
-- [ ] motion kit primitives live behind motion preference on ≥1 real surface
+- [x] motion kit primitives live behind motion preference on ≥1 real surface
 - [ ] character bible folder complete for ≥1 character
 - [ ] one remotion walkthrough on R2 with cost-per-video notes
 - [ ] rive component scaffolded (real asset optional)
@@ -184,8 +184,20 @@ the cheapest/highest-certainty wins.
 
 - confirmed both sprint docs exist and are complete (plan + research)
 - scaffolded `docs/creaseworks-animation/characters/` and `docs/creaseworks-animation/shorts/`
-- opened sprint branch `feat/animation-sprint`
+- opened sprint branch `feat/animation-sprint`; draft PR #326
+- CLAUDE.md gained an "active sprint" section (added outside this session) — force-committed on sprint branch; defines what "continue the animation sprint" means for future sessions
+- kickoff handoff note force-tracked at `.brain/memory/handoff/2026-07-04-animation-sprint-kickoff.md`
 - reviewed npm workspaces layout: root `package.json` manages `packages/*`; existing `@windedvertigo/tokens` sets the pattern for `motion-kit`
-- no code written yet — awaiting go-ahead on A-1
-- **next session:** workstream A-1 — scaffold `packages/motion-kit/`, define motion tokens, implement `MotionGate`, build ≥5 primitives
-- **standing blocker:** remotion licence: free ≤3 people — confirm collective headcount interpretation before workstream C ships publicly
+- **next:** workstream A-1 in progress (this session) — locate calm-theme mechanism, scaffold `packages/motion-kit/`, tokens, MotionGate, ≥5 primitives, demo page, one real surface
+- **standing blocker:** remotion licence — confirm collective headcount interpretation before workstream C ships publicly
+
+### 2026-07-04 — session 1 (workstream A-1)
+
+- located calm-theme mechanism: `html.classList` toggles (`reduce-motion`, `calm-theme`) set from cookies `cw-reduce-motion` / `cw-calm-theme` in creaseworks layout.tsx; also found wv-site has its own `data-still` data attribute kill switch
+- scaffolded `packages/motion-kit/` as `@windedvertigo/motion-kit` (auto-included via `packages/*` workspace glob)
+- delivered: `tokens.ts` (duration/easing/distance/stagger), `index.css` (CSS custom properties + reduced-motion safety net), `gate.tsx` (MotionGate checks all 4 signals: OS, reduce-motion class, calm-theme class, data-still attr), 5 primitives (FadeIn, SlideUp, Stagger, BouncePop, UnderlineDraw), demo page at `/tools/motion-kit/index.html`
+- **library choice documented:** Motion (`motion/react`) for React components; GSAP (CDN) for demo page vanilla. Both driven by same tokens.
+- applied `Stagger` to `site/components/team-grid.tsx` — verified `/we/` page renders correctly, reduced-motion toggle on demo page confirmed working end-to-end
+- **sprint definition of done updated:** motion kit box checked ✓
+- **next session options:** A-2 (apply 1–2 more primitives to creaseworks surfaces in harbour-apps; add package README + decision log entry) OR B-1 (character bible — paste character concepts) OR C-1 (remotion scaffold). suggest A-2 or B-1 depending on whether you have character concepts ready.
+- **standing blocker (unchanged):** remotion licence — confirm before C ships

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Stagger } from "@windedvertigo/motion-kit/primitives";
 import type { TeamMember } from "@/lib/notion";
 
 /**
@@ -103,10 +104,10 @@ function MemberCard({ member }: { member: TeamMember }) {
 
 export function TeamGrid({ members }: { members: TeamMember[] }) {
   return (
-    <div className="team-grid">
+    <Stagger className="team-grid" staggerMs={80} itemDelay={100}>
       {members.map((member) => (
         <MemberCard key={member.name} member={member} />
       ))}
-    </div>
+    </Stagger>
   );
 }

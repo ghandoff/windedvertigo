@@ -1,0 +1,35 @@
+{
+  "name": "@windedvertigo/motion-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Brand-tokened animation primitives for winded.vertigo apps. Respects prefers-reduced-motion and the creaseworks calm-theme/reduce-motion HTML classes.",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./tokens": "./tokens.ts",
+    "./gate": "./gate.tsx",
+    "./primitives": "./primitives/index.ts",
+    "./index.css": "./index.css"
+  },
+  "files": [
+    "index.ts",
+    "index.css",
+    "tokens.ts",
+    "gate.tsx",
+    "primitives"
+  ],
+  "scripts": {
+    "build": "echo 'motion-kit: no build step (consumed directly as TS source)'"
+  },
+  "dependencies": {
+    "motion": "^12.42.2"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.0.0"
+  }
+}
