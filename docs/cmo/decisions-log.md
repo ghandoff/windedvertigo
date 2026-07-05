@@ -97,3 +97,19 @@ payton reported having "multiple conversations" with Mo via her cowork setup. th
 - the $482,500 curated figure includes ~$52,300 of unallocated pipeline that has no backing deal yet. the live /strategy bar shows the *concrete* pipeline only: **$430,200 (86%), $170,000 locked (34%), $69,800 to close**.
 - fixed the live revenue bar to exclude speculative `pursuing` radar RFPs (an $8M Gates grant was saturating it at 1699%); it now counts only submitted/interviewing proposals + signed deals.
 - $482,500 is retained here and in the strategy-data.ts fallback as Mo's tracking target; the live bar is the honest concrete number.
+
+---
+
+## 2026-07-04 — garrett (animation sprint)
+
+- **adopted `@windedvertigo/motion-kit`** as the shared animation primitive library for harbour apps and the main site. lives at `packages/motion-kit/` in the monorepo.
+
+- **why one shared library:** gives us a single reduced-motion gate that covers all four preference signals — OS setting, creaseworks calm-theme, creaseworks reduce-motion toggle, and the wv-site kill switch — rather than checking them independently in each component. brand tokens for duration, easing, and distance live in one place.
+
+- **zero new paid dependencies:** Motion (`motion/react` v12, MIT licence) for React components — best fit for React 19 concurrent rendering, first-class AnimatePresence, AI kit available for coding agents. GSAP for vanilla JS and the demo page — fully free including all plugins.
+
+- **five primitives shipped:** FadeIn, SlideUp, Stagger, BouncePop, UnderlineDraw.
+
+- **first real surfaces:** `site/components/team-grid.tsx` (Stagger on /we/ team grid), `site/components/collaborator-strip.tsx` (FadeIn on compact collaborator list on the /do/ page).
+
+- **remotion licence still open:** workstream C needs garrett to confirm collective headcount before we evaluate the Remotion licence tier.
