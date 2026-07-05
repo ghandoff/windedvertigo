@@ -165,7 +165,7 @@ the cheapest/highest-certainty wins.
 ## definitions of done for the sprint
 
 - [x] motion kit primitives live behind motion preference on ≥1 real surface
-- [ ] character bible folder complete for ≥1 character
+- [x] character bible folder complete for ≥1 character
 - [ ] one remotion walkthrough on R2 with cost-per-video notes
 - [ ] rive component scaffolded (real asset optional)
 - [ ] one cartoon short drafted or finished
@@ -190,6 +190,15 @@ the cheapest/highest-certainty wins.
 - reviewed npm workspaces layout: root `package.json` manages `packages/*`; existing `@windedvertigo/tokens` sets the pattern for `motion-kit`
 - **next:** workstream A-1 in progress (this session) — locate calm-theme mechanism, scaffold `packages/motion-kit/`, tokens, MotionGate, ≥5 primitives, demo page, one real surface
 - **standing blocker:** remotion licence — confirm collective headcount interpretation before workstream C ships publicly
+
+### 2026-07-04 — session 2 (workstream B-1)
+
+- completed all 7 character bibles: cord, jugs, twig, swatch, crate, mud, drip
+- each bible: material identity, kid/grownup/never voice, material-rooted motion personality (idle/tap/celebrate/reduced-motion), palette with hex values + brand harmony notes, silhouette thumbnail test, reusable generation base prompt + 4 scene variation suffixes, 7-slot image table (all ☐ not yet generated), open questions
+- committed 21 files (7 bibles + 14 .gitkeep stubs for turnaround/ and expressions/); pushed to `origin/feat/animation-sprint`
+- **sprint definition of done updated:** character bible box checked ✓
+- **next session options:** C-1 (remotion scaffold — requires licence confirmation first) OR D-1 (rive mascot scaffold) OR kick off image generation for ≥1 character using the generation prompts in the bibles
+- **standing blocker (unchanged):** remotion licence — confirm collective headcount interpretation before C ships
 
 ### 2026-07-04 — session 1 (workstream A-1)
 
