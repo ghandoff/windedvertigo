@@ -71,6 +71,7 @@
   .note{background:#eef3f0;border:1px solid #d3e3da;border-radius:10px;padding:12px 14px;font-size:13px;color:#2f5a44;margin-top:12px}
   .foot{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
   @media(max-width:760px){.cards,.evals,.lens{grid-template-columns:1fr}.read .r{grid-template-columns:90px 1fr}}
+  @media(max-width:640px){.era-sub-text{display:none}}
 </style>
 </head>
 <body>
@@ -194,7 +195,7 @@ document.getElementById('ev').innerHTML=evs.map(([m,d,c,t])=>
 // geography
 const geo=[['Greece',3],['Jordan',3],['Lebanon',3],['Afghanistan',3],['Ukraine',3],['Pakistan',2],['Palestine / Gaza',2],['Balkans / Italy / Poland',1],['Syria',1],['UK',1]];
 document.getElementById('geo').innerHTML=geo.map(([g,n])=>
- '<span class="chip" style="background:'+['','#f3efe9','#dbe9e1','#bfe0cd'][n]+'"><b>'+g+'</b></span>').join('');
+ '<span class="chip" style="background:'+['','#e8edf4','#c2d3e8','#8fb8d8'][n]+'"><b>'+g+'</b></span>').join('');
 // timeline — bar height AND colour both encode density (1 sparse → 6 dense)
 const yrs=[['16',1],['17',1],['18',2],['19',2],['20',3],['21',3],['22',4],['23',4],['24',5],['25',6],['26',5]];
 const dmax=6;
@@ -210,6 +211,153 @@ yrs.forEach(([y,n])=>{
   const lab=document.createElement('div'); lab.className='lab'; lab.textContent='’'+y;
   cell.append(val,wrap,lab); yrEl.appendChild(cell);
 });
+
+// ERA OVERLAY — strategic arc above the density chart
+(function(){
+  var SERIF='Iowan Old Style,"Palatino Linotype",Georgia,"Times New Roman",serif';
+  var ERAS=[
+    {num:'I',   name:'Direct delivery',     sub:'starting close, Greece',  bg:'#c9b28e',op:0.10},
+    {num:'II',  name:'The pilot phase',     sub:'Baytna Hub emerges',      bg:'#b39267',op:0.14},
+    {num:'III', name:'The training pivot',  sub:'teaching the teachers',   bg:'#8f6e46',op:0.16},
+    {num:'IV',  name:'The ecosystem story', sub:'what outlasts the grant', bg:'#6b4d2e',op:0.20},
+  ];
+  var yrEl=document.getElementById('yr');
+
+  // Wrap #yr in a positioned container with headroom for era labels.
+  // Three explicit z-layers so stacking is unambiguous:
+  //   z:1  bandsLayer  — warm ramp bands + white dividers (always behind bars)
+  //   z:2  yrEl        — the density bars themselves
+  //   z:3  pivotLayer  — dashed 2021 line (intentionally in front)
+  //   z:4  hZone       — era header typography
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:relative;padding-top:105px;margin-top:8px';
+  yrEl.parentNode.insertBefore(wrap,yrEl);
+  wrap.appendChild(yrEl);
+  yrEl.style.cssText+='position:relative;z-index:2;margin-top:0';
+
+  // Accessible era description for screen readers
+  var srEl=document.createElement('p');
+  srEl.style.cssText='clip:rect(0 0 0 0);clip-path:inset(50%);height:1px;overflow:hidden;position:absolute;white-space:nowrap;width:1px;margin:0';
+  srEl.textContent='Strategic eras: I Direct delivery 2016–2018, starting close in Greece. II The pilot phase 2018–2021, Baytna Hub emerges. III The training pivot 2021–2024, teaching the teachers. IV The ecosystem story 2024–2026, what outlasts the grant.';
+  wrap.insertBefore(srEl,yrEl);
+
+  // Layer behind bars: era bands + white dividers
+  var bandsLayer=document.createElement('div');
+  bandsLayer.setAttribute('aria-hidden','true');
+  bandsLayer.style.cssText='position:absolute;top:105px;left:0;right:0;bottom:0;z-index:1;pointer-events:none;overflow:hidden';
+  wrap.insertBefore(bandsLayer,srEl);
+
+  // Layer in front of bars: pivot dashed line
+  var pivotLayer=document.createElement('div');
+  pivotLayer.setAttribute('aria-hidden','true');
+  pivotLayer.style.cssText='position:absolute;top:105px;left:0;right:0;bottom:0;z-index:3;pointer-events:none;overflow:hidden';
+  wrap.appendChild(pivotLayer);
+
+  // Header zone: era typography, above everything
+  var hZone=document.createElement('div');
+  hZone.setAttribute('aria-hidden','true');
+  hZone.style.cssText='position:absolute;top:0;left:0;right:0;height:105px;z-index:4;pointer-events:none;overflow:visible';
+  wrap.insertBefore(hZone,bandsLayer);
+
+  function buildOverlay(){
+    while(hZone.firstChild) hZone.removeChild(hZone.firstChild);
+    while(bandsLayer.firstChild) bandsLayer.removeChild(bandsLayer.firstChild);
+    while(pivotLayer.firstChild) pivotLayer.removeChild(pivotLayer.firstChild);
+
+    var cells=Array.from(yrEl.querySelectorAll('.yrcell'));
+    if(!cells.length) return;
+
+    var yR=yrEl.getBoundingClientRect();
+    var hR=hZone.getBoundingClientRect();
+    // bandsLayer and yrEl share the same left edge (both full-width in wrap)
+    var bLayerR=bandsLayer.getBoundingClientRect();
+
+    function xFromYrEl(el){
+      var r=el.getBoundingClientRect();
+      return {l:r.left-yR.left, r:r.right-yR.left, m:r.left+r.width/2-yR.left};
+    }
+
+    // Era boundary x-coords relative to yrEl (= relative to bandsLayer, same left)
+    var bx=[
+      xFromYrEl(cells[0]).l,   // left of 2016
+      xFromYrEl(cells[2]).m,   // center of 2018
+      xFromYrEl(cells[5]).m,   // center of 2021
+      xFromYrEl(cells[8]).m,   // center of 2024
+      xFromYrEl(cells[10]).r   // right of 2026
+    ];
+
+    var hOff=yR.left-hR.left; // translate yrEl-x to hZone-x (≈0, both full-width)
+
+    // 1. Warm ramp background bands — in bandsLayer (z:1), always behind bars (z:2)
+    ERAS.forEach(function(era,i){
+      var band=document.createElement('div');
+      band.style.cssText='position:absolute;top:0;bottom:0;pointer-events:none';
+      band.style.left=bx[i]+'px';
+      band.style.width=(bx[i+1]-bx[i])+'px';
+      band.style.background=era.bg;
+      band.style.opacity=era.op;
+      bandsLayer.appendChild(band);
+    });
+
+    // 2. White vertical dividers at era boundaries — also in bandsLayer
+    [bx[1],bx[2],bx[3]].forEach(function(x){
+      var d=document.createElement('div');
+      d.style.cssText='position:absolute;top:0;bottom:0;pointer-events:none;background:#ffffff;opacity:0.7;width:1px';
+      d.style.left=x+'px';
+      bandsLayer.appendChild(d);
+    });
+
+    // 3. 2021 strategic pivot dashed line — in pivotLayer (z:3), in front of bars
+    var pivX=bx[2]+2;
+    var pivLine=document.createElement('div');
+    pivLine.style.cssText='position:absolute;top:0;bottom:0;pointer-events:none;opacity:0.45;border-left:0.6px dashed var(--ink)';
+    pivLine.style.left=pivX+'px';
+    pivotLayer.appendChild(pivLine);
+
+    // 4. Era header labels in hZone (z:4)
+    ERAS.forEach(function(era,i){
+      var lx=bx[i]+hOff, rx=bx[i+1]+hOff;
+      var midX=(lx+rx)/2;
+
+      var block=document.createElement('div');
+      block.style.cssText='position:absolute;top:10px;display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:none;overflow:hidden';
+      block.style.left=lx+'px';
+      block.style.width=(rx-lx)+'px';
+
+      var numEl=document.createElement('span');
+      numEl.style.cssText='display:block;font-family:'+SERIF+';font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;font-variant:small-caps;color:var(--muted);margin-bottom:4px;font-weight:400';
+      numEl.textContent=era.num;
+
+      var nameEl=document.createElement('span');
+      nameEl.style.cssText='display:block;font-family:'+SERIF+';font-size:14px;font-style:italic;color:var(--ink);line-height:1.3;margin-bottom:3px';
+      nameEl.textContent=era.name;
+
+      var subEl=document.createElement('span');
+      subEl.className='era-sub-text';
+      subEl.style.cssText='display:block;font-family:'+SERIF+';font-size:10px;font-style:italic;color:var(--muted);line-height:1.3';
+      subEl.textContent=era.sub;
+
+      block.append(numEl,nameEl,subEl);
+      hZone.appendChild(block);
+
+      // Hairline connector from just below subtitle down to chart top
+      var hair=document.createElement('div');
+      hair.style.cssText='position:absolute;top:70px;height:35px;pointer-events:none;background:var(--muted);opacity:0.4;width:0.5px';
+      hair.style.left=midX+'px';
+      hZone.appendChild(hair);
+    });
+
+    // 5. Strategic pivot annotation — bottom of header zone, right of 2021 line
+    var pAnnot=document.createElement('div');
+    pAnnot.style.cssText='position:absolute;top:76px;font-family:'+SERIF+';font-size:10px;font-style:italic;color:#5a5a5a;white-space:nowrap;pointer-events:none';
+    pAnnot.style.left=(bx[2]+hOff+5)+'px';
+    pAnnot.textContent='strategic pivot';
+    hZone.appendChild(pAnnot);
+  }
+
+  requestAnimationFrame(buildOverlay);
+  window.addEventListener('resize',function(){ requestAnimationFrame(buildOverlay); });
+})();
 
 // parse a static SVG string into a node (no innerHTML sink; handles svg namespace)
 function svgFrom(str){ return new DOMParser().parseFromString(str,'image/svg+xml').documentElement; }
