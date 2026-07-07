@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { searchRecords, isConfigured as isFSConfigured } from "@/lib/familysearch/client";
 import { searchNewspapers } from "@/lib/chronicling-america/client";
 import { searchNARA } from "@/lib/nara/client";

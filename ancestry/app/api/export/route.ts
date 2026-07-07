@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getTreePersons, getTreeRelationships } from "@/lib/db/queries";
 import { exportGedcom } from "@/lib/gedcom/exporter";
 import { exportGedcom7 } from "@/lib/gedcom/exporter7";

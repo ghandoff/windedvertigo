@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, createComment, deleteComment, logActivity } from "@/lib/db/queries";
 import type { CommentTargetType } from "@/lib/types";
 import { revalidatePath } from "next/cache";

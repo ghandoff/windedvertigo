@@ -1,4 +1,4 @@
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getPerson, getOrCreateTree, getPersonRelatives, getPersonSources, getTreeRole, getHintsForPerson, getComments, getDnaData, getPersonMedia } from "@/lib/db/queries";

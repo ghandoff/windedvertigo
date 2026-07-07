@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@windedvertigo/tokens/index.css";
+@import "../lib/tokens/index.css";
 
 @theme inline {
     --font-sans: var(--font-sans);

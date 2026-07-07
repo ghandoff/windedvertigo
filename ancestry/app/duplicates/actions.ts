@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getTreePersons, mergePersons, getPerson, logActivity } from "@/lib/db/queries";
 import { getDb } from "@/lib/db";
 import { findDuplicates, type DuplicateMatch } from "@/lib/duplicates/detector";

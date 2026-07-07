@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import {
   getOrCreateTree,

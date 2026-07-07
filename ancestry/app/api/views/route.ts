@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getSavedViews, addSavedView, deleteSavedView } from "@/lib/db/queries";
 
 export async function GET() {
