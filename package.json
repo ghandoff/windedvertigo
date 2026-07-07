@@ -5,7 +5,6 @@
     "site",
     "port",
     "ops",
-    "ancestry",
     "port-jobs",
     "packages/*",
     "apps/harbour/packages/security",

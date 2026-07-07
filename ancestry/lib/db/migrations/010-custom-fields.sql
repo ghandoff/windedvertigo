@@ -1,1 +1,0 @@
-ALTER TABLE persons ADD COLUMN IF NOT EXISTS custom_fields JSONB DEFAULT '{}';
