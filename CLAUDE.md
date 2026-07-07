@@ -13,9 +13,12 @@
 
 - **site/** — the main `windedvertigo.com` Next.js app (deployed to CF as the
   `wv-site` Worker). Marketing site, harbour landing, contribution forms.
-- **apps/harbour/** — parallel checkout of harbour sub-apps mirrored from
-  `harbour-apps/`. **Don't assume parity** — check both before claiming a file
-  is the source of truth.
+- **apps/harbour/** — **NOT a mirror any more.** The old ~May-18 full snapshot
+  was retired 2026-07-07 (PRs #332 + #334) once git-activity confirmed
+  `harbour-apps/` is the authoritative source for the whole harbour suite. Only
+  4 wired-in pieces remain: `packages/security`, `values-auction`,
+  `read-the-room` (npm workspace members) + `images` (site-referenced). For any
+  harbour app, **`harbour-apps/` is the source of truth** — don't reach here.
 - **port/** — internal AI proposal tooling, kanban, harbour ops.
 - **apps/ppcs-impact/** — PPCS 2026 engagement dashboard. D1-backed, no PII.
   Deploy: `cd apps/ppcs-impact && npm run deploy`. Data refresh (no redeploy):

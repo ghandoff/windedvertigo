@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>whirlpool icebreaker · winded.vertigo</title>
+<style>
+  :root{--ink:#26215c;--muted:#5f5e5a;--line:rgba(38,33,92,.18);--bg:#faf8f2;--card:#fff}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);min-height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1.1rem;padding:2rem 1rem;text-align:center}
+  h1{font-size:1.15rem;font-weight:600;margin:0}
+  .sub{font-size:.9rem;color:var(--muted);margin:-.5rem 0 0}
+  .stage{position:relative;width:300px;height:300px}
+  #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+  #pointer{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;
+    border-left:11px solid transparent;border-right:11px solid transparent;border-top:18px solid var(--ink);z-index:3}
+  #wheel{width:300px;height:300px;border-radius:50%;border:1px solid var(--line);
+    transition:transform 3.6s cubic-bezier(.17,.67,.21,1);position:relative}
+  .num{position:absolute;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--ink);
+    font-size:.8rem;font-weight:600;display:flex;align-items:center;justify-content:center;
+    transform:translate(-50%,-50%);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  #spin{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:82px;height:82px;
+    border-radius:50%;background:#fff;border:1px solid var(--line);cursor:pointer;font:inherit;
+    font-weight:600;font-size:.9rem;color:var(--ink);transition:transform .1s}
+  #spin:active{transform:translate(-50%,-50%) scale(.95)}
+  #card{width:100%;max-width:560px;min-height:88px;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:1.1rem 1.3rem;display:flex;align-items:center;justify-content:center}
+  #card p{margin:0;color:var(--muted);font-size:.95rem;line-height:1.6}
+  footer{font-size:.75rem;color:var(--muted)}
+</style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <h1>🌀 whirlpool icebreaker</h1>
+  <p class="sub">first 10–15 minutes · spin, share, pass it on — no work talk yet</p>
+  <div class="stage">
+    <div id="pointer"></div>
+    <div id="wheel"></div>
+    <button id="spin" aria-label="spin the icebreaker">spin</button>
+  </div>
+  <div id="card"><p>spin to start the circle.</p></div>
+  <footer>made by PaM for winded.vertigo · reusable every whirlpool</footer>
+<script>
+(function(){
+  var prompts=[
+    "one word for how you're arriving today",
+    "first pancake — share a rough thing you made this week",
+    "if your week were a weather report, what's the forecast?",
+    "a small win nobody's clapped for yet",
+    "grab the nearest object that matches your mood — show us",
+    "rose, thorn, bud — one each, fast",
+    "a game (any kind) you played recently",
+    "name or hum a song stuck in your head",
+    "one thing you want to leave behind this week",
+    "what are you most curious about right now?",
+    "pick a creaseworks ‘find’ activity for us to try together",
+    "who would you most love to playtest with?"
+  ];
+  var colors=["#85B7EB","#5DCAA5","#97C459","#EF9F27","#F0997B","#ED93B1","#AFA9EC","#B4B2A9","#85B7EB","#5DCAA5","#97C459","#EF9F27"];
+  var seg=360/prompts.length;
+  var wheel=document.getElementById('wheel'),card=document.getElementById('card'),btn=document.getElementById('spin');
+  wheel.style.background="conic-gradient("+prompts.map(function(_,i){return colors[i]+" "+(i*seg)+"deg "+((i+1)*seg)+"deg";}).join(",")+")";
+  prompts.forEach(function(_,i){
+    var a=(i*seg+seg/2)*Math.PI/180,r=112,x=150+r*Math.sin(a),y=150-r*Math.cos(a);
+    var d=document.createElement('div');d.className='num';d.textContent=i+1;d.style.left=x+'px';d.style.top=y+'px';wheel.appendChild(d);
+  });
+  var cv=document.getElementById('confetti'),ctx=cv.getContext('2d');
+  function size(){cv.width=innerWidth;cv.height=innerHeight;}size();addEventListener('resize',size);
+  function burst(){var cols=colors,P=[];for(var i=0;i<80;i++){P.push({x:innerWidth/2,y:innerHeight*0.4,vx:(Math.random()-.5)*10,vy:Math.random()*-10-3,g:.32,s:5+Math.random()*6,c:cols[i%cols.length],r:Math.random()*6});}var t0=Date.now();(function f(){var el=Date.now()-t0;ctx.clearRect(0,0,cv.width,cv.height);P.forEach(function(p){p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=.2;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.globalAlpha=Math.max(0,1-el/1500);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s);ctx.restore();});if(el<1500)requestAnimationFrame(f);else ctx.clearRect(0,0,cv.width,cv.height);})();}
+  var rot=0,busy=false,last=-1;
+  function spin(){
+    if(busy)return;busy=true;
+    var t;do{t=Math.floor(Math.random()*prompts.length);}while(t===last&&prompts.length>1);last=t;
+    var desired=(360-(t*seg+seg/2)),cur=((rot%360)+360)%360,delta=(desired-cur+360)%360;
+    rot+=360*5+delta;wheel.style.transform="rotate("+rot+"deg)";btn.textContent="…";
+    setTimeout(function(){busy=false;btn.textContent="again";card.innerHTML='<p style="margin:0;font-size:1.05rem;font-weight:600;color:var(--ink);">'+(t+1)+'. '+prompts[t]+'</p>';burst();},3700);
+  }
+  btn.addEventListener('click',spin);
+})();
+</script>
+</body>
+</html>
