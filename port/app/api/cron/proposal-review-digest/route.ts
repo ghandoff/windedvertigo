@@ -43,6 +43,9 @@ export async function GET(req: NextRequest) {
       "proposal_draft_url, cover_letter_url, team_cvs_url",
     )
     .in("proposal_review_stage", ["v1-generated", "human-review"])
+    // Exclude terminal bid statuses — a no-go or missed-deadline card that
+    // previously had a proposal generated should not reappear every morning.
+    .not("status", "in", '("no-go","missed deadline","lost","won")')
     .order("due_date", { ascending: true, nullsFirst: false });
 
   if (queryErr) {
