@@ -1,4 +1,4 @@
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getOrCreateTree, getTreePersons, getTreeRelationships, getTreePlaces, getAccessibleTrees, getTreeRole, getRecentActivity, getHintCounts, getLayoutPositions } from "@/lib/db/queries";

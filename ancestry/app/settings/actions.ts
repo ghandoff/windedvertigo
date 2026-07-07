@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
   getOrCreateTree,

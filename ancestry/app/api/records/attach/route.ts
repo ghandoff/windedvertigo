@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { createSource, createCitation, getOrCreateTree } from "@/lib/db/queries";
 
 export async function POST(req: NextRequest) {

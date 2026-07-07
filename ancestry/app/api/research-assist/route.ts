@@ -1,4 +1,4 @@
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getPerson, getPersonRelatives, getOrCreateTree } from "@/lib/db/queries";

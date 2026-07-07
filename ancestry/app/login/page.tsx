@@ -1,4 +1,4 @@
-import { signIn } from "@windedvertigo/auth";
+import { signIn } from "@/lib/auth";
 import Link from "next/link";
 
 export default function LoginPage() {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getHintsForTree, getPerson } from "@/lib/db/queries";
 import { formatFuzzyDate } from "@/lib/db/utils";
 import type { HintStatus } from "@/lib/types";

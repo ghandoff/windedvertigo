@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getPlacesWithCoords, getUngeocodedPlaces, geocodePlace, getMigrationPaths, logActivity } from "@/lib/db/queries";
 import { revalidatePath } from "next/cache";
 

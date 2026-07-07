@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getTreePersons, createPerson, createRelationship, logActivity, getPerson } from "@/lib/db/queries";
 import { generateHintsForPerson } from "@/lib/hints/engine";
 import { revalidatePath } from "next/cache";

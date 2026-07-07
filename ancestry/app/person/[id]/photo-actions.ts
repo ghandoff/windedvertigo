@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getPerson, getPersonMedia, deleteMedia, setPersonThumbnail, logActivity } from "@/lib/db/queries";
 import { revalidatePath } from "next/cache";
 import { deleteMediaByUrl } from "@/lib/storage";

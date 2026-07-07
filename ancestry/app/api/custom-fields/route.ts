@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getCustomFieldKeys } from "@/lib/db/queries";
 
 export async function GET() {

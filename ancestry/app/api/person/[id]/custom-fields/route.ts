@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { updateCustomFields, deleteCustomField } from "@/lib/db/queries";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

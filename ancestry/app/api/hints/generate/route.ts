@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getTreePersons } from "@/lib/db/queries";
 import { generateHintsForPerson } from "@/lib/hints/engine";
 import { isConfigured as isFSConfigured } from "@/lib/familysearch/client";

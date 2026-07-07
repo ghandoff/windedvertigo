@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { isConfigured, searchPersons } from "@/lib/familysearch/client";
 
 export async function GET(req: NextRequest) {

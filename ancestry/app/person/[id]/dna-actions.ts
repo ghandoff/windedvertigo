@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@windedvertigo/auth";
+import { auth } from "@/lib/auth";
 import { getOrCreateTree, getPerson, updateDnaData, logActivity } from "@/lib/db/queries";
 import type { DnaData } from "@/lib/types";
 import { revalidatePath } from "next/cache";

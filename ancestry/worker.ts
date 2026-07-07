@@ -1,6 +1,6 @@
 /**
  * Ancestry Worker entry — wraps OpenNext's emitted worker with
- * @windedvertigo/security for response-header injection, and wires
+ * @/lib/security for response-header injection, and wires
  * the two Vercel cron jobs as CF Workers scheduled() triggers.
  *
  * Why this file exists:
@@ -30,7 +30,7 @@ import openNextHandler, {
 import {
   wrapWithSecurityHeaders,
   HARBOUR_DEFAULT_CSP,
-} from "@windedvertigo/security";
+} from "@/lib/security";
 
 // Re-export Durable Object classes so wrangler keeps them in the deployed
 // worker. Without these, OpenNext's queue / tag-cache DOs fail at runtime.
