@@ -138,8 +138,15 @@ async function RfpBoard({ searchParams }: BoardProps) {
   if (params.status) filters.status = params.status;
   if (params.search) filters.search = params.search;
 
+  // Fetch ALL opportunities (max page size). The board fetches every status then
+  // splits into active/completed below — a small pageSize silently truncates:
+  // terminal opportunities (no-go, missed-deadline) sort early by due_date and
+  // crowd out active cards (e.g. "pursuing" with future deadlines fell past row
+  // 100), so they vanished from the Kanban. See scripts/audit-rfp-pagination.mjs,
+  // which warns before the total approaches this ceiling. TODO(follow-up): fetch
+  // active + completed separately so this can never truncate the active board.
   const [{ data: rfps }, portfolio] = await Promise.all([
-    getRfpOpportunitiesFromSupabase(filters, { pageSize: 100 }),
+    getRfpOpportunitiesFromSupabase(filters, { pageSize: 500 }),
     getPortfolioStats(),
   ]);
 
