@@ -7,7 +7,8 @@
  * by subject line, and creating Activity records for matched replies.
  *
  * Required env vars:
- *   GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN
+ *   GOOGLE_SERVICE_ACCOUNT_JSON (or GOOGLE_SA_RFP_SCANNER) — SA with gmail.modify
+ *     domain-wide delegation for garrett@windedvertigo.com
  *   CRON_SECRET
  *
  * Flow:
@@ -37,10 +38,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // Check if Gmail credentials are configured — skip gracefully if not
-  if (!process.env.GMAIL_REFRESH_TOKEN) {
+  // Check if the service-account credential is configured — skip gracefully if not.
+  // getGmailAccessToken() impersonates garrett@ via this SA (domain-wide delegation).
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON && !process.env.GOOGLE_SA_RFP_SCANNER) {
     return NextResponse.json({
-      message: "Gmail reply sync skipped — GMAIL_REFRESH_TOKEN not set",
+      message: "Gmail reply sync skipped — GOOGLE_SERVICE_ACCOUNT_JSON not set",
       detected: 0,
     });
   }
