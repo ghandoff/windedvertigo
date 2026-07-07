@@ -1,1 +1,0 @@
-ALTER TABLE trees ADD COLUMN IF NOT EXISTS saved_views JSONB DEFAULT '[]';
