@@ -39,44 +39,6 @@ export interface GmailMessage {
   date: string;
 }
 
-/** Exchange a refresh token for a short-lived access token. */
-async function refreshAccessToken(clientId: string, clientSecret: string, refreshToken: string): Promise<string> {
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Gmail token refresh failed: ${text}`);
-  }
-
-  const data = await res.json() as { access_token: string };
-  return data.access_token;
-}
-
-/**
- * Resolve the OAuth client credential pair for personal-inbox refresh-token
- * flows. The wv-port Cloudflare worker carries the consolidated
- * GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET secrets; .env.example documents the
- * GMAIL_CLIENT_ID / GMAIL_CLIENT_SECRET names. Prefer the gmail-specific names
- * where present, fall back to the google pair. Mirrors the fallback established
- * in #232 for the opsy email scanner so the data crons stop 500ing on the
- * post-Vercel-migration secret-name drift.
- */
-function resolveGoogleOAuthClient(): { clientId?: string; clientSecret?: string } {
-  return {
-    clientId: process.env.GMAIL_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GMAIL_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET,
-  };
-}
-
 /**
  * Access token for the main Garrett inbox, via service-account domain-wide
  * delegation impersonating garrett@windedvertigo.com — the same mechanism the
@@ -111,23 +73,17 @@ export async function getGmailAccessToken(): Promise<string> {
  * gcal/gdocs service account (GOOGLE_SERVICE_ACCOUNT_JSON) — this only succeeds
  * if that SA's domain-wide delegation grants the gmail.modify scope for the
  * impersonated subject; otherwise the token exchange throws (handled upstream).
- * Final fallback is Garrett's OAuth refresh token (works only if userId=me).
+ * (The personal OAuth refresh-token fallback was removed 06 jul 2026 with the
+ * rest of the GMAIL_REFRESH_TOKEN retirement.)
  */
 export async function getRfpGmailAccessToken(): Promise<string> {
   const saKeyJson = process.env.GOOGLE_SA_RFP_SCANNER ?? process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-  if (saKeyJson) {
-    const subject = getRfpGmailUser();
-    return getServiceAccountAccessToken(saKeyJson, subject);
-  }
-  // Fallback: Garrett's OAuth refresh token (works only if userId=me)
-  const { clientId, clientSecret } = resolveGoogleOAuthClient();
-  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-  if (!clientId || !clientSecret || !refreshToken) {
+  if (!saKeyJson) {
     throw new Error(
-      "RFP Gmail credentials not configured (GOOGLE_SA_RFP_SCANNER / GOOGLE_SERVICE_ACCOUNT_JSON, or GMAIL_REFRESH_TOKEN + (GMAIL_ or GOOGLE_)CLIENT_ID/SECRET)",
+      "RFP Gmail credentials not configured (need GOOGLE_SA_RFP_SCANNER or GOOGLE_SERVICE_ACCOUNT_JSON with gmail.modify domain-wide delegation)",
     );
   }
-  return refreshAccessToken(clientId, clientSecret, refreshToken);
+  return getServiceAccountAccessToken(saKeyJson, getRfpGmailUser());
 }
 
 /**
