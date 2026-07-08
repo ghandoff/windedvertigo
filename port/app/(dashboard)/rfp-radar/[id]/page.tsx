@@ -26,6 +26,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { WinProbabilityBadge, computeWinProbability } from "@/app/components/ai-win-probability";
+import { RfpFitBreakdown } from "@/app/components/rfp-fit-breakdown";
 import { RfpDocumentUpload } from "@/app/components/rfp-document-upload";
 import { RfpReEnrichButton } from "@/app/components/rfp-re-enrich-button";
 import { RfpRegenerateButton } from "@/app/components/rfp-regenerate-button";
@@ -551,6 +552,9 @@ export default async function RfpDetailPage({ params }: Props) {
 
         {/* ── right column — 1/3 ─────────────────────── */}
         <div className="space-y-6">
+
+          {/* fit breakdown — explainable score card */}
+          <RfpFitBreakdown rfp={rfp} />
 
           {/* document upload */}
           <Card>
