@@ -65,6 +65,10 @@ const TARGETS = [
   { name: "packages/tokens (workspace pkg → ops)", css: "packages/tokens/index.css", ts: "packages/tokens/index.ts", tail: "" },
   { name: "port local copy", css: "port/lib/shared/tokens/index.css", ts: "port/lib/shared/tokens/index.ts", tail: FONT_PORT },
   { name: "site local copy", css: "site/styles/tokens.css", ts: null, tail: FONT_SITE + SITE_FOOTER },
+  // Legacy standalone served at /styles/tokens.css — unreferenced by the live CF
+  // Worker (bundle @import is the styling path), kept in sync for honesty until
+  // confirmed dead + deleted. Same site tail.
+  { name: "site public copy (legacy /styles/tokens.css)", css: "site/public/styles/tokens.css", ts: null, tail: FONT_SITE + SITE_FOOTER },
 ];
 
 function readCanon() {
