@@ -204,6 +204,64 @@ async function checkSupabaseRls(): Promise<CustomCheckResult> {
   return { status: "green", response_time_ms: r.ms, details: { tables_audited: (r.value ?? []).length } };
 }
 
+/**
+ * Design-token drift (windedvertigo copies vs harbour-apps canonical).
+ *
+ * The worker can't diff the sibling repo at runtime, so a CI job / local run of
+ * `scripts/audit-token-drift.mjs --report` computes drift and stores the fact in
+ * opsy_memory (key `design-token-sync`). This checker re-emits that fact each
+ * cycle so /ops stays fresh (getLatestHealthChecks only scans the last 2h), and
+ * ages it out to amber if the reporter goes silent.
+ */
+async function checkDesignTokenSync(): Promise<CustomCheckResult> {
+  const STALE_MS = 48 * 60 * 60 * 1000;
+  const r = await timed(async () => {
+    const { data, error } = await supabase
+      .from("opsy_memory")
+      .select("value, updated_at")
+      .eq("key", "design-token-sync")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data as { value: string; updated_at: string } | null;
+  });
+  if (r.error) {
+    return { status: "red", response_time_ms: r.ms, symptoms: `token-drift lookup failed: ${r.error}`, details: { error: r.error } };
+  }
+  if (!r.value) {
+    return skipped("awaiting first token-drift report (scripts/audit-token-drift.mjs --report)");
+  }
+
+  let payload: { status?: string; drift_count?: number; files?: string[]; reported_at?: string };
+  try {
+    payload = JSON.parse(r.value.value);
+  } catch {
+    return { status: "amber", response_time_ms: r.ms, symptoms: "token-drift report unparseable", details: { raw: r.value.value } };
+  }
+
+  const reportedAt = payload.reported_at ?? r.value.updated_at;
+  const ageMs = Date.now() - new Date(reportedAt).getTime();
+  if (ageMs > STALE_MS) {
+    const hours = Math.round(ageMs / 3_600_000);
+    return {
+      status: "amber",
+      response_time_ms: r.ms,
+      symptoms: `token-drift report stale (${hours}h old) — the drift CI/report may have stopped running`,
+      details: { ...payload, reported_at: reportedAt, age_hours: hours },
+    };
+  }
+
+  if (payload.status === "red" || (payload.drift_count ?? 0) > 0) {
+    const files = (payload.files ?? []).join(", ");
+    return {
+      status: "red",
+      response_time_ms: r.ms,
+      symptoms: `design tokens drifted from harbour-apps canonical (${payload.drift_count ?? "?"} file(s)): ${files}. Fix: npm run sync:tokens`,
+      details: payload as Record<string, unknown>,
+    };
+  }
+  return { status: "green", response_time_ms: r.ms, details: payload as Record<string, unknown> };
+}
+
 // ── presence-gated stubs (implementations land when credentials exist) ────────
 
 function stub(envVars: string[]): Checker {
@@ -222,6 +280,7 @@ export const CHECKERS: Record<string, Checker> = {
   resend: checkResend,
   "dns-records": checkDnsRecords,
   "supabase-rls": checkSupabaseRls,
+  "design-token-sync": checkDesignTokenSync,
   // unlock list — add the secret to the worker and the check activates a slot
   "supabase-nordic": stub(["SUPABASE_NORDIC_URL", "SUPABASE_NORDIC_SECRET_KEY"]),
   "neon-pools": stub(["NEON_API_KEY"]),
