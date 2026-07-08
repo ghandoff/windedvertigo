@@ -1,3 +1,6 @@
+// AUTO-SYNCED from harbour-apps/packages/tokens/index.ts — DO NOT EDIT.
+// Edit the canonical file in harbour-apps, then run: npm run sync:tokens
+
 /**
  * @windedvertigo/tokens — JS/TS constants
  *
@@ -13,6 +16,7 @@ export const brand = {
   sienna:    "#cb7858",
   champagne: "#ffebd2",
   white:     "#ffffff",
+  cream:     "#fff6e8", // kid-surface background. champagne stays text-only.
 } as const;
 
 /* ── semantic colours ───────────────────────────────────────────── */

@@ -80,6 +80,26 @@ via wv-site's `/*` route (since 2026-05-28). To update: rebuild in `harbour-apps
 (`npm run rebuild-nav`), copy both artifacts to `site/public/`, redeploy wv-site.
 (Why it's served here rather than a dedicated CDN worker: `docs/decisions/`.)
 
+## design tokens (`@windedvertigo/tokens`)
+
+**Canonical source of truth is `harbour-apps/packages/tokens`** (the product repo —
+always ahead: it carries the kid palette + harbour nav CSS). windedvertigo holds
+synced copies, NOT hand-edited ones: `packages/tokens` (workspace pkg, used by
+ops), `port/lib/shared/tokens`, `site/styles/tokens.css`. Each has an
+`AUTO-SYNCED … DO NOT EDIT` header.
+
+- **To change brand/palette/spacing/type:** edit the canonical file in
+  harbour-apps, then here run `npm run sync:tokens`, then redeploy the affected
+  apps (`site` + `port` are manual-deploy; `ops` too if its look must update).
+- **Per-app overrides are preserved** by the sync (in a marked tail block):
+  `--font-body` binds each app's own `next/font` (port = Geist, site = Inter),
+  and site keeps its extended-footer component CSS. Don't move those into
+  canonical — they're intentionally app-local.
+- **Drift guard:** `npm run audit:tokens` (exit 1 on drift). A daily GitHub
+  Action + the `/ops` "design tokens" health signal report it live.
+- Same file-sync pattern + direction as the harbour-nav widget above; assumes
+  both repos are checked out as siblings under `~/Projects/`.
+
 ## Cloudflare WAF carve-out — do NOT delete
 
 The `windedvertigo.com` zone blocks AI-bot user-agents. Anthropic's MCP
