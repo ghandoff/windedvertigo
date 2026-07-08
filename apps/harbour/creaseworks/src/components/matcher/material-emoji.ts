@@ -348,6 +348,90 @@ const MATERIAL_ICON: Record<string, string> = {
 
 const ICON_BASE = "/harbour/creaseworks/icons/materials/";
 
+/* ---- new SVG icon set (2026-07) --------------------------------- */
+/* Maps material title keywords -> SVG filenames in /public/icons/materials/.
+   This is the redesigned icon set. Materials NOT listed here intentionally
+   have no image and fall back to emoji rendering until their SVG lands
+   (see ENABLE_LEGACY_PNG_ICONS below). */
+const MATERIAL_SVG: Record<string, string> = {
+  /* blocks */
+  blocks: "blocks.svg",
+  block: "blocks.svg",
+  "building blocks": "blocks.svg",
+  "wooden blocks": "blocks.svg",
+  lego: "blocks.svg",
+  legos: "blocks.svg",
+  "lego bricks": "blocks.svg",
+
+  /* beads */
+  beads: "beads.svg",
+  bead: "beads.svg",
+
+  /* colored pencils */
+  "colored pencils": "colored-pencils.svg",
+  "colored pencil": "colored-pencils.svg",
+  "coloured pencils": "colored-pencils.svg",
+  "coloured pencil": "colored-pencils.svg",
+  "pencil crayons": "colored-pencils.svg",
+
+  /* cotton */
+  cotton: "cotton.svg",
+  "cotton balls": "cotton.svg",
+  "cotton ball": "cotton.svg",
+
+  /* googly eyes */
+  "googly eyes": "googly-eyes.svg",
+  "googly eye": "googly-eyes.svg",
+  "wiggle eyes": "googly-eyes.svg",
+  "wiggly eyes": "googly-eyes.svg",
+
+  /* rubber bands */
+  "rubber bands": "rubber-bands.svg",
+  "rubber band": "rubber-bands.svg",
+  elastic: "rubber-bands.svg",
+  elastics: "rubber-bands.svg",
+  "elastic bands": "rubber-bands.svg",
+
+  /* popsicle sticks */
+  "popsicle sticks": "popsicle-sticks.svg",
+  "popsicle stick": "popsicle-sticks.svg",
+  "craft stick": "popsicle-sticks.svg",
+  "craft sticks": "popsicle-sticks.svg",
+  "ice cream stick": "popsicle-sticks.svg",
+  "ice cream sticks": "popsicle-sticks.svg",
+
+  /* paper - exact match only (excluded from partial matching so it does
+     not hijack "newspaper", "paper plate", "sandpaper", etc.) */
+  paper: "paper.svg",
+
+  /* dice */
+  dice: "dice.svg",
+
+  /* socks */
+  socks: "socks.svg",
+  sock: "socks.svg",
+  "old sock": "socks.svg",
+  "old socks": "socks.svg",
+};
+
+/* Keys eligible for partial (substring) matching. Generic single words
+   like "paper" and "dice" are excluded so they only match exact titles. */
+const MATERIAL_SVG_PARTIAL = new Set<string>([
+  "building blocks", "wooden blocks", "lego bricks",
+  "beads",
+  "colored pencils", "coloured pencils", "pencil crayons",
+  "cotton balls",
+  "googly eyes", "wiggle eyes", "wiggly eyes",
+  "rubber bands", "rubber band", "elastic bands",
+  "popsicle sticks", "popsicle stick", "craft stick", "craft sticks",
+  "ice cream stick", "ice cream sticks",
+]);
+
+/* Legacy PNG icons are temporarily disabled while the new SVG set rolls
+   out. Materials without a new SVG fall through to emoji rendering.
+   Set this back to `true` to restore the previous PNG icon behaviour. */
+const ENABLE_LEGACY_PNG_ICONS = false;
+
 /**
  * Get a custom icon path for a material, if one exists.
  *
@@ -363,18 +447,25 @@ export function getMaterialIcon(
   _dbEmoji?: string | null,
   dbIcon?: string | null,
 ): string | null {
-  // 0. CMS-managed icon from Notion takes priority
-  if (dbIcon) return `${ICON_BASE}${dbIcon}.png`;
-
   const lower = title.toLowerCase().trim();
 
-  // 1. exact match
-  if (MATERIAL_ICON[lower]) return `${ICON_BASE}${MATERIAL_ICON[lower]}`;
+  // 1. New SVG icon set - exact title match.
+  if (MATERIAL_SVG[lower]) return `${ICON_BASE}${MATERIAL_SVG[lower]}`;
 
-  // 2. partial match
-  for (const [key, file] of Object.entries(MATERIAL_ICON)) {
-    if (lower.includes(key) || key.includes(lower))
+  // 2. New SVG icon set - safe partial match (generic words excluded).
+  for (const [key, file] of Object.entries(MATERIAL_SVG)) {
+    if (MATERIAL_SVG_PARTIAL.has(key) && lower.includes(key))
       return `${ICON_BASE}${file}`;
+  }
+
+  // 3. Legacy PNG icons - temporarily disabled during the SVG rollout.
+  if (ENABLE_LEGACY_PNG_ICONS) {
+    if (dbIcon) return `${ICON_BASE}${dbIcon}.png`;
+    if (MATERIAL_ICON[lower]) return `${ICON_BASE}${MATERIAL_ICON[lower]}`;
+    for (const [key, file] of Object.entries(MATERIAL_ICON)) {
+      if (lower.includes(key) || key.includes(lower))
+        return `${ICON_BASE}${file}`;
+    }
   }
 
   return null;
