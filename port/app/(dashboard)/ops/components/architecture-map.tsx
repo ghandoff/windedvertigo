@@ -126,7 +126,13 @@ function Chip({ children, kind }: { children: React.ReactNode; kind: "stack" | "
 
 /* ── the map ────────────────────────────────────────────────────────────── */
 
-export function ArchitectureMap() {
+export interface TokenSyncStatus {
+  status: "green" | "amber" | "red" | "unknown";
+  detail?: string | null;
+  lastCheck?: string | null;
+}
+
+export function ArchitectureMap({ tokenSync }: { tokenSync?: TokenSyncStatus }) {
   const [lit, setLit] = useState<string | null>(null);
 
   function NodeCard({ n }: { n: ArchNode }) {
@@ -192,6 +198,61 @@ export function ArchitectureMap() {
           <span className="text-muted-foreground/70">tip: click a data store or service to light up what it backs</span>
         </div>
       </div>
+
+      {/* token flow — how @wv/tokens maps within + across the repos (live drift) */}
+      {(() => {
+        const st = tokenSync?.status ?? "unknown";
+        const dot = { green: "bg-emerald-500", amber: "bg-amber-500", red: "bg-red-500", unknown: "bg-muted-foreground/40" }[st];
+        const label = { green: "in sync", amber: "stale / attention", red: "drifted", unknown: "unknown" }[st];
+        return (
+          <div className="rounded-lg border border-border bg-card p-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-medium">design tokens — flow across the twin repos</h2>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 text-[11px]">
+                <span className={cn("h-1.5 w-1.5 rounded-full", dot)} />
+                <span className="font-medium">@wv/tokens: {label}</span>
+                {tokenSync?.detail ? <span className="text-muted-foreground">· {tokenSync.detail}</span> : null}
+              </span>
+            </div>
+            <div className="grid items-stretch gap-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1.4fr)]">
+              {/* canonical */}
+              <div className="flex flex-col justify-center rounded-md border border-amber-500/50 bg-amber-500/5 px-3 py-2">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">canonical source</div>
+                <div className="mt-0.5 text-xs font-medium">harbour-apps/packages/tokens</div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">the superset — brand palette, kid palette, nav CSS</div>
+              </div>
+              {/* arrows */}
+              <div className="flex flex-col items-center justify-center px-1 text-[10px] text-muted-foreground">
+                <span aria-hidden>→</span>
+              </div>
+              {/* consumers */}
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="rounded-md border border-border bg-background/40 px-2.5 py-2">
+                  <div className="text-[11px] font-medium">harbour apps ×~20</div>
+                  <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span className="inline-block h-0 w-5 border-t-2 border-foreground/60" />
+                    <span>import the package directly</span>
+                  </div>
+                  <div className="mt-1 text-[10px] text-muted-foreground/80">@import &quot;@windedvertigo/tokens/index.css&quot;</div>
+                </div>
+                <div className="rounded-md border border-border bg-background/40 px-2.5 py-2">
+                  <div className="text-[11px] font-medium">windedvertigo copies ×4</div>
+                  <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span className="inline-block h-0 w-5 border-t-2 border-dashed border-foreground/50" />
+                    <span>file-synced (npm run sync:tokens)</span>
+                  </div>
+                  <div className="mt-1 text-[10px] text-muted-foreground/80">packages/tokens (→ops) · port/lib/shared · site/styles (+public)</div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><span className="inline-block h-0 w-4 border-t-2 border-foreground/60" /> package import</span>
+              <span className="inline-flex items-center gap-1"><span className="inline-block h-0 w-4 border-t-2 border-dashed border-foreground/50" /> hand-maintained copy (kept honest by the drift check)</span>
+              <span className="text-muted-foreground/70">per-app <code>--font-body</code> (port=Geist, site=Inter) preserved</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* the two arms + the shared bridge */}
       <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr]">
