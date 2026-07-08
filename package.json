@@ -21,8 +21,6 @@
     "deploy:values-auction": "npm run deploy:spa -w apps/harbour/values-auction",
     "dev:read-the-room": "npm run dev -w @windedvertigo/read-the-room",
     "deploy:read-the-room": "bash scripts/deploy-read-the-room.sh",
-    "dev:harbour": "npm run dev -w harbour",
-    "build:harbour": "npm run build -w harbour",
     "dev:port": "npm run dev -w port",
     "build:port": "npm run build -w port",
     "deploy:port": "bash scripts/deploy-port.sh",
