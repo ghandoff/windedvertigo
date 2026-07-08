@@ -132,6 +132,12 @@ export default async function OpsPage({
     (usage?.byFeature["opsy-email-triage"]?.costUsd ?? 0) +
     (usage?.byFeature["opsy-digest"]?.costUsd ?? 0);
 
+  // live design-token drift status → feeds the architecture map's token-flow panel
+  const tokenSvc = rollup?.services["design-token-sync"];
+  const tokenSync = tokenSvc
+    ? { status: tokenSvc.status, detail: tokenSvc.last_check ? `checked ${relTime(tokenSvc.last_check)}` : null, lastCheck: tokenSvc.last_check }
+    : undefined;
+
   return (
     <>
       <PageHeader
@@ -141,7 +147,7 @@ export default async function OpsPage({
 
       <UrlTabs tabs={OPS_TABS} activeTab={activeTab} />
 
-      {activeTab === "architecture" && <ArchitectureMap />}
+      {activeTab === "architecture" && <ArchitectureMap tokenSync={tokenSync} />}
 
       {activeTab === "overview" && (
       <div className="space-y-6">
