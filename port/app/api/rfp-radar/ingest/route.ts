@@ -24,7 +24,7 @@
 
 import { NextRequest } from "next/server";
 import { ingestOpportunity } from "@/lib/ai/rfp-ingest";
-import { notifyNewRfps } from "@/lib/rfp/notify";
+import { notifyNewRfps, notifyHighFitRfpNow } from "@/lib/rfp/notify";
 import { json, error } from "@/lib/api-helpers";
 import type { RfpSource } from "@/lib/notion/types";
 
@@ -70,6 +70,18 @@ export async function POST(req: NextRequest) {
         }],
         "webhook",
       );
+
+      // Immediate high-fit ping — fire-and-forget so it doesn't delay the response.
+      if (result.fitScore === "high fit") {
+        notifyHighFitRfpNow({
+          notionPageId: result.id,
+          name: result.triage.opportunityName,
+          dueDate: result.triage.dueDate,
+          estimatedValue: result.triage.estimatedValue,
+          url: result.url,
+          requirementsSnapshot: result.triage.requirementsSnapshot,
+        }).catch(() => {});
+      }
     }
 
     const status = result.created ? 201 : 200;

@@ -21,7 +21,7 @@
 
 import { NextRequest } from "next/server";
 import { ingestOpportunity } from "@/lib/ai/rfp-ingest";
-import { notifyNewRfps, type NewRfpItem } from "@/lib/rfp/notify";
+import { notifyNewRfps, notifyHighFitRfpNow, type NewRfpItem } from "@/lib/rfp/notify";
 import { json, error } from "@/lib/api-helpers";
 
 // Backfill mode can process 100+ items; 300s covers ~60 AI triage calls at ~5s each.
@@ -162,6 +162,16 @@ async function runPoll(req: NextRequest) {
           torStatus: outcome.torStatus,
           torUrl: outcome.torUrl,
         });
+        if (outcome.fitScore === "high fit") {
+          notifyHighFitRfpNow({
+            notionPageId: outcome.id,
+            name: outcome.triage.opportunityName,
+            dueDate: outcome.triage.dueDate,
+            estimatedValue: outcome.triage.estimatedValue,
+            url: outcome.url,
+            requirementsSnapshot: outcome.triage.requirementsSnapshot,
+          }).catch(() => {});
+        }
       } else result.skipped++;
     } catch (err) {
       result.failed++;
