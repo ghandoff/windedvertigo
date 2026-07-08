@@ -8,6 +8,34 @@ const _notion = new Client({
 });
 
 /**
+ * Kill-switch for all Notion WRITES — Stage 1 of the Notion → Postgres
+ * single-source-of-truth cutover (2026-07-08).
+ *
+ * Postgres is already the canonical store (Phase B write-first + Postgres-first
+ * reads). This flag lets us stop the fire-and-forget Notion mirror in
+ * production WITHOUT a deploy, and roll back instantly, before Stage 2 deletes
+ * the Notion code entirely.
+ *
+ * Default ENABLED — only an explicit `NOTION_ENABLED=0` (or "false") turns
+ * Notion writes off, so merging this change is a no-op until the secret is set
+ * on the `wv-nordic` worker (`wrangler secret put NOTION_ENABLED`). Read at call
+ * time, so flipping the secret takes effect on the next request — no deploy.
+ *
+ * Scope: gates WRITES only. Reads keep their Postgres-first-with-Notion-fallback
+ * safety net during the soak; Stage 2 removes the fallback with the rest of the
+ * Notion code.
+ */
+export function isNotionEnabled() {
+  const flag = process.env.NOTION_ENABLED;
+  return flag !== '0' && flag !== 'false';
+}
+
+// Resolved value returned by a write method when Notion is disabled: a benign
+// no-op page-like object with no id. Callers (writePostgresFirst back-patch,
+// Phase-A helpers) already guard on `page?.id`, so a null id skips cleanly.
+const _NOTION_WRITE_SKIPPED = { id: null, _notionDisabled: true };
+
+/**
  * Retry wrapper with exponential backoff + jitter.
  * Retries on:
  *   - 429  (rate limit)   — up to maxRetries times
@@ -105,13 +133,24 @@ export const notion = {
     retrieve: (...args) => withRetry(() => _notion.databases.retrieve(...args)),
   },
   pages: {
-    create: (...args) => withRetry(() => _notion.pages.create(...args)),
+    // Writes are gated by the NOTION_ENABLED kill-switch (Stage 1 cutover).
+    // When disabled they resolve to a no-op instead of hitting Notion.
+    create: (...args) =>
+      isNotionEnabled()
+        ? withRetry(() => _notion.pages.create(...args))
+        : Promise.resolve(_NOTION_WRITE_SKIPPED),
     retrieve: (...args) => withRetry(() => _notion.pages.retrieve(...args)),
-    update: (...args) => withRetry(() => _notion.pages.update(...args)),
+    update: (...args) =>
+      isNotionEnabled()
+        ? withRetry(() => _notion.pages.update(...args))
+        : Promise.resolve(_NOTION_WRITE_SKIPPED),
   },
   comments: {
     list: (...args) => withRetry(() => _notion.comments.list(...args)),
-    create: (...args) => withRetry(() => _notion.comments.create(...args)),
+    create: (...args) =>
+      isNotionEnabled()
+        ? withRetry(() => _notion.comments.create(...args))
+        : Promise.resolve(_NOTION_WRITE_SKIPPED),
   },
 };
 
