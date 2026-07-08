@@ -86,6 +86,10 @@ export const SERVICES: MonitoredService[] = [
 
   // ── tier 3: external services (every 30 min) ────────────────────────────────
   { id: "notion-api", name: "notion API", platform: "external", tier: 3, kind: "custom" },
+  // design-token drift: re-emits the latest CI/local drift report from opsy_memory.
+  // Tier 3 (30min) keeps it inside the rollup's 2h freshness window; grouped under
+  // "security" as a code-integrity/hygiene signal.
+  { id: "design-token-sync", name: "design tokens (harbour ↔ windedvertigo sync)", platform: "security", tier: 3, kind: "custom" },
   { id: "resend", name: "resend (email)", platform: "external", tier: 3, kind: "custom" },
   { id: "vercel-deployments", name: "vercel deployments", platform: "external", tier: 3, kind: "custom" },
   { id: "github-actions", name: "github actions CI", platform: "external", tier: 3, kind: "custom" },
