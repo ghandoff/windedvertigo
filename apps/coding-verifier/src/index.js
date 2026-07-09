@@ -54,13 +54,15 @@ export default {
         if (!email) return json({ error: "unauthorised" }, 401);
 
         if (path === "/api/claims" && request.method === "GET") return listClaims(url, env);
+        if (path === "/api/layer2" && request.method === "GET") return layer2(env);
         if (path === "/api/stats") return stats(env);
         if (path === "/api/export") return exportClaims(url, env);
 
-        const m = path.match(/^\/api\/claims\/(\d+)(?:\/(verify|flag|adjudicate))?$/);
+        const m = path.match(/^\/api\/claims\/(\d+)(?:\/(verify|flag|adjudicate|interpret))?$/);
         if (m) {
           const id = Number(m[1]);
           if (!m[2] && request.method === "GET") return getClaim(id, env);
+          if (m[2] === "interpret" && request.method === "POST") return interpret(id, request, env, email);
           if (m[2] && request.method === "POST") return act(m[2], id, request, env, email);
         }
         return json({ error: "not_found" }, 404);
@@ -260,7 +262,20 @@ async function getClaim(id, env) {
   const claim = await env.DB.prepare("select * from claims where id = ?").bind(id).first();
   if (!claim) return json({ error: "not_found" }, 404);
   const trail = await env.DB.prepare("select * from audit_log where claim_id = ? order by id asc").bind(id).all();
-  return json({ claim, audit: trail.results || [] });
+  const interp = await env.DB.prepare("select * from interpretations where claim_id = ? order by id asc").bind(id).all();
+  return json({ claim, audit: trail.results || [], interpretations: interp.results || [] });
+}
+
+// ── layer 2: verified/adjudicated claims + their lens interpretations ────────
+
+async function layer2(env) {
+  const claims = (await env.DB.prepare(
+    "select * from claims where status in ('verified','adjudicated') order by id asc"
+  ).all()).results || [];
+  const interp = (await env.DB.prepare("select * from interpretations order by id asc").all()).results || [];
+  const byClaim = {};
+  for (const i of interp) (byClaim[i.claim_id] = byClaim[i.claim_id] || []).push(i);
+  return json({ claims: claims.map((c) => ({ ...c, interpretations: byClaim[c.id] || [] })) });
 }
 
 // ── claims: write (verify / flag / adjudicate) ──────────────────────────────
@@ -302,6 +317,35 @@ async function act(action, id, request, env, reviewer) {
   return getClaim(id, env);
 }
 
+// ── layer 2: record an interpretation (lens reading) ────────────────────────
+// only allowed once a claim's evidence has passed layer 1 (verified/adjudicated).
+// reviewer is the authenticated email; every interpretation also lands in audit_log.
+
+async function interpret(id, request, env, reviewer) {
+  const body = await request.json().catch(() => ({}));
+  const lens = String(body.lens || "");
+  const note = String(body.note || "").trim();
+  const weight = body.weight ? String(body.weight) : null;
+  if (!["psychometric", "practitioner", "collective"].includes(lens)) return json({ error: "lens_required" }, 400);
+  if (!note) return json({ error: "note_required" }, 400);
+  if (weight && !["strong", "moderate", "tentative"].includes(weight)) return json({ error: "bad_weight" }, 400);
+
+  const claim = await env.DB.prepare("select status from claims where id = ?").bind(id).first();
+  if (!claim) return json({ error: "not_found" }, 404);
+  if (!["verified", "adjudicated"].includes(claim.status)) return json({ error: "not_verified" }, 400);
+
+  const now = new Date().toISOString().replace(/\.\d+Z$/, "Z");
+  const ins = env.DB.prepare(
+    "insert into interpretations (claim_id, lens, reviewer, note, weight, created_at) values (?,?,?,?,?,?)"
+  ).bind(id, lens, reviewer, note, weight, now);
+  const audit = env.DB.prepare(
+    "insert into audit_log (claim_id, action, from_status, to_status, reviewer, note, at) values (?,?,?,?,?,?,?)"
+  ).bind(id, "interpret", claim.status, claim.status, reviewer, `${lens}: ${note}`, now);
+
+  await env.DB.batch([ins, audit]);
+  return getClaim(id, env);
+}
+
 // ── dashboard tally ─────────────────────────────────────────────────────────
 
 async function stats(env) {
@@ -320,15 +364,30 @@ async function stats(env) {
     .bind(engagement)
     .first();
 
+  // layer 2 — interpretation coverage across the claims that passed layer 1
+  const byLens = await env.DB.prepare("select lens, count(*) n from interpretations group by lens").all();
+  const interpAgg = await env.DB.prepare(
+    "select count(*) total, count(distinct claim_id) claims from interpretations"
+  ).first();
+
   const total = totals.total || 0;
+  const confronted = totals.confronted || 0; // verified + adjudicated = eligible for layer 2
+  const interpreted = interpAgg.claims || 0;
   return json({
     engagement,
     by_status: tally(byStatus.results, "status"),
     by_agreement: tally(byAgreement.results, "agreement"),
     adjudications_by_reviewer: tally(byReviewer.results, "reviewer"),
     total,
-    source_confronted_pct: total ? Math.round((100 * (totals.confronted || 0)) / total) : 0,
+    source_confronted_pct: total ? Math.round((100 * confronted) / total) : 0,
     coder_agreement_pct: total ? Math.round((100 * (totals.agreed || 0)) / total) : 0,
+    layer2: {
+      interpretations_total: interpAgg.total || 0,
+      by_lens: tally(byLens.results, "lens"),
+      claims_eligible: confronted,
+      claims_interpreted: interpreted,
+      interpretation_coverage_pct: confronted ? Math.round((100 * interpreted) / confronted) : 0,
+    },
   });
 }
 

@@ -1,10 +1,22 @@
 # coding-verifier — evidence verification console
 
-a small, password-gated internal tool for adjudicating **double-coded research
-claims**. each queue item carries the two blind coder excerpts (plus an optional
-cARL direct-read excerpt) and the source location; the app keeps a running tally
-of claims and adjudications, and writes an append-only audit trail.
+a small, google-gated internal tool for validating **double-coded research
+claims**, structured as a **two-layer method**:
 
+- **layer 1 · extraction (reliability).** each claim's evidence is extracted
+  twice, independently and blind, against the same codebook; a named human then
+  confirms it against the source. coder a = first extraction · coder b =
+  independent blind re-extraction · cARL = third read on high-stakes claims +
+  winded.vertigo's expert eye. agreement shows the evidence is reproducibly
+  present. disagreements are adjudicated by a named human.
+- **layer 2 · interpretation (triangulation).** only claims that passed layer 1
+  are read through three complementary lenses — **psychometric** (measurement
+  rigour), **practitioner** (practice plausibility), **collective**
+  (winded.vertigo's evidence base). divergence between lenses is a feature, not
+  error. this is a *different* validity move from layer 1 and never relabels the
+  reliability statistic.
+
+every action lands in an append-only audit trail (reviewer + timestamp).
 built for the **amna at 10** desk review, but the `engagement` field makes it
 reusable for future desk reviews.
 
@@ -51,12 +63,14 @@ modelled on `apps/ppcs-impact` (same worker + d1 + assets-binding shape).
 | GET | `/api/auth/callback` | exchange code, verify claims, set `cv_session` |
 | GET | `/api/logout` | clear session |
 | GET | `/api/session` | `{ ok, email }` |
-| GET | `/api/claims?status=&engagement=` | list (pending first) |
-| GET | `/api/claims/:id` | single claim + its audit trail |
+| GET | `/api/claims?status=&engagement=` | layer 1 list (pending first) |
+| GET | `/api/claims/:id` | single claim + audit trail + interpretations |
 | POST | `/api/claims/:id/verify` | → verified (reviewer = session email) |
 | POST | `/api/claims/:id/flag` | `{ note }` (required) → flagged |
 | POST | `/api/claims/:id/adjudicate` | `{ ruling, chosen? }` → adjudicated |
-| GET | `/api/stats` | dashboard tally |
+| GET | `/api/layer2` | verified/adjudicated claims + their lens interpretations |
+| POST | `/api/claims/:id/interpret` | `{ lens, note, weight? }` → records a layer-2 reading (claim must have passed layer 1) |
+| GET | `/api/stats` | dashboard tally (layer 1 reliability + layer 2 coverage) |
 | GET | `/api/export?format=csv\|json` | full dump for the methods log |
 
 ## first-time setup (each step needs explicit approval)
