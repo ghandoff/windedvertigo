@@ -1,12 +1,12 @@
 /* ============================================================
-   winded.vertigo â colors_and_type.css
+   winded.vertigo — colors_and_type.css
    Foundation tokens: palette, type, spacing, radii, shadows.
    All lowercase, to match the brand's writing rules.
    ============================================================ */
 
 /* ---- webfont: inter ---------------------------------------- */
 /* inter is the sole typeface called out in the brand guidelines.
-   shipped locally as the full variable font (weight 100â900)
+   shipped locally as the full variable font (weight 100–900)
    so every weight used by the system renders from one file.   */
 @font-face {
   font-family: 'Inter';
@@ -66,7 +66,7 @@
   /* ---- typefaces ------------------------------------------ */
   --wv-font-sans:     'Inter', -apple-system, blinkmacsystemfont,
                       'segoe ui', roboto, sans-serif;
-  /* fallback stack for code â inter does not ship monospace;
+  /* fallback stack for code — inter does not ship monospace;
      using the system mono until a paired face is chosen.     */
   --wv-font-mono:     ui-monospace, 'sf mono', menlo, consolas,
                       monospace;
@@ -78,7 +78,7 @@
   --wv-w-bold:        700;   /* @kind font */
 
   /* ---- type scale ----------------------------------------- */
-  /* the rule: subheads â¤ 50% of headline ascender, body â¤ 50%
+  /* the rule: subheads ≤ 50% of headline ascender, body ≤ 50%
      of subhead cap height. scale below respects that ratio.  */
   --wv-size-display:   96px;   /* editorial hero                */
   --wv-size-h1:        64px;
@@ -216,7 +216,7 @@ h1, h2, h3 {
 }
 
 .wv-eyebrow {
-  /* tiny label above a headline â always lowercase             */
+  /* tiny label above a headline — always lowercase             */
   font-size: var(--wv-size-caption);
   font-weight: var(--wv-w-medium);
   letter-spacing: 0.08em;

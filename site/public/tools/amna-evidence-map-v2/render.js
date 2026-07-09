@@ -1,5 +1,5 @@
 /* ============================================================
-   amna at 10, evidence map â shared data + render
+   amna at 10, evidence map — shared data + render
    the copy lives in the html; the data + charts live here.
    visual language is driven entirely by window.AMNA_THEME so
    the two directions (woven ledger / cadet dossier) share one
@@ -11,7 +11,7 @@
 
   /* ---- data (verbatim from the source artefact) ------------ */
 
-  // pillar Ã source-type coverage, 0 none â 3 strong. preliminary.
+  // pillar × source-type coverage, 0 none → 3 strong. preliminary.
   var COLS = [
     "external evaluation",
     "internal MEAL",
@@ -35,19 +35,19 @@
 
   // the evaluation portfolio. status: final | ongoing | internal
   var EVALS = [
-    ["UVA, humanitarian collaborative", "baytna, ECD", "greece", "2021â23", "final"],
-    ["UVA, humanitarian collaborative", "community partnerships", "jordan & lebanon", "2024â26", "ongoing"],
-    ["chapin hall, u. chicago", "afghanistan response, and ukraine, italy, balkans", "", "2022â23", "final"],
-    ["harvard, RTI", "pakistan response", "", "2021â22", "internal"],
-    ["nexus", "community partnerships", "afghanistan", "2024â25", "final"],
-    ["nexus", "global healing network", "afghanistan", "2025â26", "ongoing"],
-    ["360 consulting", "baytna", "lebanon", "2025â27", "ongoing"],
-    ["internal", "wellbeing spaces", "", "2022â26", "internal"],
+    ["UVA, humanitarian collaborative", "baytna, ECD", "greece", "2021–23", "final"],
+    ["UVA, humanitarian collaborative", "community partnerships", "jordan & lebanon", "2024–26", "ongoing"],
+    ["chapin hall, u. chicago", "afghanistan response, and ukraine, italy, balkans", "", "2022–23", "final"],
+    ["harvard, RTI", "pakistan response", "", "2021–22", "internal"],
+    ["nexus", "community partnerships", "afghanistan", "2024–25", "final"],
+    ["nexus", "global healing network", "afghanistan", "2025–26", "ongoing"],
+    ["360 consulting", "baytna", "lebanon", "2025–27", "ongoing"],
+    ["internal", "wellbeing spaces", "", "2022–26", "internal"],
     ["internal", "general trainings", "", "2025", "internal"],
-    ["internal", "dinami endline + dinami hubs", "", "2020â23", "internal"],
+    ["internal", "dinami endline + dinami hubs", "", "2020–23", "internal"],
   ];
 
-  // geographies weighted 1 light â 3 heavy
+  // geographies weighted 1 light → 3 heavy
   var GEO = [
     ["greece", 3], ["jordan", 3], ["lebanon", 3], ["afghanistan", 3], ["ukraine", 3],
     ["pakistan", 2], ["palestine, gaza", 2],
@@ -103,14 +103,14 @@
     [-5,50],[-3.2,51.5],[0.6,51.4],[-0.5,53.4],[-2.8,55],[-5,57],[-6.2,58.4],[-8,57.5],[-5.8,54.6],[-4.6,53.3],[-5,50]
   ];
   var LAND = [EURASIA, AFRICA, ARABIA, UK];
-  // enclosed seas painted over land: [lon, lat, rxÂ°, ryÂ°, rotate]
+  // enclosed seas painted over land: [lon, lat, rx°, ry°, rotate]
   var SEAS = [
     [34.5,43.2,7,2.6,0],   // black sea
     [50.5,41.5,3,5,-8],    // caspian
     [25.2,38.4,1.7,2.3,0], // aegean
   ];
 
-  // evidence density by year, 1 sparse â 6 dense
+  // evidence density by year, 1 sparse → 6 dense
   var YEARS = [
     ["16", 1], ["17", 1], ["18", 2], ["19", 2], ["20", 3], ["21", 3],
     ["22", 4], ["23", 4], ["24", 5], ["25", 6], ["26", 5],
@@ -118,17 +118,17 @@
   // era index per year column (0..3) and era meta
   var YEAR_ERA = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3];
   var ERAS = [
-    ["i", "direct delivery", "starting close, in greece", "2016â2018", "1/4"],
-    ["ii", "the pilot phase", "baytna hub emerges", "2018â2021", "4/7"],
-    ["iii", "the training pivot", "teaching the teachers", "2021â2024", "7/10"],
-    ["iv", "the ecosystem story", "what outlasts the grant", "2024â2026", "10/12"],
+    ["i", "direct delivery", "starting close, in greece", "2016–2018", "1/4"],
+    ["ii", "the pilot phase", "baytna hub emerges", "2018–2021", "4/7"],
+    ["iii", "the training pivot", "teaching the teachers", "2021–2024", "7/10"],
+    ["iv", "the ecosystem story", "what outlasts the grant", "2024–2026", "10/12"],
   ];
 
   // 8 co-equal outcome domains (radial wheel)
   var DOMAINS = [["safety"], ["regulation"], ["sense of", "future"], ["joy"],
     ["agency"], ["wellbeing"], ["protective", "relationships"], ["belonging"]];
 
-  // 6 impact levels (nested rings, inner â outer)
+  // 6 impact levels (nested rings, inner → outer)
   var LEVELS = ["individual", "caregiver, family", "community", "organisational", "institutional", "ecosystem"];
 
   /* ---- tiny dom helper ------------------------------------- */
@@ -143,7 +143,7 @@
   }
   function byId(id) { return document.getElementById(id); }
 
-  /* ---- 2 Â· coverage matrix --------------------------------- */
+  /* ---- 2 · coverage matrix --------------------------------- */
   function renderMatrix() {
     var host = byId("matrix");
     if (!host) return;
@@ -166,7 +166,7 @@
         c.style.background = v === 0 ? "transparent" : T.cov[v];
         c.style.color = T.covText[v];
         if (v === 0) { c.classList.add("empty"); }
-        c.setAttribute("title", name + " Â· " + COLS[i] + ": " + COVWORD[v]);
+        c.setAttribute("title", name + " · " + COLS[i] + ": " + COVWORD[v]);
         c.setAttribute("aria-label", name + ", " + COLS[i] + ", " + COVWORD[v]);
         td.appendChild(c);
         tr.appendChild(td);
@@ -177,7 +177,7 @@
     host.replaceChildren(tbl);
   }
 
-  /* ---- 3 Â· evaluation portfolio (ledger) ------------------- */
+  /* ---- 3 · evaluation portfolio (ledger) ------------------- */
   function renderEvals() {
     var host = byId("evals");
     if (!host) return;
@@ -198,7 +198,7 @@
     host.replaceChildren(wrap);
   }
 
-  /* ---- 4a Â· geographies ------------------------------------ */
+  /* ---- 4a · geographies ------------------------------------ */
   function renderGeo() {
     var host = byId("geo");
     if (!host) return;
@@ -218,7 +218,7 @@
     host.replaceChildren(wrap);
   }
 
-  /* ---- 4a Â· geographic map (direction a only) -------------- */
+  /* ---- 4a · geographic map (direction a only) -------------- */
   // uses the real political basemap as the ground truth; markers are placed
   // on it by image percentage (see MAP_PTS) and labelled.
   function renderGeoMap() {
@@ -252,7 +252,7 @@
     host.replaceChildren(frame);
   }
 
-  /* ---- 4b Â· years + strategic eras ------------------------- */
+  /* ---- 4b · years + strategic eras ------------------------- */
   function renderTimeline() {
     var host = byId("timeline");
     if (!host) return;
@@ -359,7 +359,7 @@
     head.appendChild(plab);
   }
 
-  /* ---- 5a Â· outcome domains (radial wheel) ----------------- */
+  /* ---- 5a · outcome domains (radial wheel) ----------------- */
   function renderDomains() {
     var host = byId("domainFig");
     if (!host) return;
@@ -382,7 +382,7 @@
     host.replaceChildren(svgFrom('<svg xmlns="http://www.w3.org/2000/svg" class="lensfig" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="radial wheel of eight co-equal outcome domains">' + s + "</svg>"));
   }
 
-  /* ---- 5b Â· impact levels (nested rings) ------------------- */
+  /* ---- 5b · impact levels (nested rings) ------------------- */
   function renderLevels() {
     var host = byId("levelFig");
     if (!host) return;
