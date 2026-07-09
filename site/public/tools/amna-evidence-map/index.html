@@ -1,253 +1,486 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<meta name="robots" content="noindex, nofollow, noarchive"/>
-<title>amna at 10 — evidence map (inception draft)</title>
+
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>amna at 10, an evidence map</title>
+<link rel="stylesheet" href="./colors_and_type.css" />
 <style>
-  :root{
-    --bg:#f7f6f3; --ink:#23211e; --muted:#6f6a62; --line:#e3ded6; --card:#fffdfa;
-    --c0:#efe9e1; --c1:#d8e6dd; --c2:#8fc6a8; --c3:#3f9d6d;  /* coverage none→strong */
-    --ext:#c97b46; --meal:#3f7fb0; --feed:#7a9c3f; --logs:#9a6fb0; --rep:#b0843f; --strat:#5a8f8a;
-    --accent:#3f9d6d;
-    --g:#b0463f; --m:#c9933f; --s:#3f9d6d; /* thin/mod/strong text dots */
-    font-synthesis:none;
+  :root {
+    --pad: 40px;
+    --rail: 138px;
+    --thread: #b15043;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
-    line-height:1.5;font-size:15px}
-  .wrap{max-width:1100px;margin:0 auto;padding:32px 22px 80px}
-  h1{font-size:25px;margin:0 0 4px;font-weight:650;letter-spacing:-.2px}
-  h2{font-size:17px;margin:38px 0 10px;font-weight:650;letter-spacing:-.1px}
-  .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
-  .banner{background:#fbf3e8;border:1px solid #ecd9bd;border-radius:10px;padding:13px 15px;font-size:13.5px;color:#7a5a2a;margin:18px 0 6px}
-  .banner b{color:#5c4119}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-  .card .n{font-size:28px;font-weight:680;letter-spacing:-.5px}
-  .card .t{font-weight:620;margin:2px 0 4px;font-size:14.5px}
-  .card .d{color:var(--muted);font-size:12.5px}
-  table{border-collapse:collapse;width:100%;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  th,td{padding:8px 9px;text-align:center;border-bottom:1px solid var(--line)}
-  th{background:#f1ece4;font-weight:600;font-size:11.5px;color:#56514a;text-transform:lowercase;position:sticky;top:0}
-  td.row{text-align:left;font-weight:600;white-space:nowrap}
-  .cell{display:inline-block;width:26px;height:22px;border-radius:5px;line-height:22px;color:#fff;font-size:11px;font-weight:600}
-  .cv0{background:var(--c0);color:#9a948b}.cv1{background:var(--c1);color:#3f6b51}.cv2{background:var(--c2)}.cv3{background:var(--c3)}
-  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 0;font-size:12.5px;color:var(--muted);align-items:center}
-  .sw{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:-2px;margin-right:5px}
-  .evals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .eval{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--meal);border-radius:9px;padding:10px 12px;font-size:13px}
-  .eval.final{border-left-color:var(--c3)} .eval.ongoing{border-left-color:var(--ext)} .eval.internal{border-left-color:var(--logs)}
-  .eval .ti{font-weight:620} .eval .me{color:var(--muted);font-size:12px;margin-top:2px}
-  .tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:20px;background:#eee7dd;color:#6b6459;margin-left:4px;vertical-align:1px}
-  .tag.fin{background:#dff0e6;color:#2c6e49}.tag.ong{background:#f6e6d6;color:#9a5a2a}
-  .geo{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
-  .chip{font-size:12.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--line);background:var(--card)}
-  .chip b{font-weight:680}
-  .yr{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;margin-top:8px}
-  .yrcell{display:flex;flex-direction:column;align-items:center;gap:3px}
-  .yrcell .val{font-size:10px;color:var(--muted);font-weight:650;font-variant-numeric:tabular-nums}
-  .yrcell .barwrap{height:64px;width:100%;display:flex;align-items:flex-end}
-  .yrcell .bar{width:100%;border-radius:4px 4px 0 0;transition:height .3s}
-  .yrcell .lab{font-size:10.5px;color:var(--muted)}
-  .ramp{height:9px;border-radius:6px;margin:12px 0 0;background:linear-gradient(90deg,#dbeae1,#2f8f66)}
-  .rampcap{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
-  .lens{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .lens .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .lensfig{width:100%;height:auto;display:block;margin:6px 0 2px}
-  .lensfig text{fill:var(--ink);font-size:11px;font-weight:560;paint-order:stroke;stroke:#fffdfa;stroke-width:2.6px;stroke-linejoin:round}
-  .lensfig .cap{fill:var(--muted);stroke:none;font-size:10px;font-weight:500}
-  .lensfig .ctr{font-size:10.5px;font-weight:650}
-  .lensfig text.lvl{font-size:9px;stroke-width:2.1px}
-  .read{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .read .r{display:grid;grid-template-columns:120px 1fr;gap:0;border-bottom:1px solid var(--line)}
-  .read .r:last-child{border-bottom:none}
-  .who{padding:13px 14px;font-weight:660;background:#f3efe9;font-size:13.5px;display:flex;flex-direction:column;gap:3px}
-  .who span{font-weight:500;color:var(--muted);font-size:11.5px}
-  .does{padding:13px 14px;font-size:13px}
-  .does ul{margin:0;padding-left:17px}.does li{margin:2px 0}
-  .note{background:#eef3f0;border:1px solid #d3e3da;border-radius:10px;padding:12px 14px;font-size:13px;color:#2f5a44;margin-top:12px}
-  .foot{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12.5px}
-  @media(max-width:760px){.cards,.evals,.lens{grid-template-columns:1fr}.read .r{grid-template-columns:90px 1fr}}
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--wv-champagne);
+    color: var(--wv-cadet-blue);
+    font-family: var(--wv-font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--wv-redwood); text-decoration: none; border-bottom: 1px solid #b1504355; }
+  a:hover { border-bottom-color: var(--wv-redwood); }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 32px 96px; }
+
+  /* woven selvedge ribbon — the loom motif, on-brand thread accent */
+  .selvedge {
+    height: 7px;
+    background: repeating-linear-gradient(90deg,
+      #b15043 0 7px, #cb7858 7px 14px, #5a6128 14px 21px,
+      #43b187 21px 28px, #273248 28px 35px, #cb7858 35px 42px);
+    opacity: .92;
+  }
+
+  /* ---------- masthead ---------- */
+  .mast { padding: 54px 0 20px; position: relative; }
+  .mast > * { position: relative; z-index: 1; }
+  .mast-threads { position: absolute; top: 34px; right: -12px; width: 460px; height: 240px; pointer-events: none; z-index: 0; }
+  .eyebrow {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.22em;
+    color: var(--wv-fg-3); margin-bottom: 20px;
+  }
+  h1.title {
+    font-size: 62px; line-height: 0.98; font-weight: 300;
+    letter-spacing: -0.03em; color: var(--wv-cadet-blue);
+    max-width: 16ch; margin: 0;
+  }
+  h1.title em { font-style: normal; color: var(--wv-redwood); font-weight: 300; }
+  .lede {
+    font-size: 20px; font-weight: 300; line-height: 1.5;
+    color: var(--wv-cadet-blue); max-width: 62ch; margin: 26px 0 0;
+    letter-spacing: -0.005em;
+  }
+  .lede b { font-weight: 600; }
+  .byline {
+    display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap;
+    font-size: 12.5px; letter-spacing: 0.14em; color: var(--wv-fg-3);
+    margin-top: 30px; font-weight: 500;
+  }
+  .byline .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--wv-redwood); display: inline-block; transform: translateY(-1px); }
+  .byline .to-b { margin-left: auto; letter-spacing: 0.02em; }
+
+  /* ---------- section shell ---------- */
+  .sec {
+    display: grid;
+    grid-template-columns: var(--rail) 1fr;
+    gap: var(--pad);
+    padding-top: 56px;
+  }
+  .sec-rail { position: relative; }
+  .sec-ico { display: block; width: 28px; height: 28px; color: var(--hue); margin-bottom: 16px; }
+  .sec-ico svg { width: 100%; height: 100%; stroke-width: 1.5; }
+  .sec-num {
+    font-size: 46px; font-weight: 300; line-height: 1;
+    letter-spacing: -0.02em; color: var(--wv-cadet-blue);
+  }
+  .sec-tick { width: 34px; height: 3px; border-radius: 2px; margin: 12px 0 10px; background: var(--hue); }
+  .sec-kicker {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.16em;
+    color: var(--wv-fg-3); line-height: 1.4;
+  }
+  .sec-body { border-left: 1px solid var(--wv-line); padding-left: var(--pad); min-width: 0; position: relative; }
+  .sec-body::before { content: ""; position: absolute; left: -6px; top: 7px; width: 11px; height: 11px; border-radius: 50%; background: var(--hue); box-shadow: 0 0 0 4px var(--wv-champagne); }
+  .sec-h {
+    font-size: 27px; font-weight: 400; letter-spacing: -0.018em;
+    color: var(--wv-cadet-blue); margin: 0 0 6px; line-height: 1.15;
+  }
+  .sec-sub { color: var(--wv-fg-2); font-size: 15px; margin: 0 0 22px; max-width: 66ch; }
+
+  /* section accent hue, one variable drives icon, tick and spine dot */
+  .s1 { --hue: var(--wv-burnt-sienna); }
+  .s2 { --hue: var(--wv-redwood); }
+  .s3 { --hue: #5a6128; }
+  .s4 { --hue: var(--wv-emerald); }
+  .s5 { --hue: var(--wv-royal); }
+  .s6 { --hue: var(--wv-cadet-blue); }
+
+  /* ---------- 1 · corpus ---------- */
+  .corpus { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; }
+  .fig { min-width: 0; }
+  .fig-n { font-size: 50px; font-weight: 300; letter-spacing: -0.03em; color: var(--wv-cadet-blue); line-height: 1; }
+  .fig-rule { width: 40px; height: 3px; border-radius: 2px; margin: 14px 0 12px; }
+  .fig:nth-child(1) .fig-rule { background: var(--wv-burnt-sienna); }
+  .fig:nth-child(2) .fig-rule { background: var(--wv-redwood); }
+  .fig:nth-child(3) .fig-rule { background: #5a6128; }
+  .fig-t { font-size: 14.5px; font-weight: 600; color: var(--wv-cadet-blue); margin-bottom: 5px; }
+  .fig-d { font-size: 13px; color: var(--wv-fg-2); line-height: 1.5; }
+
+  /* ---------- 2 · coverage matrix (woven field) ---------- */
+  .mx-scroll { overflow-x: auto; margin: 0 -2px; }
+  table.mx { width: 100%; border-collapse: separate; border-spacing: 3px; }
+  table.mx th {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.01em;
+    color: var(--wv-fg-3); text-align: center; vertical-align: bottom;
+    padding: 0 4px 12px; line-height: 1.25; font-feature-settings: normal;
+  }
+  table.mx th.corner { text-align: left; color: var(--wv-fg-2); font-weight: 600; }
+  td.rowlab {
+    text-align: left; font-size: 13.5px; font-weight: 500;
+    color: var(--wv-cadet-blue); white-space: nowrap; padding-right: 16px;
+  }
+  td.cell-td { padding: 0; }
+  .cell {
+    display: block; width: 100%; min-width: 34px; height: 28px;
+    border-radius: 4px;
+  }
+  .cell.empty {
+    border: 1px dashed var(--wv-line-strong);
+    background: repeating-linear-gradient(45deg, transparent 0 4px, #27324808 4px 8px) !important;
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin-top: 18px; font-size: 12.5px; color: var(--wv-fg-2); }
+  .legend .sw { display: inline-block; width: 15px; height: 15px; border-radius: 3px; vertical-align: -3px; margin-right: 6px; }
+  .thin-note { margin-top: 14px; font-size: 13px; color: var(--wv-redwood); }
+
+  /* ---------- 3 · evaluation ledger ---------- */
+  .ledger { margin-top: 4px; }
+  .led-row {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr 0.7fr 0.85fr;
+    gap: 18px; align-items: baseline;
+    padding: 12px 0; border-bottom: 1px solid var(--wv-line);
+  }
+  .led-row:first-child { border-top: 1px solid var(--wv-line); }
+  .led-partner { font-size: 14px; font-weight: 600; color: var(--wv-cadet-blue); }
+  .led-scope { font-size: 13.5px; color: var(--wv-fg-2); }
+  .led-yrs { font-size: 13px; color: var(--wv-fg-3); font-variant-numeric: tabular-nums; text-align: right; }
+  .led-status {
+    font-size: 12px; text-align: right; letter-spacing: 0.02em;
+    display: flex; align-items: center; justify-content: flex-end; gap: 7px;
+  }
+  .led-status .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .led-row.final .led-status { color: #5a6128; } .led-row.final .dot { background: #5a6128; }
+  .led-row.ongoing .led-status { color: var(--wv-burnt-sienna); } .led-row.ongoing .dot { background: var(--wv-burnt-sienna); }
+  .led-row.internal .led-status { color: var(--wv-fg-3); } .led-row.internal .dot { background: var(--wv-fg-3); }
+
+  /* ---------- 4 · place & time ---------- */
+  .geolist { display: grid; grid-template-columns: 1fr 1fr; column-gap: 52px; row-gap: 0; }
+  .geo-row { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--wv-line); }
+  .geo-name { font-size: 13.5px; color: var(--wv-cadet-blue); }
+  .geo-track { height: 8px; background: #27324810; border-radius: 999px; overflow: hidden; }
+  .geo-bar { height: 100%; border-radius: 999px; }
+
+  /* geographic map, real basemap warmed to the palette */
+  .mapframe { position: relative; border-radius: 10px; overflow: hidden; margin-top: 8px; background: var(--wv-champagne); box-shadow: inset 0 0 0 1px var(--wv-line); }
+  .mapbase { display: block; width: 100%; height: auto; mix-blend-mode: multiply; filter: saturate(.5) sepia(.12) brightness(1.03) contrast(1.02); }
+  .mmarkers { position: absolute; inset: 0; }
+  .mdot { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--wv-champagne), 0 1px 3px rgba(39,50,72,.4); }
+  .mdot.w1 { width: 11px; height: 11px; }
+  .mdot.w2 { width: 15px; height: 15px; }
+  .mdot.w3 { width: 19px; height: 19px; }
+  .mlbl { position: absolute; font-size: 12.5px; font-weight: 600; color: var(--wv-cadet-blue); white-space: nowrap; letter-spacing: .01em; pointer-events: none; text-shadow: 0 0 3px var(--wv-champagne), 0 0 3px var(--wv-champagne), 0 0 7px var(--wv-champagne); }
+  .mlbl[data-anchor="center"] { transform: translate(-50%, -100%); text-align: center; }
+  .mlbl[data-anchor="left"] { transform: translate(0, -50%); text-align: left; }
+  .mlbl[data-anchor="right"] { transform: translate(-100%, -50%); text-align: right; }
+  .mlegend { position: absolute; left: 14px; bottom: 12px; display: flex; align-items: center; gap: 6px; background: rgba(255,235,210,.85); padding: 5px 11px; border-radius: 999px; box-shadow: var(--wv-shadow-1); }
+  .mlegend .ld { border-radius: 50%; display: inline-block; }
+  .mlegend .ld.w1 { width: 7px; height: 7px; background: #d99a6b; }
+  .mlegend .ld.w2 { width: 10px; height: 10px; background: #cb7858; }
+  .mlegend .ld.w3 { width: 13px; height: 13px; background: #b15043; }
+  .mlegend .lt { font-size: 11px; color: var(--wv-fg-2); margin-left: 4px; }
+
+  .tl-caption { font-size: 15px; color: var(--wv-fg-2); margin: 34px 0 20px; max-width: 66ch; }
+  .tl { position: relative; }
+  .tl-headzone { position: relative; height: 104px; }
+  .tl-eblock { position: absolute; top: 4px; text-align: center; padding: 0 4px; box-sizing: border-box; }
+  .tl-rn { display: block; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--wv-fg-3); font-weight: 600; margin-bottom: 5px; }
+  .tl-en { display: block; font-size: 15px; font-weight: 500; color: var(--wv-cadet-blue); line-height: 1.2; }
+  .tl-es { display: block; font-size: 11px; color: var(--wv-fg-3); line-height: 1.3; margin-top: 2px; }
+  .tl-con { position: absolute; bottom: 0; width: 1px; height: 20px; opacity: .5; }
+  .tl-pivot-label { position: absolute; bottom: 24px; transform: translateX(-50%); font-size: 11px; color: var(--wv-fg-3); white-space: nowrap; letter-spacing: 0.02em; }
+  .tl-plot { position: relative; }
+  .tl-bands { position: absolute; inset: 0; z-index: 0; overflow: hidden; border-radius: 4px; }
+  .tl-band { position: absolute; top: 0; bottom: 24px; }
+  .tl-div { position: absolute; top: 0; bottom: 24px; width: 1px; background: var(--wv-champagne); opacity: .75; }
+  .tl-bars { display: grid; grid-template-columns: repeat(11, 1fr); gap: 6px; align-items: end; position: relative; z-index: 1; }
+  .tl-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px 0 0; }
+  .tl-val { font-size: 11px; color: var(--wv-fg-3); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tl-track { height: 128px; width: 100%; display: flex; align-items: flex-end; padding: 0 10%; }
+  .tl-bar { width: 100%; border-radius: 5px 5px 0 0; min-height: 6px; }
+  .tl-yl { font-size: 11px; color: var(--wv-fg-3); }
+  .tl-pivot-line { position: absolute; top: 0; bottom: 24px; border-left: 1px dashed var(--wv-line-strong); z-index: 2; }
+  .tl-ramp { height: 10px; border-radius: 6px; margin: 18px 0 0; }
+  .tl-rampcap { display: flex; justify-content: space-between; font-size: 11px; color: var(--wv-fg-3); margin-top: 6px; }
+
+  /* ---------- 5 · lens ---------- */
+  .lens { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .lens-h { font-size: 15px; font-weight: 600; color: var(--wv-cadet-blue); margin: 0 0 4px; }
+  .lens-d { font-size: 13px; color: var(--wv-fg-2); margin: 8px 0 0; line-height: 1.5; }
+  .lensfig { width: 100%; height: auto; display: block; }
+  .lensfig text { fill: var(--wv-cadet-blue); font-size: 11px; font-weight: 500; paint-order: stroke; stroke: var(--wv-champagne); stroke-width: 3px; stroke-linejoin: round; }
+  .lensfig .cap { fill: var(--wv-fg-3); stroke: none; font-size: 10px; font-weight: 500; }
+  .lensfig .ctr { font-size: 10.5px; font-weight: 650; }
+  .lensfig text.lvl { font-size: 9px; stroke-width: 2.4px; }
+
+  /* ---------- 6 · reading triage (the argument, given weight) ---------- */
+  .s6 .sec-h { font-size: 32px; }
+  .readers { margin-top: 4px; }
+  .reader { display: grid; grid-template-columns: 176px 1fr; gap: 30px; padding: 20px 0; border-bottom: 1px solid var(--wv-line); }
+  .reader:first-child { border-top: 1px solid var(--wv-line); }
+  .reader-name { font-size: 20px; font-weight: 600; line-height: 1.1; }
+  .reader-role { font-size: 12px; color: var(--wv-fg-3); margin-top: 5px; letter-spacing: 0.02em; }
+  .reader:nth-child(1) .reader-name { color: var(--wv-redwood); }
+  .reader:nth-child(2) .reader-name { color: var(--wv-royal); }
+  .reader:nth-child(3) .reader-name { color: #5a6128; }
+  .reader:nth-child(4) .reader-name { color: var(--wv-burnt-sienna); }
+  .reader-focus { font-size: 15px; color: var(--wv-cadet-blue); line-height: 1.55; max-width: 60ch; }
+  .longtail {
+    margin-top: 30px; border-left: 2px solid var(--wv-burnt-sienna);
+    padding-left: 24px; font-size: 15px; color: var(--wv-fg-2);
+    line-height: 1.6; max-width: 70ch;
+  }
+  .longtail em { color: var(--wv-cadet-blue); font-style: normal; font-weight: 500; }
+
+  /* ---------- footer ---------- */
+  .foot { margin-top: 64px; border-top: 1px solid var(--wv-line); padding-top: 22px; color: var(--wv-fg-3); font-size: 12.5px; line-height: 1.6; max-width: 88ch; }
+  .foot p { margin: 0 0 12px; }
+  .foot .k { color: var(--wv-cadet-blue); font-weight: 600; }
+
+  @media (max-width: 860px) {
+    .sec { grid-template-columns: 1fr; gap: 18px; }
+    .sec-body { border-left: none; padding-left: 0; }
+    .corpus, .geolist, .lens { grid-template-columns: 1fr; }
+    .reader { grid-template-columns: 1fr; gap: 8px; }
+    h1.title { font-size: 44px; }
+  }
 </style>
 </head>
 <body>
+
+<div class="selvedge"></div>
 <div class="wrap">
 
-  <h1>amna at 10 — evidence map</h1>
-  <p class="sub">inception draft · for shared sense-making with amna · winded.vertigo · <span id="d"></span></p>
+  <!-- ============ masthead ============ -->
+  <header class="mast">
+    <svg class="mast-threads" viewBox="0 0 460 240" fill="none" aria-hidden="true">
+      <path d="M-10 58 C 130 18, 250 118, 470 52" stroke="#b15043" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+      <path d="M-10 96 C 150 58, 240 170, 470 96" stroke="#cb7858" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+      <path d="M-10 134 C 120 110, 290 178, 470 138" stroke="#5a6128" stroke-width="3" stroke-linecap="round" opacity=".72"/>
+      <path d="M-10 172 C 160 150, 250 212, 470 182" stroke="#43b187" stroke-width="3" stroke-linecap="round" opacity=".72"/>
+      <circle cx="462" cy="52" r="4.5" fill="#b15043"/>
+      <circle cx="462" cy="96" r="4.5" fill="#cb7858"/>
+      <circle cx="462" cy="138" r="4.5" fill="#5a6128"/>
+      <circle cx="462" cy="182" r="4.5" fill="#43b187"/>
+    </svg>
+    <div class="eyebrow">inception draft, for shared sense-making with amna</div>
+    <h1 class="title">amna at 10,<br>an <em>evidence map</em>.</h1>
+    <p class="lede">
+      this maps what evidence exists across amna's programme pillars, and where it sits, so you can
+      tell us whether we are seeing your portfolio the way you do. the shading shows
+      <b>how much evidence we hold in each cell</b>. it says nothing yet about findings or
+      confidence; that reading comes after synthesis.
+    </p>
+    <div class="byline">
+      <span class="dot"></span>
+      <span>winded.vertigo</span>
+      <span>·</span>
+      <span id="today">07 july 2026</span>
+    </div>
+  </header>
 
-  <div class="banner">
-    <b>what this is, and isn't.</b> this maps <b>what evidence exists and where</b> — its volume, type, and source-mix across amna's programme pillars — so we can confirm we're seeing your portfolio the way you do. it is <b>not yet a findings or confidence map</b>: that comes after synthesis. coverage shading below = <b>how much evidence we hold</b>, not how strong the conclusions are. all preliminary, to be checked together at inception.
-  </div>
+  <!-- ============ 1 · corpus ============ -->
+  <section class="sec s1">
+    <div class="sec-rail">
+      <i class="sec-ico" data-lucide="layers"></i>
+      <div class="sec-num">01</div>
+      <div class="sec-tick"></div>
+      <div class="sec-kicker">the corpus<br>at a glance</div>
+    </div>
+    <div class="sec-body">
+      <h2 class="sec-h">what we are working from</h2>
+      <p class="sec-sub">three bodies of material, gathered from a metadata-level inventory of the shared drive.</p>
+      <div class="corpus">
+        <div class="fig">
+          <div class="fig-n">3</div>
+          <div class="fig-rule"></div>
+          <div class="fig-t">top-level corpora</div>
+          <div class="fig-d">amna programmes across 11 pillar MEAL folders, strategies and processes in ~15 spine docs, and the evaluations.</div>
+        </div>
+        <div class="fig">
+          <div class="fig-n">10 + 4</div>
+          <div class="fig-rule"></div>
+          <div class="fig-t">evaluations</div>
+          <div class="fig-d">ten completed and four ongoing, external and internal, across five academic and consulting partners.</div>
+        </div>
+        <div class="fig">
+          <div class="fig-n">~3k</div>
+          <div class="fig-rule"></div>
+          <div class="fig-t">files, 2016 to 2026</div>
+          <div class="fig-d">mostly word, pdf and spreadsheet files with large photo and video sets. most are pre-analysed reports rather than raw data.</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <h2>1 · the corpus at a glance</h2>
-  <div class="cards">
-    <div class="card"><div class="n">3</div><div class="t">top-level corpora</div><div class="d">amna programmes (11 pillar MEAL folders) · strategies &amp; processes (≈15 spine docs) · evaluations</div></div>
-    <div class="card"><div class="n">10 + 4</div><div class="t">evaluations</div><div class="d">10 past + 4 ongoing external/internal — across 5 named academic/consulting partners</div></div>
-    <div class="card"><div class="n">~2–4k</div><div class="t">files (2016–2026)</div><div class="d">mostly .docx/.pdf/.xlsx + large photo/video sets; mostly <b>pre-analysed</b> reports, not raw data</div></div>
-  </div>
+  <!-- ============ 2 · coverage matrix ============ -->
+  <section class="sec s2">
+    <div class="sec-rail">
+      <i class="sec-ico" data-lucide="grid-3x3"></i>
+      <div class="sec-num">02</div>
+      <div class="sec-tick"></div>
+      <div class="sec-kicker">coverage by<br>pillar &amp; source</div>
+    </div>
+    <div class="sec-body">
+      <h2 class="sec-h">the weave of the evidence</h2>
+      <p class="sec-sub">rows are amna's programme pillars, columns are the kinds of evidence. the warmer a cell, the more we hold. hover for the reading.</p>
+      <div class="mx-scroll"><div id="matrix"></div></div>
+      <div class="legend">
+        <span><span class="sw" style="background:transparent;border:1px dashed var(--wv-line-strong)"></span>nothing held</span>
+        <span><span class="sw" style="background:#eccfae"></span>thin</span>
+        <span><span class="sw" style="background:#d68b5f"></span>moderate</span>
+        <span><span class="sw" style="background:#b15043"></span>strong</span>
+      </div>
+      <p class="thin-note">the thinnest pillar is systems of care: no external evaluation yet, and only from 2025 onward.</p>
+    </div>
+  </section>
 
-  <h2>2 · evidence coverage by pillar &amp; source type</h2>
-  <p class="sub" style="margin-bottom:8px">rows = amna's programme pillars · columns = evidence type · cell = how much we hold (preliminary). hover a cell for the read.</p>
-  <div style="overflow-x:auto">
-  <table id="mx">
-    <thead><tr><th class="row" style="text-align:left">pillar</th>
-      <th>external<br>evaluation</th><th>internal<br>MEAL</th><th>training /<br>session feedback</th><th>reflective /<br>supervision logs</th><th>programme<br>reporting</th><th>strategy /<br>ToC</th></tr></thead>
-    <tbody></tbody>
-  </table>
-  </div>
-  <div class="legend">
-    <span><span class="sw" style="background:var(--c0)"></span>none</span>
-    <span><span class="sw" style="background:var(--c1)"></span>thin</span>
-    <span><span class="sw" style="background:var(--c2)"></span>moderate</span>
-    <span><span class="sw" style="background:var(--c3)"></span>strong</span>
-    <span style="margin-left:auto;color:#a06">▲ thinnest pillar: systems of care (no external eval, 2025→ only)</span>
-  </div>
+  <!-- ============ 3 · evaluation portfolio ============ -->
+  <section class="sec s3">
+    <div class="sec-rail">
+      <i class="sec-ico" data-lucide="book-open"></i>
+      <div class="sec-num">03</div>
+      <div class="sec-tick"></div>
+      <div class="sec-kicker">the evaluation<br>portfolio</div>
+    </div>
+    <div class="sec-body">
+      <h2 class="sec-h">the credible spine</h2>
+      <p class="sec-sub">ten completed studies and four in progress, the most rigorous material in the corpus.</p>
+      <div id="evals"></div>
+    </div>
+  </section>
 
-  <h2>3 · the evaluation portfolio (the credible spine)</h2>
-  <div class="evals" id="ev"></div>
+  <!-- ============ 4 · place & time ============ -->
+  <section class="sec s4">
+    <div class="sec-rail">
+      <i class="sec-ico" data-lucide="map"></i>
+      <div class="sec-num">04</div>
+      <div class="sec-tick"></div>
+      <div class="sec-kicker">across place<br>&amp; time</div>
+    </div>
+    <div class="sec-body">
+      <h2 class="sec-h">where the evidence lives</h2>
+      <p class="sec-sub">geographies plotted and weighted by how much we hold in each.</p>
+      <div id="geomap"></div>
+      <p class="tl-caption">and how it accrues over ten years. bar height and shade both show relative density, along four strategic eras.</p>
+      <div id="timeline"></div>
+    </div>
+  </section>
 
-  <h2>4 · coverage across place &amp; time</h2>
-  <p class="sub" style="margin-bottom:4px">geographies (darker = more evidence)</p>
-  <div class="geo" id="geo"></div>
-  <p class="sub" style="margin:16px 0 0">evidence by year — number above each bar = relative density (1 sparse → 6 dense)</p>
-  <div class="yr" id="yr"></div>
-  <div class="ramp"></div>
-  <div class="rampcap"><span>sparse · early years (2016–18)</span><span>dense · 2024–26</span></div>
+  <!-- ============ 5 · analytical lens ============ -->
+  <section class="sec s5">
+    <div class="sec-rail">
+      <i class="sec-ico" data-lucide="target"></i>
+      <div class="sec-num">05</div>
+      <div class="sec-tick"></div>
+      <div class="sec-kicker">the analytical<br>lens</div>
+    </div>
+    <div class="sec-body">
+      <h2 class="sec-h">what findings map onto, later</h2>
+      <p class="sec-sub">after synthesis, findings get placed on two frames.</p>
+      <div class="lens">
+        <div>
+          <h3 class="lens-h">amna's 8 outcome domains</h3>
+          <div id="domainFig"></div>
+          <p class="lens-d">co-equal facets of a healing person. findings map here first, then cross-walk to the IASC monitoring taxonomy for funders.</p>
+        </div>
+        <div>
+          <h3 class="lens-h">6 levels of impact</h3>
+          <div id="levelFig"></div>
+          <p class="lens-d">widening rings from the individual out to the wider ecosystem. synthesis fills pillar by outcome by level as confidence builds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <h2>5 · the analytical lens (what we'll map findings onto, post-synthesis)</h2>
-  <div class="lens">
-    <div class="box"><b style="font-size:13.5px">amna's 8 outcome domains</b>
-      <div id="domFig"></div>
-      <div class="sub" style="margin:9px 0 0;font-size:12px">co-equal facets of a healing person — findings get mapped to these, then cross-walked to the IASC M&amp;E taxonomy for funders.</div></div>
-    <div class="box"><b style="font-size:13.5px">6 levels of impact</b>
-      <div id="lvlFig"></div>
-      <div class="sub" style="margin:9px 0 0;font-size:12px">widening rings, individual → ecosystem — the synthesis populates pillar × outcome × level as confidence accrues.</div></div>
-  </div>
+  <!-- ============ 6 · reading triage ============ -->
+  <section class="sec s6">
+    <div class="sec-rail">
+      <i class="sec-ico" data-lucide="users"></i>
+      <div class="sec-num">06</div>
+      <div class="sec-tick"></div>
+      <div class="sec-kicker">reading triage,<br>who reads what</div>
+    </div>
+    <div class="sec-body">
+      <h2 class="sec-h">humans in the loop, where they count most</h2>
+      <p class="sec-sub">no one can read every document, and no one should. deep human reading concentrates on the 20 to 25 highest-value docs, split by strength. the long tail is machine-assisted with human validation.</p>
+      <div class="readers">
+        <div class="reader">
+          <div><div class="reader-name">garrett</div><div class="reader-role">evidence lead</div></div>
+          <div class="reader-focus">the ~15 strategy and spine docs: the healing-ecosystems evolution, the 2026 internal narrative, the MEL theory of change, the cumulative-reach workbook. the 2022 six-year evaluation, our precedent. and the cross-cutting synthesis with the tier-1 quantitative datasets.</div>
+        </div>
+        <div class="reader">
+          <div><div class="reader-name">jamie</div><div class="reader-role">ucl, qual and methods</div></div>
+          <div class="reader-focus">the external academic evaluations: UVA baytna, chapin hall afghanistan, and nexus community partnerships in afghanistan. a methodology and evidence-quality read, alongside the preregistration.</div>
+        </div>
+        <div class="reader">
+          <div><div class="reader-name">lamis</div><div class="reader-role">context and arabic</div></div>
+          <div class="reader-focus">UVA jordan and lebanon, including the arabic transcripts, baytna lebanon, and the community-partnership materials from afghanistan. the palestine emergency response, and trans-adaptation checks.</div>
+        </div>
+        <div class="reader">
+          <div><div class="reader-name">maría</div><div class="reader-role">knowledge translation</div></div>
+          <div class="reader-focus">baytna, ECD, dinami and youth materials, and the impact and public-facing narratives. she owns this evidence map, and designs the inception workshop.</div>
+        </div>
+      </div>
+      <p class="longtail">
+        the long tail runs to hundreds of partner MEAL files and feedback spreadsheets, and no one
+        reads all of it. it goes through an <em>LLM-assisted thematic pass with human spot-check and
+        validation</em>, declared, zero data retention, reviewed by the named team above. the pass
+        surfaces patterns onto the map, and people deep-read only the cells it flags as pivotal or thin.
+      </p>
+    </div>
+  </section>
 
-  <h2>6 · reading triage — who reads what (humans in the loop, strategically)</h2>
-  <p class="sub" style="margin-bottom:8px">it is not possible — or useful — for everyone to read every document. deep human reading is concentrated on ~20–25 high-value docs, split by strength. the long tail is machine-assisted with human validation.</p>
-  <div class="read">
-    <div class="r"><div class="who">garrett<span>evidence lead</span></div><div class="does"><ul>
-      <li>the ≈15 strategy / spine docs (healing-ecosystems evolution, internal narrative 2026, MEL ToC, cumulative-reach workbook)</li>
-      <li>the 2022 six-year evaluation (our precedent)</li>
-      <li>cross-cutting synthesis + the tier-1 quantitative datasets</li></ul></div></div>
-    <div class="r"><div class="who">jamie<span>UCL · qual + methods</span></div><div class="does"><ul>
-      <li>the external academic evaluations: UVA Baytna (final), Chapin Hall Afghanistan (final), Nexus CP Afghanistan</li>
-      <li>methodology + evidence-quality read; the preregistration</li></ul></div></div>
-    <div class="r"><div class="who">lamis<span>context · arabic</span></div><div class="does"><ul>
-      <li>UVA Jordan &amp; Lebanon (incl. arabic transcripts), Baytna Lebanon, CP Afghanistan partner materials</li>
-      <li>emergency response (palestine); trans-adaptation checks</li></ul></div></div>
-    <div class="r"><div class="who">maría<span>knowledge translation</span></div><div class="does"><ul>
-      <li>baytna/ECD + dinami/youth materials; impact &amp; public-facing narratives</li>
-      <li>owns this evidence map + designs the inception workshop</li></ul></div></div>
-  </div>
-  <div class="note"><b>the long tail (hundreds of partner-MEAL files + feedback spreadsheets):</b> not read in full by anyone. these go through an <b>LLM-assisted thematic pass with human spot-check &amp; validation</b> (declared, ZDR, named-team review) — surfacing patterns to the map, with humans deep-reading only the cells the map flags as pivotal or thin. that is how we stay rigorous without pretending to read everything.</div>
+  <!-- ============ footer ============ -->
+  <footer class="foot">
+    <p>coverage values are preliminary estimates from a metadata-level inventory, not yet validated by reading, and open to your correction.</p>
+    <p><span class="k">confidential.</span> winded.vertigo and amna internal sense-making artefact. it contains no amna participant or special-category data, only programme and pillar names, evidence counts and coverage estimates, evaluator organisations, geographies, and our own team roles.</p>
+  </footer>
 
-  <div class="foot">
-    <b>next step:</b> share this map with amna at the inception check-in to confirm we're seeing the evidence as they do, then co-develop the framework and agree which thin/pivotal cells warrant the tiered raw-data deepening. · coverage values are preliminary winded.vertigo estimates from a metadata-level inventory — not yet validated by reading, and explicitly open to amna's correction.<br><br>
-    <b>confidential — winded.vertigo × amna · internal sense-making artefact (noindex).</b> contains <b>no amna participant or special-category data</b>: only programme/pillar names, evidence counts &amp; coverage estimates, organisational evaluator names, geographies, and the winded.vertigo team's own roles.
-  </div>
 </div>
 
+<template id="__bundler_thumbnail">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <rect width="100" height="100" fill="#ffebd2"/>
+    <g transform="translate(30,34)">
+      <rect x="0" y="0" width="9" height="9" rx="2" fill="#b15043"/>
+      <rect x="11" y="0" width="9" height="9" rx="2" fill="#cb7858"/>
+      <rect x="22" y="0" width="9" height="9" rx="2" fill="#5a6128"/>
+      <rect x="33" y="0" width="9" height="9" rx="2" fill="#43b187"/>
+      <text x="21" y="34" text-anchor="middle" font-family="Inter,sans-serif" font-size="26" font-weight="300" fill="#273248">a</text>
+    </g>
+  </svg>
+</template>
 <script>
-document.getElementById('d').textContent=new Date().toISOString().slice(0,10);
-// pillar × source-type coverage (0-3), preliminary
-const cols=['ext','meal','feed','logs','rep','strat'];
-const rows=[
- ['community partnerships',[3,3,2,2,3,3]],
- ['baytna / ECD',[3,3,3,2,2,2]],
- ['dinami / youth',[2,3,2,1,2,2]],
- ['systems of care',[0,2,2,1,1,2]],
- ['global healing network',[2,2,3,1,2,3]],
- ['therapeutic groups',[1,2,2,1,1,1]],
- ['wellbeing spaces',[2,3,2,1,2,1]],
- ['emergency response',[1,2,2,1,2,2]],
- ['consultancies / public',[1,2,3,0,1,1]],
-];
-const lab=['no evidence held','thin','moderate','strong'];
-const tb=document.querySelector('#mx tbody');
-rows.forEach(([p,vals])=>{
-  const tr=document.createElement('tr');
-  tr.innerHTML='<td class="row">'+p+'</td>'+vals.map((v,i)=>
-    '<td><span class="cell cv'+v+'" title="'+p+' — '+document.querySelectorAll("#mx thead th")[i+1].innerText.replace(/\n/g," ")+': '+lab[v]+'">'+(v||'·')+'</span></td>').join('');
-  tb.appendChild(tr);
-});
-// evaluations
-const evs=[
- ['UVA — Humanitarian Collaborative','Baytna / ECD · Greece · 2021–23','final','final'],
- ['UVA — Humanitarian Collaborative','Community Partnerships · Jordan &amp; Lebanon · 2024–26','ongoing','ongoing'],
- ['Chapin Hall / U. Chicago','Afghanistan response (+Ukraine, Italy, Balkans) · 2022–23','final','final'],
- ['Harvard / RTI','Pakistan response · 2021–22','internal','review'],
- ['Nexus','Community Partnerships · Afghanistan · 2024–25','final','final'],
- ['Nexus','Global Healing Network · Afghanistan · 2025–26','ongoing','ongoing'],
- ['360 Consulting','Baytna · Lebanon · 2025–27','ongoing','ongoing'],
- ['internal','Wellbeing Spaces · 2022–26','internal','internal'],
- ['internal','General Trainings · 2025','internal','internal'],
- ['internal','Dinami endline + Dinami Hubs · 2020–23','internal','internal'],
-];
-document.getElementById('ev').innerHTML=evs.map(([m,d,c,t])=>
- '<div class="eval '+c+'"><div class="ti">'+m+' <span class="tag '+(t==="final"?"fin":t==="ongoing"?"ong":"")+'">'+t+'</span></div><div class="me">'+d+'</div></div>').join('');
-// geography
-const geo=[['Greece',3],['Jordan',3],['Lebanon',3],['Afghanistan',3],['Ukraine',3],['Pakistan',2],['Palestine / Gaza',2],['Balkans / Italy / Poland',1],['Syria',1],['UK',1]];
-document.getElementById('geo').innerHTML=geo.map(([g,n])=>
- '<span class="chip" style="background:'+['','#f3efe9','#dbe9e1','#bfe0cd'][n]+'"><b>'+g+'</b></span>').join('');
-// timeline — bar height AND colour both encode density (1 sparse → 6 dense)
-const yrs=[['16',1],['17',1],['18',2],['19',2],['20',3],['21',3],['22',4],['23',4],['24',5],['25',6],['26',5]];
-const dmax=6;
-const dramp=['#dbeae1','#bfe0cd','#9bd2b3','#73bd97','#4ea982','#2f8f66']; // density 1→6
-const yrEl=document.getElementById('yr');
-yrs.forEach(([y,n])=>{
-  const cell=document.createElement('div'); cell.className='yrcell';
-  const val=document.createElement('div'); val.className='val'; val.textContent=n;
-  const wrap=document.createElement('div'); wrap.className='barwrap';
-  const bar=document.createElement('div'); bar.className='bar';
-  bar.style.height=(n/dmax*100)+'%'; bar.style.background=dramp[n-1];
-  bar.title='’'+y+' — density '+n+'/6'; wrap.appendChild(bar);
-  const lab=document.createElement('div'); lab.className='lab'; lab.textContent='’'+y;
-  cell.append(val,wrap,lab); yrEl.appendChild(cell);
-});
-
-// parse a static SVG string into a node (no innerHTML sink; handles svg namespace)
-function svgFrom(str){ return new DOMParser().parseFromString(str,'image/svg+xml').documentElement; }
-
-// 5 · analytical lens — radial wheel of the 8 outcome domains (co-equal facets)
-const DOM=[['safety'],['regulation'],['sense of','future'],['joy'],['agency'],['wellbeing'],['protective','relationships'],['belonging']];
-const dcol=['#3f9d6d','#5aa3a0','#7a9c3f','#b0843f','#c97b46','#b06f8a','#7a6fb0','#4f86b6'];
-(function(){
-  const W=440,H=300,cx=220,cy=150,R=96,cr=37; let s='';
-  DOM.forEach((lines,i)=>{
-    const a=(-90+i*45)*Math.PI/180,co=Math.cos(a),si=Math.sin(a);
-    const x0=cx+cr*co,y0=cy+cr*si,nx=cx+R*co,ny=cy+R*si;
-    const lx=cx+(R+15)*co,ly=cy+(R+15)*si;
-    const anc=co>0.3?'start':co<-0.3?'end':'middle';
-    s+='<line x1="'+x0.toFixed(1)+'" y1="'+y0.toFixed(1)+'" x2="'+nx.toFixed(1)+'" y2="'+ny.toFixed(1)+'" stroke="'+dcol[i]+'" stroke-width="2" opacity=".55"/>';
-    s+='<circle cx="'+nx.toFixed(1)+'" cy="'+ny.toFixed(1)+'" r="6.5" fill="'+dcol[i]+'"/>';
-    const dy0=-(lines.length-1)*6;
-    s+='<text x="'+lx.toFixed(1)+'" y="'+(ly+dy0).toFixed(1)+'" text-anchor="'+anc+'">'+
-       lines.map((t,k)=>'<tspan x="'+lx.toFixed(1)+'" dy="'+(k?12:0)+'">'+t+'</tspan>').join('')+'</text>';
-  });
-  s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+cr+'" fill="#f2f7f4" stroke="#cfe1d6"/>';
-  s+='<text class="ctr" x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle"><tspan x="'+cx+'">the healing</tspan><tspan x="'+cx+'" dy="13">person</tspan></text>';
-  document.getElementById('domFig').replaceChildren(svgFrom('<svg xmlns="http://www.w3.org/2000/svg" class="lensfig" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="radial wheel of 8 outcome domains">'+s+'</svg>'));
-})();
-
-// 5 · analytical lens — nested concentric rings of the 6 impact levels
-const LVL=['individual','caregiver / family','community','organisational','institutional','ecosystem'];
-const lr=[24,40,57,75,94,114];                                   // radius per level (inner→outer)
-const lc=['#2f8f66','#52a884','#82c0a2','#aed6c1','#d2e7dc','#edf4ef']; // inner deep → outer light
-(function(){
-  const W=300,H=270,cx=150,cy=132; let s='';
-  for(let i=LVL.length-1;i>=0;i--){                              // outer first so inner paints on top
-    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+lr[i]+'" fill="'+lc[i]+'" stroke="#fffdfa" stroke-width="1.5"/>';
-  }
-  LVL.forEach((t,i)=>{ s+='<text class="lvl" x="'+cx+'" y="'+(cy-lr[i]+10)+'" text-anchor="middle">'+t+'</text>'; });
-  s+='<text class="cap" x="'+cx+'" y="'+(cy+lr[5]+18)+'" text-anchor="middle">core (individual) → outer (ecosystem)</text>';
-  document.getElementById('lvlFig').replaceChildren(svgFrom('<svg xmlns="http://www.w3.org/2000/svg" class="lensfig" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="nested concentric rings of 6 impact levels">'+s+'</svg>'));
-})();
+  window.AMNA_THEME = {
+    cov: ["transparent", "#eccfae", "#d68b5f", "#b15043"],
+    covText: ["#b0a08c", "#6b5334", "#ffffff", "#ffffff"],
+    geoRamp: [null, "rgba(203,120,88,.55)", "#cb7858", "#b15043"],
+    yrRamp: ["#d3ead9", "#aeddc0", "#86c9a2", "#5cb184", "#379468", "#1f7a54"],
+    rampGradient: "linear-gradient(90deg, #d3ead9, #1f7a54)",
+    eraBands: ["rgba(90,97,40,.06)", "rgba(203,120,88,.07)", "rgba(67,177,135,.07)", "rgba(31,122,84,.09)"],
+    mapLand: "#ecdcc4",
+    mapSea: "rgba(39,50,72,.05)",
+    mapSeaSolid: "#ece4d7",
+    mapGrid: "rgba(39,50,72,.09)",
+    mapCoast: "rgba(39,50,72,.2)",
+    mapHalo: "#fff7ec",
+    mapImage: "./assets/region-basemap.png",
+    mapMarker: ["", "#d99a6b", "#cb7858", "#b15043"],
+    domainHues: ["#b15043", "#cb7858", "#5a6128", "#43b187", "#436db1", "#5872cb", "#6e3a30", "#434824"],
+    wheelCore: "#fbf1e2",
+    wheelCoreLine: "#e6c7a8",
+    ringRamp: ["#273248", "#455066", "#6f7789", "#a3a9b5", "#d3d0cb", "#f3e7d4"],
+    ringLine: "#fffaf1"
+  };
 </script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="./render.js"></script>
+<script>window.addEventListener("load", function () { if (window.lucide) lucide.createIcons(); });</script>
 </body>
 </html>
