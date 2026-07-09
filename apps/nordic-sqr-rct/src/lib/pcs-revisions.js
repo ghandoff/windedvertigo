@@ -16,26 +16,10 @@
  * mutate() wrapper.
  */
 
-import { notion } from './notion.js';
-import { PCS_DB, PROPS, SYSTEM_ACTOR_EMAIL } from './pcs-config.js';
+import { PROPS, SYSTEM_ACTOR_EMAIL } from './pcs-config.js';
 import { getPcsSupabase } from './supabase-pcs.js';
 
 const R = PROPS.revisions;
-const MAX_VALUE_CHARS = 1950;
-
-function truncate(str, n = MAX_VALUE_CHARS) {
-  if (!str) return '';
-  return str.length > n ? str.slice(0, n - 1) + '…' : str;
-}
-
-function jsonOrNull(value) {
-  if (value === undefined || value === null) return null;
-  try {
-    return truncate(JSON.stringify(value));
-  } catch {
-    return truncate(String(value));
-  }
-}
 
 function composeTitle({ entityType, entityId, fieldPath, timestamp, actorEmail }) {
   const shortId = (entityId || 'unknown').replace(/-/g, '').slice(-8);
@@ -44,12 +28,6 @@ function composeTitle({ entityType, entityId, fieldPath, timestamp, actorEmail }
     : '—';
   const actor = (actorEmail || '').split('@')[0] || 'unknown';
   return `${entityType} · ${shortId} · ${fieldPath || 'bulk'} · ${when} · ${actor}`;
-}
-
-function toTextProperty(value) {
-  const v = value == null ? '' : String(value);
-  if (!v) return { rich_text: [] };
-  return { rich_text: [{ text: { content: truncate(v) } }] };
 }
 
 // ─── Parse ──────────────────────────────────────────────────────────────
@@ -165,27 +143,6 @@ export async function logRevision({
   const { error } = await sb.from('pcs_revision_events').insert(row);
   if (error) throw new Error(`Revision insert failed: ${error.message}`);
 
-  // Notion mirror (legacy).
-  if (PCS_DB.revisions) {
-    const properties = {
-      [R.title]: { title: [{ text: { content: composeTitle({ entityType, entityId, fieldPath, timestamp, actorEmail }) } }] },
-      [R.timestamp]: { date: { start: timestamp } },
-      [R.actorEmail]: { email: actorEmail },
-      [R.actorRoles]: { multi_select: actorRoles.map(name => ({ name })) },
-      [R.entityType]: { select: { name: entityType } },
-      [R.entityId]: { rich_text: [{ text: { content: String(entityId) } }] },
-      [R.entityTitle]: toTextProperty(entityTitle),
-      [R.fieldPath]: toTextProperty(fieldPath || 'bulk'),
-      [R.beforeValue]: toTextProperty(jsonOrNull(before)),
-      [R.afterValue]: toTextProperty(jsonOrNull(after)),
-      [R.reason]: toTextProperty(reason),
-    };
-    if (revertOfRevision) properties[R.revertOfRevision] = toTextProperty(revertOfRevision);
-    notion.pages
-      .create({ parent: { database_id: PCS_DB.revisions }, properties })
-      .catch(() => { /* Part 10 — Notion no longer canonical */ });
-  }
-
   return { id: newId };
 }
 
@@ -205,24 +162,10 @@ export async function getRevisions({ entityId, entityType, limit = 50 } = {}) {
     if (entityType) q = q.eq('entity_type', entityType);
     const { data, error } = await q;
     if (!error) return (data || []).map(parsePostgresRow);
-    console.warn('[pcs-revisions] Postgres read failed, falling back to Notion:', error.message);
+    console.warn('[pcs-revisions] Postgres read failed:', error.message);
   }
 
-  // Notion fallback.
-  if (!PCS_DB.revisions) return [];
-  const filter = {
-    and: [
-      { property: R.entityId, rich_text: { equals: String(entityId) } },
-      ...(entityType ? [{ property: R.entityType, select: { equals: entityType } }] : []),
-    ],
-  };
-  const res = await notion.databases.query({
-    database_id: PCS_DB.revisions,
-    filter,
-    sorts: [{ property: R.timestamp, direction: 'descending' }],
-    page_size: Math.min(limit, 100),
-  });
-  return res.results.map(parseRevisionPage);
+  return [];
 }
 
 export async function getRevisionById(id) {
@@ -236,13 +179,7 @@ export async function getRevisionById(id) {
       .maybeSingle();
     if (!error && data) return parsePostgresRow(data);
   }
-  if (!PCS_DB.revisions) return null;
-  try {
-    const page = await notion.pages.retrieve({ page_id: id });
-    return parseRevisionPage(page);
-  } catch {
-    return null;
-  }
+  return null;
 }
 
 /**
@@ -264,21 +201,6 @@ export async function markRevisionReverted({ revisionId, actor, reason, newRevis
     if (newRevisionId) update.revert_of_revision = newRevisionId;
     const { error } = await sb.from('pcs_revision_events').update(update).eq('notion_page_id', revisionId);
     if (error) throw new Error(`Revert mark failed: ${error.message}`);
-  }
-
-  // Notion mirror (legacy).
-  if (PCS_DB.revisions) {
-    const properties = {
-      [R.revertedAt]: { date: { start: revertedAt } },
-      [R.revertedBy]: { email: revertedBy },
-    };
-    if (reason) {
-      properties[R.reason] = toTextProperty(`[reverted ${revertedAt} by ${revertedBy}] ${reason}`);
-    }
-    if (newRevisionId) properties[R.revertOfRevision] = toTextProperty(newRevisionId);
-    notion.pages
-      .update({ page_id: revisionId, properties })
-      .catch(() => { /* Part 10 — Notion no longer canonical */ });
   }
 
   return { revertedRevisionId: revisionId, newRevisionId: newRevisionId || null };

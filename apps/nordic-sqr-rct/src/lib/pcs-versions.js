@@ -7,7 +7,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for versions.
 // Notion shape uses uppercase abbreviations (EPA, DHA) that the default
@@ -144,72 +144,30 @@ function laurenTemplateProps(fields) {
 }
 
 export async function getVersionsForDocument(documentId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_versions')
-        .select('*')
-        .eq('pcs_document_id', documentId)
-        .order('effective_date', { ascending: false, nullsFirst: false })
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-versions] Postgres forDocument failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.versions,
-    filter: { property: P.pcsDocument, relation: { contains: documentId } },
-    sorts: [{ property: P.effectiveDate, direction: 'descending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_versions')
+    .select('*')
+    .eq('pcs_document_id', documentId)
+    .order('effective_date', { ascending: false, nullsFirst: false })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getVersion(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_versions')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-versions] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_versions')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function getAllVersions() {
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllVersionsFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-versions] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllVersionsFromNotion();
-}
-
-async function _fetchAllVersionsFromNotion() {
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.versions,
-      start_cursor: cursor,
-      sorts: [{ property: P.effectiveDate, direction: 'descending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
+  return await _fetchAllVersionsFromPostgres();
 }
 
 async function _fetchAllVersionsFromPostgres() {
@@ -316,30 +274,9 @@ export async function createVersion(fields) {
       totalOmega9: fields.totalOmega9 ?? null,
       sourceType: fields.sourceType || null,
     };
-    await writePostgresFirst('pcs_versions', stubRow, VERSIONS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.versions }, properties }));
+    await writePostgresFirst('pcs_versions', stubRow, VERSIONS_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.versions },
-    properties,
-  });
-  const parsed = parsePage(page);
-
-  // When creating a version marked isLatest=true, also repoint the parent
-  // document's `latestVersion` relation so drift detection (label-drift.js)
-  // and the Living PCS view read the fresh version. Non-fatal on failure.
-  if (fields.isLatest === true && fields.pcsDocumentId) {
-    try {
-      const { setLatestVersion } = await import('./pcs-documents.js');
-      await setLatestVersion(fields.pcsDocumentId, parsed.id);
-    } catch (err) {
-      console.warn('[pcs-versions] createVersion: setLatestVersion failed', err);
-    }
-  }
-
-  // 2026-05-06 — Path-2 Day 2.7 write-mirror. Best-effort; failure is logged.
-  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 export async function updateVersion(id, fields) {
@@ -361,11 +298,7 @@ export async function updateVersion(id, fields) {
   Object.assign(properties, laurenTemplateProps(fields));
   if (shouldWriteToPostgresFirst()) {
     const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_versions', stubRow, VERSIONS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    await writePostgresFirst('pcs_versions', stubRow, VERSIONS_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }

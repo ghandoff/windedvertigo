@@ -17,7 +17,6 @@ import {
   shouldUseStrongConsistency,
 } from './supabase-pcs.js';
 import {
-  shouldReadFromSqrPostgres,
   shouldWriteToSqrPostgresFirst,
   shouldUseSqrStrongConsistency,
   SQR_DB,
@@ -144,85 +143,23 @@ export function parsePostgresIntakeRow(row) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getAllStudies() {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('intakes')
-        .select('*')
-        .order('year', { ascending: false });
-      if (!error && data) return data.map(parsePostgresIntakeRow);
-    } catch (err) {
-      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  let allResults = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: SQR_DB.intakes,
-      sorts: [{ property: 'Year', direction: 'descending' }],
-      start_cursor: cursor,
-    });
-    allResults = allResults.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return allResults.map(parseIntakePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('intakes')
+    .select('*')
+    .order('year', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(parsePostgresIntakeRow);
 }
 
 export async function getStudyById(pageId) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb.from('intakes').select('*').eq('notion_page_id', pageId).maybeSingle();
-      if (!error && data) return parsePostgresIntakeRow(data);
-    } catch (err) {
-      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  return parseIntakePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb.from('intakes').select('*').eq('notion_page_id', pageId).maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresIntakeRow(data) : null;
 }
 
 export async function createStudy(data) {
-  const properties = {
-    'Citation': { title: [{ text: { content: data.citation } }] },
-    'DOI': { url: data.doi || null },
-    'Year': { number: data.year ? Number(data.year) : null },
-    'Journal': { rich_text: [{ text: { content: data.journal || '' } }] },
-    'Purpose of Research': { rich_text: [{ text: { content: data.purposeOfResearch || '' } }] },
-    'Study Design': { rich_text: [{ text: { content: data.studyDesign || '' } }] },
-    'Funding Source(s)': { rich_text: [{ text: { content: data.fundingSources || '' } }] },
-    'Inclusion Criteria': { rich_text: [{ text: { content: data.inclusionCriteria || '' } }] },
-    'Exclusion Criteria': { rich_text: [{ text: { content: data.exclusionCriteria || '' } }] },
-    'Recruitment': { rich_text: [{ text: { content: data.recruitment || '' } }] },
-    'Initial N': { number: data.initialN ? Number(data.initialN) : null },
-    'Ages (group means)': { rich_text: [{ text: { content: data.ages || '' } }] },
-    'Female Participants': { number: data.femaleParticipants ? Number(data.femaleParticipants) : null },
-    'Male Participants': { number: data.maleParticipants ? Number(data.maleParticipants) : null },
-    'Final N': { number: data.finalN ? Number(data.finalN) : null },
-    'Location of Study (Country)': { rich_text: [{ text: { content: data.locationCountry || '' } }] },
-    'Location of Study (City)': { rich_text: [{ text: { content: data.locationCity || '' } }] },
-    'Timing of Measures': { rich_text: [{ text: { content: data.timingOfMeasures || '' } }] },
-    'Independent Variables': { rich_text: [{ text: { content: data.independentVariables || '' } }] },
-    'Dependent Variables': { rich_text: [{ text: { content: data.dependentVariables || '' } }] },
-    'Control Variables': { rich_text: [{ text: { content: data.controlVariables || '' } }] },
-    'Key Results': { rich_text: [{ text: { content: data.keyResults || '' } }] },
-    'Other Results': { rich_text: [{ text: { content: data.otherResults || '' } }] },
-    'Statistical Methods': { rich_text: [{ text: { content: data.statisticalMethods || '' } }] },
-    'Missing Data Handling': { rich_text: [{ text: { content: data.missingDataHandling || '' } }] },
-    'Authors\' Conclusion': { rich_text: [{ text: { content: data.authorsConclusion || '' } }] },
-    'Strengths': { rich_text: [{ text: { content: data.strengths || '' } }] },
-    'Limitations': { rich_text: [{ text: { content: data.limitations || '' } }] },
-    'Potential Biases': { rich_text: [{ text: { content: data.potentialBiases || '' } }] },
-    'Submitted by Alias': { rich_text: [{ text: { content: data.submittedByAlias || '' } }] },
-  };
-  if (data.blinding) {
-    properties['Blinding'] = { select: { name: data.blinding } };
-  }
-  if (data.aPrioriPower) {
-    properties['A Priori Power Estimation'] = { select: { name: data.aPrioriPower } };
-  }
   if (shouldWriteToSqrPostgresFirst()) {
     const preId = crypto.randomUUID();
     const stubRow = {
@@ -265,79 +202,40 @@ export async function createStudy(data) {
       'intakes',
       stubRow,
       INTAKES_PG_COLUMN_MAP,
-      () => notion.pages.create({ parent: { database_id: SQR_DB.intakes }, properties }),
     );
     return stubRow;
   }
-  return notion.pages.create({ parent: { database_id: SQR_DB.intakes }, properties });
 }
 
 export async function getStudyByDoi(doi) {
   if (!doi) return null;
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb.from('intakes').select('*').eq('doi', doi).maybeSingle();
-      if (!error && data) return parsePostgresIntakeRow(data);
-    } catch (err) {
-      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: SQR_DB.intakes,
-    filter: { property: 'DOI', url: { equals: doi } },
-    page_size: 1,
-  });
-  return res.results[0] ? parseIntakePage(res.results[0]) : null;
+  const sb = getPcsSupabase();
+  const { data, error } = await sb.from('intakes').select('*').eq('doi', doi).maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresIntakeRow(data) : null;
 }
 
 export async function getIntakesByReviewerAlias(alias) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('intakes')
-        .select('*')
-        .eq('submitted_by_alias', alias)
-        .order('year', { ascending: false });
-      if (!error && data) return data.map(parsePostgresIntakeRow);
-    } catch (err) {
-      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: SQR_DB.intakes,
-    filter: { property: 'Submitted by Alias', rich_text: { equals: alias } },
-    sorts: [{ property: 'Year', direction: 'descending' }],
-  });
-  return res.results.map(parseIntakePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('intakes')
+    .select('*')
+    .eq('submitted_by_alias', alias)
+    .order('year', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(parsePostgresIntakeRow);
 }
 
 export async function getIntakeByReviewerAndDoi(alias, doi) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('intakes')
-        .select('*')
-        .eq('submitted_by_alias', alias)
-        .eq('doi', doi)
-        .maybeSingle();
-      if (!error && data) return parsePostgresIntakeRow(data);
-    } catch (err) {
-      console.warn('[sqr-intakes] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: SQR_DB.intakes,
-    filter: {
-      and: [
-        { property: 'Submitted by Alias', rich_text: { equals: alias } },
-        { property: 'DOI', url: { equals: doi } },
-      ],
-    },
-  });
-  return res.results[0] ? parseIntakePage(res.results[0]) : null;
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('intakes')
+    .select('*')
+    .eq('submitted_by_alias', alias)
+    .eq('doi', doi)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresIntakeRow(data) : null;
 }
 
 export async function updateStudyPdf(studyId, pdfUrl) {
@@ -347,25 +245,9 @@ export async function updateStudyPdf(studyId, pdfUrl) {
       'intakes',
       stubRow,
       INTAKES_PG_COLUMN_MAP,
-      () => notion.pages.update({
-        page_id: studyId,
-        properties: {
-          'PDF': pdfUrl
-            ? { files: [{ name: 'PDF', type: 'external', external: { url: pdfUrl } }] }
-            : { files: [] },
-        },
-      }),
     );
     return stubRow;
   }
-  return notion.pages.update({
-    page_id: studyId,
-    properties: {
-      'PDF': pdfUrl
-        ? { files: [{ name: 'PDF', type: 'external', external: { url: pdfUrl } }] }
-        : { files: [] },
-    },
-  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

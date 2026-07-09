@@ -17,7 +17,6 @@ import {
   shouldUseStrongConsistency,
 } from './supabase-pcs.js';
 import {
-  shouldReadFromSqrPostgres,
   shouldWriteToSqrPostgresFirst,
   shouldUseSqrStrongConsistency,
   SQR_DB,
@@ -142,33 +141,6 @@ export function parsePostgresScoreRow(row) {
 export async function createScore(data) {
   const scoreId = data.scoreId || `SCR-${Date.now()}`;
   const timestamp = new Date().toISOString();
-  const properties = {
-    'Score ID': { title: [{ text: { content: scoreId } }] },
-    'Q1 Research Question': { select: { name: data.q1 } },
-    'Q2 Randomization': { select: { name: data.q2 } },
-    'Q3 Blinding': { select: { name: data.q3 } },
-    'Q4 Sample Size': { select: { name: data.q4 } },
-    'Q5 Baseline Characteristics': { select: { name: data.q5 } },
-    'Q6 Participant Flow': { select: { name: data.q6 } },
-    'Q7 Intervention Description': { select: { name: data.q7 } },
-    'Q8 Outcome Measurement': { select: { name: data.q8 } },
-    'Q9 Statistical Analysis': { select: { name: data.q9 } },
-    'Q10 Bias Assessment': { select: { name: data.q10 } },
-    'Q11 Applicability': { select: { name: data.q11 } },
-    'Rater Alias': { select: { name: data.raterAlias } },
-    'Notes': { rich_text: [{ text: { content: data.notes || '' } }] },
-    'Rubric version': { select: { name: data.rubricVersion || 'V2' } },
-    'Timestamp': { date: { start: timestamp } },
-  };
-  if (data.studyId) {
-    properties['Study'] = { relation: [{ id: data.studyId }] };
-  }
-  if (data.reviewerId) {
-    properties['Reviewer'] = { relation: [{ id: data.reviewerId }] };
-  }
-  if (data.timeToComplete) {
-    properties['Time to Complete (minutes)'] = { number: Number(data.timeToComplete) };
-  }
   if (shouldWriteToSqrPostgresFirst()) {
     const preId = crypto.randomUUID();
     const stubRow = {
@@ -209,103 +181,48 @@ export async function createScore(data) {
       'scores',
       stubRow,
       SCORES_PG_COLUMN_MAP,
-      () => notion.pages.create({ parent: { database_id: SQR_DB.scores }, properties }),
     );
     return stubRow;
   }
-  return notion.pages.create({ parent: { database_id: SQR_DB.scores }, properties });
 }
 
 export async function getScoreById(scoreId) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb.from('scores').select('*').eq('notion_page_id', scoreId).maybeSingle();
-      if (!error && data) return parsePostgresScoreRow(data);
-    } catch (err) {
-      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: scoreId });
-  return parseScorePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb.from('scores').select('*').eq('notion_page_id', scoreId).maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresScoreRow(data) : null;
 }
 
 export async function getScoresByReviewer(reviewerAlias) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('scores')
-        .select('*')
-        .eq('rater_alias', reviewerAlias)
-        .order('scored_at', { ascending: false });
-      if (!error && data) return data.map(parsePostgresScoreRow);
-    } catch (err) {
-      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  let allResults = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: SQR_DB.scores,
-      filter: { property: 'Rater Alias', select: { equals: reviewerAlias } },
-      sorts: [{ property: 'Timestamp', direction: 'descending' }],
-      start_cursor: cursor,
-    });
-    allResults = allResults.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return allResults.map(parseScorePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('scores')
+    .select('*')
+    .eq('rater_alias', reviewerAlias)
+    .order('scored_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(parsePostgresScoreRow);
 }
 
 export async function getAllScores() {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('scores')
-        .select('*')
-        .order('scored_at', { ascending: false });
-      if (!error && data) return data.map(parsePostgresScoreRow);
-    } catch (err) {
-      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  let allResults = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: SQR_DB.scores,
-      start_cursor: cursor,
-      sorts: [{ property: 'Timestamp', direction: 'descending' }],
-    });
-    allResults = allResults.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return allResults.map(parseScorePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('scores')
+    .select('*')
+    .order('scored_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(parsePostgresScoreRow);
 }
 
 export async function getScoresForStudy(studyPageId) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('scores')
-        .select('*')
-        .contains('study_relation', [studyPageId])
-        .order('scored_at', { ascending: false });
-      if (!error && data) return data.map(parsePostgresScoreRow);
-    } catch (err) {
-      console.warn('[sqr-scores] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: SQR_DB.scores,
-    filter: { property: 'Study', relation: { contains: studyPageId } },
-    sorts: [{ property: 'Timestamp', direction: 'descending' }],
-  });
-  return res.results.map(parseScorePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('scores')
+    .select('*')
+    .contains('study_relation', [studyPageId])
+    .order('scored_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map(parsePostgresScoreRow);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

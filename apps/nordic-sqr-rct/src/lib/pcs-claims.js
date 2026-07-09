@@ -14,8 +14,8 @@ import {
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 import {
-  getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres,
-  shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst,
+  getPcsSupabase, mirrorToPostgres,
+  shouldUseStrongConsistency, writePostgresFirst,
 } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Phase A. No special column-name overrides for
@@ -122,30 +122,18 @@ function parsePage(page) {
 }
 
 export async function getClaimsForVersion(versionId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      // pcs_claims.pcs_version_id is TEXT (the related row's
-      // notion_page_id) per the Phase N1 schema convention. Indexed
-      // (pcs_claims_pcs_version_id_idx).
-      const { data, error } = await sb
-        .from('pcs_claims')
-        .select('*')
-        .eq('pcs_version_id', versionId)
-        .order('claim_no', { ascending: true })
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-claims] Postgres byVersion failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.claims,
-    filter: { property: P.pcsVersion, relation: { contains: versionId } },
-    sorts: [{ property: P.claimNo, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  // pcs_claims.pcs_version_id is TEXT (the related row's
+  // notion_page_id) per the Phase N1 schema convention. Indexed
+  // (pcs_claims_pcs_version_id_idx).
+  const { data, error } = await sb
+    .from('pcs_claims')
+    .select('*')
+    .eq('pcs_version_id', versionId)
+    .order('claim_no', { ascending: true })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getAllClaims(maxPages = 50, opts = {}) {
@@ -158,33 +146,7 @@ export async function getAllClaims(maxPages = 50, opts = {}) {
 }
 
 async function _fetchAllClaims(maxPages) {
-  // 2026-05-06 — Path-2 read-path swap. Postgres-first when flag is on,
-  // Notion fallback on any error. Same pattern as pcs-evidence.js.
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllClaimsFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-claims] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllClaimsFromNotion(maxPages);
-}
-
-async function _fetchAllClaimsFromNotion(maxPages) {
-  let all = [];
-  let cursor = undefined;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.claims,
-      page_size: 100,
-      start_cursor: cursor,
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages++;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
+  return await _fetchAllClaimsFromPostgres();
 }
 
 /**
@@ -237,67 +199,37 @@ async function _fetchAllClaimsFromPostgres() {
 }
 
 export async function getClaim(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_claims')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-claims] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_claims')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function getClaimsByBucket(bucket) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_claims')
-        .select('*')
-        .eq('claim_bucket', bucket)
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-claims] Postgres byBucket failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.claims,
-    filter: { property: P.claimBucket, select: { equals: bucket } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_claims')
+    .select('*')
+    .eq('claim_bucket', bucket)
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getClaimsWithoutEvidence() {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      // PostgREST: empty array filter
-      const { data, error } = await sb
-        .from('pcs_claims')
-        .select('*')
-        .eq('evidence_packet_ids', '{}')
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-claims] Postgres withoutEvidence failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.claims,
-    filter: { property: P.evidencePacketLinks, relation: { is_empty: true } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  // PostgREST: empty array filter
+  const { data, error } = await sb
+    .from('pcs_claims')
+    .select('*')
+    .eq('evidence_packet_ids', '{}')
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function updateClaim(id, fields) {
@@ -381,23 +313,10 @@ export async function updateClaim(id, fields) {
   // writePostgresFirst picks them up from the stubRow via CLAIMS_PG_COLUMN_MAP auto-snake_case.
   // 2026-05-07 — Phase B: stub row carries only the fields being updated;
   // notionShapeToPgRow strips undefined so the upsert only touches changed columns.
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, ...fields };
-    await writePostgresFirst(
-      'pcs_claims',
-      stubRow,
-      CLAIMS_PG_COLUMN_MAP,
-      () => notion.pages.update({ page_id: id, properties }),
-    );
-    invalidateClaimsCache();
-    return stubRow; // optimistic; drift-sync back-fills Notion-only fields
-  }
-  // Phase A fallback: Notion-first + best-effort mirror.
-  const page = await notion.pages.update({ page_id: id, properties });
+  const stubRow = { id, ...fields };
+  await writePostgresFirst('pcs_claims', stubRow, CLAIMS_PG_COLUMN_MAP);
   invalidateClaimsCache();
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  return stubRow; // optimistic; drift-sync back-fills Notion-only fields
 }
 
 export async function createClaim(fields) {
@@ -446,46 +365,28 @@ export async function createClaim(fields) {
 
   // 2026-05-07 — Phase B: pre-assign Postgres PK, fire Notion async.
   // Note: canonicalClaimId was resolved above (may differ from fields.canonicalClaimId).
-  if (shouldWriteToPostgresFirst()) {
-    const preId = crypto.randomUUID();
-    const stubRow = {
-      id: preId,
-      claim: fields.claim || '',
-      claimNo: fields.claimNo || '',
-      claimBucket: fields.claimBucket || null,
-      claimStatus: fields.claimStatus || null,
-      claimNotes: fields.claimNotes || '',
-      disclaimerRequired: fields.disclaimerRequired || false,
-      minDoseMg: fields.minDoseMg ?? null,
-      maxDoseMg: fields.maxDoseMg ?? null,
-      doseGuidanceNote: fields.doseGuidanceNote || '',
-      pcsVersionId: fields.pcsVersionId || null,
-      canonicalClaimId: canonicalClaimId, // resolved above (may be from auto-lookup)
-      claimPrefixId: fields.claimPrefixId || null,
-      coreBenefitId: fields.coreBenefitId || null,
-      confidence: fields.confidence ?? null,
-      sourceAicsClaimId: fields.sourceAicsClaimId || null,
-    };
-    await writePostgresFirst(
-      'pcs_claims',
-      stubRow,
-      CLAIMS_PG_COLUMN_MAP,
-      () => notion.pages.create({ parent: { database_id: PCS_DB.claims }, properties }),
-    );
-    invalidateClaimsCache();
-    return stubRow;
-  }
-  // Phase A fallback: Notion-first + best-effort mirror.
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.claims },
-    properties,
-  });
+  const preId = crypto.randomUUID();
+  const stubRow = {
+    id: preId,
+    claim: fields.claim || '',
+    claimNo: fields.claimNo || '',
+    claimBucket: fields.claimBucket || null,
+    claimStatus: fields.claimStatus || null,
+    claimNotes: fields.claimNotes || '',
+    disclaimerRequired: fields.disclaimerRequired || false,
+    minDoseMg: fields.minDoseMg ?? null,
+    maxDoseMg: fields.maxDoseMg ?? null,
+    doseGuidanceNote: fields.doseGuidanceNote || '',
+    pcsVersionId: fields.pcsVersionId || null,
+    canonicalClaimId: canonicalClaimId, // resolved above (may be from auto-lookup)
+    claimPrefixId: fields.claimPrefixId || null,
+    coreBenefitId: fields.coreBenefitId || null,
+    confidence: fields.confidence ?? null,
+    sourceAicsClaimId: fields.sourceAicsClaimId || null,
+  };
+  await writePostgresFirst('pcs_claims', stubRow, CLAIMS_PG_COLUMN_MAP);
   invalidateClaimsCache();
-  const parsed = parsePage(page);
-  // sourceAicsClaimId is Postgres-only (no Notion property); inject before mirror.
-  if (fields.sourceAicsClaimId) parsed.sourceAicsClaimId = fields.sourceAicsClaimId;
-  await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  return stubRow;
 }
 
 /**
