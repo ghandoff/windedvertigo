@@ -10,7 +10,7 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.ingredientForms;
@@ -122,34 +122,14 @@ function buildProps(fields) {
 }
 
 export async function getAllIngredientForms(maxPages = 50) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_ingredient_forms')
-        .select('*')
-        .order('notion_last_edited_at', { ascending: false })
-        .limit(5000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-ingredient-forms] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  let all = [];
-  let cursor = undefined;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.ingredientForms,
-      page_size: 100,
-      start_cursor: cursor,
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages += 1;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_ingredient_forms')
+    .select('*')
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 /**
@@ -174,78 +154,49 @@ export async function getVeganCompatibleForms() {
 }
 
 export async function getFormsForIngredient(ingredientId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_ingredient_forms')
-        .select('*')
-        .eq('active_ingredient_id', ingredientId);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-ingredient-forms] Postgres forIngredient failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.ingredientForms,
-    filter: { property: P.activeIngredient, relation: { contains: ingredientId } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_ingredient_forms')
+    .select('*')
+    .eq('active_ingredient_id', ingredientId);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getIngredientForm(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_ingredient_forms')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-ingredient-forms] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_ingredient_forms')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  if (data) return parsePostgresRow(data);
+  return null;
 }
 
 export async function createIngredientForm(fields) {
   if (!fields.formName) throw new Error('formName is required');
   const properties = buildProps(fields);
-  if (shouldWriteToPostgresFirst()) {
-    const preId = crypto.randomUUID();
-    const stubRow = {
-      id: preId,
-      formName: fields.formName || '',
-      activeIngredientId: fields.activeIngredientId || null,
-      synonyms: fields.synonyms || '',
-      bioavailabilityNote: fields.bioavailabilityNote || '',
-      strainIdentifier: fields.strainIdentifier || '',
-      source: fields.source || '',
-      isDefault: fields.isDefault || false,
-      sourceType: fields.sourceType || null,
-      veganCompatible: fields.veganCompatible || false,
-      kosher: fields.kosher || false,
-      halal: fields.halal || false,
-      glutenFree: fields.glutenFree || false,
-      allergens: fields.allergens || [],
-    };
-    await writePostgresFirst('pcs_ingredient_forms', stubRow, INGREDIENT_FORMS_PG_COLUMN_MAP, () =>
-      notion.pages.create({ parent: { database_id: PCS_DB.ingredientForms }, properties })
-    );
-    return stubRow;
-  }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.ingredientForms },
-    properties,
-  });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_ingredient_forms', parsed, INGREDIENT_FORMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  const preId = crypto.randomUUID();
+  const stubRow = {
+    id: preId,
+    formName: fields.formName || '',
+    activeIngredientId: fields.activeIngredientId || null,
+    synonyms: fields.synonyms || '',
+    bioavailabilityNote: fields.bioavailabilityNote || '',
+    strainIdentifier: fields.strainIdentifier || '',
+    source: fields.source || '',
+    isDefault: fields.isDefault || false,
+    sourceType: fields.sourceType || null,
+    veganCompatible: fields.veganCompatible || false,
+    kosher: fields.kosher || false,
+    halal: fields.halal || false,
+    glutenFree: fields.glutenFree || false,
+    allergens: fields.allergens || [],
+  };
+  await writePostgresFirst('pcs_ingredient_forms', stubRow, INGREDIENT_FORMS_PG_COLUMN_MAP);
+  return stubRow;
 }
 
 /** Wave 8.2 — fields revertable by the revisions panel. */
@@ -280,29 +231,14 @@ export async function updateIngredientFormField({ id, fieldPath, value, actor, r
 
 export async function updateIngredientForm(id, fields) {
   const properties = buildProps(fields);
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_ingredient_forms', stubRow, INGREDIENT_FORMS_PG_COLUMN_MAP, () =>
-      notion.pages.update({ page_id: id, properties })
-    );
-    return stubRow;
-  }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_ingredient_forms', parsed, INGREDIENT_FORMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  const stubRow = { id, ...fields };
+  await writePostgresFirst('pcs_ingredient_forms', stubRow, INGREDIENT_FORMS_PG_COLUMN_MAP);
+  return stubRow;
 }
 
 export async function deleteIngredientForm(id) {
-  if (shouldWriteToPostgresFirst()) {
-    const sb = getPcsSupabase();
-    await sb.from('pcs_ingredient_forms').delete().eq('notion_page_id', id);
-    notion.pages.update({ page_id: id, archived: true }).catch(err =>
-      console.warn('[pcs-ingredient-forms] async Notion archive failed:', err?.message)
-    );
-    return;
-  }
-  await notion.pages.update({ page_id: id, archived: true });
+  const sb = getPcsSupabase();
+  await sb.from('pcs_ingredient_forms').delete().eq('notion_page_id', id);
 }
 
 // ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────

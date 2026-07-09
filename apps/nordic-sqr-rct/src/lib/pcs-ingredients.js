@@ -16,7 +16,7 @@ import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_ingredients; all fields follow the camelCase → snake_case convention.
@@ -124,33 +124,7 @@ export async function getAllIngredients(maxPages = 50, opts = {}) {
 }
 
 async function _fetchAllIngredients(maxPages) {
-  // 2026-05-06 — Path-2 Day 2.6 read-path swap. Postgres-first when
-  // PCS_READ_FROM_POSTGRES is on; Notion fallback on any error.
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllIngredientsFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-ingredients] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllIngredientsFromNotion(maxPages);
-}
-
-async function _fetchAllIngredientsFromNotion(maxPages) {
-  let all = [];
-  let cursor = undefined;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.ingredients,
-      page_size: 100,
-      start_cursor: cursor,
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages += 1;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
+  return await _fetchAllIngredientsFromPostgres();
 }
 
 async function _fetchAllIngredientsFromPostgres() {
@@ -201,56 +175,37 @@ export async function syncSingleIngredientPageToPostgres(pageId) {
 }
 
 export async function getIngredient(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_ingredients')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-ingredients] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_ingredients')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function createIngredient(fields) {
   if (!fields.canonicalName) throw new Error('canonicalName is required');
   const properties = buildProps(fields);
-  if (shouldWriteToPostgresFirst()) {
-    const preId = crypto.randomUUID();
-    const stubRow = {
-      id: preId,
-      canonicalName: fields.canonicalName || '',
-      synonyms: fields.synonyms || '',
-      category: fields.category || null,
-      standardUnit: fields.standardUnit || null,
-      fdaRdi: fields.fdaRdi ?? null,
-      fdaRdiUnit: fields.fdaRdiUnit || null,
-      regulatoryCeiling: fields.regulatoryCeiling ?? null,
-      bioavailabilityNotes: fields.bioavailabilityNotes || '',
-      interactionCautions: fields.interactionCautions || '',
-      notes: fields.notes || '',
-      formIds: fields.formIds || [],
-    };
-    await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.ingredients }, properties }));
-    invalidateIngredientsCache();
-    return stubRow;
-  }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.ingredients },
-    properties,
-  });
+  const preId = crypto.randomUUID();
+  const stubRow = {
+    id: preId,
+    canonicalName: fields.canonicalName || '',
+    synonyms: fields.synonyms || '',
+    category: fields.category || null,
+    standardUnit: fields.standardUnit || null,
+    fdaRdi: fields.fdaRdi ?? null,
+    fdaRdiUnit: fields.fdaRdiUnit || null,
+    regulatoryCeiling: fields.regulatoryCeiling ?? null,
+    bioavailabilityNotes: fields.bioavailabilityNotes || '',
+    interactionCautions: fields.interactionCautions || '',
+    notes: fields.notes || '',
+    formIds: fields.formIds || [],
+  };
+  await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP);
   invalidateIngredientsCache();
-  const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Day 2.6 write-mirror.
-  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  return stubRow;
 }
 
 /** Wave 8.2 — fields revertable by the revisions panel. */
@@ -283,42 +238,16 @@ export async function updateIngredientField({ id, fieldPath, value, actor, reaso
 }
 
 export async function updateIngredient(id, fields) {
-  const properties = buildProps(fields);
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
-    invalidateIngredientsCache();
-    return stubRow;
-  }
-  const page = await notion.pages.update({ page_id: id, properties });
+  const stubRow = { id, ...fields };
+  await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP);
   invalidateIngredientsCache();
-  const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Day 2.6 write-mirror.
-  await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  return stubRow;
 }
 
 export async function deleteIngredient(id) {
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, archived: true };
-    await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, archived: true }));
-    invalidateIngredientsCache();
-    return;
-  }
-  await notion.pages.update({ page_id: id, archived: true });
+  const stubRow = { id, archived: true };
+  await writePostgresFirst('pcs_ingredients', stubRow, INGREDIENTS_PG_COLUMN_MAP);
   invalidateIngredientsCache();
-  // 2026-05-06 — Path-2 Day 2.6 delete-mirror. Notion archives the page;
-  // we delete the Postgres row to keep the mirror in sync. Best-effort —
-  // failure logs but doesn't bubble to the caller.
-  try {
-    const sb = getPcsSupabase();
-    if (sb) {
-      const { error } = await sb.from('pcs_ingredients').delete().eq('notion_page_id', id);
-      if (error) throw error;
-    }
-  } catch (err) {
-    console.warn(`[pcs-ingredients] Postgres delete-mirror failed for ${id}: ${err.message}`);
-  }
 }
 
 /**

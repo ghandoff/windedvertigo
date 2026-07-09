@@ -13,8 +13,7 @@
  * See docs/plans/wave-5-product-labels.md §2 for the original property schema.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS } from './pcs-config.js';
 import { getPcsSupabase } from './supabase-pcs.js';
 
 const P = PROPS.productLabels;
@@ -109,37 +108,6 @@ function buildRow(fields) {
   return row;
 }
 
-/** Build Notion-shaped properties (legacy mirror only). */
-function buildProperties(fields, { forCreate } = { forCreate: false }) {
-  const properties = {};
-  if (forCreate || fields.sku !== undefined) properties[P.sku] = { title: [{ text: { content: fields.sku || '' } }] };
-  if (fields.upc !== undefined) properties[P.upc] = { rich_text: [{ text: { content: fields.upc || '' } }] };
-  if (fields.productNameAsMarketed !== undefined) properties[P.productNameAsMarketed] = { rich_text: [{ text: { content: fields.productNameAsMarketed || '' } }] };
-  if (fields.labelImage !== undefined) {
-    const files = (fields.labelImage || []).map(f => {
-      if (f.external?.url) return { name: f.name || 'label', type: 'external', external: { url: f.external.url } };
-      if (f.url) return { name: f.name || 'label', type: 'external', external: { url: f.url } };
-      return f;
-    });
-    properties[P.labelImage] = { files };
-  }
-  if (fields.labelVersionDate !== undefined) properties[P.labelVersionDate] = fields.labelVersionDate ? { date: { start: fields.labelVersionDate } } : { date: null };
-  if (fields.regulatoryFramework !== undefined) properties[P.regulatoryFramework] = fields.regulatoryFramework ? { select: { name: fields.regulatoryFramework } } : { select: null };
-  if (fields.markets !== undefined) properties[P.markets] = { multi_select: (fields.markets || []).map(name => ({ name })) };
-  if (fields.approvedClaimsOnLabel !== undefined) properties[P.approvedClaimsOnLabel] = { rich_text: [{ text: { content: fields.approvedClaimsOnLabel || '' } }] };
-  if (fields.ingredientListIds !== undefined) properties[P.ingredientList] = { relation: (fields.ingredientListIds || []).map(id => ({ id })) };
-  if (fields.ingredientDoses !== undefined) properties[P.ingredientDoses] = { rich_text: [{ text: { content: fields.ingredientDoses || '' } }] };
-  if (fields.dvCompliance !== undefined) properties[P.dvCompliance] = { checkbox: !!fields.dvCompliance };
-  if (fields.pcsDocumentId !== undefined) properties[P.pcsDocument] = fields.pcsDocumentId ? { relation: [{ id: fields.pcsDocumentId }] } : { relation: [] };
-  if (fields.linkedEvidenceIds !== undefined) properties[P.linkedEvidence] = { relation: (fields.linkedEvidenceIds || []).map(id => ({ id })) };
-  if (fields.status !== undefined) properties[P.status] = fields.status ? { select: { name: fields.status } } : { select: null };
-  if (fields.lastDriftCheck !== undefined) properties[P.lastDriftCheck] = fields.lastDriftCheck ? { date: { start: fields.lastDriftCheck } } : { date: null };
-  if (fields.driftFindingIds !== undefined) properties[P.driftFindings] = { relation: (fields.driftFindingIds || []).map(id => ({ id })) };
-  if (fields.ownerIds !== undefined) properties[P.owner] = { people: (fields.ownerIds || []).map(id => ({ id })) };
-  if (fields.notes !== undefined) properties[P.notes] = { rich_text: [{ text: { content: fields.notes || '' } }] };
-  return properties;
-}
-
 // ─── Reads ───────────────────────────────────────────────────────────────
 
 export async function getAllLabels(maxPages = 50) {
@@ -151,23 +119,9 @@ export async function getAllLabels(maxPages = 50) {
       .order('sku', { ascending: true })
       .limit(maxPages * 100);
     if (!error) return (data || []).map(parsePostgresRow);
-    console.warn('[pcs-labels] Postgres read failed, falling back to Notion:', error.message);
+    console.warn('[pcs-labels] Postgres read failed:', error.message);
   }
-  let all = [];
-  let cursor;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.productLabels,
-      page_size: 100,
-      start_cursor: cursor,
-      sorts: [{ property: P.sku, direction: 'ascending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages++;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
+  return [];
 }
 
 export async function getLabel(id) {
@@ -180,8 +134,7 @@ export async function getLabel(id) {
       .maybeSingle();
     if (!error && data) return parsePostgresRow(data);
   }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  return null;
 }
 
 export async function getLabelsForPcs(pcsId) {
@@ -194,12 +147,7 @@ export async function getLabelsForPcs(pcsId) {
       .order('sku', { ascending: true });
     if (!error) return (data || []).map(parsePostgresRow);
   }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.productLabels,
-    filter: { property: P.pcsDocument, relation: { contains: pcsId } },
-    sorts: [{ property: P.sku, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  return [];
 }
 
 export async function getLabelsForIngredient(ingredientId) {
@@ -213,12 +161,7 @@ export async function getLabelsForIngredient(ingredientId) {
       .order('sku', { ascending: true });
     if (!error) return (data || []).map(parsePostgresRow);
   }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.productLabels,
-    filter: { property: P.ingredientList, relation: { contains: ingredientId } },
-    sorts: [{ property: P.sku, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  return [];
 }
 
 // ─── Writes — Postgres canonical, Notion mirror fire-and-forget ──────────
@@ -242,13 +185,6 @@ export async function createLabel(fields) {
     .single();
   if (error) throw new Error(`Label insert failed: ${error.message}`);
 
-  notion.pages
-    .create({
-      parent: { database_id: PCS_DB.productLabels },
-      properties: buildProperties(fields, { forCreate: true }),
-    })
-    .catch(() => { /* Part 10 — Notion no longer canonical */ });
-
   const parsed = parsePostgresRow(data);
   // Wave 5.2 — queue label-drift detection on create. Best-effort; never throws.
   if (parsed.pcsDocumentId) scheduleLabelDrift(parsed.id, 'create');
@@ -269,10 +205,6 @@ export async function updateLabel(id, fields) {
     .select('*')
     .single();
   if (error) throw new Error(`Label update failed: ${error.message}`);
-
-  notion.pages
-    .update({ page_id: id, properties: buildProperties(fields) })
-    .catch(() => { /* Part 10 — Notion no longer canonical */ });
 
   const parsed = parsePostgresRow(data);
   // Wave 5.2 — only re-check drift when claims, ingredients, doses, or the

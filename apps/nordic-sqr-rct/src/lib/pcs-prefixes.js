@@ -11,7 +11,7 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.prefixes;
@@ -61,52 +61,25 @@ function parsePage(page) {
 }
 
 export async function getAllPrefixes() {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_prefixes')
-        .select('*')
-        .order('display_order', { ascending: true, nullsFirst: false })
-        .limit(1000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-prefixes] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.prefixes,
-      page_size: 100,
-      start_cursor: cursor,
-      sorts: [{ property: P.displayOrder, direction: 'ascending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_prefixes')
+    .select('*')
+    .order('display_order', { ascending: true, nullsFirst: false })
+    .limit(1000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getPrefix(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_prefixes')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-prefixes] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_prefixes')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function createPrefix(fields) {
@@ -143,18 +116,9 @@ export async function createPrefix(fields) {
       qualificationLevel: fields.qualificationLevel || null,
       doseSensitivity: fields.doseSensitivity || null,
     };
-    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP, () =>
-      notion.pages.create({ parent: { database_id: PCS_DB.prefixes }, properties })
-    );
+    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.prefixes },
-    properties,
-  });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 /** Wave 8.2 — fields revertable by the revisions panel. */
@@ -218,27 +182,17 @@ export async function updatePrefix(id, fields) {
   }
   if (shouldWriteToPostgresFirst()) {
     const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP, () =>
-      notion.pages.update({ page_id: id, properties })
-    );
+    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 export async function deletePrefix(id) {
   if (shouldWriteToPostgresFirst()) {
     const sb = getPcsSupabase();
     await sb.from('pcs_prefixes').delete().eq('notion_page_id', id);
-    notion.pages.update({ page_id: id, archived: true }).catch(err =>
-      console.warn('[pcs-prefixes] async Notion archive failed:', err?.message)
-    );
     return;
   }
-  await notion.pages.update({ page_id: id, archived: true });
 }
 
 // ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────

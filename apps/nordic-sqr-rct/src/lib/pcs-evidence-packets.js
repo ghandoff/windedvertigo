@@ -8,7 +8,7 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.evidencePackets;
@@ -147,47 +147,24 @@ export async function getPacketsForClaim(claimId) {
   // holding the related claim's notion_page_id. Postgres returns rows
   // unsorted; we sort in-memory to match Notion's ascending-by-sortOrder
   // ordering (nulls last to match Notion's behavior).
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence_packets')
-        .select('*')
-        .eq('pcs_claim_id', claimId)
-        .order('sort_order', { ascending: true, nullsFirst: false });
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-evidence-packets] Postgres getPacketsForClaim failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidencePackets,
-    filter: { property: P.pcsClaim, relation: { contains: claimId } },
-    sorts: [{ property: P.sortOrder, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence_packets')
+    .select('*')
+    .eq('pcs_claim_id', claimId)
+    .order('sort_order', { ascending: true, nullsFirst: false });
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getPacketsForEvidenceItem(evidenceItemId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence_packets')
-        .select('*')
-        .eq('evidence_item_id', evidenceItemId);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-evidence-packets] Postgres getPacketsForEvidenceItem failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidencePackets,
-    filter: { property: P.evidenceItem, relation: { contains: evidenceItemId } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence_packets')
+    .select('*')
+    .eq('evidence_item_id', evidenceItemId);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getAllEvidencePackets(maxPages = 50) {
@@ -196,35 +173,9 @@ export async function getAllEvidencePackets(maxPages = 50) {
 
 async function _fetchAllEvidencePackets(maxPages) {
   // 2026-05-06 — Path-2 read-path swap. Biggest impact swap: Notion
-  // pagination across ~1,783 rows requires 18 batches of 100 (17–25s
+  // pagination across ~1,783 rows required 18 batches of 100 (17–25s
   // cold). Postgres returns the lot in a single ~50ms SELECT.
-  // Fall back to Notion on any error so a Supabase outage degrades
-  // gracefully.
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllEvidencePacketsFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-evidence-packets] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllEvidencePacketsFromNotion(maxPages);
-}
-
-async function _fetchAllEvidencePacketsFromNotion(maxPages) {
-  let all = [];
-  let cursor = undefined;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.evidencePackets,
-      page_size: 100,
-      start_cursor: cursor,
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages++;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
+  return await _fetchAllEvidencePacketsFromPostgres();
 }
 
 async function _fetchAllEvidencePacketsFromPostgres() {
@@ -243,24 +194,15 @@ async function _fetchAllEvidencePacketsFromPostgres() {
 
 export async function getEvidencePacket(id) {
   // 2026-05-06 — Path-2 read-path swap for single-row fetch.
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence_packets')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-      // Row missing in Postgres — fresh Notion-side write not yet
-      // mirrored. Fall through to Notion.
-    } catch (err) {
-      console.warn(`[pcs-evidence-packets] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence_packets')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  if (data) return parsePostgresRow(data);
+  return null;
 }
 
 export async function getPacketsNeedingRole() {
@@ -283,43 +225,32 @@ export async function createEvidencePacket(fields) {
   if (fields.sortOrder !== undefined) properties[P.sortOrder] = { number: fields.sortOrder };
   Object.assign(properties, laurenTemplateProps(fields));
 
-  if (shouldWriteToPostgresFirst()) {
-    const preId = crypto.randomUUID();
-    const stubRow = {
-      id: preId,
-      name: fields.name || '',
-      pcsClaimId: fields.pcsClaimId || null,
-      evidenceItemId: fields.evidenceItemId || null,
-      evidenceRole: fields.evidenceRole || null,
-      meetsSqrThreshold: fields.meetsSqrThreshold || false,
-      relevanceNote: fields.relevanceNote || '',
-      sortOrder: fields.sortOrder ?? null,
-      substantiationTier: fields.substantiationTier || null,
-      studyDoseAI: fields.studyDoseAI || '',
-      studyDoseAmount: fields.studyDoseAmount ?? null,
-      studyDoseUnit: fields.studyDoseUnit || null,
-      nullResultRationale: fields.nullResultRationale || '',
-      keyTakeaway: fields.keyTakeaway || '',
-      studyDesignSummary: fields.studyDesignSummary || '',
-      sampleSize: fields.sampleSize ?? null,
-      positiveResults: fields.positiveResults || '',
-      neutralResults: fields.neutralResults || '',
-      negativeResults: fields.negativeResults || '',
-      potentialBiases: fields.potentialBiases || '',
-      confidence: fields.confidence ?? null,
-    };
-    await writePostgresFirst('pcs_evidence_packets', stubRow, EVIDENCE_PACKETS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.evidencePackets }, properties }));
-    return stubRow;
-  }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.evidencePackets },
-    properties,
-  });
-  const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Phase A write-mirror. Notion is canonical;
-  // best-effort mirror to Postgres for read-path freshness.
-  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  const preId = crypto.randomUUID();
+  const stubRow = {
+    id: preId,
+    name: fields.name || '',
+    pcsClaimId: fields.pcsClaimId || null,
+    evidenceItemId: fields.evidenceItemId || null,
+    evidenceRole: fields.evidenceRole || null,
+    meetsSqrThreshold: fields.meetsSqrThreshold || false,
+    relevanceNote: fields.relevanceNote || '',
+    sortOrder: fields.sortOrder ?? null,
+    substantiationTier: fields.substantiationTier || null,
+    studyDoseAI: fields.studyDoseAI || '',
+    studyDoseAmount: fields.studyDoseAmount ?? null,
+    studyDoseUnit: fields.studyDoseUnit || null,
+    nullResultRationale: fields.nullResultRationale || '',
+    keyTakeaway: fields.keyTakeaway || '',
+    studyDesignSummary: fields.studyDesignSummary || '',
+    sampleSize: fields.sampleSize ?? null,
+    positiveResults: fields.positiveResults || '',
+    neutralResults: fields.neutralResults || '',
+    negativeResults: fields.negativeResults || '',
+    potentialBiases: fields.potentialBiases || '',
+    confidence: fields.confidence ?? null,
+  };
+  await writePostgresFirst('pcs_evidence_packets', stubRow, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+  return stubRow;
 }
 
 export async function deleteEvidencePacket(id) {
@@ -452,15 +383,9 @@ export async function updateEvidencePacket(id, fields) {
       : { relation: [] };
   }
   Object.assign(properties, laurenTemplateProps(fields));
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_evidence_packets', stubRow, EVIDENCE_PACKETS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
-    return stubRow;
-  }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  const stubRow = { id, ...fields };
+  await writePostgresFirst('pcs_evidence_packets', stubRow, EVIDENCE_PACKETS_PG_COLUMN_MAP);
+  return stubRow;
 }
 
 /**

@@ -9,7 +9,7 @@ import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 import {
-  getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres,
+  getPcsSupabase, mirrorToPostgres,
   shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst,
 } from './supabase-pcs.js';
 
@@ -104,35 +104,8 @@ export async function getAllDocuments(maxPages = 50, opts = {}) {
   return _fetchAllDocuments(maxPages);
 }
 
-async function _fetchAllDocuments(maxPages) {
-  // 2026-05-06 — Path-2 read-path swap. Postgres-first when the flag
-  // is on, Notion fallback on any error. Same pattern as evidence + claims.
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllDocumentsFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-documents] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllDocumentsFromNotion(maxPages);
-}
-
-async function _fetchAllDocumentsFromNotion(maxPages) {
-  let all = [];
-  let cursor = undefined;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.documents,
-      page_size: 100,
-      start_cursor: cursor,
-      sorts: [{ property: P.pcsId, direction: 'ascending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages++;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
+async function _fetchAllDocuments() {
+  return await _fetchAllDocumentsFromPostgres();
 }
 
 /**
@@ -186,73 +159,39 @@ async function _fetchAllDocumentsFromPostgres() {
 }
 
 export async function getDocument(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_documents')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-documents] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_documents')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function getDocumentByPcsId(pcsId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      // pcs_documents.pcs_id is indexed (pcs_documents_pcs_id_idx).
-      const { data, error } = await sb
-        .from('pcs_documents')
-        .select('*')
-        .eq('pcs_id', pcsId)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-      // Not found in Postgres — could be a brand-new document. Fall
-      // through to Notion to confirm it really doesn't exist.
-    } catch (err) {
-      console.warn(`[pcs-documents] Postgres byPcsId failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.documents,
-    filter: { property: P.pcsId, title: { equals: pcsId } },
-    page_size: 1,
-  });
-  return res.results.length > 0 ? parsePage(res.results[0]) : null;
+  const sb = getPcsSupabase();
+  // pcs_documents.pcs_id is indexed (pcs_documents_pcs_id_idx).
+  const { data, error } = await sb
+    .from('pcs_documents')
+    .select('*')
+    .eq('pcs_id', pcsId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function getDocumentsByStatus(fileStatus) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      // pcs_documents.file_status is indexed (pcs_documents_file_status_idx).
-      const { data, error } = await sb
-        .from('pcs_documents')
-        .select('*')
-        .eq('file_status', fileStatus)
-        .order('pcs_id', { ascending: true })
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-documents] Postgres byStatus failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.documents,
-    filter: { property: P.fileStatus, select: { equals: fileStatus } },
-    sorts: [{ property: P.pcsId, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  // pcs_documents.file_status is indexed (pcs_documents_file_status_idx).
+  const { data, error } = await sb
+    .from('pcs_documents')
+    .select('*')
+    .eq('file_status', fileStatus)
+    .order('pcs_id', { ascending: true })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function updateDocument(id, fields) {
@@ -318,21 +257,10 @@ export async function updateDocument(id, fields) {
   // strips undefined values so the upsert only touches changed columns.
   if (shouldWriteToPostgresFirst()) {
     const stubRow = { id, ...fields };
-    await writePostgresFirst(
-      'pcs_documents',
-      stubRow,
-      DOCUMENTS_PG_COLUMN_MAP,
-      () => notion.pages.update({ page_id: id, properties }),
-    );
+    await writePostgresFirst('pcs_documents', stubRow, DOCUMENTS_PG_COLUMN_MAP);
     invalidateDocumentsCache();
     return stubRow; // optimistic — drift-sync back-fills Notion-only fields
   }
-  // Phase A fallback: Notion-first + best-effort mirror.
-  const page = await notion.pages.update({ page_id: id, properties });
-  invalidateDocumentsCache();
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 /**
@@ -419,21 +347,10 @@ export async function setLatestVersion(documentId, versionId) {
   // 2026-05-07 — Phase B: stub contains only the relation field being changed.
   if (shouldWriteToPostgresFirst()) {
     const stubRow = { id: documentId, latestVersionId: versionId || null };
-    await writePostgresFirst(
-      'pcs_documents',
-      stubRow,
-      DOCUMENTS_PG_COLUMN_MAP,
-      () => notion.pages.update({ page_id: documentId, properties }),
-    );
+    await writePostgresFirst('pcs_documents', stubRow, DOCUMENTS_PG_COLUMN_MAP);
     invalidateDocumentsCache();
     return stubRow;
   }
-  // Phase A fallback.
-  const page = await notion.pages.update({ page_id: documentId, properties });
-  invalidateDocumentsCache();
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 export async function createDocument(fields) {
@@ -479,22 +396,8 @@ export async function createDocument(fields) {
       linkedAicsIds: fields.linkedAicsIds || [],
       canonicalDocumentId: fields.canonicalDocumentId || null,
     };
-    await writePostgresFirst(
-      'pcs_documents',
-      stubRow,
-      DOCUMENTS_PG_COLUMN_MAP,
-      () => notion.pages.create({ parent: { database_id: PCS_DB.documents }, properties }),
-    );
+    await writePostgresFirst('pcs_documents', stubRow, DOCUMENTS_PG_COLUMN_MAP);
     invalidateDocumentsCache();
     return stubRow;
   }
-  // Phase A fallback: Notion-first + best-effort mirror.
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.documents },
-    properties,
-  });
-  invalidateDocumentsCache();
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_documents', parsed, DOCUMENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }

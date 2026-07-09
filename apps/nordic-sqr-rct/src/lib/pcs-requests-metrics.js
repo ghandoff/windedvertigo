@@ -11,13 +11,9 @@
  * `computeAllMetrics()` so the numbers stay consistent between surfaces.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
 import { getPcsSupabase } from './supabase-pcs.js';
 import { getAllDocuments } from './pcs-documents.js';
 import { queryRequests } from './pcs-requests.js';
-
-const P = PROPS.requests;
 
 /* -------------------------------------------------------------------------- */
 /* Pure stats helpers                                                         */
@@ -99,41 +95,10 @@ async function fetchRecentlyResolvedRequests(windowDays = 90) {
       }
       return rows;
     }
-    console.warn('[requests-metrics] Postgres read failed, falling back to Notion:', error.message);
+    console.warn('[requests-metrics] Postgres read failed:', error.message);
   }
 
-  // Notion fallback (rare post-Part-10).
-  const res = await notion.databases.query({
-    database_id: PCS_DB.requests,
-    filter: { property: P.status, status: { equals: 'Done' } },
-    page_size: 100,
-  });
-  const rows = [];
-  for (const page of res.results) {
-    const props = page.properties;
-    const openedDate = props[P.openedDate]?.date?.start
-      || (page.created_time ? page.created_time.slice(0, 10) : null);
-    const raCompleted = props[P.raCompleted]?.date?.start || null;
-    const resCompleted = props[P.resCompleted]?.date?.start || null;
-    const completedCandidates = [raCompleted, resCompleted].filter(Boolean);
-    const completedAt = completedCandidates.length > 0
-      ? completedCandidates.sort().slice(-1)[0]
-      : (page.last_edited_time ? page.last_edited_time.slice(0, 10) : null);
-    if (!openedDate || !completedAt) continue;
-    const completedMs = new Date(completedAt).getTime();
-    if (!Number.isFinite(completedMs) || completedMs < cutoff) continue;
-    const d = daysBetween(completedAt, openedDate);
-    if (d == null) continue;
-    rows.push({
-      id: page.id,
-      requestType: props[P.requestType]?.select?.name || null,
-      assignedRole: props[P.assignedRole]?.select?.name || null,
-      openedDate,
-      completedAt,
-      resolveDays: d,
-    });
-  }
-  return rows;
+  return [];
 }
 
 /* -------------------------------------------------------------------------- */

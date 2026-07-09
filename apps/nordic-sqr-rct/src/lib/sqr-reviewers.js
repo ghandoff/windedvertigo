@@ -17,7 +17,6 @@ import {
   shouldUseStrongConsistency,
 } from './supabase-pcs.js';
 import {
-  shouldReadFromSqrPostgres,
   shouldWriteToSqrPostgresFirst,
   shouldUseSqrStrongConsistency,
   SQR_DB,
@@ -127,86 +126,42 @@ export function parsePostgresReviewerRow(row) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getReviewerByAlias(alias) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('reviewers')
-        .select('*')
-        .eq('alias', alias)
-        .maybeSingle();
-      if (!error && data) return parsePostgresReviewerRow(data);
-    } catch (err) {
-      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  // Notion fallback — parse into the same normalized shape so callers
-  // don't need to handle two different structures.
-  const res = await notion.databases.query({
-    database_id: SQR_DB.reviewers,
-    filter: { property: 'Alias', rich_text: { equals: alias } },
-  });
-  if (!res.results[0]) return null;
-  const parsed = parseReviewerPage(res.results[0]);
-  // Attach the password hash from the raw page for auth (Notion-fallback path only).
-  parsed.passwordHash = res.results[0].properties?.['Password']?.rich_text?.[0]?.plain_text || null;
-  return parsed;
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('reviewers')
+    .select('*')
+    .eq('alias', alias)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresReviewerRow(data) : null;
 }
 
 export async function getReviewerById(pageId) {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb.from('reviewers').select('*').eq('notion_page_id', pageId).maybeSingle();
-      if (!error && data) return parsePostgresReviewerRow(data);
-    } catch (err) {
-      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  return parseReviewerPage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb.from('reviewers').select('*').eq('notion_page_id', pageId).maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresReviewerRow(data) : null;
 }
 
 export async function getAllReviewers() {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('reviewers')
-        .select('*')
-        .eq('consent', true)
-        .order('first_name', { ascending: true });
-      if (!error && data) return data.map(parsePostgresReviewerRow);
-    } catch (err) {
-      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: SQR_DB.reviewers,
-    filter: { property: 'Consent', checkbox: { equals: true } },
-    sorts: [{ property: 'First Name', direction: 'ascending' }],
-  });
-  return res.results.map(parseReviewerPage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('reviewers')
+    .select('*')
+    .eq('consent', true)
+    .order('first_name', { ascending: true });
+  if (error) throw error;
+  return (data || []).map(parsePostgresReviewerRow);
 }
 
 export async function getAllReviewersAdmin() {
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('reviewers')
-        .select('*')
-        .order('first_name', { ascending: true });
-      if (!error && data) return data.map(parsePostgresReviewerRow);
-    } catch (err) {
-      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: SQR_DB.reviewers,
-    sorts: [{ property: 'First Name', direction: 'ascending' }],
-  });
-  return res.results.map(parseReviewerPage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('reviewers')
+    .select('*')
+    .order('first_name', { ascending: true });
+  if (error) throw error;
+  return (data || []).map(parsePostgresReviewerRow);
 }
 
 export async function createReviewer(data) {
@@ -227,37 +182,9 @@ export async function createReviewer(data) {
       'reviewers',
       stubRow,
       REVIEWERS_PG_COLUMN_MAP,
-      () => notion.pages.create({
-        parent: { database_id: SQR_DB.reviewers },
-        properties: {
-          'First Name': { title: [{ text: { content: data.firstName } }] },
-          'Last Name (Surname)': { rich_text: [{ text: { content: data.lastName } }] },
-          'Email': { email: data.email },
-          'Affiliation': { rich_text: [{ text: { content: data.affiliation || '' } }] },
-          'Alias': { rich_text: [{ text: { content: data.alias } }] },
-          'Password': { rich_text: [{ text: { content: data.password } }] },
-          'Discipline/Specialty': { rich_text: [{ text: { content: data.discipline || '' } }] },
-          'Consent': { checkbox: data.consent === true },
-          'Onboarding Date': { date: { start: new Date().toISOString().split('T')[0] } },
-        },
-      }),
     );
     return stubRow;
   }
-  return notion.pages.create({
-    parent: { database_id: SQR_DB.reviewers },
-    properties: {
-      'First Name': { title: [{ text: { content: data.firstName } }] },
-      'Last Name (Surname)': { rich_text: [{ text: { content: data.lastName } }] },
-      'Email': { email: data.email },
-      'Affiliation': { rich_text: [{ text: { content: data.affiliation || '' } }] },
-      'Alias': { rich_text: [{ text: { content: data.alias } }] },
-      'Password': { rich_text: [{ text: { content: data.password } }] },
-      'Discipline/Specialty': { rich_text: [{ text: { content: data.discipline || '' } }] },
-      'Consent': { checkbox: data.consent === true },
-      'Onboarding Date': { date: { start: new Date().toISOString().split('T')[0] } },
-    },
-  });
 }
 
 export async function updateReviewerPassword(reviewerId, hashedPassword) {
@@ -272,13 +199,6 @@ export async function updateReviewerPassword(reviewerId, hashedPassword) {
       console.warn('[sqr-reviewers] Postgres password update failed:', err.message);
     }
   }
-  // Always also update Notion (source of truth for password until Phase 5 auth migration)
-  return notion.pages.update({
-    page_id: reviewerId,
-    properties: {
-      'Password': { rich_text: [{ text: { content: hashedPassword } }] },
-    },
-  });
 }
 
 export async function updateReviewerPasswordAndClearResetFlag(reviewerId, hashedPassword) {
@@ -295,14 +215,6 @@ export async function updateReviewerPasswordAndClearResetFlag(reviewerId, hashed
       console.warn('[sqr-reviewers] Postgres password+reset-flag update failed:', err.message);
     }
   }
-  // Always also update Notion (source of truth until Phase 5 auth migration)
-  return notion.pages.update({
-    page_id: reviewerId,
-    properties: {
-      'Password': { rich_text: [{ text: { content: hashedPassword } }] },
-      'Password reset required': { checkbox: false },
-    },
-  });
 }
 
 export async function setReviewerPasswordResetRequired(reviewerId, required) {
@@ -319,72 +231,30 @@ export async function setReviewerPasswordResetRequired(reviewerId, required) {
       console.warn('[sqr-reviewers] Postgres password_reset_required update failed:', err.message);
     }
   }
-  // Always also update Notion
-  return notion.pages.update({
-    page_id: reviewerId,
-    properties: {
-      'Password reset required': { checkbox: !!required },
-    },
-  });
 }
 
 export async function updateReviewerProperties(reviewerId, updates) {
-  const properties = {};
-  if (updates.isAdmin !== undefined) {
-    properties['Admin'] = { checkbox: updates.isAdmin };
-  }
-  if (updates.status !== undefined) {
-    properties['Status'] = { select: { name: updates.status } };
-  }
   if (shouldWriteToSqrPostgresFirst()) {
     const stubRow = { id: reviewerId, ...updates };
     await writePostgresFirst(
       'reviewers',
       stubRow,
       REVIEWERS_PG_COLUMN_MAP,
-      () => notion.pages.update({ page_id: reviewerId, properties }),
     );
     return stubRow;
   }
-  return notion.pages.update({
-    page_id: reviewerId,
-    properties,
-  });
 }
 
 export async function updateReviewerProfile(reviewerId, updates) {
-  const properties = {};
-  if (updates.firstName !== undefined) {
-    properties['First Name'] = { title: [{ text: { content: updates.firstName } }] };
-  }
-  if (updates.lastName !== undefined) {
-    properties['Last Name (Surname)'] = { rich_text: [{ text: { content: updates.lastName } }] };
-  }
-  if (updates.affiliation !== undefined) {
-    properties['Affiliation'] = { rich_text: [{ text: { content: updates.affiliation } }] };
-  }
-  if (updates.discipline !== undefined) {
-    properties['Discipline/Specialty'] = { rich_text: [{ text: { content: updates.discipline } }] };
-  }
-  if (updates.yearsExperience !== undefined) {
-    properties['Years of Experience'] = { number: updates.yearsExperience ? Number(updates.yearsExperience) : null };
-  }
-  if (updates.profileImageUrl !== undefined) {
-    properties['Profile Image'] = updates.profileImageUrl
-      ? { rich_text: [{ text: { content: updates.profileImageUrl } }] }
-      : { rich_text: [] };
-  }
   if (shouldWriteToSqrPostgresFirst()) {
     const stubRow = { id: reviewerId, ...updates };
     await writePostgresFirst(
       'reviewers',
       stubRow,
       REVIEWERS_PG_COLUMN_MAP,
-      () => notion.pages.update({ page_id: reviewerId, properties }),
     );
     return stubRow;
   }
-  return notion.pages.update({ page_id: reviewerId, properties });
 }
 
 /**
@@ -394,28 +264,14 @@ export async function getReviewerByEmail(email) {
   if (!email) return null;
   const normalized = String(email).trim().toLowerCase();
   if (!normalized) return null;
-  if (shouldReadFromSqrPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('reviewers')
-        .select('*')
-        .eq('email', normalized)
-        .maybeSingle();
-      if (!error && data) return parsePostgresReviewerRow(data);
-    } catch (err) {
-      console.warn('[sqr-reviewers] Postgres read failed, falling back to Notion:', err.message);
-    }
-  }
-  // Notion fallback — parse into normalized shape and attach password hash.
-  const res = await notion.databases.query({
-    database_id: SQR_DB.reviewers,
-    filter: { property: 'Email', email: { equals: normalized } },
-  });
-  if (!res.results[0]) return null;
-  const parsed = parseReviewerPage(res.results[0]);
-  parsed.passwordHash = res.results[0].properties?.['Password']?.rich_text?.[0]?.plain_text || null;
-  return parsed;
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('reviewers')
+    .select('*')
+    .eq('email', normalized)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresReviewerRow(data) : null;
 }
 
 /**
@@ -431,23 +287,9 @@ export async function updateReviewerEmail(reviewerId, email) {
       'reviewers',
       stubRow,
       REVIEWERS_PG_COLUMN_MAP,
-      () => notion.pages.update({
-        page_id: reviewerId,
-        properties: {
-          'Email': { email: normalized },
-          'Email confirmed at': { date: { start: emailConfirmedAt } },
-        },
-      }),
     );
     return stubRow;
   }
-  return notion.pages.update({
-    page_id: reviewerId,
-    properties: {
-      'Email': { email: normalized },
-      'Email confirmed at': { date: { start: emailConfirmedAt } },
-    },
-  });
 }
 
 /**
@@ -473,18 +315,6 @@ export async function updateReviewerRoles(reviewerId, roles) {
       if (error) throw new Error(`Postgres roles update failed: ${error.message}`);
     }
   }
-
-  // 2) Notion mirror — best-effort, non-blocking. (Notion was retired as a
-  //    write target; this is kept only so legacy Notion-side views stay in
-  //    sync if anyone happens to look. Failures are expected and ignored.)
-  notion.pages
-    .update({
-      page_id: reviewerId,
-      properties: {
-        'Roles': { multi_select: roles.map(r => ({ name: r })) },
-      },
-    })
-    .catch(() => { /* Part 10 — Notion no longer canonical */ });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

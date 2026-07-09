@@ -13,7 +13,7 @@
 
 import { PCS_DB, PROPS } from './pcs-config.js';
 import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.importJobs;
@@ -146,35 +146,14 @@ export function parsePage(page) {
  * @returns {Promise<object[]>} All jobs.
  */
 export async function getAllJobs(maxPages = 50) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_import_jobs')
-        .select('*')
-        .order('notion_created_at', { ascending: false })
-        .limit(5000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-import-jobs] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  let all = [];
-  let cursor = undefined;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.importJobs,
-      page_size: 100,
-      start_cursor: cursor,
-      sorts: [{ timestamp: 'created_time', direction: 'descending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages++;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_import_jobs')
+    .select('*')
+    .order('notion_created_at', { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 /**
@@ -184,22 +163,14 @@ export async function getAllJobs(maxPages = 50) {
  * @returns {Promise<object>} Parsed job.
  */
 export async function getJob(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_import_jobs')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-import-jobs] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_import_jobs')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 /**
@@ -374,9 +345,7 @@ export async function createJob({
       status: initialStatus,
       error: error || '',
     };
-    await writePostgresFirst('pcs_import_jobs', stubRow, IMPORT_JOBS_PG_COLUMN_MAP, () =>
-      notion.pages.create({ parent: { database_id: PCS_DB.importJobs }, properties })
-    );
+    await writePostgresFirst('pcs_import_jobs', stubRow, IMPORT_JOBS_PG_COLUMN_MAP);
     // Return the full shape callers expect (with the rich fields) even though
     // only the slim Postgres subset was persisted.
     return {
@@ -396,13 +365,6 @@ export async function createJob({
       warnings: warnings || '',
     };
   }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.importJobs },
-    properties,
-  });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 /**
@@ -493,15 +455,9 @@ export async function updateJob(id, fields) {
     if (fields.status !== undefined) pgFields.status = fields.status;
     if (fields.error !== undefined) pgFields.error = fields.error;
     if (fields.pcsId !== undefined) pgFields.pcsId = fields.pcsId;
-    await writePostgresFirst('pcs_import_jobs', pgFields, IMPORT_JOBS_PG_COLUMN_MAP, () =>
-      notion.pages.update({ page_id: id, properties })
-    );
+    await writePostgresFirst('pcs_import_jobs', pgFields, IMPORT_JOBS_PG_COLUMN_MAP);
     return { id, ...fields };
   }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 // ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────

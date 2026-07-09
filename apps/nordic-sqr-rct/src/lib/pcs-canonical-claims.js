@@ -16,7 +16,7 @@ import {
 import { getPrefixDoseSensitivity } from './pcs-prefixes.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_canonical_claims; all fields follow the camelCase → snake_case
@@ -98,31 +98,7 @@ export async function getAllCanonicalClaims(opts = {}) {
 }
 
 async function _fetchAllCanonicalClaims() {
-  // 2026-05-06 — Path-2 Day 2.6 read-path swap. Postgres-first when
-  // PCS_READ_FROM_POSTGRES is on; Notion fallback on any error.
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllCanonicalClaimsFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-canonical-claims] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllCanonicalClaimsFromNotion();
-}
-
-async function _fetchAllCanonicalClaimsFromNotion() {
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.canonicalClaims,
-      start_cursor: cursor,
-      sorts: [{ property: P.canonicalClaim, direction: 'ascending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
+  return await _fetchAllCanonicalClaimsFromPostgres();
 }
 
 async function _fetchAllCanonicalClaimsFromPostgres() {
@@ -174,22 +150,14 @@ export async function syncSingleCanonicalClaimPageToPostgres(pageId) {
 }
 
 export async function getCanonicalClaim(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_canonical_claims')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-canonical-claims] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_canonical_claims')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function getCanonicalClaimsByFamily(family) {
@@ -258,18 +226,10 @@ export async function updateCanonicalClaim(id, fields) {
       ? { select: { name: fields.doseSensitivityApplied } }
       : { select: null };
   }
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_canonical_claims', stubRow, CANONICAL_CLAIMS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
-    invalidateCanonicalClaimsCache();
-    return stubRow;
-  }
-  const page = await notion.pages.update({ page_id: id, properties });
+  const stubRow = { id, ...fields };
+  await writePostgresFirst('pcs_canonical_claims', stubRow, CANONICAL_CLAIMS_PG_COLUMN_MAP);
   invalidateCanonicalClaimsCache();
-  const parsed = parsePage(page);
-  // 2026-05-06 — Path-2 Day 2.6 write-mirror.
-  await mirrorToPostgres('pcs_canonical_claims', parsed, CANONICAL_CLAIMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  return stubRow;
 }
 
 /**
@@ -281,34 +241,14 @@ export async function updateCanonicalClaim(id, fields) {
  */
 export async function findCanonicalClaimByKey(key) {
   if (!key || typeof key !== 'string') return null;
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_canonical_claims')
-        .select('*')
-        .eq('canonical_key', key)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-      // No match in Postgres — could be a row created in Notion since
-      // last sync. Fall through to Notion to double-check.
-    } catch (err) {
-      console.warn(`[pcs-canonical-claims] Postgres findByKey failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  try {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.canonicalClaims,
-      filter: { property: P.canonicalKey, rich_text: { equals: key } },
-      page_size: 1,
-    });
-    if (!res.results.length) return null;
-    return parsePage(res.results[0]);
-  } catch (err) {
-    console.warn('[pcs-canonical-claims] findCanonicalClaimByKey failed:', err?.message || err);
-    return null;
-  }
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_canonical_claims')
+    .select('*')
+    .eq('canonical_key', key)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 /**
