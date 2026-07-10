@@ -5,10 +5,9 @@
  * (structure-function vs mechanistic) and SQR-RCT threshold tracking.
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.evidencePackets;
@@ -55,37 +54,6 @@ function parsePostgresRow(row) {
     confidence: row.confidence ?? null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
-  };
-}
-
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    name: p[P.name]?.title?.[0]?.plain_text || '',
-    pcsClaimId: (p[P.pcsClaim]?.relation || [])[0]?.id || null,
-    evidenceItemId: (p[P.evidenceItem]?.relation || [])[0]?.id || null,
-    evidenceRole: p[P.evidenceRole]?.select?.name || null,
-    meetsSqrThreshold: p[P.meetsSqrThreshold]?.checkbox || false,
-    relevanceNote: (p[P.relevanceNote]?.rich_text || []).map(t => t.plain_text).join(''),
-    sortOrder: p[P.sortOrder]?.number ?? null,
-    // Lauren's template Tables 4/5/6 fields — added 2026-04-18
-    substantiationTier: p[P.substantiationTier]?.select?.name || null,
-    studyDoseAI: (p[P.studyDoseAI]?.rich_text || []).map(t => t.plain_text).join(''),
-    studyDoseAmount: p[P.studyDoseAmount]?.number ?? null,
-    studyDoseUnit: p[P.studyDoseUnit]?.select?.name || null,
-    nullResultRationale: (p[P.nullResultRationale]?.rich_text || []).map(t => t.plain_text).join(''),
-    keyTakeaway: (p[P.keyTakeaway]?.rich_text || []).map(t => t.plain_text).join(''),
-    studyDesignSummary: (p[P.studyDesignSummary]?.rich_text || []).map(t => t.plain_text).join(''),
-    sampleSize: p[P.sampleSize]?.number ?? null,
-    positiveResults: (p[P.positiveResults]?.rich_text || []).map(t => t.plain_text).join(''),
-    neutralResults: (p[P.neutralResults]?.rich_text || []).map(t => t.plain_text).join(''),
-    negativeResults: (p[P.negativeResults]?.rich_text || []).map(t => t.plain_text).join(''),
-    potentialBiases: (p[P.potentialBiases]?.rich_text || []).map(t => t.plain_text).join(''),
-    // Wave 4.5.5 — per-item extractor confidence (0-1; Notion stores percent as fraction)
-    confidence: p[P.confidence]?.number ?? null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
   };
 }
 
@@ -392,41 +360,4 @@ export async function updateEvidencePacket(id, fields) {
   const stubRow = { id, ...fields };
   await writePostgresFirst('pcs_evidence_packets', stubRow, EVIDENCE_PACKETS_PG_COLUMN_MAP);
   return stubRow;
-}
-
-/**
- * 2026-05-06 — Path-2 drift catcher. Pulls any rows in Notion edited
- * since `sinceIso` and mirrors them to Postgres. Called from
- * /api/cron/drift-sync. Idempotent.
- */
-export async function syncRecentEvidencePacketsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidencePackets,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleEvidencePacketPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_evidence_packets', parsed, EVIDENCE_PACKETS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }

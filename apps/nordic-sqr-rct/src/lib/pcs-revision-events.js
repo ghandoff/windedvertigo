@@ -5,9 +5,8 @@
  * substantiation evaluation events across PCS versions.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { PROPS } from './pcs-config.js';
+import { getPcsSupabase, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for revision events.
 // All camelCase keys map mechanically to snake_case; no exceptions.
@@ -53,30 +52,6 @@ function parsePostgresRow(row) {
     approverDepartment: row.approver_department || null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
-  };
-}
-
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    event: p[P.event]?.title?.[0]?.plain_text || '',
-    activityType: p[P.activityType]?.select?.name || null,
-    responsibleDept: p[P.responsibleDept]?.select?.name || null,
-    responsibleIndividual: (p[P.responsibleIndividual]?.rich_text || []).map(t => t.plain_text).join('') || null,
-    startDate: p[P.startDate]?.date?.start || null,
-    endDate: p[P.endDate]?.date?.start || null,
-    fromVersion: (p[P.fromVersion]?.rich_text || []).map(t => t.plain_text).join(''),
-    toVersion: (p[P.toVersion]?.rich_text || []).map(t => t.plain_text).join(''),
-    fromVersionLinkedId: (p[P.fromVersionLinked]?.relation || [])[0]?.id || null,
-    toVersionLinkedId: (p[P.toVersionLinked]?.relation || [])[0]?.id || null,
-    pcsVersionId: (p[P.pcsVersion]?.relation || [])[0]?.id || null,
-    eventNotes: (p[P.eventNotes]?.rich_text || []).map(t => t.plain_text).join(''),
-    // Lauren's template Table A dual-approval — added 2026-04-18
-    approverAlias: (p[P.approverAlias]?.rich_text || []).map(t => t.plain_text).join(''),
-    approverDepartment: p[P.approverDepartment]?.select?.name || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
   };
 }
 
@@ -140,42 +115,6 @@ export async function getEventsByDepartment(dept) {
     .limit(5000);
   if (error) throw error;
   return (data || []).map(parsePostgresRow);
-}
-
-/**
- * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentRevisionEventsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.revisionEvents,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_revision_events', parsed, REVISION_EVENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleRevisionEventPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_revision_events', parsed, REVISION_EVENTS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 export async function createRevisionEvent(fields) {

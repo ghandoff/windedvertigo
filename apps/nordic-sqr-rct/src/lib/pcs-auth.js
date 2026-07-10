@@ -38,8 +38,9 @@ export async function authenticatePcsRead(request) {
 }
 
 /**
- * Authenticate a PCS write request. Re-verifies against Notion for safety.
- * Only allows pcs and admin roles (not pcs-readonly).
+ * Authenticate a PCS write request. Re-verifies roles against Postgres for
+ * safety (catches mid-session role changes). Only allows pcs and admin roles
+ * (not pcs-readonly).
  */
 export async function authenticatePcsWrite(request) {
   const user = await authenticateRequest(request);
@@ -50,12 +51,12 @@ export async function authenticatePcsWrite(request) {
   if (!hasPcsWriteAccess(roles)) {
     return { error: NextResponse.json({ error: 'PCS write access required. Read-only users cannot modify data.' }, { status: 403 }) };
   }
-  // Re-verify roles from Notion for write operations
+  // Re-verify roles from Postgres for write operations
   if (!user.reviewerId) {
     return { error: NextResponse.json({ error: 'Invalid session' }, { status: 403 }) };
   }
   try {
-    const { getReviewerById } = await import('@/lib/notion');
+    const { getReviewerById } = await import('@/lib/sqr-reviewers');
     const reviewer = await getReviewerById(user.reviewerId);
     if (!reviewer) {
       return { error: NextResponse.json({ error: 'User not found' }, { status: 403 }) };
@@ -63,7 +64,7 @@ export async function authenticatePcsWrite(request) {
     if (!hasPcsWriteAccess(reviewer.roles)) {
       return { error: NextResponse.json({ error: 'PCS write access revoked' }, { status: 403 }) };
     }
-    // Return live Notion roles, not stale JWT roles
+    // Return live Postgres roles, not stale JWT roles
     return { user: { ...user, roles: reviewer.roles } };
   } catch {
     return { error: NextResponse.json({ error: 'Authorization check failed' }, { status: 500 }) };

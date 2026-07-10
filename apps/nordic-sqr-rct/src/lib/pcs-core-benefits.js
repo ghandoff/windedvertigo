@@ -9,10 +9,9 @@
  * Multi-profile architecture (Week 1) — added 2026-04-19.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS } from './pcs-config.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_core_benefits; all fields follow the camelCase → snake_case
@@ -46,19 +45,6 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    coreBenefit: p[P.coreBenefit]?.title?.[0]?.plain_text || '',
-    benefitCategoryId: (p[P.benefitCategory]?.relation || [])[0]?.id || null,
-    notes: (p[P.notes]?.rich_text || []).map(t => t.plain_text).join(''),
-    pcsClaimInstanceIds: (p[P.pcsClaimInstances]?.relation || []).map(r => r.id),
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-  };
-}
-
 export async function getAllCoreBenefits(opts = {}) {
   return memoize(
     CORE_BENEFITS_CACHE_KEY,
@@ -81,42 +67,6 @@ async function _fetchAllCoreBenefitsFromPostgres() {
     .limit(2000);
   if (error) throw error;
   return (data || []).map(parsePostgresRow);
-}
-
-/**
- * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentCoreBenefitsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.coreBenefits,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleCoreBenefitPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_core_benefits', parsed, CORE_BENEFITS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 export async function getCoreBenefit(id) {

@@ -459,30 +459,3 @@ export async function updateJob(id, fields) {
     return { id, ...fields };
   }
 }
-
-// ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────
-export async function syncRecentJobsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.importJobs,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-    sorts: [{ timestamp: 'created_time', direction: 'descending' }],
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-export async function syncSingleJobPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_import_jobs', parsed, IMPORT_JOBS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
-}

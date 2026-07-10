@@ -6,8 +6,7 @@
  * provided for admin use).
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import {
   computeCanonicalClaimKey,
   coerceDoseSensitivity,
@@ -16,7 +15,7 @@ import {
 import { getPrefixDoseSensitivity } from './pcs-prefixes.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_canonical_claims; all fields follow the camelCase → snake_case
@@ -62,32 +61,6 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    canonicalClaim: p[P.canonicalClaim]?.title?.[0]?.plain_text || '',
-    claimFamily: p[P.claimFamily]?.select?.name || null,
-    evidenceTierRequired: p[P.evidenceTierRequired]?.select?.name || null,
-    minimumEvidenceItems: p[P.minimumEvidenceItems]?.number ?? null,
-    notesGuardrails: (p[P.notesGuardrails]?.rich_text || []).map(t => t.plain_text).join(''),
-    pcsClaimInstanceIds: (p[P.pcsClaimInstances]?.relation || []).map(r => r.id),
-    // Multi-profile architecture (Week 1) — added 2026-04-19
-    claimPrefixId: (p[P.claimPrefix]?.relation || [])[0]?.id || null,
-    coreBenefitId: (p[P.coreBenefit]?.relation || [])[0]?.id || null,
-    activeIngredientId: (p[P.activeIngredient]?.relation || [])[0]?.id || null,
-    benefitCategoryId: (p[P.benefitCategory]?.relation || [])[0]?.id || null,
-    sourceCaipbRowId: p[P.sourceCaipbRowId]?.number ?? null,
-    // Wave 7.0.5 T2 — canonical identity (added 2026-04-21)
-    canonicalKey: (p[P.canonicalKey]?.rich_text || []).map(t => t.plain_text).join('') || null,
-    doseSensitivityApplied: p[P.doseSensitivityApplied]?.select?.name || null,
-    // Wave 8 Phase C1 — dedupe curation state
-    dedupeDecision: p[P.dedupeDecision]?.select?.name || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-  };
-}
-
 export async function getAllCanonicalClaims(opts = {}) {
   return memoize(
     CANONICAL_CLAIMS_CACHE_KEY,
@@ -111,42 +84,6 @@ async function _fetchAllCanonicalClaimsFromPostgres() {
     .limit(2000);
   if (error) throw error;
   return (data || []).map(parsePostgresRow);
-}
-
-/**
- * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentCanonicalClaimsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.canonicalClaims,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_canonical_claims', parsed, CANONICAL_CLAIMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleCanonicalClaimPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_canonical_claims', parsed, CANONICAL_CLAIMS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 export async function getCanonicalClaim(id) {

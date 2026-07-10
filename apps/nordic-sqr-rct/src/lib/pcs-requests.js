@@ -5,9 +5,8 @@
  * Note: Status uses Notion's `status` property type (not `select`).
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { PROPS } from './pcs-config.js';
+import { getPcsSupabase, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for pcs_requests.
 // All other camelCase keys map mechanically. The `assignees` field is
@@ -86,47 +85,6 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  const openedDate = p[P.openedDate]?.date?.start || null;
-  const assigneeList = (p[P.assignee]?.people || []).map(person => ({
-    id: person.id,
-    name: person.name || null,
-    email: person.person?.email || null,
-  }));
-  return {
-    id: page.id,
-    request: p[P.request]?.title?.[0]?.plain_text || '',
-    status: p[P.status]?.status?.name || null,
-    // `requestedBy` is historically a people field on some deployments; coerce safely.
-    requestedBy:
-      (p[P.requestedBy]?.rich_text || []).map(t => t.plain_text).join('') ||
-      (p[P.requestedBy]?.people || []).map(pp => pp.name || pp.id).join(', ') || '',
-    requestNotes: (p[P.requestNotes]?.rich_text || []).map(t => t.plain_text).join(''),
-    pcsVersionId: (p[P.pcsVersion]?.relation || [])[0]?.id || null,
-    relatedClaimIds: (p[P.relatedClaims]?.relation || []).map(r => r.id),
-    raDue: p[P.raDue]?.date?.start || null,
-    raCompleted: p[P.raCompleted]?.date?.start || null,
-    resDue: p[P.resDue]?.date?.start || null,
-    resCompleted: p[P.resCompleted]?.date?.start || null,
-    // Wave 4.5.0 additions
-    relatedPcsId: (p[P.relatedPcs]?.relation || [])[0]?.id || null,
-    requestType: p[P.requestType]?.select?.name || null,
-    specificField: (p[P.specificField]?.rich_text || []).map(t => t.plain_text).join(''),
-    assignedRole: p[P.assignedRole]?.select?.name || null,
-    assignees: assigneeList,
-    assigneeIds: assigneeList.map(a => a.id),
-    priority: p[P.priority]?.select?.name || null,
-    openedDate,
-    lastPingedDate: p[P.lastPingedDate]?.date?.start || null,
-    resolutionNote: (p[P.resolutionNote]?.rich_text || []).map(t => t.plain_text).join(''),
-    source: p[P.source]?.select?.name || null,
-    ageDays: computeAgeDays(openedDate, page.created_time),
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-  };
-}
-
 export async function getAllRequests(maxPages = 50) { // eslint-disable-line no-unused-vars
   return await _fetchAllRequestsFromPostgres();
 }
@@ -187,46 +145,6 @@ export async function getOpenRequests() {
     .limit(5000);
   if (error) throw error;
   return (data || []).map(parsePostgresRow);
-}
-
-/**
- * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentRequestsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.requests,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres(
-      'pcs_requests',
-      stripUnmirroredRequest(parsed),
-      REQUESTS_PG_COLUMN_MAP,
-    );
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleRequestPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 /**
