@@ -9,17 +9,12 @@
  * Write functions (create) are NOT gated — Notion-only for now.
  */
 
-import { notion } from './notion.js';
 import {
   getPcsSupabase,
-  mirrorToPostgres,
   writePostgresFirst,
-  shouldUseStrongConsistency,
 } from './supabase-pcs.js';
 import {
   shouldWriteToSqrPostgresFirst,
-  shouldUseSqrStrongConsistency,
-  SQR_DB,
 } from './sqr-config.js';
 
 // 'timestamp' is a Postgres reserved word; the column is named `scored_at`.
@@ -29,60 +24,6 @@ const SCORES_PG_COLUMN_MAP = { timestamp: 'scored_at' };
 // ─────────────────────────────────────────────────────────────────────────────
 // Internal helpers (not exported)
 // ─────────────────────────────────────────────────────────────────────────────
-
-function extractTitle(prop) {
-  return prop?.title?.[0]?.plain_text || '';
-}
-
-function extractRichText(prop) {
-  return (prop?.rich_text || []).map(t => t.plain_text).join('');
-}
-
-function parseScorePage(page) {
-  const p = page.properties;
-  const extractScore = (val) => {
-    const name = val?.select?.name || '';
-    const match = name.match(/^(\d)/);
-    return match ? Number(match[1]) : null;
-  };
-  return {
-    id: page.id,
-    scoreId: extractTitle(p['Score ID']),
-    studyRelation: (p['Study']?.relation || []).map(r => r.id),
-    reviewerRelation: (p['Reviewer']?.relation || []).map(r => r.id),
-    raterAlias: p['Rater Alias']?.select?.name || '',
-    q1: extractScore(p['Q1 Research Question']),
-    q2: extractScore(p['Q2 Randomization']),
-    q3: extractScore(p['Q3 Blinding']),
-    q4: extractScore(p['Q4 Sample Size']),
-    q5: extractScore(p['Q5 Baseline Characteristics']),
-    q6: extractScore(p['Q6 Participant Flow']),
-    q7: extractScore(p['Q7 Intervention Description']),
-    q8: extractScore(p['Q8 Outcome Measurement']),
-    q9: extractScore(p['Q9 Statistical Analysis']),
-    q10: extractScore(p['Q10 Bias Assessment']),
-    q11: extractScore(p['Q11 Applicability']),
-    q1Raw: p['Q1 Research Question']?.select?.name || '',
-    q2Raw: p['Q2 Randomization']?.select?.name || '',
-    q3Raw: p['Q3 Blinding']?.select?.name || '',
-    q4Raw: p['Q4 Sample Size']?.select?.name || '',
-    q5Raw: p['Q5 Baseline Characteristics']?.select?.name || '',
-    q6Raw: p['Q6 Participant Flow']?.select?.name || '',
-    q7Raw: p['Q7 Intervention Description']?.select?.name || '',
-    q8Raw: p['Q8 Outcome Measurement']?.select?.name || '',
-    q9Raw: p['Q9 Statistical Analysis']?.select?.name || '',
-    q10Raw: p['Q10 Bias Assessment']?.select?.name || '',
-    q11Raw: p['Q11 Applicability']?.select?.name || '',
-    rubricVersion: p['Rubric version']?.select?.name || '',
-    notes: extractRichText(p['Notes']),
-    // `timestamp` is the Notion shape key; maps to `scored_at` in Postgres
-    // via SCORES_PG_COLUMN_MAP (reserved-word avoidance).
-    timestamp: p['Timestamp']?.date?.start || page.created_time,
-    timeToComplete: p['Time to Complete (minutes)']?.number || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-  };
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Postgres inverse mapping
@@ -223,60 +164,4 @@ export async function getScoresForStudy(studyPageId) {
     .order('scored_at', { ascending: false });
   if (error) throw error;
   return (data || []).map(parsePostgresScoreRow);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Postgres sync helpers (Phase 1 — additive, not called by Notion CRUD yet)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Drift-sync: pull any Notion edits since `sinceIso` into Postgres.
- * Paginate Notion with a last_edited_time filter, parse each page,
- * mirror to the `scores` table. Idempotent.
- *
- * Guards on SQR_DB.scores — if the env var is unset, returns immediately.
- *
- * @param {string} sinceIso — ISO 8601 timestamp (e.g. '2026-05-14T00:00:00Z')
- * @returns {{ count: number, fetched: number, maxSeen: string }}
- */
-export async function syncRecentScoresToPostgres(sinceIso) {
-  if (!SQR_DB.scores) {
-    console.warn('[sqr-scores] syncRecentScoresToPostgres: NOTION_SCORES_DB not configured');
-    return { count: 0, fetched: 0, maxSeen: sinceIso };
-  }
-  const filter = {
-    timestamp: 'last_edited_time',
-    last_edited_time: { on_or_after: sinceIso },
-  };
-  const res = await notion.databases.query({
-    database_id: SQR_DB.scores,
-    filter,
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parseScorePage(page);
-    const result = await mirrorToPostgres('scores', parsed, SCORES_PG_COLUMN_MAP, {
-      enqueueOnFailure: shouldUseSqrStrongConsistency(),
-    });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, fetched: res.results.length, maxSeen };
-}
-
-/**
- * Sync a single Notion score page into Postgres by page ID.
- * Used by the page-updated webhook to mirror a specific edited row
- * immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleScorePageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parseScorePage(page);
-  return mirrorToPostgres('scores', parsed, SCORES_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseSqrStrongConsistency(),
-  });
 }

@@ -17,9 +17,8 @@
  * of multi-AI claim support.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
+import { PROPS } from './pcs-config.js';
+import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.claimDoseReqs;
@@ -50,25 +49,6 @@ function parsePostgresRow(row) {
     activeIngredientCanonicalId: null,  // not in current Postgres schema
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
-  };
-}
-
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    requirement: p[P.requirement]?.title?.[0]?.plain_text || '',
-    pcsClaimId: (p[P.pcsClaim]?.relation || [])[0]?.id || null,
-    activeIngredient: (p[P.activeIngredient]?.rich_text || []).map(t => t.plain_text).join(''),
-    aiForm: (p[P.aiForm]?.rich_text || []).map(t => t.plain_text).join(''),
-    amount: p[P.amount]?.number ?? null,
-    unit: p[P.unit]?.select?.name || null,
-    combinationGroup: p[P.combinationGroup]?.number ?? null,
-    notes: (p[P.notes]?.rich_text || []).map(t => t.plain_text).join(''),
-    // Canonical ingredient relation (Phase 1) — added 2026-04-19
-    activeIngredientCanonicalId: (p[P.activeIngredientCanonical]?.relation || [])[0]?.id || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
   };
 }
 
@@ -230,28 +210,3 @@ export async function deleteClaimDoseReq(id) {
   await sb.from('pcs_claim_dose_reqs').delete().eq('notion_page_id', id);
 }
 
-// ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────
-export async function syncRecentClaimDoseReqsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.claimDoseReqs,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_claim_dose_reqs', parsed, CLAIM_DOSE_REQS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-export async function syncSingleClaimDoseReqPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_claim_dose_reqs', parsed, CLAIM_DOSE_REQS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
-}

@@ -8,10 +8,9 @@
  * Multi-profile architecture (Week 1) — added 2026-04-19.
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.prefixes;
@@ -39,24 +38,6 @@ function parsePostgresRow(row) {
     doseSensitivity: row.dose_sensitivity || null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
-  };
-}
-
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    prefix: p[P.prefix]?.title?.[0]?.plain_text || '',
-    regulatoryTier: p[P.regulatoryTier]?.select?.name || null,
-    displayOrder: p[P.displayOrder]?.number ?? null,
-    notes: (p[P.notes]?.rich_text || []).map(t => t.plain_text).join(''),
-    // CAIPB cleanup + Gina's refinements — added 2026-04-19
-    evidenceType: p[P.evidenceType]?.select?.name || null,
-    qualificationLevel: p[P.qualificationLevel]?.select?.name || null,
-    // Wave 7.0.5 T1/T2 — drives canonical-claim identity hashing (added 2026-04-21).
-    doseSensitivity: p[P.doseSensitivity]?.select?.name || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
   };
 }
 
@@ -193,32 +174,6 @@ export async function deletePrefix(id) {
     await sb.from('pcs_prefixes').delete().eq('notion_page_id', id);
     return;
   }
-}
-
-// ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────
-export async function syncRecentPrefixesToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.prefixes,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-export async function syncSinglePrefixPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 /**

@@ -5,8 +5,7 @@
  * canonical claims, and wording variants.
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES, CLAIM_STATUSES, CLAIM_BUCKETS, CLAIM_AUTHORITY_REGIONS } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS, REVISION_ENTITY_TYPES, CLAIM_STATUSES, CLAIM_BUCKETS, CLAIM_AUTHORITY_REGIONS } from './pcs-config.js';
 import {
   computeCanonicalClaimKeyForSpec,
   findCanonicalClaimByKey,
@@ -14,8 +13,7 @@ import {
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 import {
-  getPcsSupabase, mirrorToPostgres,
-  shouldUseStrongConsistency, writePostgresFirst,
+  getPcsSupabase, writePostgresFirst,
 } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Phase A. No special column-name overrides for
@@ -82,45 +80,6 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    claim: p[P.claim]?.title?.[0]?.plain_text || '',
-    claimNo: (p[P.claimNo]?.rich_text || []).map(t => t.plain_text).join(''),
-    claimBucket: p[P.claimBucket]?.select?.name || null,
-    claimStatus: p[P.claimStatus]?.select?.name || null,
-    claimNotes: (p[P.claimNotes]?.rich_text || []).map(t => t.plain_text).join(''),
-    disclaimerRequired: p[P.disclaimerRequired]?.checkbox || false,
-    minDoseMg: p[P.minDoseMg]?.number ?? null,
-    maxDoseMg: p[P.maxDoseMg]?.number ?? null,
-    doseGuidanceNote: (p[P.doseGuidanceNote]?.rich_text || []).map(t => t.plain_text).join(''),
-    pcsVersionId: (p[P.pcsVersion]?.relation || [])[0]?.id || null,
-    canonicalClaimId: (p[P.canonicalClaim]?.relation || [])[0]?.id || null,
-    // Multi-profile architecture (Week 1) — added 2026-04-19
-    claimPrefixId: (p[P.claimPrefix]?.relation || [])[0]?.id || null,
-    coreBenefitId: (p[P.coreBenefit]?.relation || [])[0]?.id || null,
-    evidencePacketIds: (p[P.evidencePacketLinks]?.relation || []).map(r => r.id),
-    wordingVariantIds: (p[P.wordingVariants]?.relation || []).map(r => r.id),
-    // NutriGrade body-of-evidence fields — see src/lib/nutrigrade.js
-    heterogeneity: p[P.heterogeneity]?.select?.name || null,
-    publicationBias: p[P.publicationBias]?.select?.name || null,
-    fundingBias: p[P.fundingBias]?.select?.name || null,
-    precision: p[P.precision]?.select?.name || null,
-    effectSizeCategory: p[P.effectSizeCategory]?.select?.name || null,
-    doseResponseGradient: p[P.doseResponseGradient]?.select?.name || null,
-    certaintyScore: p[P.certaintyScore]?.number ?? null,
-    certaintyRating: p[P.certaintyRating]?.select?.name || null,
-    // Wave 4.5.5 — per-item extractor confidence (0-1; Notion stores percent as fraction)
-    confidence: p[P.confidence]?.number ?? null,
-    // Multi-region authority dimension (Migration 019 / Budget C spine)
-    // Notion uses multi_select; Postgres uses TEXT[]. Both parsed to string[].
-    authorityRegions: (p[P.authorityRegions]?.multi_select || []).map(s => s.name),
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-  };
-}
-
 export async function getClaimsForVersion(versionId) {
   const sb = getPcsSupabase();
   // pcs_claims.pcs_version_id is TEXT (the related row's
@@ -147,42 +106,6 @@ export async function getAllClaims(maxPages = 50, opts = {}) {
 
 async function _fetchAllClaims(maxPages) {
   return await _fetchAllClaimsFromPostgres();
-}
-
-/**
- * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentClaimsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.claims,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleClaimPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_claims', parsed, CLAIMS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 async function _fetchAllClaimsFromPostgres() {

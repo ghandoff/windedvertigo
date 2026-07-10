@@ -5,12 +5,10 @@
  * including all fields needed by the PCS portal.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS } from './pcs-config.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 import {
-  getPcsSupabase, mirrorToPostgres,
-  shouldUseStrongConsistency, writePostgresFirst,
+  getPcsSupabase, writePostgresFirst,
 } from './supabase-pcs.js';
 
 // 2026-05-06 — column-name overrides for evidence's Notion → Postgres
@@ -63,13 +61,6 @@ const EVIDENCE_CACHE_TTL_MS = 60_000; // 60s — evidence list is read-mostly; w
 
 export function invalidateEvidenceCache() {
   invalidateCache(EVIDENCE_CACHE_KEY);
-}
-
-/** Extract the first file URL from a Notion file property. */
-function extractFileUrl(prop) {
-  const file = prop?.files?.[0];
-  if (!file) return null;
-  return file.external?.url || file.file?.url || null;
 }
 
 /**
@@ -126,46 +117,6 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    name: p[P.name]?.title?.[0]?.plain_text || '',
-    citation: (p[P.citation]?.rich_text || []).map(t => t.plain_text).join(''),
-    doi: (p[P.doi]?.rich_text || []).map(t => t.plain_text).join(''),
-    pmid: (p[P.pmid]?.rich_text || []).map(t => t.plain_text).join(''),
-    url: p[P.url]?.url || null,
-    evidenceType: p[P.evidenceType]?.select?.name || null,
-    ingredient: (p[P.ingredient]?.multi_select || []).map(s => s.name),
-    publicationYear: p[P.publicationYear]?.number ?? null,
-    canonicalSummary: (p[P.canonicalSummary]?.rich_text || []).map(t => t.plain_text).join(''),
-    endnoteGroup: (p[P.endnoteGroup]?.rich_text || []).map(t => t.plain_text).join(''),
-    endnoteRecordId: (p[P.endnoteRecordId]?.rich_text || []).map(t => t.plain_text).join(''),
-    sqrScore: p[P.sqrScore]?.number ?? null,
-    sqrRiskOfBias: p[P.sqrRiskOfBias]?.select?.name || null,
-    sqrReviewed: p[P.sqrReviewed]?.checkbox || false,
-    sqrReviewDate: p[P.sqrReviewDate]?.date?.start || null,
-    sqrReviewUrl: p[P.sqrReviewUrl]?.url || null,
-    pdf: extractFileUrl(p[P.pdf]),
-    usedInPacketIds: (p[P.usedInPackets]?.relation || []).map(r => r.id),
-    pcsReferenceIds: (p[P.pcsReferences]?.relation || []).map(r => r.id),
-    // Canonical ingredient multi-relation (Phase 1) — added 2026-04-19
-    activeIngredientCanonicalIds: (p[P.activeIngredientCanonical]?.relation || []).map(r => r.id),
-    // Wave 5.4 — Ingredient safety cross-check fields (added 2026-04-21).
-    // A Research member flags a row by checking `Safety signal` and filling in
-    // the structured alert fields; the evidence-updated webhook picks this up
-    // and starts the ingredientSafetySweep workflow. See docs/plans/wave-5-product-labels.md §5.
-    safetySignal: p[P.safetySignal]?.checkbox || false,
-    safetyIngredientIds: (p[P.safetyIngredient]?.relation || []).map(r => r.id),
-    safetyDoseThreshold: p[P.safetyDoseThreshold]?.number ?? null,
-    safetyDoseUnit: (p[P.safetyDoseUnit]?.rich_text || []).map(t => t.plain_text).join(''),
-    safetyDemographicFilterRaw: (p[P.safetyDemographicFilter]?.rich_text || []).map(t => t.plain_text).join(''),
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-    visibility: 'shared', // Notion has no visibility field; default shared for all Notion-sourced rows
-  };
-}
-
 export async function getAllEvidence(maxPages = 50, opts = {}) {
   // Hot-path cache: only the default-args call is memoized. Custom
   // maxPages or skipCache callers always see fresh data. Mirrors
@@ -180,54 +131,6 @@ export async function getAllEvidence(maxPages = 50, opts = {}) {
 
 async function _fetchAllEvidence(maxPages) {
   return await _fetchAllEvidenceFromPostgres();
-}
-
-/**
- * 2026-05-06 — Path-2 drift catcher. Called every few minutes by
- * /api/cron/drift-sync to pull any direct-Notion edits into Postgres
- * (i.e. Sharon edits a row in Notion's web UI, bypassing our platform).
- *
- * Filters Notion for rows where last_edited_time >= sinceIso, then
- * mirrors each to Postgres. Idempotent: re-running with the same
- * sinceIso just re-mirrors the same rows. Returns { count, maxSeen }.
- *
- * The cron uses the previous run's maxSeen as the next run's sinceIso
- * (with a small overlap window to avoid clock-skew gaps).
- */
-export async function syncRecentEvidenceToPostgres(sinceIso) {
-  const filter = {
-    timestamp: 'last_edited_time',
-    last_edited_time: { on_or_after: sinceIso },
-  };
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidenceLibrary,
-    filter,
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleEvidencePageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 async function _fetchAllEvidenceFromPostgres() {

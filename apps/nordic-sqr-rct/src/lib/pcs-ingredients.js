@@ -12,11 +12,10 @@
  * start empty.
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { mutate } from './pcs-mutate.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.6. No special column-name overrides for
 // pcs_ingredients; all fields follow the camelCase → snake_case convention.
@@ -52,26 +51,6 @@ function parsePostgresRow(row) {
     formIds: row.form_ids || [],
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
-  };
-}
-
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    canonicalName: p[P.canonicalName]?.title?.[0]?.plain_text || '',
-    synonyms: (p[P.synonyms]?.rich_text || []).map(t => t.plain_text).join(''),
-    category: p[P.category]?.select?.name || null,
-    standardUnit: p[P.standardUnit]?.select?.name || null,
-    fdaRdi: p[P.fdaRdi]?.number ?? null,
-    fdaRdiUnit: p[P.fdaRdiUnit]?.select?.name || null,
-    regulatoryCeiling: p[P.regulatoryCeiling]?.number ?? null,
-    bioavailabilityNotes: (p[P.bioavailabilityNotes]?.rich_text || []).map(t => t.plain_text).join(''),
-    interactionCautions: (p[P.interactionCautions]?.rich_text || []).map(t => t.plain_text).join(''),
-    notes: (p[P.notes]?.rich_text || []).map(t => t.plain_text).join(''),
-    formIds: (p[P.forms]?.relation || []).map(r => r.id),
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
   };
 }
 
@@ -136,42 +115,6 @@ async function _fetchAllIngredientsFromPostgres() {
     .limit(2000);
   if (error) throw error;
   return (data || []).map(parsePostgresRow);
-}
-
-/**
- * 2026-05-06 — Path-2 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentIngredientsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.ingredients,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleIngredientPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_ingredients', parsed, INGREDIENTS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 export async function getIngredient(id) {

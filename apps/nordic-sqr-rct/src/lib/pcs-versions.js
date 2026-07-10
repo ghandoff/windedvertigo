@@ -5,9 +5,8 @@
  * references, and revision events.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { PROPS } from './pcs-config.js';
+import { getPcsSupabase, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for versions.
 // Notion shape uses uppercase abbreviations (EPA, DHA) that the default
@@ -58,44 +57,6 @@ function parsePostgresRow(row) {
     sourceType: row.source_type || null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
-  };
-}
-
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    version: p[P.version]?.title?.[0]?.plain_text || '',
-    pcsDocumentId: (p[P.pcsDocument]?.relation || [])[0]?.id || null,
-    effectiveDate: p[P.effectiveDate]?.date?.start || null,
-    isLatest: p[P.isLatest]?.checkbox || false,
-    versionNotes: (p[P.versionNotes]?.rich_text || []).map(t => t.plain_text).join(''),
-    supersedesId: (p[P.supersedes]?.relation || [])[0]?.id || null,
-    claimIds: (p[P.claims]?.relation || []).map(r => r.id),
-    formulaLineIds: (p[P.formulaLines]?.relation || []).map(r => r.id),
-    referenceIds: (p[P.references]?.relation || []).map(r => r.id),
-    revisionEventIds: (p[P.revisionEvents]?.relation || []).map(r => r.id),
-    requestIds: (p[P.requests]?.relation || []).map(r => r.id),
-    latestVersionOfId: (p[P.latestVersionOf]?.relation || [])[0]?.id || null,
-    // Lauren's template Table 1 + Table 2 footer — added 2026-04-18
-    productName: (p[P.productName]?.rich_text || []).map(t => t.plain_text).join(''),
-    formatOverride: (p[P.formatOverride]?.rich_text || []).map(t => t.plain_text).join(''),
-    demographic: (p[P.demographic]?.multi_select || []).map(s => s.name),
-    // Demographic axes (Wave 4.1a) — four orthogonal dimensions
-    biologicalSex: (p[P.biologicalSex]?.multi_select || []).map(s => s.name),
-    ageGroup: (p[P.ageGroup]?.multi_select || []).map(s => s.name),
-    lifeStage: (p[P.lifeStage]?.multi_select || []).map(s => s.name),
-    lifestyle: (p[P.lifestyle]?.multi_select || []).map(s => s.name),
-    demographicBackfillReview: (p[P.demographicBackfillReview]?.rich_text || []).map(t => t.plain_text).join(''),
-    dailyServingSize: (p[P.dailyServingSize]?.rich_text || []).map(t => t.plain_text).join(''),
-    totalEPA: p[P.totalEPA]?.number ?? null,
-    totalDHA: p[P.totalDHA]?.number ?? null,
-    totalEPAandDHA: p[P.totalEPAandDHA]?.number ?? null,
-    totalOmega6: p[P.totalOmega6]?.number ?? null,
-    totalOmega9: p[P.totalOmega9]?.number ?? null,
-    sourceType: p[P.sourceType]?.select?.name || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
   };
 }
 
@@ -180,42 +141,6 @@ async function _fetchAllVersionsFromPostgres() {
     .limit(5000);
   if (error) throw error;
   return (data || []).map(parsePostgresRow);
-}
-
-/**
- * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentVersionsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.versions,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleVersionPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_versions', parsed, VERSIONS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 export async function createVersion(fields) {

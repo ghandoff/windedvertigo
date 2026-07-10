@@ -10,7 +10,7 @@
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.ingredientForms;
@@ -239,32 +239,6 @@ export async function updateIngredientForm(id, fields) {
 export async function deleteIngredientForm(id) {
   const sb = getPcsSupabase();
   await sb.from('pcs_ingredient_forms').delete().eq('notion_page_id', id);
-}
-
-// ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────
-export async function syncRecentIngredientFormsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.ingredientForms,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_ingredient_forms', parsed, INGREDIENT_FORMS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-export async function syncSingleIngredientFormPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_ingredient_forms', parsed, INGREDIENT_FORMS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 /**
