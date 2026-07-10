@@ -11,18 +11,17 @@
  * Added 2026-04-19 as part of the batch-import feature (v1).
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
-import { getPcsSupabase, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { PROPS } from './pcs-config.js';
+import { getPcsSupabase, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.importJobs;
 
-// ── Postgres path (Part 10 migration) ────────────────────────────────────────
-// The pcs_import_jobs table stores status-tracking columns only.
-// extractedData, diffReport, batchId, contentHash, and other rich fields
-// are Notion-only until a future schema extension adds TEXT columns for them.
-// getJobByContentHash and getJobsByBatch therefore remain Notion-only.
+// ── Postgres path (2026-07 — full rich-field migration off Notion) ───────────
+// The pcs_import_jobs table now stores every job field (the 2026-07 migration
+// added job_id/pdf_url/batch_id/content_hash/extracted_data/… + updated_at +
+// the trg_set_updated_at trigger). Rich fields snake_case mechanically via
+// notionShapeToPgRow, so the map only overrides the non-mechanical names.
 const IMPORT_JOBS_PG_COLUMN_MAP = {
   pcsId: 'pcs_id',
   error: 'error_log',
@@ -33,25 +32,28 @@ const IMPORT_JOBS_PG_COLUMN_MAP = {
 function parsePostgresRow(row) {
   return {
     id: row.notion_page_id,
-    jobId: row.pcs_id || '',         // best substitute; full jobId not stored
+    jobId: row.job_id || '',
     status: row.status || null,
-    pdfUrl: null,                    // not in current Postgres schema
-    pdfFilename: '',                 // not in current Postgres schema
+    pdfUrl: row.pdf_url || null,
+    pdfFilename: row.pdf_filename || '',
     pcsId: row.pcs_id || '',
-    existingDocId: '',               // not in current Postgres schema
-    conflictAction: null,            // not in current Postgres schema
-    extractedData: '',               // not in current Postgres schema
-    createdDocumentId: '',           // not in current Postgres schema
-    resultCounts: '',                // not in current Postgres schema
-    warnings: '',                    // not in current Postgres schema
+    existingDocId: row.existing_doc_id || '',
+    conflictAction: row.conflict_action || null,
+    extractedData: row.extracted_data || '',
+    createdDocumentId: row.created_document_id || '',
+    resultCounts: row.result_counts || '',
+    warnings: row.warnings || '',
     error: row.error_log || '',
-    retryCount: 0,                   // not in current Postgres schema
-    batchId: '',                     // not in current Postgres schema
-    ownerEmail: null,                // not in current Postgres schema
-    contentHash: '',                 // not in current Postgres schema
-    promptVersion: '',               // not in current Postgres schema
-    notificationSent: false,         // not in current Postgres schema
-    diffReport: null,                // not in current Postgres schema
+    retryCount: row.retry_count ?? 0,
+    batchId: row.batch_id || '',
+    ownerEmail: row.owner_email || null,
+    contentHash: row.content_hash || '',
+    promptVersion: row.prompt_version || '',
+    notificationSent: row.notification_sent ?? false,
+    diffReport: (() => {
+      if (!row.diff_report) return null;
+      try { return JSON.parse(row.diff_report); } catch { return null; }
+    })(),
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
   };
@@ -181,16 +183,16 @@ export async function getJob(id) {
  * @returns {Promise<object[]>} Matching jobs.
  */
 export async function getJobsByStatus(status, limit = 10) {
-  // Always reads from Notion — the Postgres schema does not store pdfUrl,
-  // batchId, pdfFilename, or other fields the extraction pipeline requires.
-  // Postgres reads are reserved for the UI display path (getAllJobs/getJob).
-  const res = await notion.databases.query({
-    database_id: PCS_DB.importJobs,
-    page_size: Math.min(limit, 100),
-    filter: { property: P.status, select: { equals: status } },
-    sorts: [{ timestamp: 'created_time', direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('[pcs-import-jobs] Supabase not configured');
+  const { data, error } = await sb
+    .from('pcs_import_jobs')
+    .select('*')
+    .eq('status', status)
+    .order('notion_created_at', { ascending: true, nullsFirst: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 /**
@@ -200,13 +202,15 @@ export async function getJobsByStatus(status, limit = 10) {
  * @returns {Promise<object[]>} Jobs sharing the same batch ID.
  */
 export async function getJobsByBatch(batchId) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.importJobs,
-    page_size: 100,
-    filter: { property: P.batchId, rich_text: { equals: batchId } },
-    sorts: [{ timestamp: 'created_time', direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('[pcs-import-jobs] Supabase not configured');
+  const { data, error } = await sb
+    .from('pcs_import_jobs')
+    .select('*')
+    .eq('batch_id', batchId)
+    .order('notion_created_at', { ascending: true, nullsFirst: true });
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 /**
@@ -219,23 +223,20 @@ export async function getJobsByBatch(batchId) {
  * @returns {Promise<object[]>} Stale jobs.
  */
 export async function getStaleJobs(status, olderThan, limit = 10) {
-  // Always reads from Notion — Notion's last_edited_time is updated whenever
-  // any property changes, making it an accurate staleness signal. The Postgres
-  // notion_last_edited_at column is NULL for Postgres-first created jobs
-  // (writePostgresFirst doesn't set it), so NULL < cutoff always returns no
-  // rows in SQL, causing stuck jobs to be invisible to the stale sweep.
-  const res = await notion.databases.query({
-    database_id: PCS_DB.importJobs,
-    page_size: Math.min(limit, 100),
-    filter: {
-      and: [
-        { property: P.status, select: { equals: status } },
-        { timestamp: 'last_edited_time', last_edited_time: { before: olderThan.toISOString() } },
-      ],
-    },
-    sorts: [{ timestamp: 'last_edited_time', direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  // `updated_at` is maintained by the trg_set_updated_at DB trigger on every
+  // write, so it is an accurate staleness signal (it advances whenever the
+  // runner touches a job).
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('[pcs-import-jobs] Supabase not configured');
+  const { data, error } = await sb
+    .from('pcs_import_jobs')
+    .select('*')
+    .eq('status', status)
+    .lt('updated_at', olderThan.toISOString())
+    .order('updated_at', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 /**
@@ -248,25 +249,18 @@ export async function getStaleJobs(status, olderThan, limit = 10) {
  */
 export async function getJobByContentHash(hash) {
   if (!hash) return null;
-  const res = await notion.databases.query({
-    database_id: PCS_DB.importJobs,
-    page_size: 10,
-    filter: {
-      and: [
-        { property: P.contentHash, rich_text: { equals: hash } },
-        {
-          or: [
-            { property: P.status, select: { equals: 'committed' } },
-            { property: P.status, select: { equals: 'extracted' } },
-            { property: P.status, select: { equals: 'committing' } },
-          ],
-        },
-      ],
-    },
-    sorts: [{ timestamp: 'created_time', direction: 'descending' }],
-  });
-  if (!res.results.length) return null;
-  return parsePage(res.results[0]);
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('[pcs-import-jobs] Supabase not configured');
+  const { data, error } = await sb
+    .from('pcs_import_jobs')
+    .select('*')
+    .eq('content_hash', hash)
+    .in('status', ['committed', 'extracted', 'committing'])
+    .order('notion_created_at', { ascending: false, nullsFirst: false })
+    .limit(1);
+  if (error) throw error;
+  if (!data || !data.length) return null;
+  return parsePostgresRow(data[0]);
 }
 
 /**
@@ -335,15 +329,26 @@ export async function createJob({
 
   if (shouldWriteToPostgresFirst()) {
     const preId = crypto.randomUUID();
-    // Only include columns that exist in the pcs_import_jobs Postgres table.
-    // Rich fields (batchId, pdfUrl, contentHash, diffReport, etc.) are
-    // Notion-only until a future schema extension adds TEXT columns for them.
-    // updateJob already uses this same selective-columns pattern correctly.
+    // Persist the FULL job row — the 2026-07 migration added the rich columns
+    // (pdf_url, batch_id, content_hash, …) the extraction runner needs.
+    // `createdTime` → notion_created_at gives new jobs a real FIFO timestamp.
     const stubRow = {
       id: preId,
+      createdTime: new Date().toISOString(),
+      jobId,
       pcsId: pcsId || '',
       status: initialStatus,
+      pdfUrl: pdfUrl || null,
+      pdfFilename: pdfFilename || '',
+      existingDocId: existingDocId || '',
+      conflictAction: conflictAction || null,
+      batchId: batchId || '',
+      ownerEmail: ownerEmail || null,
+      contentHash: contentHash || '',
+      promptVersion: promptVersion || '',
+      retryCount: 0,
       error: error || '',
+      warnings: warnings || '',
     };
     await writePostgresFirst('pcs_import_jobs', stubRow, IMPORT_JOBS_PG_COLUMN_MAP);
     // Return the full shape callers expect (with the rich fields) even though
@@ -447,14 +452,25 @@ export async function updateJob(id, fields) {
     properties[P.diffReport] = { rich_text: toRichText(serialized) };
   }
   if (shouldWriteToPostgresFirst()) {
-    // Only update the Postgres columns we have. The full Notion update still
-    // runs async for extractedData, diffReport, batchId, etc.
-    // lastEditedTime is always updated so getStaleJobs can detect stuck jobs
-    // even when Notion's async update hasn't fired yet.
+    // Persist every mutated column to Postgres (the single source of truth).
+    // `updated_at` is maintained by the DB trigger for the stale sweep.
     const pgFields = { id, lastEditedTime: new Date().toISOString() };
     if (fields.status !== undefined) pgFields.status = fields.status;
     if (fields.error !== undefined) pgFields.error = fields.error;
     if (fields.pcsId !== undefined) pgFields.pcsId = fields.pcsId;
+    if (fields.existingDocId !== undefined) pgFields.existingDocId = fields.existingDocId;
+    if (fields.conflictAction !== undefined) pgFields.conflictAction = fields.conflictAction;
+    if (fields.extractedData !== undefined) pgFields.extractedData = fields.extractedData;
+    if (fields.createdDocumentId !== undefined) pgFields.createdDocumentId = fields.createdDocumentId;
+    if (fields.resultCounts !== undefined) pgFields.resultCounts = fields.resultCounts;
+    if (fields.warnings !== undefined) pgFields.warnings = fields.warnings;
+    if (fields.retryCount !== undefined) pgFields.retryCount = fields.retryCount;
+    if (fields.promptVersion !== undefined) pgFields.promptVersion = fields.promptVersion;
+    if (fields.contentHash !== undefined) pgFields.contentHash = fields.contentHash;
+    if (fields.notificationSent !== undefined) pgFields.notificationSent = fields.notificationSent;
+    if (fields.diffReport !== undefined) {
+      pgFields.diffReport = fields.diffReport === null ? null : JSON.stringify(fields.diffReport);
+    }
     await writePostgresFirst('pcs_import_jobs', pgFields, IMPORT_JOBS_PG_COLUMN_MAP);
     return { id, ...fields };
   }
