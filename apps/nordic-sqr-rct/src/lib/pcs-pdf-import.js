@@ -1006,22 +1006,5 @@ async function archivePages(pageIds) {
   } catch (err) {
     console.warn('[ROLLBACK] Postgres rollback failed:', err?.message || err);
   }
-
-  // 2) Notion mirror cleanup — fire-and-forget. Each individual archive
-  //    is wrapped so a single failure doesn't break the rest.
-  //    Gated by the NOTION_ENABLED kill-switch (Stage 1 cutover) — this is
-  //    the one runtime Notion write that bypasses the ./notion.js wrapper.
-  try {
-    const { withRetry, isNotionEnabled } = await import('./notion.js');
-    if (isNotionEnabled()) {
-      const { Client } = await import('@notionhq/client');
-      const _notion = new Client({ auth: process.env.NOTION_TOKEN, timeoutMs: 30000 });
-      for (const id of pageIds) {
-        withRetry(() => _notion.pages.update({ page_id: id, archived: true }))
-          .catch((err) => console.warn(`[ROLLBACK] Notion archive ${id} failed:`, err?.message || err));
-      }
-    }
-  } catch (err) {
-    console.warn('[ROLLBACK] Notion archive setup failed:', err?.message || err);
-  }
+  // (Notion mirror cleanup removed 2026-07 — Postgres is the sole store.)
 }
