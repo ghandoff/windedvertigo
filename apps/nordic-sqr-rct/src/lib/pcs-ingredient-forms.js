@@ -8,7 +8,6 @@
  */
 
 import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
-import { notion } from './notion.js';
 import { mutate } from './pcs-mutate.js';
 import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
@@ -130,27 +129,6 @@ export async function getAllIngredientForms(maxPages = 50) {
     .limit(5000);
   if (error) throw error;
   return (data || []).map(parsePostgresRow);
-}
-
-/**
- * Query Active Ingredient Forms where `Vegan compatible=true`.
- * Flat array. Used by Living PCS + product filters to surface the
- * algae/lanolin-alt portfolio to vegan customers. (Wave 7.0.5 T6)
- */
-export async function getVeganCompatibleForms() {
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.ingredientForms,
-      page_size: 100,
-      start_cursor: cursor,
-      filter: { property: P.veganCompatible, checkbox: { equals: true } },
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
 }
 
 export async function getFormsForIngredient(ingredientId) {
