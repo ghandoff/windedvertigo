@@ -161,12 +161,14 @@ export async function getCanonicalClaim(id) {
 }
 
 export async function getCanonicalClaimsByFamily(family) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.canonicalClaims,
-    filter: { property: P.claimFamily, select: { equals: family } },
-    sorts: [{ property: P.canonicalClaim, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('getCanonicalClaimsByFamily: Supabase client unavailable.');
+  const { data, error } = await sb
+    .from('pcs_canonical_claims')
+    .select('*')
+    .eq('claim_family', family);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function updateCanonicalClaim(id, fields) {

@@ -234,16 +234,13 @@ export async function syncSingleRequestPageToPostgres(pageId) {
  * Optional `status` narrows by status; omit to include all.
  */
 export async function getRequestsForDocument(documentId, { openOnly = false } = {}) {
-  const filters = [{ property: P.relatedPcs, relation: { contains: documentId } }];
-  if (openOnly) {
-    filters.push({ property: P.status, status: { does_not_equal: 'Done' } });
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.requests,
-    filter: filters.length === 1 ? filters[0] : { and: filters },
-    page_size: 100,
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('[pcs-requests] Supabase not configured');
+  let q = sb.from('pcs_requests').select('*').eq('related_pcs_id', documentId);
+  if (openOnly) q = q.neq('status', 'Done');
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 /**
@@ -254,60 +251,42 @@ export async function getRequestsForDocument(documentId, { openOnly = false } = 
  * is post-filtered after parse so the math is consistent with `ageDays`.
  */
 export async function queryRequests({ filter = 'all', documentId, assigneeId, lastPingedBefore } = {}) {
-  const and = [];
-  // Most filters exclude resolved.
+  // 'mine' with no assigneeId: return empty (can't know who "me" is).
+  if (filter === 'mine' && !assigneeId) return [];
+
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('[pcs-requests] Supabase not configured');
+  let q = sb.from('pcs_requests').select('*');
+
+  // Most filters exclude resolved. `all` in our UI means "all open".
+  // Match "not Done" including rows with a null status.
   if (filter !== 'all' || !assigneeId) {
-    // 'all' in our UI means "all open" (Status != Done).
-    and.push({ property: P.status, status: { does_not_equal: 'Done' } });
+    q = q.or('status.is.null,status.neq.Done');
   }
   if (documentId) {
-    and.push({ property: P.relatedPcs, relation: { contains: documentId } });
+    q = q.eq('related_pcs_id', documentId);
   }
   if (filter === 'mine' && assigneeId) {
-    and.push({ property: P.assignee, people: { contains: assigneeId } });
+    q = q.contains('assignee_ids', [assigneeId]);
   }
   if (filter === 'critical') {
-    and.push({
-      or: [
-        { property: P.priority, select: { equals: 'Safety' } },
-        { property: P.priority, select: { equals: 'High' } },
-      ],
-    });
+    q = q.in('priority', ['Safety', 'High']);
   }
   // Wave 4.5.3 — nightly re-ping stale filter. `lastPingedBefore` is a
-  // YYYY-MM-DD cutoff. Matches rows where `Last pinged date` is empty
-  // (never pinged) OR is on/before the cutoff date.
+  // YYYY-MM-DD cutoff. Matches rows where last_pinged_date is null (never
+  // pinged) OR is on/before the cutoff date.
   if (lastPingedBefore) {
-    and.push({
-      or: [
-        { property: P.lastPingedDate, date: { is_empty: true } },
-        { property: P.lastPingedDate, date: { on_or_before: lastPingedBefore } },
-      ],
-    });
+    q = q.or(`last_pinged_date.is.null,last_pinged_date.lte.${lastPingedBefore}`);
   }
+  q = q.order('opened_date', { ascending: true, nullsFirst: false });
 
-  const query = {
-    database_id: PCS_DB.requests,
-    page_size: 100,
-    sorts: [{ property: P.openedDate, direction: 'ascending' }],
-  };
-  if (and.length === 1) query.filter = and[0];
-  else if (and.length > 1) query.filter = { and };
+  const { data, error } = await q;
+  if (error) throw error;
 
-  let all = [];
-  let cursor;
-  do {
-    const res = await notion.databases.query({ ...query, start_cursor: cursor });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-
-  let parsed = all.map(parsePage);
+  let parsed = (data || []).map(parsePostgresRow);
   if (filter === 'aged') {
     parsed = parsed.filter(r => (r.ageDays ?? 0) > 14);
   }
-  // 'mine' with no assigneeId: return empty (can't know who "me" is).
-  if (filter === 'mine' && !assigneeId) return [];
   return parsed;
 }
 
@@ -394,15 +373,16 @@ export async function updateRequest(id, fields) {
  * atomic (ping + update retry together).
  */
 export async function updateRequestLastPinged(id, isoDate) {
-  const page = await notion.pages.update({
-    page_id: id,
-    properties: {
-      [P.lastPingedDate]: { date: { start: isoDate } },
-    },
-  });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_requests', stripUnmirroredRequest(parsed), REQUESTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('[pcs-requests] Supabase not configured');
+  const { data, error } = await sb
+    .from('pcs_requests')
+    .update({ last_pinged_date: isoDate })
+    .eq('notion_page_id', id)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return parsePostgresRow(data);
 }
 
 export async function createRequest(fields) {

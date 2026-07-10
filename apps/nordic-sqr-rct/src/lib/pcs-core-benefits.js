@@ -173,20 +173,11 @@ export async function updateCoreBenefit(id, fields) {
 }
 
 export async function deleteCoreBenefit(id) {
-  await notion.pages.update({ page_id: id, archived: true });
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('deleteCoreBenefit: Supabase client unavailable.');
+  const { error } = await sb.from('pcs_core_benefits').delete().eq('notion_page_id', id);
+  if (error) throw error;
   invalidateCoreBenefitsCache();
-  // 2026-05-06 — Path-2 Day 2.6 delete-mirror. Notion archives the page;
-  // we delete the Postgres row to keep the mirror in sync. Best-effort —
-  // failure logs but doesn't bubble to the caller.
-  try {
-    const sb = getPcsSupabase();
-    if (sb) {
-      const { error } = await sb.from('pcs_core_benefits').delete().eq('notion_page_id', id);
-      if (error) throw error;
-    }
-  } catch (err) {
-    console.warn(`[pcs-core-benefits] Postgres delete-mirror failed for ${id}: ${err.message}`);
-  }
 }
 
 /**

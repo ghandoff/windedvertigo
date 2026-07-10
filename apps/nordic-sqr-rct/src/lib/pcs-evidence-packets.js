@@ -206,11 +206,14 @@ export async function getEvidencePacket(id) {
 }
 
 export async function getPacketsNeedingRole() {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidencePackets,
-    filter: { property: P.evidenceRole, select: { is_empty: true } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('getPacketsNeedingRole: Supabase client unavailable.');
+  const { data, error } = await sb
+    .from('pcs_evidence_packets')
+    .select('*')
+    .is('evidence_role', null);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function createEvidencePacket(fields) {
@@ -254,7 +257,10 @@ export async function createEvidencePacket(fields) {
 }
 
 export async function deleteEvidencePacket(id) {
-  await notion.pages.update({ page_id: id, archived: true });
+  const sb = getPcsSupabase();
+  if (!sb) throw new Error('deleteEvidencePacket: Supabase client unavailable.');
+  const { error } = await sb.from('pcs_evidence_packets').delete().eq('notion_page_id', id);
+  if (error) throw error;
 }
 
 /**
