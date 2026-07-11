@@ -65,6 +65,10 @@ For parallel work on the same repo, use `git worktree add`.
   collapses. Requires `CLOUDFLARE_API_TOKEN` in env or `site/.env`.
 - Routes claimed by wv-site: `windedvertigo.com/*` and `www.windedvertigo.com/*`.
   Other workers override specific subpaths.
+- **Static demos/pages live in `site/public/…` — that's the ONLY served path.**
+  e.g. the conference-experience demo is `site/public/portfolio/assets/conference-experience/`.
+  A top-level `site/portfolio/` mirror used to exist and caused wrong-path deploys
+  twice (PR #295, PR #353); it was deleted. Don't recreate it — edit `public/` directly.
 - **ISR cache backend is KV** (`open-next.config.ts` → `kvIncrementalCache`).
   Don't revert to `staticAssetsIncrementalCache` (read-only).
 - **Keep `/harbour/*` content pages free of server-side per-request inputs.**
