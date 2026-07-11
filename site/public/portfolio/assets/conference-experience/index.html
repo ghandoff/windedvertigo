@@ -543,10 +543,13 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
 #S6 .moment-note { color: var(--accent-em); }
 .floating-voice {
   position: absolute;
-  font: 600 15px/1.4 'Open Sauce Sans', sans-serif;
+  font: 600 14px/1.4 'Open Sauce Sans', sans-serif;
   color: var(--champagne); opacity: 0;
   animation: voiceAppear 6s ease-in-out forwards;
   pointer-events: none; z-index: 2;
+  /* keep quotes compact in the right margin so they don't drift under the centred copy */
+  max-width: 232px; text-align: right;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.55);
 }
 @keyframes voiceAppear {
   0% { opacity: 0; transform: translateX(30px); }
@@ -969,12 +972,20 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
    ══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   /* interactive/reading screens: grow & scroll as a centred column */
-  #S2.sc.active, #S8.sc.active, #S5.sc.active, #S10.sc.active, #S4.sc.active {
+  #S2.sc.active, #S8.sc.active, #S5.sc.active, #S10.sc.active,
+  #S3.sc.active, #S6.sc.active, #S9.sc.active, #S12.sc.active {
     justify-content: flex-start; align-items: center;
     padding-top: 66px; padding-bottom: 92px;
   }
+  /* iOS Safari zooms the page when you focus any input under 16px — force 16px */
+  #S2 .wall-prompt textarea, #S8 .wall-prompt textarea,
+  .reyes-prep textarea, .card-front textarea { font-size: 16px !important; }
   /* long centred time chips must wrap and clear the fixed corner mark */
   .time-badge { white-space: normal; max-width: calc(100% - 104px); line-height: 1.4; }
+
+  /* ── S1 before-the-day: stack; un-squeeze the phone image ── */
+  #S1 .before-day { flex-direction: column; align-items: center; gap: 26px; }
+  #S1 .phone-photo { height: auto !important; width: auto; max-width: min(240px, 62%); max-height: 46vh; }
 
   /* ── S2 question wall + S8 lunch collage (shared .wall-* pattern) ── */
   #S2 .wall-time, #S8 .wall-time {
@@ -995,9 +1006,11 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
     transform: none !important; opacity: 1 !important; animation: none !important;
   }
   #S2 .wc::before, #S8 .wc::before { display: none; } /* pin dot reads oddly in a list */
+  /* !important beats the later post-style .wall-prompt block (no media query) */
   #S2 .wall-prompt, #S8 .wall-prompt {
-    position: sticky; top: auto; left: auto; bottom: 8px; transform: none !important;
-    margin: 16px auto 0; width: 100%; max-width: 440px; z-index: 40;
+    position: sticky !important; top: auto !important; left: auto !important; bottom: 8px !important;
+    transform: none !important; margin: 16px auto 0 !important;
+    width: 100% !important; max-width: 440px !important; z-index: 40;
   }
 
   /* ── S5 refreshments (centre circle + reflected-lens circles) ── */
@@ -1018,25 +1031,25 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
   #S10 .tracks-container { flex-direction: column; flex-wrap: nowrap; min-height: 0; height: auto; padding: 8px 16px; gap: 18px; align-items: center; }
   #S10 .track { width: min(280px, 82vw); }
 
-  /* ── S4 makers tables: pebbles wrap instead of a fixed ledge row ── */
-  #S4 .mk-intro { position: static !important; transform: none !important; width: 100%; margin: 0 auto 4px; }
-  #S4 .mk-intro .mk-hint { display: none; } /* dragging is a desktop affordance */
-  #S4 .mk-field {
-    position: static !important; inset: auto; height: auto; min-height: 200px;
-    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; padding: 12px 16px;
-  }
-  #S4 .mk-shape {
-    position: static !important; left: auto !important; top: auto !important;
-    width: 128px !important; height: 54px !important;
-    transform: none !important; animation: none !important;
-  }
+  /* ── S4 makers tables: stones stay absolute + draggable; initBench() lays them
+     out smaller and within bounds for narrow widths (see JS). ── */
+  #S4 .mk-intro { width: min(92%, 520px); }
 
   /* ── reading scenes: let centred text grow & scroll instead of clipping ── */
   #S3 .morgan-scene, #S6 .draper-scene, #S9 .dark-scene, #S12 .closing-scene {
     height: auto !important; min-height: 100%; display: block; padding: 8px 0;
   }
-  #S6 .draper-center, #S12 .closing-center {
+  #S3 .morgan-center, #S6 .draper-center, #S12 .closing-center {
     position: static !important; transform: none !important; top: auto; left: auto; margin: 0 auto;
+  }
+  /* drifting community quotes clutter the narrow reflowed column — hide on mobile */
+  #S6 .floating-voice { display: none; }
+
+  /* ── S13 commitment card: rounded rectangle so copy sits within the shape
+     (a strict circle overflows on narrow widths) ── */
+  #S13 .card-front, #S13 .card-back {
+    aspect-ratio: auto !important; border-radius: 28px !important;
+    min-height: 430px; justify-content: center;
   }
 }
 
@@ -1054,12 +1067,14 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
   .card-flip-container .card-back { transform: none; opacity: 0; transition: opacity 0.3s; }
   .card-flip-container.flipped .card-back { opacity: 1; }
 }
-/* ── S7 door pick ── */
-.door.chosen { background: rgba(36,67,72,0.06); }
-.door.chosen::before { background: rgba(36,67,72,0.05); }
+/* ── S7 door pick — clear "you picked this" feedback (also works on touch, which has no hover) ── */
+.door.chosen { background: rgba(180,210,74,0.16); box-shadow: inset 0 0 0 2px rgba(180,210,74,0.55); }
+.door.chosen::before { background: rgba(180,210,74,0.10); }
+.door:not(.chosen) { transition: opacity 0.4s; }
+.door-choice.has-pick .door:not(.chosen) { opacity: 0.55; }
 .door.chosen .d-foot { opacity: 1; }
-.door.chosen .d-label { color: var(--cadet); }
-.door.chosen h3::after { content: ' ✓'; color: var(--olive); }
+.door.chosen .d-label { color: var(--accent-em); }
+.door.chosen h3::after { content: ' ✓'; color: var(--accent-em); }
 .door-hint {
   position: absolute; bottom: 74px; left: 50%; transform: translateX(-50%);
   font: 500 12px/1.5 'Open Sauce Sans', sans-serif; color: var(--grey); text-align: center;
@@ -1653,6 +1668,7 @@ flipCard.addEventListener('click', function(e) {
   this.classList.toggle('flipped');
 });
 flipCard.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'TEXTAREA') return; /* let people type spaces in the commitment field */
   if (e.key === 'Enter' || e.key === ' ') {
     e.preventDefault();
     this.classList.toggle('flipped');
@@ -1766,31 +1782,67 @@ function initWall() {
     s.appendChild(el);
   });
 }
-function addToWall() {
-  var inp = document.getElementById('wallIn');
-  var t = inp.value.trim(); if (!t) return;
-  var s = document.getElementById('wallSurface');
-  var W = s.offsetWidth, H = s.offsetHeight;
-  var cx = W/2, cy = H/2, exRx = W*0.24, exRy = H*0.34, cardW = 180, cardH = 110;
+/* Find a clear spot for a new note: walk candidate slots in the two side columns
+   (clear of the centre circle and the input bar), fall back to least-crowded random.
+   Replaces the old top-strip-only random placement that overlapped after ~2 posts.
+   (On mobile the .wc cards are CSS-reflowed to a static column, so x/y are ignored.) */
+function wallSlot(s) {
+  var W = s.offsetWidth, H = s.offsetHeight, cx = W/2, cy = H/2;
+  var cardW = 180, cardH = 110;
+  var circleR = Math.min(160, H*0.22) + 66;
+  var inputTop = cy + Math.min(160, H*0.22);
+  var topY = 20, botY = H - cardH - 20;
   var existing = s.querySelectorAll('.wc');
-  function bad(x, y) {
-    if (Math.pow((x+cardW/2-cx)/exRx,2) + Math.pow((y+cardH/2-cy)/exRy,2) < 1) return true;
-    if ((y+cardH/2) > cy + 40) return true;
+  function overlaps(x, y) {
+    var mx = x + cardW/2, my = y + cardH/2;
+    if (Math.hypot(mx - cx, my - cy) < circleR) return true;
+    if (x + cardW > cx - 150 && x < cx + 150 && y + cardH > inputTop) return true;
     for (var k = 0; k < existing.length; k++) {
       var ex = parseFloat(existing[k].style.left), ey = parseFloat(existing[k].style.top);
-      if (!isNaN(ex) && Math.abs(x-ex) < cardW*0.9 && Math.abs(y-ey) < cardH*0.85) return true;
+      if (!isNaN(ex) && Math.abs(x-ex) < cardW*0.92 && Math.abs(y-ey) < cardH*0.9) return true;
     }
     return false;
   }
-  var x, y, tries = 0;
-  do { x = Math.max(28, Math.min(W-cardW-28, cx - cardW/2 + (Math.random()-0.5)*W*0.82)); y = Math.max(78, Math.min(H-cardH-16, cy - cardH/2 + (Math.random()-0.5)*H*0.78)); tries++; } while (tries < 200 && bad(x, y));
+  var leftX = Math.max(20, cx - circleR - cardW);
+  var rightX = Math.min(W - cardW - 20, cx + circleR);
+  var rows = 6, slots = [];
+  for (var r = 0; r < rows; r++) {
+    var yy = topY + (botY - topY) * (r / (rows - 1));
+    slots.push({x: 20, y: yy}); slots.push({x: leftX, y: yy});
+    slots.push({x: rightX, y: yy}); slots.push({x: Math.min(W - cardW - 20, rightX + 60), y: yy});
+  }
+  for (var i = 0; i < slots.length; i++) {
+    var x = Math.round(Math.max(20, Math.min(W-cardW-20, slots[i].x + (Math.random()*20 - 10))));
+    var y = Math.round(Math.max(topY, Math.min(botY, slots[i].y + (Math.random()*16 - 8))));
+    if (!overlaps(x, y)) return {x: x, y: y};
+  }
+  var best = {x: 20, y: 20}, bestScore = Infinity;
+  for (var j = 0; j < 140; j++) {
+    var rx = Math.round(20 + Math.random()*(W - cardW - 40));
+    var ry = Math.round(topY + Math.random()*(botY - topY)), score = 0;
+    if (Math.hypot(rx + cardW/2 - cx, ry + cardH/2 - cy) < circleR) score += 1000;
+    for (var k = 0; k < existing.length; k++) {
+      var ex = parseFloat(existing[k].style.left), ey = parseFloat(existing[k].style.top);
+      if (!isNaN(ex)) { var dx = Math.abs(rx-ex), dy = Math.abs(ry-ey); if (dx < cardW && dy < cardH) score += (cardW-dx) + (cardH-dy); }
+    }
+    if (score < bestScore) { bestScore = score; best = {x: rx, y: ry}; }
+  }
+  return best;
+}
+function appendNote(s, t) {
+  var p = wallSlot(s);
   var el = document.createElement('div');
   el.className = 'wc you';
-  el.style.left = x + 'px'; el.style.top = y + 'px';
+  el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
   el.style.setProperty('--d', '0s'); el.style.setProperty('--r', '0deg');
   el.style.zIndex = '30';
   el.innerHTML = t + '<div class="wc-attr">you</div>';
   s.appendChild(el);
+}
+function addToWall() {
+  var inp = document.getElementById('wallIn');
+  var t = inp.value.trim(); if (!t) return;
+  appendNote(document.getElementById('wallSurface'), t);
   inp.value = '';
 }
 document.getElementById('wallIn').addEventListener('keydown', function(e) {
@@ -1834,16 +1886,32 @@ function initBench() {
     {label:'Dependency', w:216, h:58, grad:'#c8c2b5,#a49b8b', br:'50% 50% 47% 53%/58% 60% 42% 40%', dx:-20},
     {label:'Risk',       w:152, h:50, grad:'#dad4c9,#b7afa1', br:'52% 48% 55% 45%/62% 60% 40% 42%', dx:24}
   ];
-  var margin = 40, sumW = 0;
-  stones.forEach(function(st){ sumW += st.w; });
-  var gap = Math.max(-24, Math.min(46, (W - margin * 2 - sumW) / (stones.length - 1)));
-  var x = cx - (sumW + gap * (stones.length - 1)) / 2, baseY = H * 0.76;
+  var narrow = W < 600; /* phones: the full-width ledge row can't fit — use a compact draggable grid */
+  if (narrow) {
+    var sc = 0.46, sgap = 14, rgap = 14;
+    stones.forEach(function(st){ st.pw = Math.round(st.w * sc); st.ph = Math.max(46, Math.round(st.h * 0.62)); });
+    var rows = [[0, 1], [2, 3], [4]], rhs = [], totalH = 0;
+    rows.forEach(function(r){ var rh = 0; r.forEach(function(i){ rh = Math.max(rh, stones[i].ph); }); rhs.push(rh); totalH += rh + rgap; });
+    totalH -= rgap;
+    var yCursor = Math.max(Math.round(H * 0.32), Math.round((H - totalH) / 2));
+    rows.forEach(function(r, ri){
+      var rowW = 0; r.forEach(function(i){ rowW += stones[i].pw; }); rowW += sgap * (r.length - 1);
+      var xC = cx - rowW / 2;
+      r.forEach(function(i){ stones[i].px = Math.round(xC); stones[i].py = Math.round(yCursor + (rhs[ri] - stones[i].ph) / 2); xC += stones[i].pw + sgap; });
+      yCursor += rhs[ri] + rgap;
+    });
+  } else {
+    var margin = 40, sumW = 0;
+    stones.forEach(function(st){ sumW += st.w; st.pw = st.w; st.ph = st.h; });
+    var gap = Math.max(-24, Math.min(46, (W - margin * 2 - sumW) / (stones.length - 1)));
+    var x = cx - (sumW + gap * (stones.length - 1)) / 2, baseY = H * 0.76;
+    stones.forEach(function(st){ st.px = Math.round(x); st.py = Math.round(baseY - st.h + (Math.random() * 26 - 12)); x += st.w + gap; });
+  }
   stones.forEach(function(st, i) {
-    var left = x, top = baseY - st.h + Math.round(Math.random() * 26 - 12);
     var el = document.createElement('div');
     el.className = 'mk-shape';
     el.innerHTML = '<span>' + st.label + '</span>';
-    el.style.cssText = 'width:' + st.w + 'px;height:' + st.h + 'px;left:' + Math.round(left) + 'px;top:' + Math.round(top) + 'px;border-radius:' + st.br + ';background:linear-gradient(158deg,' + st.grad + ');z-index:' + (i + 1) + ';';
+    el.style.cssText = 'width:' + st.pw + 'px;height:' + st.ph + 'px;left:' + st.px + 'px;top:' + st.py + 'px;border-radius:' + st.br + ';background:linear-gradient(158deg,' + st.grad + ');z-index:' + (i + 1) + ';';
     el.style.setProperty('--w', (1.1 + Math.random() * 1.5).toFixed(2) + 'deg');
     el.style.setProperty('--dur', (4.4 + Math.random() * 2.2).toFixed(1) + 's');
     el.style.animationDelay = (Math.random() * 2.5).toFixed(1) + 's';
@@ -1852,7 +1920,6 @@ function initBench() {
     var raise = function() { el.style.zIndex = (++zTop); };
     el.addEventListener('mousedown', raise);
     el.addEventListener('touchstart', raise, {passive:true});
-    x += st.w + gap;
   });
 }
 function makeDraggable(el) {
@@ -1951,28 +2018,7 @@ document.getElementById('collageSurface').addEventListener('click', function(e) 
 function addCollageNote() {
   var inp = document.getElementById('collageText');
   var t = inp.value.trim(); if (!t) return;
-  var s = document.getElementById('collageSurface');
-  var W = s.offsetWidth, H = s.offsetHeight;
-  var cx = W/2, cy = H/2, exRx = W*0.24, exRy = H*0.34, cardW = 180, cardH = 110;
-  var existing = s.querySelectorAll('.wc');
-  function bad(x, y) {
-    if (Math.pow((x+cardW/2-cx)/exRx,2) + Math.pow((y+cardH/2-cy)/exRy,2) < 1) return true;
-    if ((y+cardH/2) > cy + 40) return true;
-    for (var k = 0; k < existing.length; k++) {
-      var ex = parseFloat(existing[k].style.left), ey = parseFloat(existing[k].style.top);
-      if (!isNaN(ex) && Math.abs(x-ex) < cardW*0.9 && Math.abs(y-ey) < cardH*0.85) return true;
-    }
-    return false;
-  }
-  var x, y, tries = 0;
-  do { x = Math.max(28, Math.min(W-cardW-28, cx - cardW/2 + (Math.random()-0.5)*W*0.82)); y = Math.max(78, Math.min(H-cardH-16, cy - cardH/2 + (Math.random()-0.5)*H*0.78)); tries++; } while (tries < 200 && bad(x, y));
-  var el = document.createElement('div');
-  el.className = 'wc you';
-  el.style.left = x + 'px'; el.style.top = y + 'px';
-  el.style.setProperty('--d', '0s'); el.style.setProperty('--r', '0deg');
-  el.style.zIndex = '30';
-  el.innerHTML = t + '<div class="wc-attr">you</div>';
-  s.appendChild(el);
+  appendNote(document.getElementById('collageSurface'), t);
   inp.value = '';
 }
 document.getElementById('collageText').addEventListener('keydown', function(e) {
@@ -2018,6 +2064,7 @@ function pickDoor(el) {
   var doors = el.parentNode.querySelectorAll('.door');
   doors.forEach(function(d) { d.classList.remove('chosen'); });
   el.classList.add('chosen');
+  el.parentNode.classList.add('has-pick'); /* dims the unchosen door (touch has no hover) */
   var hint = document.getElementById('doorHint');
   if (hint) hint.textContent = "Noted. Both rooms are the right room. Press Next when you're ready.";
 }
