@@ -1,808 +1,1756 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>conference experience — Press Play × winded.vertigo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<title>Ground Truth 2026, A CoAct Climate Strategy Summit</title>
 <style>
+/* ── Open Sauce Sans (self-hosted, OFL) ── */
+@font-face { font-family:'Open Sauce Sans'; font-weight:300; font-style:normal; font-display:swap; src:url('./fonts/OpenSauceSans-Light.ttf') format('truetype'); }
+@font-face { font-family:'Open Sauce Sans'; font-weight:400; font-style:normal; font-display:swap; src:url('./fonts/OpenSauceSans-Regular.ttf') format('truetype'); }
+@font-face { font-family:'Open Sauce Sans'; font-weight:500; font-style:normal; font-display:swap; src:url('./fonts/OpenSauceSans-Medium.ttf') format('truetype'); }
+@font-face { font-family:'Open Sauce Sans'; font-weight:600; font-style:normal; font-display:swap; src:url('./fonts/OpenSauceSans-SemiBold.ttf') format('truetype'); }
+@font-face { font-family:'Open Sauce Sans'; font-weight:700; font-style:normal; font-display:swap; src:url('./fonts/OpenSauceSans-Bold.ttf') format('truetype'); }
+@font-face { font-family:'Open Sauce Sans'; font-weight:700; font-style:italic; font-display:swap; src:url('./fonts/OpenSauceSans-BoldItalic.ttf') format('truetype'); }
 :root {
-  --cadet: #273248;
-  --orange: #ea5621;
-  --peach: #f4a289;
-  --cream: #fff4f0;
-  --yellow: #d6c02d;
-  --jade: #43b187;
-  --lavender: #d5d2ff;
-  --periwinkle: #5872cb;
+  /* CoAct, Collaborating for Impact */
+  --cadet: #244348;      /* petrol, primary / official */
+  --redwood: #1b3a41;    /* deep petrol, primary buttons */
+  --sienna: #b18743;     /* gold, accent / button hover */
+  --champagne: #ffebd2;  /* cream, light surfaces / text on dark */
   --white: #ffffff;
-  --grey: #6b7280;
-  --light: #e8e4df;
+  --dark: #182b2f;       /* near-black petrol, body text */
+  --grey: #59605a;       /* warm grey */
+  --light: #ecdcc4;      /* soft cream, borders / light-on-dark */
+  /* accents, sparingly */
+  --mint: #6f9a1e;       /* green, participatory / focus / done */
+  --lavender: #7a4a3b;   /* warm brown, creative */
+  /* extended palette */
+  --olive: #8c9016;      /* olive, making / participatory */
+  --magenta: #5e3a2e;    /* deep brown, research / creative */
+  --chartreuse: #b6b713; /* brand chartreuse, highlights */
+  --gold: #b18743;
+  --brown: #482d27;
+  /* high-contrast accent for text on petrol */
+  --accent-on-blue: #ffebd2;
+  --accent-em: #c4d24a;  /* bright lime, emphasis on dark */
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { width: 100%; height: 100%; overflow: hidden; }
-body { font-family: 'Inter', sans-serif; font-size: 16px; color: var(--cadet); background: var(--white); }
-
-/* ── Progress bar ── */
-#progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--orange); z-index: 200; transition: width 0.7s ease; }
+body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(--dark); background: var(--cadet); }
 
 /* ── Screens ── */
 .sc {
   position: fixed; inset: 0;
-  display: flex; flex-direction: column;
-  opacity: 0; pointer-events: none; z-index: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  z-index: 0;
   overflow: hidden;
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  padding-top: 52px; /* clear agenda bar on all viewports */
+  padding-bottom: 52px; /* clear nav bar */
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 .sc.active { opacity: 1; pointer-events: auto; z-index: 10; }
 .sc.enter-right { transform: translateX(40px); }
-.sc.enter-left  { transform: translateX(-40px); }
-.sc.enter-up    { transform: translateY(28px); }
-.sc.enter-fade  { transform: none; }
-.sc.exit-left  { opacity: 0; transform: translateX(-40px); z-index: 5; transition: opacity 0.5s ease, transform 0.5s ease; }
-.sc.exit-right { opacity: 0; transform: translateX(40px);  z-index: 5; transition: opacity 0.5s ease, transform 0.5s ease; }
-.sc.exit-fade  { opacity: 0; z-index: 5; transition: opacity 0.5s ease; }
+.sc.enter-left { transform: translateX(-40px); }
+.sc.exit-left { opacity: 0; transform: translateX(-40px); z-index: 5; transition: opacity 0.6s ease, transform 0.6s ease; }
+.sc.exit-right { opacity: 0; transform: translateX(40px); z-index: 5; transition: opacity 0.6s ease, transform 0.6s ease; }
 
-/* ── Nav ── */
+/* ── Screen background images ── */
+.sc-bg { background-size: cover !important; background-position: center !important; background-repeat: no-repeat !important; }
+.sc-bg::before {
+  content: ''; position: absolute; inset: 0;
+  z-index: 0;
+}
+.sc-bg > * { position: relative; z-index: 1; }
+
+/* per-screen backgrounds
+   Petrol (cadet): official / keynote moments
+   Cream (champagne): reflective / informational screens
+   Olive / brown: participatory / research moments */
+#S0.sc-bg { background-image: url('./coact-field.jpg'); }
+#S0.sc-bg::before { background: linear-gradient(160deg, rgba(24,43,47,0.62), rgba(36,67,72,0.82)); }
+#S1.sc-bg { background-image: url('./coact-growth.jpg'); }
+#S1.sc-bg::before { background: linear-gradient(rgba(24,43,47,0.85), rgba(12,20,19,0.94)); }
+#S2.sc-bg::before { background: rgba(140,144,22,0.10); }
+#S3.sc-bg { background-image: url('./coact-field.jpg'); }
+#S3.sc-bg::before { background: linear-gradient(160deg, rgba(24,43,47,0.72), rgba(36,67,72,0.86)); }
+#S4.sc-bg::before { background: linear-gradient(rgba(14,22,12,0.76) 0%, rgba(14,22,12,0.32) 34%, rgba(14,22,12,0.06) 58%, rgba(14,22,12,0) 74%); }
+#S5.sc-bg { background-image: url('./coact-urban.jpg'); }
+#S5.sc-bg::before { background: linear-gradient(rgba(24,43,47,0.82), rgba(14,24,23,0.92)); }
+#S6.sc-bg { background-image: url('./coact-field.jpg'); }
+#S6.sc-bg::before { background: linear-gradient(160deg, rgba(24,43,47,0.70), rgba(36,67,72,0.84)); }
+#S7.sc-bg { background-image: url('./coact-urban.jpg'); }
+#S7.sc-bg::before { background: linear-gradient(rgba(24,43,47,0.82), rgba(14,24,23,0.92)); }
+#S8.sc-bg::before { background: rgba(140,144,22,0.08); }
+#S9.sc-bg { background-image: url('./coact-urban.jpg'); }
+#S9.sc-bg::before { background: linear-gradient(180deg, rgba(24,43,47,0.80), rgba(24,43,47,0.90)); }
+#S10.sc-bg::before { background: rgba(255,235,210,0.08); }
+#S11.sc-bg::before { background: rgba(140,144,22,0.12); }
+#S12.sc-bg { background-image: url('./coact-field.jpg'); }
+#S12.sc-bg::before { background: linear-gradient(160deg, rgba(24,43,47,0.70), rgba(36,67,72,0.84)); }
+#S13.sc-bg { background-image: url('./coact-urban.jpg'); }
+#S13.sc-bg::before { background: linear-gradient(rgba(24,43,47,0.85), rgba(10,18,17,0.93)); }
+#S14.sc-bg { background-image: url('./coact-growth.jpg'); }
+#S14.sc-bg::before { background: linear-gradient(160deg, rgba(36,67,72,0.48), rgba(24,43,47,0.66)); }
+#S15.sc-bg { background-image: url('./coact-field.jpg'); }
+#S15.sc-bg::before { background: linear-gradient(160deg, rgba(24,43,47,0.74), rgba(36,67,72,0.86)); }
+
+/* ── Progress ── */
+#progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--sienna); z-index: 200; transition: width 0.8s ease; }
+
+/* ── CoAct corner mark (all screens) ── */
+#brandMark {
+  position: fixed; top: 18px; right: 20px; z-index: 180;
+  height: 36px; width: auto; opacity: 0; pointer-events: none;
+  transition: opacity 0.5s ease;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.22));
+}
+#brandMark.show { opacity: 0.95; }
+@media (max-width: 768px) { #brandMark { height: 28px; top: 12px; right: 14px; } }
+
+/* ── Dock (unified control bar) ── */
 #nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-  display: none; align-items: center; justify-content: space-between;
-  padding: 10px 24px;
-  background: var(--cadet);
+  display: none; align-items: center; justify-content: center; gap: 10px;
+  padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(to top, rgba(9,30,54,0.97) 0%, rgba(9,30,54,0.9) 100%);
+  backdrop-filter: blur(22px) saturate(1.25); -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  border-top: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.28);
 }
-.n-label { font: 400 12px/1 'Inter', sans-serif; color: rgba(255,255,255,0.6); text-align: center; flex: 1; }
+/* Prev / Next, clear, high-contrast */
 .n-btn {
-  background: none; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8);
-  padding: 8px 18px; font: 500 13px 'Inter', sans-serif; cursor: pointer; border-radius: 3px;
-  transition: all 0.2s; min-height: 44px; min-width: 48px;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22); color: #fff;
+  padding: 0 18px; font: 600 13px 'Open Sauce Sans', sans-serif; letter-spacing: 0.01em;
+  cursor: pointer; border-radius: 12px;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s, opacity 0.2s;
+  min-height: 50px; min-width: 50px; display: flex; align-items: center; gap: 8px;
 }
-.n-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
-.n-btn:disabled { opacity: 0.2; cursor: default; }
-:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
-
-/* ══════════════════════════════════════
-   CONTRAST LAYOUT — shared by S1–S5
-   ══════════════════════════════════════ */
-.contrast-screen {
-  display: flex; width: 100%; height: 100%;
-  padding-bottom: 52px; /* nav clearance */
-}
-.col-without {
-  flex: 0 0 38%; display: flex; flex-direction: column; justify-content: center;
-  padding: 48px 40px; background: #f5f4f2; border-right: 1px solid var(--light);
-  position: relative;
-}
-.col-with {
-  flex: 1; display: flex; flex-direction: column; justify-content: center;
-  padding: 48px 48px; background: var(--white); position: relative; overflow: hidden;
-}
-.col-label {
-  font: 600 10px/1 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  margin-bottom: 28px;
-}
-.col-without .col-label { color: #aaa; }
-.col-with .col-label { color: var(--orange); }
-.col-without-title {
-  font: 600 clamp(20px,2.5vw,28px)/1.2 'Inter', sans-serif; color: #bbb; margin-bottom: 16px;
-}
-.col-without-body {
-  font: 400 15px/1.7 'Inter', sans-serif; color: #bbb;
-}
-.col-without-items { list-style: none; margin-top: 16px; }
-.col-without-items li {
-  font: 400 14px/1.6 'Inter', sans-serif; color: #ccc;
-  padding: 6px 0; border-bottom: 1px solid var(--light);
+.n-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.42); transform: translateY(-1px); }
+.n-btn:active { transform: translateY(0); }
+.n-btn:disabled { opacity: 0.26; cursor: default; }
+.n-btn:disabled:hover { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.22); transform: none; }
+.n-btn .n-arrow { font-size: 16px; line-height: 1; }
+.n-next { background: var(--redwood); border-color: transparent; box-shadow: 0 4px 16px rgba(1,102,146,0.4); }
+.n-next:hover { background: var(--sienna); border-color: transparent; }
+.n-next:disabled { box-shadow: none; }
+/* Center chip, current moment + agenda opener */
+.dock-center {
+  flex: 0 1 auto; max-width: 360px; min-width: 0;
   display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 14px; padding: 8px 14px 8px 18px; min-height: 50px; cursor: pointer;
+  font-family: 'Open Sauce Sans', sans-serif; transition: background 0.2s, border-color 0.2s;
 }
-.col-without-items li::before { content: '—'; color: #ddd; font-size: 12px; flex-shrink: 0; }
-.screen-moment {
-  font: 500 11px/1 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--grey); margin-bottom: 8px;
-}
-.screen-heading {
-  font: 700 clamp(24px,3vw,38px)/1.15 'Inter', sans-serif; color: var(--cadet);
-  margin-bottom: 20px; letter-spacing: -0.5px;
-}
+.dock-center:hover { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.3); }
+.dock-center .n-time { font: 700 13px 'Open Sauce Sans', sans-serif; color: var(--accent-em); white-space: nowrap; }
+.dock-center .n-label { font: 400 13px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dock-center .dock-caret { margin-left: 2px; font-size: 10px; color: rgba(255,255,255,0.55); transition: transform 0.25s; }
+#nav.agenda-open .dock-center { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.35); }
+#nav.agenda-open .dock-center .dock-caret { transform: rotate(180deg); }
+/* "why" narrator button */
+.n-why { background: none; }
+.n-why[aria-pressed="true"] { background: rgba(126,220,224,0.16); border-color: rgba(126,220,224,0.5); color: var(--accent-em); }
+.n-why .eye-icon { font-size: 15px; }
 
-/* ══════════════════════════════════════
-   S0 — COVER
-   ══════════════════════════════════════ */
-#S0 {
-  align-items: center; justify-content: center;
-  background: var(--cadet);
-}
-.cover-inner { text-align: center; padding: 40px 24px; max-width: 640px; }
-.cover-lockup {
-  font: 600 12px/1 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--orange); margin-bottom: 32px; display: flex; align-items: center; gap: 10px; justify-content: center;
-}
-.cover-lockup .x { color: rgba(255,255,255,0.3); font-weight: 300; }
-#S0 h1 {
-  font: 800 clamp(36px,6vw,68px)/1.05 'Inter', sans-serif; color: var(--white);
-  letter-spacing: -2px; margin-bottom: 20px;
-}
-#S0 h1 .lift { color: var(--orange); }
-#S0 .sub {
-  font: 400 clamp(16px,2vw,20px)/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.6);
-  margin-bottom: 40px;
-}
-.cover-enter {
-  background: var(--orange); color: #fff; border: none;
-  padding: 16px 40px; font: 600 14px 'Inter', sans-serif; letter-spacing: 0.02em;
-  cursor: pointer; border-radius: 4px; transition: background 0.2s;
-  animation: gentlePulse 3s ease-in-out infinite; min-height: 48px;
-}
-.cover-enter:hover { background: var(--peach); animation: none; color: var(--cadet); }
-@keyframes gentlePulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(234,86,33,0); }
-  50% { box-shadow: 0 0 0 12px rgba(234,86,33,0.2); }
-}
-.cover-foot { font: 400 12px 'Inter', sans-serif; color: rgba(255,255,255,0.3); margin-top: 48px; }
-.cover-fade { opacity: 0; transform: translateY(12px); animation: fadeUp 0.7s ease forwards; }
-.cover-fade:nth-child(2) { animation-delay: 0.1s; }
-.cover-fade:nth-child(3) { animation-delay: 0.25s; }
-.cover-fade:nth-child(4) { animation-delay: 0.4s; }
-.cover-fade:nth-child(5) { animation-delay: 0.55s; }
-.cover-fade:nth-child(6) { animation-delay: 0.7s; }
-@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-
-/* ══════════════════════════════════════
-   S1 — ARRIVAL / QUESTION WALL
-   ══════════════════════════════════════ */
-#S1 .col-with { background: var(--cream); overflow: hidden; }
-#S1 .col-with .col-label { color: var(--orange); }
-
-/* Wall */
-.wall-surface { position: absolute; inset: 0; top: 80px; bottom: 80px; overflow: hidden; }
-.wc {
-  position: absolute; background: #fff; border-radius: 2px; padding: 12px 14px; width: 160px;
-  font: 400 13px/1.4 'Inter', sans-serif; color: var(--cadet);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  opacity: 0; transform: scale(0.9) rotate(var(--r,0deg));
-  animation: wcPin 0.4s ease forwards; animation-delay: var(--d,0s);
-}
-.wc::before {
-  content: ''; position: absolute; top: -4px; left: 50%;
-  width: 7px; height: 7px; border-radius: 50%; background: var(--orange); transform: translateX(-50%);
-}
-.wc.child { background: var(--cream); border-left: 3px solid var(--orange); }
-.wc .wc-attr { font: 400 10px 'Inter', sans-serif; color: var(--grey); margin-top: 6px; }
-@keyframes wcPin {
-  0% { opacity: 0; transform: scale(0.9) rotate(var(--r,0deg)) translateY(-16px); }
-  70% { transform: scale(1.02) rotate(var(--r,0deg)) translateY(2px); }
-  100% { opacity: 1; transform: scale(1) rotate(var(--r,0deg)) translateY(0); }
-}
-.wall-prompt {
-  position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%);
-  z-index: 20; display: flex; gap: 8px; width: 88%; max-width: 420px;
-}
-.wall-prompt textarea {
-  flex: 1; border: 1px solid var(--light); border-radius: 4px; padding: 10px 14px;
-  font: 400 14px 'Inter', sans-serif; color: var(--cadet); background: rgba(255,255,255,0.95);
-  resize: none; height: 48px; outline: none;
-}
-.wall-prompt textarea:focus { border-color: var(--orange); }
-.wall-prompt button {
-  background: var(--orange); color: #fff; border: none; border-radius: 4px;
-  padding: 0 18px; font: 500 13px 'Inter', sans-serif; cursor: pointer; min-height: 48px;
-}
-#S1 .col-with-header {
-  position: absolute; top: 20px; left: 48px; right: 48px; z-index: 20;
-  display: flex; align-items: center; justify-content: space-between;
-}
-#S1 .wall-q {
-  font: 500 13px/1.4 'Inter', sans-serif; color: var(--cadet);
-  background: rgba(255,244,240,0.9); padding: 8px 16px; border-radius: 4px;
-  backdrop-filter: blur(8px); max-width: 320px;
-}
-
-/* ══════════════════════════════════════
-   S2 — KEYNOTE
-   ══════════════════════════════════════ */
-#S2 .col-with { background: var(--cadet); overflow: hidden; }
-#S2 .col-with .col-label { color: var(--peach); }
-#S2 .screen-heading { color: var(--white); }
-
-.ghost-card {
-  position: absolute; width: 180px; padding: 10px 14px;
-  background: rgba(255,255,255,0.07); border-radius: 2px;
-  font: 500 12px/1.4 'Inter', sans-serif; color: rgba(255,255,255,0.6);
-  transform: rotate(var(--r,0deg));
-}
-.speaker-card {
-  background: rgba(255,255,255,0.06); border-radius: 8px; padding: 32px 36px;
-  max-width: 420px; position: relative; z-index: 5;
-}
-.speaker-card .s-time { font: 400 12px 'Inter', sans-serif; color: var(--peach); margin-bottom: 10px; }
-.speaker-card .s-name { font: 700 clamp(20px,2.5vw,28px)/1.2 'Inter', sans-serif; color: var(--white); margin-bottom: 14px; }
-.speaker-card .s-note { font: 400 14px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.7); }
-.speaker-card .s-device {
-  font: 400 12px/1.5 'Inter', sans-serif; color: rgba(255,255,255,0.5);
-  margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-/* ══════════════════════════════════════
-   S3 — BREAK / TABLE LENSES
-   ══════════════════════════════════════ */
-#S3 .col-with { background: var(--white); overflow: hidden; }
-.table-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-.table-top {
-  width: 220px; height: 220px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, var(--cream), #fde8dc);
-  display: flex; align-items: center; justify-content: center;
-  text-align: center; padding: 40px; z-index: 5; flex-shrink: 0;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.06);
-}
-.table-q { font: 500 14px/1.4 'Inter', sans-serif; color: var(--cadet); }
-.table-lens {
-  position: absolute; background: var(--white); border-radius: 8px; padding: 16px 20px;
-  max-width: 190px; box-shadow: 0 4px 20px rgba(0,0,0,0.07);
-  opacity: 0; animation: lensIn 0.7s ease forwards, lensFloat 8s ease-in-out infinite;
-}
-.table-lens .lens-role {
-  font: 600 9px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--orange); margin-bottom: 7px;
-}
-.table-lens .lens-text { font: 400 13px/1.5 'Inter', sans-serif; color: var(--cadet); }
-@keyframes lensIn { to { opacity: 1; } }
-@keyframes lensFloat {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-7px); }
-}
-
-/* ══════════════════════════════════════
-   S4 — SESSIONS / THREE TRACKS
-   ══════════════════════════════════════ */
-#S4 .col-with { background: var(--white); overflow-y: auto; }
-.tracks-wrap { display: flex; gap: 14px; width: 100%; padding: 0 0 16px; }
-.track {
-  flex: 1; background: #f9f9f8; border-radius: 8px; padding: 20px 18px;
-  border: 1px solid var(--light);
-}
-.track-tag { font: 600 9px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--grey); margin-bottom: 12px; }
-.track h3 { font: 700 16px/1.2 'Inter', sans-serif; color: var(--cadet); margin-bottom: 10px; }
-.track p { font: 400 13px/1.6 'Inter', sans-serif; color: var(--grey); }
-.track-quiet {
-  background: var(--cadet); border-color: var(--cadet); cursor: pointer;
-  transition: box-shadow 0.4s;
-}
-.track-quiet:hover { box-shadow: 0 0 0 3px rgba(234,86,33,0.3); }
-.track-quiet .track-tag { color: rgba(255,255,255,0.5); }
-.track-quiet h3 { color: var(--white); }
-.track-quiet p { color: rgba(255,255,255,0.7); }
-.quiet-hint { font: 300 11px 'Inter', sans-serif; color: rgba(255,255,255,0.4); margin-top: 10px; }
-#S4.quiet-dimmed .col-with { background: var(--cadet); transition: background 1.5s ease; }
-#S4.quiet-dimmed .track:not(.track-quiet) { opacity: 0.05; transition: opacity 1.5s ease; pointer-events: none; }
-
-/* ══════════════════════════════════════
-   S5 — CLOSE / CARD FLIP
-   ══════════════════════════════════════ */
-#S5 .col-with { background: var(--white); align-items: center; justify-content: center; gap: 24px; }
-.card-flip-container { perspective: 1000px; width: 320px; max-width: 88%; cursor: pointer; }
-.card-inner { position: relative; width: 100%; transition: transform 0.7s ease; transform-style: preserve-3d; }
-.card-flip-container.flipped .card-inner { transform: rotateY(180deg); }
-.card-front, .card-back {
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  background: var(--white); border-radius: 6px; padding: 36px 32px;
-  box-shadow: 0 6px 32px rgba(0,0,0,0.08); text-align: center;
-  border: 1px solid var(--light);
-}
-.card-front .c-label { font: 600 10px 'Inter', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--orange); margin-bottom: 14px; }
-.card-front .c-q { font: 400 17px/1.55 'Inter', sans-serif; color: var(--cadet); margin-bottom: 20px; }
-.card-front textarea {
-  width: 100%; height: 64px; border: none; border-bottom: 1px solid var(--light); background: transparent;
-  font: 400 14px/1.5 'Inter', sans-serif; color: var(--cadet); resize: none; outline: none; text-align: center;
-}
-.card-front textarea::placeholder { color: #ccc; }
-.card-front .c-hint { font: 400 11px 'Inter', sans-serif; color: #ccc; margin-top: 16px; }
-.card-back {
-  position: absolute; inset: 0; transform: rotateY(180deg);
-  background: var(--cadet); border-color: var(--cadet);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.card-back .cb-label { font: 600 10px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase; color: var(--peach); margin-bottom: 12px; }
-.card-back .cb-time { font: 700 22px/1.2 'Inter', sans-serif; color: var(--white); margin-bottom: 16px; }
-.card-back .cb-body { font: 400 13px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.75); max-width: 240px; }
-.card-back .c-hint { color: rgba(255,255,255,0.35); margin-top: 16px; font-size: 11px; }
-
-/* Collage strip under card */
-.collage-mini { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 360px; }
-.collage-tag {
-  font: 400 12px 'Inter', sans-serif; padding: 5px 12px; border-radius: 20px;
-  opacity: 0; animation: fadeUp 0.5s ease forwards; animation-delay: var(--d,0s);
-}
-
-/* ══════════════════════════════════════
-   S6 — CTA
-   ══════════════════════════════════════ */
-#S6 { background: var(--cadet); align-items: center; justify-content: flex-start; overflow-y: auto; }
-.cta-inner { width: 100%; max-width: 900px; margin: 0 auto; padding: 64px 40px 80px; }
-.cta-lockup {
-  font: 600 11px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--orange); margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
-}
-.cta-lockup .x { color: rgba(255,255,255,0.3); font-weight: 300; }
-#S6 h2 { font: 800 clamp(28px,4.5vw,54px)/1.05 'Inter', sans-serif; color: var(--white); letter-spacing: -1.5px; margin-bottom: 16px; }
-#S6 h2 .lift { color: var(--orange); }
-#S6 .cta-sub { font: 400 18px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.6); max-width: 580px; margin-bottom: 56px; }
-.services { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 48px; }
-.svc { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 24px 22px; }
-.svc h4 { font: 600 15px/1.3 'Inter', sans-serif; color: var(--white); margin-bottom: 10px; }
-.svc p { font: 400 13px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.6); }
-.svc-accent-1 { background: rgba(234,86,33,0.12); }
-.svc-accent-2 { background: rgba(67,177,135,0.10); }
-.cta-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn-primary {
-  background: var(--orange); color: #fff; border: none; border-radius: 4px;
-  padding: 14px 32px; font: 600 13px 'Inter', sans-serif; cursor: pointer; text-decoration: none;
-  display: inline-flex; align-items: center; min-height: 48px; transition: background 0.2s;
-}
-.btn-primary:hover { background: var(--peach); color: var(--cadet); }
-.btn-ghost {
-  border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); background: none;
-  border-radius: 4px; padding: 14px 32px; font: 500 13px 'Inter', sans-serif;
-  cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; min-height: 48px;
-  transition: all 0.2s;
-}
-.btn-ghost:hover { background: rgba(255,255,255,0.06); color: #fff; }
-.cta-foot { font: 400 12px 'Inter', sans-serif; color: rgba(255,255,255,0.25); margin-top: 48px; }
-
-/* ── Narrator ── */
-#narrator-toggle {
-  position: fixed; top: 16px; right: 20px; z-index: 300;
-  background: rgba(39,50,72,0.85); border: 1px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.7); padding: 7px 14px;
-  font: 500 11px/1 'Inter', sans-serif; letter-spacing: 0.06em;
-  cursor: pointer; border-radius: 3px; backdrop-filter: blur(8px);
-  transition: background 0.2s, color 0.2s;
-}
-#narrator-toggle:hover { background: rgba(39,50,72,1); color: #fff; }
-#narrator-overlay {
-  position: fixed; bottom: 62px; left: 50%; transform: translateX(-50%);
-  z-index: 150; max-width: 560px; width: calc(100% - 48px);
-  background: rgba(39,50,72,0.92); border-radius: 6px; padding: 16px 20px;
-  backdrop-filter: blur(12px); pointer-events: none;
-  transition: opacity 0.4s ease; opacity: 1;
-}
-#narrator-overlay.hidden { opacity: 0; }
-.narrator-label {
-  font: 600 9px 'Inter', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--orange); margin-bottom: 7px;
-}
-.narrator-body {
-  font: 400 13px/1.6 'Inter', sans-serif; color: rgba(255,255,255,0.8);
-}
+/* ── Focus visible ── */
+:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
 
 /* ── Ambient particles ── */
-.particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .particle {
   position: absolute; border-radius: 50%; opacity: 0;
   animation: particleDrift linear infinite;
 }
 @keyframes particleDrift {
   0% { opacity: 0; transform: translateY(0) translateX(0); }
-  15% { opacity: var(--po, 0.2); }
-  85% { opacity: var(--po, 0.2); }
-  100% { opacity: 0; transform: translateY(var(--py,-200px)) translateX(var(--px,20px)); }
+  15% { opacity: var(--po, 0.3); }
+  85% { opacity: var(--po, 0.3); }
+  100% { opacity: 0; transform: translateY(var(--py, -200px)) translateX(var(--px, 20px)); }
 }
 
+/* ── Floating whisper (children's voices) ── */
+.whisper {
+  position: absolute;
+  font: 600 15px/1.4 'Open Sauce Sans', sans-serif;
+  color: var(--champagne);
+  opacity: 0; pointer-events: none; white-space: nowrap;
+  animation: whisperFloat linear forwards; z-index: 2;
+}
+@keyframes whisperFloat {
+  0% { opacity: 0; transform: translateX(0); }
+  10% { opacity: 0.85; }
+  80% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateX(var(--wx, -300px)); }
+}
+
+/* ── Narrator ── */
+/* narrator toggle now lives inside the dock, styling handled by .n-btn / .n-why */
+#narrator-toggle .eye-icon { line-height: 1; }
+#narrator-overlay {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  max-width: 580px; width: 90%; z-index: 190;
+  background: linear-gradient(to top, rgba(9,30,54,0.97), rgba(12,35,64,0.95));
+  color: #fff; border-radius: 16px; border: 1px solid rgba(255,255,255,0.12);
+  padding: 20px 26px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  transition: opacity 0.32s cubic-bezier(0.22,1,0.36,1), transform 0.32s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+  max-height: 32vh; overflow-y: auto;
+  box-shadow: 0 12px 44px rgba(0,0,0,0.34);
+}
+#narrator-overlay.hidden { opacity: 0; transform: translateX(-50%) translateY(12px); }
+#narrator-overlay .narrator-hint { display: none; }
+#narrator-overlay .narrator-scene {
+  font: 500 10px 'Open Sauce Sans', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--accent-em); margin-bottom: 10px;
+}
+#narrator-overlay .narrator-text {
+  font: 400 14px/1.6 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85);
+}
+#narrator-overlay .narrator-hint {
+  font: 300 11px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85); margin-top: 14px;
+}
+
+/* ── Agenda popover (opens upward from the dock) ── */
+#agenda-card {
+  position: fixed; bottom: 92px; left: 50%; z-index: 195;
+  background: rgba(255,255,255,0.99); border-radius: 16px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 16px 52px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.6);
+  max-height: 62vh; overflow: hidden; width: 340px; max-width: 92vw;
+  opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(12px) scale(0.98);
+  transform-origin: bottom center;
+  transition: opacity 0.28s cubic-bezier(0.22,1,0.36,1), transform 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+#agenda-card.open { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0) scale(1); }
+#agenda-card[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+#agenda-card .agenda-toggle {
+  font: 600 10px 'Open Sauce Sans', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--grey); cursor: pointer; background: none; border: none;
+  padding: 16px 22px 12px; display: flex; align-items: center; justify-content: space-between; width: 100%;
+  min-height: 48px; border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+.agenda-body { padding: 8px 16px 16px; max-height: calc(62vh - 52px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.agenda-close { font-size: 20px; line-height: 1; color: var(--grey); opacity: 0.6; transition: opacity 0.2s; }
+.agenda-toggle:hover .agenda-close { opacity: 1; }
+.agenda-list { list-style: none; }
+.agenda-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; cursor: pointer; border: none; background: none; width: 100%;
+  text-align: left; font: 400 12.5px 'Open Sauce Sans', sans-serif; color: var(--grey);
+  min-height: 40px; border-radius: 8px; transition: background 0.18s;
+}
+.agenda-item:hover { background: rgba(36,67,72,0.07); }
+.agenda-item.current { background: rgba(36,67,72,0.06); }
+.agenda-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--light); background: transparent;
+  transition: all 0.3s;
+}
+.agenda-item.done .agenda-dot { background: var(--mint); border-color: var(--mint); }
+.agenda-item.current .agenda-dot {
+  border-color: var(--mint); background: transparent;
+  animation: agendaPulse 2s ease-in-out infinite;
+}
+@keyframes agendaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(111,154,30,0); }
+  50% { box-shadow: 0 0 0 4px rgba(111,154,30,0.25); }
+}
+.agenda-item.current { font-weight: 600; color: var(--dark); }
+.agenda-time { min-width: 40px; font: 400 11px 'Open Sauce Sans', sans-serif; color: var(--sienna); }
+.agenda-label { flex: 1; }
+.paul-avatar {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--mint);
+  display: flex; align-items: center; justify-content: center;
+  font: 600 9px 'Open Sauce Sans', sans-serif; color: #fff; flex-shrink: 0;
+  opacity: 0; transition: opacity 0.3s;
+}
+.agenda-item.current .paul-avatar { opacity: 1; }
+
+/* ════════════════════════════════
+   SCREEN 0, COVER
+   ════════════════════════════════ */
+#S0 { background-color: var(--cadet); overflow-y: auto; justify-content: flex-start; padding-top: 48px; padding-bottom: 64px; }
+.cover-group { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.cover-title-group { margin-top: clamp(80px, 17vh, 210px); margin-bottom: 30px; }
+.cover-title-group h1 { margin: 4px 0 0 !important; }
+.cover-detail-group .cover-context { margin-top: 12px; }
+.cover-detail-group .enter { margin-top: 30px !important; }
+#S0 .label, #S0 .sub, #S0 .cover-context { text-shadow: 0 1px 14px rgba(24,43,47,0.6); }
+#S0 h1 { text-shadow: 0 2px 20px rgba(24,43,47,0.5); }
+.pedal-logo { width: clamp(120px, 20vw, 200px); height: auto; margin-bottom: 16px; }
+.foot-logo { height: 18px; width: auto; vertical-align: middle; margin-right: 4px; opacity: 0.5; }
+#S0 .label { font: 600 clamp(12px,1.6vw,15px)/1.4 'Open Sauce Sans', sans-serif; letter-spacing: 0.02em; color: var(--accent-em); margin-bottom: 2px; }
+#S0 h1 { font: 700 clamp(36px,7vw,68px)/1.06 'Open Sauce Sans', sans-serif; color: var(--champagne); margin: 10px 0 34px; text-align: center; padding: 0 20px; }
+#S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.4 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.92); text-align: center; padding: 0 20px; }
+#S0 .sub em { color: var(--accent-em); font-style: normal; }
+#S0 .cover-context { font: 400 12px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85); margin-top: 16px; }
+#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85); }
+#S0 .enter {
+  margin-top: 36px; background: var(--redwood); color: #fff; border: none;
+  padding: 14px 40px; font: 500 14px 'Open Sauce Sans', sans-serif; letter-spacing: 0.03em;
+  cursor: pointer; border-radius: 999px; transition: background 0.3s;
+  animation: gentlePulse 3s ease-in-out infinite;
+  opacity: 1 !important; transform: none !important;
+  min-height: 48px; position: relative; z-index: 260;
+}
+#S0 .enter:hover { background: var(--sienna); animation: none; }
+@keyframes gentlePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(27,58,65,0); }
+  50% { box-shadow: 0 0 0 12px rgba(27,58,65,0.15); }
+}
+.cover-fade { opacity: 0; transform: translateY(14px); animation: fadeUp 0.8s ease forwards; }
+.cover-fade:nth-child(2) { animation-delay: 0.2s; }
+.cover-fade:nth-child(3) { animation-delay: 0.4s; }
+.cover-fade:nth-child(4) { animation-delay: 0.6s; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+/* ════════════════════════════════
+   SCREEN 1, BEFORE THE DAY / COMPANION APP
+   ════════════════════════════════ */
+#S1 { background-color: #101f1e; }
+.before-day { display: flex; align-items: center; justify-content: center; gap: 60px; padding: 40px; width: 100%; height: 100%; }
+.before-text { max-width: 460px; }
+#S1 .before-text .moment-time { color: var(--accent-em); font: 600 13px 'Open Sauce Sans', sans-serif; letter-spacing: 0.02em; }
+#S1 .before-text .moment-speaker { color: var(--champagne); }
+#S1 .before-text .moment-note,
+#S1 .before-text .moment-detail,
+#S1 .before-text .moment-context {
+  font: 400 15px/1.65 'Open Sauce Sans', sans-serif; color: rgba(255,235,210,0.9); margin-top: 14px; max-width: 460px;
+}
+.phone-photo { height: min(76vh, 560px); width: auto; max-width: 48%; flex-shrink: 0; }
+.phone-mockup { width: 234px; height: 456px; background: #0f1f1e; border-radius: 32px; padding: 9px; box-shadow: 0 16px 52px rgba(24,43,47,0.32); flex-shrink: 0; }
+.phone-screen { width: 100%; height: 100%; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
+.phone-welcome {
+  position: relative; height: 100%;
+  background: linear-gradient(rgba(24,43,47,0.30), rgba(24,43,47,0.62)), url('./coact-growth.jpg');
+  background-size: cover; background-position: center;
+  padding: 24px 16px 18px; display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.pw-logo { width: 118px; height: auto; margin-bottom: 12px; filter: drop-shadow(0 1px 5px rgba(0,0,0,0.45)); }
+.pw-welcome { font: 700 17px 'Open Sauce Sans', sans-serif; color: #fff; margin-bottom: 12px; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+.pw-qr { width: 84px; height: 84px; margin-bottom: 14px; }
+.pw-qcard { font: 500 11px/1.4 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.92); margin-bottom: 14px; text-shadow: 0 1px 5px rgba(0,0,0,0.5); }
+.pw-qcard span { display: block; font-weight: 700; color: var(--accent-em); margin-top: 3px; }
+.pw-cards { display: flex; flex-direction: column; gap: 8px; margin-top: auto; width: 100%; }
+.pw-card { display: flex; align-items: center; gap: 10px; text-align: left; background: rgba(255,255,255,0.68); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); border-radius: 13px; padding: 11px 13px; font: 600 12px/1.3 'Open Sauce Sans', sans-serif; color: var(--dark); }
+.pw-card::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--olive); flex-shrink: 0; }
+
+/* ════════════════════════════════
+   SCREEN 2, QUESTION WALL (9:00 a.m.)
+   ════════════════════════════════ */
+#S2 {
+  background: linear-gradient(rgba(24,43,47,0.84), rgba(14,24,23,0.93)), url('./coact-growth.jpg');
+  background-size: cover; background-position: center;
+}
+.wall-surface { position: absolute; inset: 0; padding: 60px 20px 140px; overflow: hidden; }
+.wc {
+  position: absolute;
+  background: rgba(255,255,255,0.95); border-radius: 0; padding: 14px 16px;
+  width: 180px;
+  font: 400 14px/1.4 'Open Sauce Sans', sans-serif; color: var(--dark);
+  opacity: 0; transform: scale(0.9) rotate(var(--r, 0deg));
+  animation: wcPin 0.4s ease forwards;
+  animation-delay: var(--d, 0s);
+}
+.wc::before {
+  content: ''; position: absolute; top: -4px; left: 50%;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--chartreuse); transform: translateX(-50%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.wc.child {
+  background: #fff;
+  font-style: normal;
+}
+.wc.child::before { background: var(--chartreuse); }
+.wc .wc-attr { font: 500 10px 'Open Sauce Sans', sans-serif; color: var(--cadet); margin-top: 8px; text-transform: capitalize; }
+@keyframes wcPin {
+  0% { opacity: 0; transform: scale(0.9) rotate(var(--r, 0deg)) translateY(-20px); }
+  70% { transform: scale(1.02) rotate(var(--r, 0deg)) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) rotate(var(--r, 0deg)) translateY(0); }
+}
+
+.wall-prompt {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, calc(min(160px, 22vh) + 24px));
+  z-index: 26; display: flex; gap: 10px; justify-content: center; width: 86%; max-width: 420px;
+}
+.wall-prompt textarea {
+  flex: 1; border: 1.5px solid rgba(36,67,72,0.32); border-radius: 999px; padding: 14px 22px;
+  font: 500 14px 'Open Sauce Sans', sans-serif; color: var(--dark); background: #fff; resize: none; height: 50px; outline: none;
+  text-align: center; box-shadow: 0 6px 22px rgba(24,43,47,0.16);
+}
+.wall-prompt textarea:focus { border-color: var(--cadet); }
+.wall-prompt textarea { border-radius: 999px !important; }
+.wall-prompt textarea:focus { border-color: var(--cadet); }
+.wall-prompt textarea::placeholder { color: var(--grey); text-align: center; }
+.wall-prompt button {
+  background: var(--cadet); color: #fff; border: none; border-radius: 4px;
+  padding: 0 20px; font: 500 13px 'Open Sauce Sans', sans-serif; cursor: pointer;
+  min-height: 48px;
+}
+.wall-time {
+  position: absolute; top: 20px; left: 24px; z-index: 20;
+  font: 500 11px 'Open Sauce Sans', sans-serif; letter-spacing: 0.12em;
+  color: var(--grey); background: rgba(255,255,255,0.7); padding: 6px 14px; border-radius: 3px;
+  backdrop-filter: blur(6px);
+}
+.wall-question {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 25;
+  font: 300 clamp(18px,2.3vw,23px)/1.45 'Open Sauce Sans', sans-serif; color: var(--champagne);
+  text-align: center; opacity: 0;
+  animation: qCircleIn 1s 0.4s ease forwards;
+  pointer-events: none;
+  width: min(320px, 44vh, 84vw); aspect-ratio: 1 / 1; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--cadet); padding: 34px;
+ 
+  transition: all 1.2s ease;
+}
+@keyframes qCircleIn { to { opacity: 1; } }
+.wall-question.wall-q-mini {
+  top: 20px; left: 50%; transform: translateX(-50%);
+  font-size: 13px; padding: 10px 22px; opacity: 0.92;
+  width: auto; aspect-ratio: auto; border-radius: 24px; box-shadow: 0 4px 16px rgba(24,43,47,0.18);
+}
+
+/* ════════════════════════════════
+   SCREEN 3, MORGAN (9:40 a.m.)
+   ════════════════════════════════ */
+#S3 {
+  background: linear-gradient(135deg, var(--champagne) 0%, #ecdcc4 50%, #ffebd2 100%);
+}
+#S3 .morgan-scene {
+  position: relative; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.ghost-card {
+  position: absolute;
+  width: 172px; padding: 11px 15px;
+  background: rgba(255,235,210,0.12); border: 1px solid rgba(255,235,210,0.18); border-radius: 999px;
+  font: 600 12px/1.4 'Open Sauce Sans', sans-serif;
+  color: var(--champagne);
+  opacity: 0; transform: translateY(10px);
+  animation: ghostFade 1.3s ease forwards;
+  z-index: 1;
+}
+@keyframes ghostFade { to { opacity: 0.62; transform: translateY(0); } }
+#S3 .morgan-center {
+  text-align: center; z-index: 10; max-width: 600px; padding: 20px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.55);
+}
+.moment-time { font: 300 14px 'Open Sauce Sans', sans-serif; color: var(--accent-em); margin-bottom: 12px; }
+.moment-speaker { font: 700 clamp(28px,4vw,42px)/1.15 'Open Sauce Sans', sans-serif; color: var(--champagne); margin-bottom: 24px; }
+.moment-note { font: 400 15px/1.65 'Open Sauce Sans', sans-serif; color: rgba(255,235,210,0.9); max-width: 440px; margin: 0 auto; }
+.moment-detail {
+  font: 300 15px/1.5 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.82);
+  margin-top: 20px; opacity: 0;
+  animation: fadeUp 0.8s 1.2s ease forwards;
+}
+.moment-context {
+  font: 400 13px/1.6 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.72);
+  margin-top: 16px; max-width: 440px;
+}
+
+/* ════════════════════════════════
+   SCREEN 4, MAKING SPACE (10:10 a.m.)
+   ════════════════════════════════ */
+#S4 { background-color: #16220f; }
+#S4.sc-bg { background-image: url('./coact-table.jpg'); background-position: center bottom; }
+#S4 .mk-intro {
+  position: absolute; top: 76px; left: 50%; transform: translateX(-50%);
+  z-index: 20; text-align: center; width: min(660px, 88%);
+}
+#S4 .mk-intro h2 {
+  font: 700 clamp(24px,3.2vw,34px)/1.15 'Open Sauce Sans', sans-serif;
+  color: var(--champagne); margin-bottom: 12px; text-shadow: 0 2px 18px rgba(0,0,0,0.6);
+}
+#S4 .mk-intro p {
+  font: 400 14.5px/1.65 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.9);
+  text-shadow: 0 1px 12px rgba(0,0,0,0.65);
+}
+#S4 .mk-field { position: absolute; inset: 0; z-index: 10; }
+#S4 .mk-intro .mk-hint { font: 600 12px 'Open Sauce Sans', sans-serif; color: var(--accent-em); margin-top: 12px; letter-spacing: 0.02em; text-shadow: 0 1px 10px rgba(0,0,0,0.6); }
+#S4 .mk-shape {
+  position: absolute;
+  display: flex; align-items: center; justify-content: center;
+  font: 600 11px 'Open Sauce Sans', sans-serif; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(46,50,42,0.60); text-shadow: 0 1px 0 rgba(255,255,255,0.42);
+  cursor: grab; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 9px 16px rgba(0,0,0,0.32), inset 0 5px 9px rgba(255,255,255,0.5), inset 0 -9px 15px rgba(0,0,0,0.22);
+  transform-origin: 50% 62%;
+  animation: stoneWobble var(--dur, 5s) ease-in-out infinite;
+  transition: box-shadow 0.25s;
+}
+@keyframes stoneWobble { 0%, 100% { transform: rotate(calc(var(--w, 2deg) * -1)); } 50% { transform: rotate(var(--w, 2deg)); } }
+#S4 .mk-shape:hover { box-shadow: 0 14px 24px rgba(0,0,0,0.42), inset 0 5px 9px rgba(255,255,255,0.55), inset 0 -9px 15px rgba(0,0,0,0.22); }
+#S4 .mk-shape.dragging { animation: none; transform: rotate(0deg); cursor: grabbing; box-shadow: 0 22px 36px rgba(0,0,0,0.46), inset 0 5px 9px rgba(255,255,255,0.5), inset 0 -9px 15px rgba(0,0,0,0.22); }
+.time-badge {
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 20;
+  font: 500 11px 'Open Sauce Sans', sans-serif; letter-spacing: 0.12em;
+  color: var(--grey); background: rgba(255,255,255,0.85); padding: 6px 14px; border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════
+   SCREEN 5, HALL OF MIRRORS (10:40 a.m.)
+   ════════════════════════════════ */
+#S5 { background-color: var(--champagne); }
+.table-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.table-top {
+  width: 300px; height: 300px; border-radius: 50%;
+  background: var(--cadet);
+  box-shadow: none;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 50px;
+}
+.table-question { font: 300 19px/1.45 'Open Sauce Sans', sans-serif; color: var(--champagne); }
+.table-lens {
+  position: absolute; width: 176px; height: 176px; border-radius: 50%;
+  margin-left: -88px; margin-top: -88px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 22px;
+  box-shadow: none;
+  opacity: 0; animation: lensFloat 8s ease-in-out infinite, lensIn 0.8s ease forwards;
+}
+.table-lens .lens-role {
+  font: 700 9px 'Open Sauce Sans', sans-serif; letter-spacing: 0.06em; text-transform: capitalize;
+  color: rgba(255,255,255,0.72); margin-bottom: 6px;
+}
+.table-lens .lens-text { font: 500 11.5px/1.38 'Open Sauce Sans', sans-serif; color: #fff; }
+@keyframes lensIn { to { opacity: 1; } }
+@keyframes lensFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
+}
+#S5 .scene-label {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, 190px);
+  font: 400 13.5px/1.6 'Open Sauce Sans', sans-serif; color: var(--champagne);
+  text-align: center; max-width: 500px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* ════════════════════════════════
+   SCREEN 6, DRAPER (11:10 a.m.)
+   ════════════════════════════════ */
+#S6 { background: linear-gradient(160deg, var(--champagne) 0%, #ffebd2 60%, #f0dcc0 100%); }
+#S6 .draper-scene { position: relative; width: 100%; height: 100%; }
+#S6 .draper-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center; z-index: 5; max-width: 560px; padding: 20px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+}
+#S6 .moment-note { color: var(--accent-em); }
+.floating-voice {
+  position: absolute;
+  font: 600 15px/1.4 'Open Sauce Sans', sans-serif;
+  color: var(--champagne); opacity: 0;
+  animation: voiceAppear 6s ease-in-out forwards;
+  pointer-events: none; z-index: 2;
+}
+@keyframes voiceAppear {
+  0% { opacity: 0; transform: translateX(30px); }
+  15% { opacity: 0.9; }
+  75% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateX(-20px); }
+}
+.floating-voice .fv-age { font: 500 10px 'Open Sauce Sans', sans-serif; color: rgba(255,235,210,0.85); margin-top: 4px; text-transform: capitalize; }
+
+/* ════════════════════════════════
+   SCREEN 7, SESSION CHOICE (11:45 a.m.)
+   ════════════════════════════════ */
+#S7 { background-color: var(--champagne); }
+.door-choice { display: flex; width: 100%; height: 100%; }
+.door {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px; cursor: pointer; transition: all 0.5s; position: relative; overflow: hidden;
+  background: none; border: none; font-family: inherit; min-height: 48px;
+}
+.door::before { content: ''; position: absolute; inset: 0; transition: background 0.5s; }
+.door:hover::before { background: rgba(255,255,255,0.05); }
+.door:hover { transform: scale(1.01); }
+.door-divider { width: 1px; background: rgba(255,255,255,0.15); align-self: stretch; }
+.door .d-label { font: 600 11px 'Open Sauce Sans', sans-serif; letter-spacing: 0.03em; color: rgba(255,255,255,0.6); margin-bottom: 20px; z-index: 1; }
+.door h3 { font: 700 clamp(22px,3vw,32px)/1.2 'Open Sauce Sans', sans-serif; color: var(--champagne); margin-bottom: 16px; z-index: 1; text-align: center; }
+.door p { font: 400 15px/1.6 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.82); max-width: 300px; text-align: center; z-index: 1; }
+.door .d-foot { font: 300 15px 'Open Sauce Sans', sans-serif; color: var(--accent-em); margin-top: 24px; z-index: 1; opacity: 0; transition: opacity 0.5s; }
+.door:hover .d-foot { opacity: 1; }
+
+/* ════════════════════════════════
+   SCREEN 8, LUNCH COLLAGE (12:25 p.m.)
+   ════════════════════════════════ */
+#S8 {
+  background: linear-gradient(rgba(24,43,47,0.84), rgba(14,24,23,0.93)), url('./coact-urban.jpg');
+  background-size: cover; background-position: center;
+  cursor: crosshair;
+}
+.collage-surface { position: absolute; inset: 0; overflow: hidden; }
+.c-fragment { position: absolute; pointer-events: none; animation: cfIn 1.2s ease forwards; opacity: 0; }
+@keyframes cfIn {
+  0% { opacity: 0; transform: translate(var(--fx, 0), var(--fy, 0)) rotate(var(--fr, 0deg)); }
+  100% { opacity: var(--o, 0.85); transform: translate(0, 0) rotate(var(--fr, 0deg)); }
+}
+.c-text { font: 400 14px/1.4 'Open Sauce Sans', sans-serif; padding: 8px 14px; border-radius: 3px; max-width: 220px; }
+.c-strip { height: 6px; border-radius: 3px; }
+.c-circle { border-radius: 50%; }
+.c-drawing { border: 2px solid; border-radius: 40%; opacity: 0.15; }
+.c-user {
+  animation: userPlace 0.4s ease forwards !important;
+  font: 400 15px/1.4 'Open Sauce Sans', sans-serif; color: var(--cadet);
+  background: rgba(36,67,72,0.06); padding: 10px 16px; border-radius: 3px; pointer-events: none;
+}
+@keyframes userPlace { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 0.9; transform: scale(1); } }
+#S8 .collage-instruct {
+  position: absolute; top: 24px; left: 50%; transform: translateX(-50%); z-index: 20;
+  font: 300 15px 'Open Sauce Sans', sans-serif; color: var(--grey);
+  background: rgba(255,255,255,0.88); padding: 10px 24px; border-radius: 3px;
+  backdrop-filter: blur(8px);
+}
+#S8 .collage-paper {
+  position: absolute; bottom: 64px; left: 50%; transform: translateX(-50%) rotate(-1deg); z-index: 20;
+  background: #fffdf9; padding: 16px 20px; border-radius: 2px; width: 320px; max-width: 90%;
+  box-shadow: 2px 3px 14px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  display: flex; gap: 10px; align-items: flex-end;
+}
+#S8 .collage-paper textarea {
+  flex: 1; border: none; border-bottom: 1px solid var(--light); background: transparent;
+  font: 400 15px/1.5 'Open Sauce Sans', sans-serif; color: var(--dark); resize: none; outline: none;
+  min-height: 40px;
+}
+#S8 .collage-paper textarea::placeholder { color: var(--grey); font-style: normal; }
+#S8 .collage-paper button {
+  background: var(--cadet); color: #fff; border: none; border-radius: 3px;
+  font: 500 12px 'Open Sauce Sans', sans-serif; padding: 8px 16px; cursor: pointer;
+  white-space: nowrap; min-height: 36px;
+}
+#S8 .collage-paper button:hover { background: var(--dark); }
+
+/* ════════════════════════════════
+   SCREEN 9, SANDSETER / RISKY PLAY (1:30 p.m.)
+   ════════════════════════════════ */
+#S9 { background-color: var(--magenta); }
+#S9 .dark-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.breath-line {
+  font: 300 clamp(18px,2.8vw,26px)/1.7 'Open Sauce Sans', sans-serif;
+  color: rgba(255,255,255,0.8); text-align: center; opacity: 0;
+}
+.breath-1 { animation: breathIn 2s 0.5s ease forwards; }
+.breath-2 { animation: breathIn 2s 1.5s ease forwards; }
+.breath-3 { animation: breathIn 2s 2.5s ease forwards; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.85); }
+@keyframes breathIn {
+  0% { opacity: 0; transform: translateY(8px); }
+  40% { opacity: 0.8; transform: translateY(0); }
+  100% { opacity: 0.4; transform: translateY(0); }
+}
+.dark-hold { position: absolute; inset: 0; background: var(--magenta); opacity: 0; animation: holdDark 1s 3s ease forwards; pointer-events: none; }
+@keyframes holdDark { to { opacity: 1; } }
+.speaker-emerge {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px; opacity: 0;
+  animation: emergeReveal 1.5s 4s ease forwards;
+}
+@keyframes emergeReveal { 0% { opacity: 0; } 100% { opacity: 1; } }
+.speaker-emerge .moment-speaker { color: var(--champagne); }
+.speaker-emerge .moment-note { color: rgba(255,255,255,0.85); max-width: 480px; }
+.speaker-emerge .moment-time { color: var(--accent-em); }
+
+.post-activity {
+  font: 400 14px/1.65 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.8);
+  max-width: 480px; margin-top: 28px; text-align: center;
+  opacity: 0; animation: fadeUp 0.8s 5.5s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 10, THREE TRACKS (2:15 p.m.)
+   ════════════════════════════════ */
+#S10 { background-color: #0c1615; overflow-y: auto; }
+#S10.sc-bg { background-image: url('./coact-urban.jpg'); }
+#S10.sc-bg::before { background: linear-gradient(rgba(24,43,47,0.86), rgba(10,18,17,0.94)); }
+.tracks-container { display: flex; gap: 30px; padding: 84px 40px 80px; width: 100%; min-height: 100%; align-items: center; justify-content: center; flex-wrap: wrap; }
+.track { width: min(312px, 29vw); aspect-ratio: 1 / 1; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 34px; background: var(--cadet); }
+.track-panel { background: var(--gold); }
+.track-network { background: var(--olive); }
+.track-label { font: 700 10px 'Open Sauce Sans', sans-serif; letter-spacing: 0.05em; color: rgba(255,255,255,0.72); margin-bottom: 9px; }
+.track-panel .track-label { color: rgba(255,255,255,0.72); }
+.track-network .track-label { color: rgba(255,255,255,0.72); }
+.track h3 { font: 700 clamp(16px,1.9vw,20px)/1.2 'Open Sauce Sans', sans-serif; color: #fff; margin-bottom: 10px; }
+.track p { font: 400 12.5px/1.45 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.82); max-width: 210px; }
+.track-aside { display: none; }
+.track-cta { margin-top: 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 999px; padding: 8px 16px; font: 600 11.5px 'Open Sauce Sans', sans-serif; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+.track-cta:hover { background: rgba(255,255,255,0.18); }
+.track-cta.done { background: rgba(255,255,255,0.92); border-color: transparent; color: var(--dark); }
+.track-quiet { background: var(--cadet); cursor: pointer; }
+@keyframes quietDim { 0% { box-shadow: inset 0 0 40px rgba(0,0,0,0); } 100% { box-shadow: inset 0 0 70px rgba(0,0,0,0.5); } }
+.track-quiet .track-label { color: rgba(255,255,255,0.55); }
+.track-quiet h3 { color: rgba(255,255,255,0.85); }
+.track-quiet p { color: rgba(255,255,255,0.66); }
+.quiet-tap-hint { margin-top: 12px; font: 600 11px 'Open Sauce Sans', sans-serif; color: var(--accent-em); letter-spacing: 0.04em; transition: opacity 0.5s; }
+#S10.quiet-dimmed::before { background: rgba(5,10,9,0.985) !important; transition: background 2s ease; }
+#S10.quiet-dimmed .track:not(.track-quiet) { opacity: 0.05; transition: opacity 2s ease; pointer-events: none; }
+#S10.quiet-dimmed .track-quiet { box-shadow: 0 0 70px rgba(255,255,255,0.04); transition: box-shadow 2s ease; }
+#S10.quiet-dimmed .time-badge { opacity: 0.05; transition: opacity 2s ease; }
+#S10.quiet-dimmed .track-quiet .quiet-tap-hint { opacity: 0; }
+#S10:not(.quiet-dimmed) .track { transition: opacity 1.5s ease; }
+#S10:not(.quiet-dimmed) .time-badge { transition: opacity 1.5s ease; }
+
+/* ════════════════════════════════
+   SCREEN 11, MAPPING (3:15 p.m.)
+   ════════════════════════════════ */
+#S11 { background-color: #0c1615; overflow-y: auto; }
+#S11.sc-bg { background-image: url('./coact-growth.jpg'); }
+#S11.sc-bg::before { background: linear-gradient(rgba(24,43,47,0.86), rgba(10,18,17,0.94)); }
+.map-header { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 20; width: 90%; max-width: 560px; }
+.map-header h2 { font: 700 clamp(22px,3vw,30px)/1.2 'Open Sauce Sans', sans-serif; color: #fff; margin-bottom: 10px; }
+.map-header p { font: 400 14px/1.6 'Open Sauce Sans', sans-serif; color: var(--chartreuse); }
+.map-circles { display: flex; gap: 30px; justify-content: center; align-items: center; width: 100%; min-height: 100%; padding: 128px 40px 80px; flex-wrap: wrap; }
+.map-circle { width: min(300px, 28vw); aspect-ratio: 1 / 1; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px; }
+.mc-1 { background: #2f6f69; }
+.mc-2 { background: #7a4a3b; }
+.mc-3 { background: #9a6a2a; }
+.map-circle .m-label { font: 700 10px 'Open Sauce Sans', sans-serif; letter-spacing: 0.06em; color: rgba(255,255,255,0.72); margin-bottom: 10px; }
+.map-circle .m-q { font: 400 clamp(15px,1.8vw,18px)/1.35 'Open Sauce Sans', sans-serif; color: #fff; margin-bottom: 16px; max-width: 200px; }
+.map-circle .m-in { width: 82%; border: none; border-radius: 999px; padding: 9px 16px; font: 400 12.5px 'Open Sauce Sans', sans-serif; color: var(--dark); background: rgba(255,255,255,0.94); outline: none; text-align: center; }
+.map-circle .m-in::placeholder { color: var(--grey); }
+
+/* ════════════════════════════════
+   SCREEN 12, CLOSING / GIBSON (4:15 p.m.)
+   ════════════════════════════════ */
+#S12 { background-color: var(--champagne); overflow: hidden; }
+#S12 .closing-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+.cascade-item {
+  position: absolute; font: 400 12px 'Open Sauce Sans', sans-serif; color: var(--champagne);
+  background: rgba(255,235,210,0.10); padding: 6px 14px; border-radius: 20px;
+  opacity: 0; animation: cascadeIn 0.6s ease forwards;
+}
+@keyframes cascadeIn { 0% { opacity: 0; transform: translateY(20px) scale(0.9); } 100% { opacity: 0.85; transform: translateY(0) scale(1); } }
+.cascade-voice { font: 600 14px 'Open Sauce Sans', sans-serif; color: var(--champagne); background: rgba(255,235,210,0.15); }
+#S12 .closing-center {
+  z-index: 10; text-align: center; max-width: 580px; padding: 20px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.5);
+}
+#S12 .closing-final {
+  font: 300 15px/1.6 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.82);
+  margin-top: 20px; opacity: 0; animation: fadeUp 0.8s 2s ease forwards;
+}
+#S12 .closing-monday {
+  font: 600 clamp(16px,2.5vw,22px)/1.3 'Open Sauce Sans', sans-serif;
+  color: var(--accent-em); margin-top: 28px;
+  opacity: 0; animation: fadeUp 0.8s 3s ease forwards;
+}
+
+/* ════════════════════════════════
+   SCREEN 13, CARD ON CHAIR (3D flip)
+   ════════════════════════════════ */
+#S13 { background-color: var(--champagne); }
+.card-flip-container { perspective: 1000px; width: 90%; max-width: 470px; cursor: pointer; outline: none; }
+.card-flip-container:focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; border-radius: 6px; }
+.card-inner { position: relative; width: 100%; transition: transform 0.7s ease; transform-style: preserve-3d; }
+.card-flip-container.flipped .card-inner { transform: rotateY(180deg); }
+.card-front, .card-back {
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: #fff; border-radius: 50%; aspect-ratio: 1 / 1; padding: 11% 14%;
+  box-shadow: 0 14px 50px rgba(24,43,47,0.14); text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.card-commitment-label { font: 500 10px 'Open Sauce Sans', sans-serif; letter-spacing: 0.12em; color: var(--sienna); margin-bottom: 16px; }
+.card-front .card-q { font: 400 16px/1.45 'Open Sauce Sans', sans-serif; color: var(--dark); margin-bottom: 16px; }
+.card-front textarea {
+  width: 82%; height: 50px; border: 1px solid var(--light); border-radius: 999px;
+  font: 400 14px/1.45 'Open Sauce Sans', sans-serif; color: var(--dark); resize: none; outline: none;
+  text-align: center; background: rgba(255,255,255,0.9); padding: 8px 12px;
+}
+.card-front textarea::placeholder { color: #999; }
+.card-front .card-sub { font: 400 13px 'Open Sauce Sans', sans-serif; color: var(--grey); margin-top: 20px; line-height: 1.6; }
+.card-back {
+  position: absolute; inset: 0; transform: rotateY(180deg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--cadet);
+}
+.card-back-label { font: 600 10px 'Open Sauce Sans', sans-serif; letter-spacing: 0.16em; color: var(--accent-em); margin-bottom: 16px; }
+.card-back-time { font: 700 clamp(20px,3vw,28px)/1.2 'Open Sauce Sans', sans-serif; color: var(--champagne); margin-bottom: 24px; }
+.card-back-body { font: 400 15px/1.65 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.88); max-width: 300px; }
+.card-flip-hint { font: 500 12px 'Open Sauce Sans', sans-serif; color: var(--grey); margin-top: 20px; }
+.card-back .card-flip-hint { color: rgba(255,255,255,0.78); }
+
+/* ════════════════════════════════
+   SCREEN 14, GARDEN PARTY (4:30 p.m.)
+   ════════════════════════════════ */
+#S14 { background-color: var(--champagne); }
+#S14 .garden-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+#S14 .garden-center {
+  text-align: center; width: clamp(320px, 44vw, 470px); aspect-ratio: 1 / 1; padding: 9% 11%; z-index: 5;
+  background: rgba(255,235,210,0.94); border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  backdrop-filter: blur(12px); box-shadow: 0 14px 44px rgba(24,43,47,0.18);
+}
+#S14 .garden-label { font: 600 10px 'Open Sauce Sans', sans-serif; letter-spacing: 0.16em; color: var(--sienna); margin-bottom: 16px; }
+#S14 .garden-title { font: 700 clamp(28px,4vw,42px)/1.15 'Open Sauce Sans', sans-serif; color: var(--dark); margin-bottom: 24px; }
+#S14 .garden-note { font: 400 15px/1.65 'Open Sauce Sans', sans-serif; color: var(--dark); }
+#S14 .garden-aside { font: 300 14px/1.6 'Open Sauce Sans', sans-serif; color: var(--cadet); margin-top: 20px; }
+
+/* ════════════════════════════════
+   SCREEN 15, DIRECTORY MOCKUP
+   ════════════════════════════════ */
+#S15 { background-color: var(--cadet); }
+.directory-mockup { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 40px; }
+.dir-phone {
+  width: 380px; max-width: 100%; height: 85vh; max-height: 700px;
+  background: #111; border-radius: 28px; padding: 12px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+}
+.dir-screen {
+  width: 100%; height: 100%; background: var(--champagne); border-radius: 18px;
+  padding: 16px 14px; overflow: hidden;
+}
+.dir-header {
+  font: 600 10px 'Open Sauce Sans', sans-serif; color: var(--cadet); text-align: center;
+  padding-bottom: 10px; border-bottom: 1px solid var(--light); margin-bottom: 12px;
+}
+.dir-section { margin-bottom: 10px; }
+.dir-section-label {
+  font: 600 8px 'Open Sauce Sans', sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--sienna); margin-bottom: 5px;
+}
+.dir-item { font: 300 11px/1.4 'Open Sauce Sans', sans-serif; color: var(--dark); margin-bottom: 4px; }
+.dir-prompt {
+  font: 400 10px 'Open Sauce Sans', sans-serif; color: var(--grey); text-align: center;
+  padding: 8px 0; border-top: 1px solid var(--light); border-bottom: 1px solid var(--light);
+  margin: 10px 0;
+}
+.dir-person { font: 400 9px/1.4 'Open Sauce Sans', sans-serif; color: var(--dark); margin-bottom: 4px; padding-left: 10px; border-left: 2px solid var(--light); }
+.dir-children { margin-top: 10px; }
+
+/* ════════════════════════════════
+   SCREEN 16, CTA + SUB-SERVICES
+   ════════════════════════════════ */
+#S16 { background: var(--cadet); }
+.scroll-hint { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 32px; animation: scrollBounce 2s ease-in-out infinite; }
+.scroll-hint-text { font: 400 12px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; text-transform: lowercase; }
+.scroll-hint-arrow { font-size: 20px; color: rgba(255,255,255,0.4); }
+@keyframes scrollBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+#S16.active { overflow-y: auto; justify-content: flex-start; }
+#S16 .final-scene { position: relative; width: 100%; min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 60px 20px; }
+#S16 .final-text { text-align: center; max-width: 620px; padding: 40px; z-index: 5; margin-top: auto; }
+#S16 .ft-stat { font: 700 clamp(24px,4vw,38px)/1.2 'Open Sauce Sans', sans-serif; color: var(--champagne); }
+#S16 .ft-stat-follow { font: 700 clamp(24px,4vw,38px)/1.2 'Open Sauce Sans', sans-serif; color: var(--accent-em); margin-top: 8px; }
+#S16 .ft-value { font: 400 clamp(16px,2.5vw,20px)/1.65 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.8); margin-top: 28px; }
+#S16 .ft-tldr { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 16px; margin-top: 28px; }
+.tldr-item { font: 500 13px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.88); background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 20px; }
+.tldr-sep { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.35); }
+#S16 .ft-hook { font: 300 clamp(16px,2.5vw,20px)/1.5 'Open Sauce Sans', sans-serif; color: var(--accent-em); text-align: center; margin-top: 40px; margin-bottom: 8px; }
+#S16 .ft-wv { font: 400 13px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85); margin-top: 40px; text-align: center; }
+
+.services-section { width: 100%; max-width: 800px; margin-top: 60px; margin-bottom: auto; padding: 0 20px; }
+.services-label { font: 600 clamp(14px,2vw,18px)/1.3 'Open Sauce Sans', sans-serif; letter-spacing: 0.04em; color: rgba(255,255,255,0.88); text-align: center; margin-bottom: 32px; }
+.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.service-card {
+  background: rgba(255,255,255,0.06); border-radius: 8px; padding: 28px 24px;
+  backdrop-filter: blur(8px);
+}
+.service-card.sc-green { background: var(--olive); }
+.service-card.sc-purple { background: var(--magenta); }
+.service-card h4 { font: 600 15px/1.3 'Open Sauce Sans', sans-serif; color: var(--champagne); margin-bottom: 12px; }
+.service-card p { font: 400 13px/1.6 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85); }
+.services-cta { display: flex; gap: 12px; justify-content: center; margin-top: 40px; padding-bottom: 40px; flex-wrap: wrap; }
+.cta-btn {
+  display: inline-block; padding: 14px 32px; border-radius: 4px; font: 500 13px 'Open Sauce Sans', sans-serif;
+  text-decoration: none; transition: all 0.2s; min-height: 48px;
+  display: flex; align-items: center; justify-content: center;
+}
+.cta-btn:not(.cta-primary) { border: 1px solid rgba(255,255,255,0.35); color: rgba(255,255,255,0.8); }
+.cta-btn:not(.cta-primary):hover { background: rgba(255,255,255,0.06); color: #fff; }
+.cta-primary { background: var(--redwood); color: #fff; border: none; }
+.cta-primary:hover { background: var(--sienna); }
+
 /* ── Responsive ── */
+@media (max-width: 960px) {
+  .services-grid { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 768px) {
-  .contrast-screen { flex-direction: column; overflow-y: auto; }
-  .col-without { flex: none; padding: 28px 24px; border-right: none; border-bottom: 1px solid var(--light); }
-  .col-with { flex: none; min-height: 60vh; padding: 28px 24px; }
-  .tracks-wrap { flex-direction: column; }
-  .services { grid-template-columns: 1fr; }
-  #nav { padding: 8px 12px; }
-  .n-label { display: none; }
+  /* ── Global mobile layout ── */
+  .sc.active {
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding-top: 52px; /* clear top agenda bar */
+    align-items: flex-start; /* allow content to grow beyond viewport for scroll */
+  }
+  .sc.active > * { flex-shrink: 0; } /* prevent content from squishing */
+
+  /* ── Narrator panel (mobile), sits above the dock ── */
+  #narrator-overlay {
+    width: calc(100% - 20px); max-width: none; left: 50%; transform: translateX(-50%);
+    bottom: 74px; border-radius: 14px;
+    padding: 16px 18px; font-size: 13px; line-height: 1.55;
+    max-height: 34vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  #narrator-overlay.hidden { transform: translateX(-50%) translateY(12px); }
+  #narrator-overlay .narrator-scene { font-size: 10px; margin-bottom: 8px; }
+  #narrator-overlay .narrator-hint { display: none; }
+  #narrator-overlay:not(.hidden) { pointer-events: auto; }
+  /* ── Agenda: single popover on all sizes ── */
+  #agenda-card { bottom: 78px; }
+
+  /* ── Dock ── */
+  #nav { padding: 8px 10px; padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+  .n-btn { padding: 0 12px; min-height: 46px; min-width: 46px; font-size: 12px; border-radius: 11px; }
+  .dock-center { padding: 6px 10px 6px 14px; min-height: 46px; border-radius: 12px; }
+  .dock-center .n-time, .dock-center .n-label { font-size: 12px; }
+  /* keep back/next compact so the center chip has room */
+  .n-prev .n-btn-label, .n-next .n-btn-label { display: none; }
+  .n-why .n-btn-label { display: none; }
+
+  /* ── Typography, ensure readability ── */
+  .moment-note, .moment-detail { font-size: 15px; line-height: 1.6; }
+  .garden-note, .garden-aside { font-size: 14px; }
+  .floating-voice { font-size: 14px; }
+
+  /* ── S0 cover ── */
+  #S0 { padding: 40px 24px; padding-top: 52px; }
+  #S0 .foot { font-size: 9px; position: absolute; bottom: 56px; }
+  #S0 .enter { width: 80%; max-width: 320px; text-align: center; padding: 16px 24px; font-size: 15px; }
+
+  /* ── S1 before the day, stack ── */
+  .before-day { flex-direction: column; gap: 32px; padding: 20px; }
+  .before-text { text-align: center; }
+  .phone-mockup { max-width: 280px; margin: 0 auto; }
+
+  /* ── S2 question wall ── */
+  .wall-time { top: 60px !important; }
+  .wc { width: 140px; padding: 10px 12px; font-size: 13px; }
+  .note-card { max-width: 180px !important; }
+  .wall-prompt { flex-direction: row; width: 95%; max-width: none; bottom: 56px; }
+  .wall-prompt textarea { font-size: 16px; height: 48px; } /* 16px prevents iOS zoom */
+  .wall-prompt button { min-width: 56px; min-height: 48px; }
+
+  /* ── S3 keynote ── */
+  #S3 .morgan-center { padding: 32px; }
+
+  /* ── S5 hall of mirrors ── */
+  #S5.sc-bg { background-position: center top !important; } /* keep people visible on mobile */
+  .table-top { width: 200px; height: 200px; padding: 30px; }
+  .table-top .table-question { font-size: 15px; }
+  .table-lens { max-width: 160px; padding: 12px 14px; }
+  .table-lens .lens-text { font-size: 12px; }
+  #S5 .scene-label { bottom: 56px; font-size: 12px; padding: 8px 16px; max-width: 90%; }
+
+  /* ── S7 session choice, stack vertically ── */
+  .door-choice { flex-direction: column; padding: 20px; }
+  .door { padding: 28px 20px; min-height: 44px; }
+  .door-divider { width: 60px; height: 1px; margin: 0 auto; }
+
+  /* ── S8 collage ── */
+  .collage-instruct { font-size: 13px; padding: 8px 16px; top: 60px !important; }
+  .collage-paper { bottom: 100px !important; transform: translateX(-50%) rotate(0deg); width: 90%; }
+  .collage-paper textarea { font-size: 16px; }
+  .c-text:not(.c-user) { display: none; }
+  .c-strip, .c-circle, .c-drawing { transform: scale(0.7); }
+
+  /* ── S9 speaker ── */
+  .speaker-emerge { padding: 20px; }
+  .speaker-emerge .moment-speaker { font-size: clamp(22px,5vw,32px); }
+  .post-activity { font-size: 13px; margin-top: 16px; }
+  .ghost-card { display: none; }
+
+  /* ── S10 tracks, stack ── */
+  .tracks-container { flex-direction: column; padding: 60px 20px; gap: 16px; height: auto; }
+
+  /* ── S11 mapping, flow instead of absolute ── */
+  .map-canvas { display: flex; flex-direction: column; align-items: center; padding: 60px 20px 80px; gap: 16px; }
+  .map-description { position: static; transform: none; max-width: 100%; margin-left: 0; }
+  .map-prompt { position: static !important; transform: none !important; max-width: 100%; width: 100%; opacity: 1; animation: none; padding: 14px; }
+  .map-timer { position: static; transform: none; margin-top: 8px; }
+  .map-output { position: static; transform: none; opacity: 1; animation: none; margin-top: 8px; font-size: 12px; }
+
+  /* ── S12 closing, hide cascade items to prevent overlap ── */
+  .cascade-item { display: none; }
+
+  /* ── S13 card flip ── */
+  .card-flip-container { width: 90%; max-width: 340px; height: auto; min-height: 400px; }
+
+  /* ── S14 garden party ── */
+  #S14 .garden-center { padding: 28px 20px; max-width: 90%; }
+
+  /* ── S15 directory ── */
+  .directory-mockup { padding: 20px; }
+  .dir-phone { width: 100%; max-width: 360px; }
+  .dir-screen { max-height: 60vh; overflow: hidden; }
+
+  /* ── S16 CTA ── */
+  #S16 { padding-bottom: 80px; }
+  .services-grid { grid-template-columns: 1fr; }
+  .services-cta { padding-bottom: 40px; flex-direction: column; align-items: center; }
+  .cta-btn { width: 100%; max-width: 320px; }
 }
+
 @media (max-width: 480px) {
-  #S0 h1 { letter-spacing: -1px; }
-  .cta-inner { padding: 40px 24px 60px; }
+  .track { padding: 20px 16px; }
+  .card-front, .card-back { padding: 28px 20px; }
+  #S0 h1 { font-size: clamp(28px,8vw,42px); }
+  #S0 .sub { font-size: 15px; }
+  .moment-speaker { font-size: clamp(22px,5vw,32px); }
+  .time-badge { font-size: 11px; padding: 6px 14px; }
+  .bench-brief { font-size: 14px !important; padding: 10px 20px !important; }
+  .bench-note { font-size: 11px !important; bottom: 56px !important; }
+  .mat-card { width: 170px !important; padding: 14px !important; font-size: 13px !important; }
+  .before-day { padding: 16px; gap: 24px; }
+  .door { padding: 24px 16px; }
+  #S14 .garden-center { padding: 24px 16px; }
+  #S16 .final-text { padding: 24px 16px; }
 }
+
+/* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card-inner { transition: none; }
+  .card-flip-container.flipped .card-inner { transform: none; }
+  .card-flip-container .card-front { transition: opacity 0.3s; }
+  .card-flip-container.flipped .card-front { opacity: 0; }
+  .card-flip-container .card-back { transform: none; opacity: 0; transition: opacity 0.3s; }
+  .card-flip-container.flipped .card-back { opacity: 1; }
 }
+/* ── S7 door pick ── */
+.door.chosen { background: rgba(36,67,72,0.06); }
+.door.chosen::before { background: rgba(36,67,72,0.05); }
+.door.chosen .d-foot { opacity: 1; }
+.door.chosen .d-label { color: var(--cadet); }
+.door.chosen h3::after { content: ' ✓'; color: var(--olive); }
+.door-hint {
+  position: absolute; bottom: 74px; left: 50%; transform: translateX(-50%);
+  font: 500 12px/1.5 'Open Sauce Sans', sans-serif; color: var(--grey); text-align: center;
+  background: rgba(255,255,255,0.85); padding: 8px 18px; border-radius: 20px; max-width: 90%;
+  backdrop-filter: blur(8px); transition: opacity 0.4s;
+}
+/* ── S6 Reyes prep prompt ── */
+.reyes-prep { margin-top: 22px; text-align: center; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 16px; }
+.reyes-prep-q { font: 600 13px/1.4 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.9); margin-bottom: 8px; }
+.reyes-prep textarea { width: 100%; height: 44px; border: 1px solid var(--light); border-radius: 8px; padding: 8px 10px; font: 400 13px 'Open Sauce Sans', sans-serif; color: var(--dark); resize: none; outline: none; background: #fff; }
+.reyes-prep textarea:focus { border-color: var(--cadet); }
+.reyes-prep button { display: block; margin: 12px auto 0; background: var(--cadet); color: #fff; border: none; border-radius: 999px; padding: 9px 22px; font: 600 12px 'Open Sauce Sans', sans-serif; cursor: pointer; min-height: 40px; }
+.reyes-prep button:hover { background: var(--redwood); }
+.reyes-prep.done { text-align: center; }
+.reyes-prep .prep-thanks { font: 500 13px/1.5 'Open Sauce Sans', sans-serif; color: var(--olive); }
+/* Rounded inputs + pill buttons (p7) */
+.wall-prompt textarea, .reyes-prep textarea, .map-prompt textarea, .collage-paper textarea {
+  border: 1px solid var(--light) !important; border-radius: 16px !important; background: rgba(255,255,255,0.92) !important; padding: 10px 14px !important;
+}
+.wall-prompt button, .reyes-prep button, .collage-paper button, .cta-btn, .wall-prompt button { border-radius: 999px !important; }
+/* Side Back/Next buttons: fixed, vertically centered, pill, above everything */
+.n-prev, .n-next {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 210;
+  border-radius: 999px !important;
+  background: rgba(24,43,47,0.82); border: 1px solid rgba(255,255,255,0.30); color: #fff;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.30); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  padding: 0 20px;
+}
+.n-prev { left: 20px; }
+.n-next { right: 20px; }
+.n-prev:hover, .n-next:hover { background: rgba(24,43,47,0.96); transform: translateY(-50%) scale(1.04); }
+.n-prev:disabled, .n-next:disabled { opacity: 0.28; }
+.dock-center, .n-why { border-radius: 999px !important; }
+.dock-agenda-label { font: 600 13px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.92); }
+.wc.you { box-shadow: 0 0 0 2px var(--olive) !important; }
+@media (max-width: 768px) { .n-prev { left: 8px; } .n-next { right: 8px; } .n-prev .n-btn-label, .n-next .n-btn-label { display: none; } }
+#S6 .reyes-prep textarea { border-radius: 999px !important; text-align: center; }
+#S8 { background: linear-gradient(rgba(24,43,47,0.84), rgba(14,24,23,0.93)), url('./coact-field.jpg'); background-size: cover; background-position: center; cursor: default; }
+#S8 .wall-surface { position: absolute; inset: 0; padding: 60px 20px 140px; overflow: hidden; }
+#S8 .wall-time { position: absolute; top: 20px; left: 24px; z-index: 20; font: 500 11px 'Open Sauce Sans', sans-serif; letter-spacing: 0.12em; color: var(--grey); background: rgba(255,255,255,0.75); padding: 6px 14px; border-radius: 3px; backdrop-filter: blur(6px); }
+#S8 .wall-question { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 25; font: 300 clamp(18px,2.3vw,23px)/1.45 'Open Sauce Sans', sans-serif; color: var(--champagne); text-align: center; opacity: 0; animation: qCircleIn 1s 0.4s ease forwards; pointer-events: none; width: min(320px,44vh,84vw); aspect-ratio: 1/1; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--cadet); padding: 34px; }
+#S8 .wall-prompt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(min(160px,22vh) + 24px)); z-index: 26; display: flex; gap: 10px; justify-content: center; width: 86%; max-width: 420px; }
+#S8 .wall-prompt textarea { flex: 1; border: 1.5px solid rgba(36,67,72,0.32); border-radius: 999px !important; padding: 14px 22px; font: 500 14px 'Open Sauce Sans', sans-serif; color: var(--dark); background: #fff; resize: none; height: 50px; outline: none; text-align: center; box-shadow: 0 6px 22px rgba(24,43,47,0.16); }
+#S8 .wall-prompt textarea::placeholder { color: var(--grey); text-align: center; }
+#S8 .wall-prompt textarea:focus { border-color: var(--cadet); }
+#S8 .wall-prompt button { background: var(--cadet); color: #fff; border: none; border-radius: 999px; padding: 0 22px; font: 500 13px 'Open Sauce Sans', sans-serif; cursor: pointer; min-height: 50px; }
+#S6 .draper-center .moment-note { color: var(--chartreuse); }
+.firefly { position: absolute; border-radius: 50%; background: #dbe36a; box-shadow: 0 0 9px 2px rgba(200,220,90,0.7); opacity: 0; pointer-events: none; animation: fireflyDrift linear infinite, fireflyFlicker ease-in-out infinite; }
+@keyframes fireflyDrift { 0% { transform: translate(0,0); } 100% { transform: translate(var(--fx,30px), var(--fy,-60px)); } }
+@keyframes fireflyFlicker { 0%,100% { opacity: 0; } 15% { opacity: 0.95; } 25% { opacity: 0.12; } 42% { opacity: 0.85; } 58% { opacity: 0.2; } 78% { opacity: 0.72; } 90% { opacity: 0.1; } }
+.card-flip-btn { margin-top: 18px; background: var(--cadet); color: #fff; border: none; border-radius: 999px; padding: 10px 22px; font: 600 12px 'Open Sauce Sans', sans-serif; cursor: pointer; transition: background 0.2s; }
+.card-flip-btn:hover { background: var(--redwood); }
+#S15 { background-color: #101f1e; overflow-y: auto; }
+.report-scene { position: relative; width: 100%; min-height: 100%; }
+.report-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 54px; padding: 60px 40px; width: 100%; min-height: 100%; flex-wrap: wrap; }
+.report-phone { height: min(80vh, 640px); width: auto; max-width: 46%; flex-shrink: 0; }
+.report-text { max-width: 420px; }
+.report-eyebrow { font: 600 12px 'Open Sauce Sans', sans-serif; letter-spacing: 0.06em; color: var(--accent-em); margin-bottom: 8px; }
+.report-text h2 { font: 700 clamp(26px,4vw,38px)/1.15 'Open Sauce Sans', sans-serif; color: #fff; margin-bottom: 16px; }
+.report-text p { font: 400 15px/1.7 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.82); }
+.report-hook { font: 300 clamp(16px,2vw,19px)/1.5 'Open Sauce Sans', sans-serif; color: var(--accent-em); margin: 24px 0 20px; }
+.report-fine { font: 400 12px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.5); margin-top: 20px; }
+@media (max-width: 768px) { .report-phone { max-width: 78%; height: auto; width: 240px; } .report-text { text-align: center; } }
+.token { position: absolute; cursor: grab; user-select: none; border-radius: 999px; padding: 11px 18px; font: 700 12.5px/1.25 'Open Sauce Sans', sans-serif; text-align: center; max-width: 190px; box-shadow: 0 8px 20px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.32), inset 0 -3px 8px rgba(0,0,0,0.16); animation: tokenFloat var(--dur,4s) ease-in-out infinite; animation-delay: var(--adelay,0s); will-change: transform; }
+.token:hover { box-shadow: 0 16px 34px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.4); z-index: 45; animation-play-state: paused; }
+.token.dragging { cursor: grabbing; z-index: 50; animation: none; box-shadow: 0 22px 46px rgba(0,0,0,0.55); }
+@keyframes tokenFloat { 0%,100% { transform: translateY(0) rotate(var(--tilt,0deg)); } 50% { transform: translateY(-7px) rotate(calc(var(--tilt,0deg) * -1)); } }
+.token.green { background: linear-gradient(160deg, #92c531, #6f9a1e); color: #fff; }
+.token.yellow { background: linear-gradient(160deg, #f5d44e, #e0b62f); color: #463a0b; }
+.token.blue { background: linear-gradient(160deg, #48a4bd, #327d92); color: #fff; }
+.token.brown { background: linear-gradient(160deg, #a06649, #744534); color: #fff; }
+#S4 .bench-brief .bench-sub { font: 400 12.5px/1.5 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.72); margin-top: 6px; }
+#S4 .bench-legend { position: absolute; bottom: 74px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; background: rgba(255,252,245,0.92); padding: 10px 20px; border-radius: 999px; backdrop-filter: blur(8px); box-shadow: 0 3px 14px rgba(0,0,0,0.08); }
+.legend-item { display: flex; align-items: center; gap: 7px; font: 600 11px 'Open Sauce Sans', sans-serif; color: var(--dark); }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+/* ── Post-style input bar: centered under the circle, Pin inside ── */
+.wall-prompt, #S8 .wall-prompt {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, calc(min(160px, 22vh) + 34px));
+  z-index: 26; width: min(460px, 88%); max-width: 460px; display: block; gap: 0;
+}
+.wall-prompt textarea, #S8 .wall-prompt textarea {
+  width: 100% !important; height: 54px !important; resize: none; outline: none;
+  border-radius: 999px !important; border: 1.5px solid rgba(36,67,72,0.26) !important;
+  background: #fff !important; color: var(--dark);
+  padding: 16px 108px 16px 26px !important; text-align: left !important;
+  box-shadow: 0 8px 26px rgba(24,43,47,0.22) !important;
+  font: 500 14px 'Open Sauce Sans', sans-serif;
+}
+.wall-prompt textarea:focus, #S8 .wall-prompt textarea:focus { border-color: var(--cadet) !important; }
+.wall-prompt textarea::placeholder, #S8 .wall-prompt textarea::placeholder { text-align: left !important; color: var(--grey); }
+.wall-prompt button, #S8 .wall-prompt button {
+  position: absolute !important; right: 6px; top: 50%; transform: translateY(-50%);
+  height: 42px; min-height: 42px !important; padding: 0 24px !important; border-radius: 999px !important;
+  background: var(--cadet); color: #fff; border: none;
+  font: 600 13px 'Open Sauce Sans', sans-serif; cursor: pointer; white-space: nowrap;
+}
+.wall-prompt button:hover, #S8 .wall-prompt button:hover { background: var(--redwood); }
 </style>
 </head>
 <body>
 
 <div id="progress"></div>
+<img id="brandMark" src="./coact-mark-light.png" alt="CoAct" aria-hidden="true">
 
-<!-- ══ S0 COVER ══ -->
-<section class="sc active" id="S0">
-  <div class="particles" id="coverParticles"></div>
-  <div class="cover-inner">
-    <div class="cover-lockup cover-fade">
-      press play <span class="x">×</span> winded.vertigo
-    </div>
-    <h1 class="cover-fade">a conference that <span class="lift">does</span> what it says</h1>
-    <p class="sub cover-fade">most conferences proceed.<br>this one accumulates.</p>
-    <button class="cover-enter cover-fade" onclick="go(1)">see the difference</button>
-    <p class="cover-foot cover-fade">winded.vertigo · windedvertigo.com · 2025</p>
-  </div>
-</section>
-
-<!-- ══ S1 ARRIVAL — question wall ══ -->
-<section class="sc" id="S1">
-  <div class="contrast-screen">
-    <div class="col-without">
-      <div class="col-label">without</div>
-      <div class="screen-moment">arrival · 9:00 a.m.</div>
-      <div class="col-without-title">registration table</div>
-      <div class="col-without-body">lanyards. a tote bag. the programme you already read online.</div>
-      <ul class="col-without-items" style="margin-top:20px">
-        <li>name badge, scan QR</li>
-        <li>coffee station opens at 8:45</li>
-        <li>take a seat — it starts at 9:30</li>
-        <li>check your phone while you wait</li>
-      </ul>
-    </div>
-    <div class="col-with" id="wallCol">
-      <div id="S1header" style="position:absolute;top:20px;left:48px;right:48px;z-index:20;display:flex;align-items:baseline;justify-content:space-between;">
-        <div class="col-label">with press play × w.v.</div>
-        <div style="font:400 12px 'Inter',sans-serif;color:var(--grey)">9:00 a.m.</div>
-      </div>
-      <div class="wall-surface" id="wallSurface"></div>
-      <div id="wallQ" style="position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:25;font:500 14px/1.4 'Inter',sans-serif;color:var(--cadet);background:rgba(255,244,240,0.95);padding:10px 20px;border-radius:4px;backdrop-filter:blur(8px);text-align:center;white-space:nowrap;opacity:0;animation:fadeUp 1s 0.5s ease forwards">what does open education look like in your context?</div>
-      <div class="wall-prompt">
-        <textarea id="wallIn" placeholder="add yours to the wall…" rows="2"></textarea>
-        <button onclick="addToWall()">pin</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ S2 KEYNOTE ══ -->
-<section class="sc" id="S2">
-  <div class="contrast-screen">
-    <div class="col-without">
-      <div class="col-label">without</div>
-      <div class="screen-moment">keynote · 9:40 a.m.</div>
-      <div class="col-without-title">45 minutes, slides, applause</div>
-      <div class="col-without-body">the speaker prepared this talk six weeks ago. it does not know the room.</div>
-      <ul class="col-without-items" style="margin-top:20px">
-        <li>slide 1 of 42</li>
-        <li>questions at the end (3 minutes)</li>
-        <li>the room is passive for 45 minutes</li>
-        <li>most of it forgotten by lunch</li>
-      </ul>
-    </div>
-    <div class="col-with" id="keynoteSide">
-      <div class="col-label">with press play × w.v.</div>
-      <div class="screen-heading">the keynote responds<br>to the room</div>
-      <div class="speaker-card" id="speakerCard">
-        <div class="s-time">9:40 a.m.</div>
-        <div class="s-name">Dr. Rania Osman</div>
-        <div class="s-note">opens not with a deck, but with three questions drawn from this morning's wall. the research follows the room's own words — not the other way around.</div>
-        <div class="s-device">after the talk: attendees write one sentence — "the tool I'd retire if I could." she reads five of them aloud.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ S3 BREAK — table lenses ══ -->
-<section class="sc" id="S3">
-  <div class="contrast-screen">
-    <div class="col-without">
-      <div class="col-label">without</div>
-      <div class="screen-moment">break · 10:40 a.m.</div>
-      <div class="col-without-title">coffee. networking. LinkedIn.</div>
-      <div class="col-without-body">twenty minutes between sessions where nothing is designed to happen.</div>
-      <ul class="col-without-items" style="margin-top:20px">
-        <li>people talk to who they already know</li>
-        <li>no one knows how to start a conversation</li>
-        <li>the interesting people leave early</li>
-      </ul>
-    </div>
-    <div class="col-with">
-      <div class="col-label">with press play × w.v.</div>
-      <div class="screen-heading">structured collision</div>
-      <p style="font:400 14px/1.6 'Inter',sans-serif;color:var(--grey);max-width:380px;margin-bottom:28px">four perspectives on the same question. people who would not normally sit together. the format produces friction. that is the point.</p>
-      <div class="table-scene" id="tableScene" style="position:relative;width:100%;flex:1">
-        <div class="table-top">
-          <div class="table-q">who does open education actually serve?</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ S4 SESSIONS — three tracks ══ -->
-<section class="sc" id="S4">
-  <div class="contrast-screen">
-    <div class="col-without">
-      <div class="col-label">without</div>
-      <div class="screen-moment">sessions · 2:30 p.m.</div>
-      <div class="col-without-title">parallel tracks. pick one.</div>
-      <div class="col-without-body">three rooms. you can only attend one. you will never know what happened in the others.</div>
-      <ul class="col-without-items" style="margin-top:20px">
-        <li>track A: presentation + Q&A</li>
-        <li>track B: presentation + Q&A</li>
-        <li>track C: presentation + Q&A</li>
-        <li>no quiet option</li>
-      </ul>
-    </div>
-    <div class="col-with" style="padding:32px 36px;justify-content:center">
-      <div class="col-label" style="margin-bottom:20px">with press play × w.v.</div>
-      <div class="screen-heading" style="font-size:clamp(20px,2.5vw,30px);margin-bottom:20px">three formats running at once</div>
-      <div class="tracks-wrap" id="tracksWrap">
-        <div class="track">
-          <div class="track-tag">main hall</div>
-          <h3>does open education scale?</h3>
-          <p>four practitioners debate. no consensus required. starts with the hardest question in the room.</p>
-        </div>
-        <div class="track track-quiet" id="quietRoom" role="button" tabindex="0">
-          <div class="track-tag">quiet room</div>
-          <h3>reflection space</h3>
-          <p>soft music. reflection cards. no agenda. needing quiet is not opting out.</p>
-          <p class="quiet-hint">click to dim the lights</p>
-        </div>
-        <div class="track">
-          <div class="track-tag">workshop</div>
-          <h3>open by design</h3>
-          <p>build a lesson unit with open tools in 45 minutes. leave with something real.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ S5 CLOSE — card flip ══ -->
-<section class="sc" id="S5">
-  <div class="contrast-screen">
-    <div class="col-without">
-      <div class="col-label">without</div>
-      <div class="screen-moment">close · 4:00 p.m.</div>
-      <div class="col-without-title">thank-you slide. applause. done.</div>
-      <div class="col-without-body">the day ends. nothing was captured. no one knows what the room produced.</div>
-      <ul class="col-without-items" style="margin-top:20px">
-        <li>survey link emailed tomorrow</li>
-        <li>slides shared (if you ask)</li>
-        <li>forgotten within a week</li>
-      </ul>
-    </div>
-    <div class="col-with" style="align-items:center;gap:20px">
-      <div class="col-label" style="align-self:flex-start">with press play × w.v.</div>
-      <div class="collage-mini" id="collageMini"></div>
-      <div class="card-flip-container" tabindex="0" role="button" aria-label="card on your chair — click to flip" id="flipCard">
-        <div class="card-inner">
-          <div class="card-front">
-            <div class="c-label">on every chair</div>
-            <div class="c-q">what is one thing you will do differently in the next 30 days?</div>
-            <textarea placeholder="write here, or don't." aria-label="your response"></textarea>
-            <div class="c-hint">click to turn over</div>
-          </div>
-          <div class="card-back">
-            <div class="cb-label">evening reception</div>
-            <div class="cb-time">5:00 p.m. · the garden</div>
-            <div class="cb-body">the badge QR resolves to a directory of who was here — one week after the day.</div>
-            <div class="c-hint">click to turn back</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ S6 CTA ══ -->
-<section class="sc" id="S6">
-  <div class="particles" id="ctaParticles"></div>
-  <div class="cta-inner">
-    <div class="cta-lockup">press play <span class="x">×</span> winded.vertigo</div>
-    <h2>your conference,<br><span class="lift">redesigned</span></h2>
-    <p class="cta-sub">we design the architecture of a day — not just its schedule. every moment is intentional. the format says what the content argues.</p>
-    <div class="services">
-      <div class="svc svc-accent-1">
-        <h4>experience design</h4>
-        <p>we redesign arrival, breaks, sessions, and close so the day accumulates rather than just proceeds.</p>
-      </div>
-      <div class="svc">
-        <h4>speaker preparation</h4>
-        <p>working with your keynotes so the format matches the content — not a 45-slide deck in front of a passive room.</p>
-      </div>
-      <div class="svc svc-accent-2">
-        <h4>facilitation</h4>
-        <p>we run sessions that make participants feel smart. the room leaves with something it didn't arrive with.</p>
-      </div>
-    </div>
-    <div class="cta-actions">
-      <a href="https://windedvertigo.com/do" class="btn-ghost">see what we do</a>
-      <a href="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2RGf5v1tbCsUuJ4vvcsKr0gh2tdEU3TuCerg198j-hbxXzHMvhznWxigtvx5glXGh9Pj4diiFb" class="btn-primary" target="_blank" rel="noopener">book a conversation</a>
-    </div>
-    <p class="cta-foot">winded.vertigo · windedvertigo.com · 2025</p>
-  </div>
-</section>
-
-<!-- ══ NARRATOR ══ -->
-<button id="narrator-toggle" aria-pressed="true">&#9673; narrator</button>
-<div id="narrator-overlay" role="status" aria-live="polite">
-  <div class="narrator-label" id="narratorLabel"></div>
-  <div class="narrator-body" id="narratorBody"></div>
+<!-- ═══ NARRATOR PANEL (toggled from the dock) ═══ -->
+<div id="narrator-overlay" aria-live="polite">
+  <div class="narrator-scene" id="narratorScene"></div>
+  <div class="narrator-text" id="narratorText"></div>
+  <div class="narrator-hint">tap narrator (top-right) to hide this</div>
 </div>
 
-<!-- ══ NAV ══ -->
+<!-- ═══ AGENDA POPOVER (opens from the dock) ═══ -->
+<nav id="agenda-card" role="navigation" aria-label="conference agenda" aria-hidden="true">
+  <button class="agenda-toggle" id="agendaToggle" aria-label="close agenda">
+    <span>the day &middot; agenda</span><span class="agenda-close" aria-hidden="true">&times;</span>
+  </button>
+  <div class="agenda-body">
+    <ul class="agenda-list" id="agendaList"></ul>
+  </div>
+</nav>
+
+<!-- ═══ S0 COVER ═══ -->
+<section class="sc sc-bg active" id="S0" aria-label="Cover, Ground Truth 2026, a CoAct summit">
+  <div class="particles" id="coverParticles"></div>
+  <div class="cover-fade" style="display:flex;align-items:center;justify-content:center;margin-bottom:6px"><img src="./coact-logo-white.png" alt="CoAct, Collaborating for Impact" style="height:clamp(48px,9vw,82px);width:auto"></div>
+  <div class="cover-group cover-title-group cover-fade">
+    <div class="label">A CoAct Climate Strategy Summit</div>
+    <h1>Ground Truth 2026</h1>
+  </div>
+  <div class="cover-group cover-detail-group cover-fade">
+    <div class="sub">The day corporate climate strategy stops performing<br>and starts substantiating.</div>
+    <div class="cover-context">Hosted by CoAct · The Conservatory, King's Cross · 12 November 2026</div>
+    <button class="enter" onclick="go(1)">Enter the day</button>
+  </div>
+  <div class="foot">CoAct · Collaborating for Impact</div>
+</section>
+
+<!-- ═══ S1 BEFORE THE DAY ═══ -->
+<section class="sc sc-bg" id="S1" aria-label="before the day">
+  <div class="before-day">
+    <div class="before-text">
+      <div class="moment-time">Welcome</div>
+      <h2 class="moment-speaker" style="font-size:clamp(24px,3.5vw,36px)">Before the Day</h2>
+      <p class="moment-note">Two weeks out, every attendee receives a question to sit with, a note on how the day is built, and a badge with a QR code linked to a personal summit page.</p>
+      <p class="moment-detail" style="opacity:1;animation:none">This is not a standard conference. Some moments ask something of you. All of them are optional. None of them are difficult.</p>
+      <p class="moment-context">CoAct is a collaborative impact consultancy. It advises corporate clients on climate strategy, and refuses greenwashing and performative CSR. Ground Truth is built to hold its clients, and itself, to that same standard.</p>
+    </div>
+    <img class="phone-photo" src="./coact-phone.png" alt="The CoAct summit app on a phone">
+  </div>
+</section>
+
+<!-- ═══ S2 QUESTION WALL ═══ -->
+<section class="sc sc-bg" id="S2" aria-label="9:00 a.m., the question wall">
+  <div class="wall-time">9:00 a.m., Registration</div>
+  <div class="wall-question" id="wallQ">What's the truth your last<br>sustainability report left out?</div>
+  <div class="wall-surface" id="wallSurface"></div>
+  <div class="wall-prompt">
+    <textarea id="wallIn" placeholder="Add yours to the wall…" rows="2"></textarea>
+    <button onclick="addToWall()">Pin</button>
+  </div>
+</section>
+
+<!-- ═══ S3 MORGAN ═══ -->
+<section class="sc sc-bg" id="S3" aria-label="9:40 a.m., Marcus Feld, Group CSO">
+  <div class="morgan-scene" id="morganScene">
+    <div class="morgan-center">
+      <div class="moment-time">9:40 a.m.</div>
+      <div class="moment-speaker">Marcus Feld</div>
+      <div class="moment-note">Group Chief Sustainability Officer, Halden Materials. Opening keynote.</div>
+      <div class="moment-detail">He walked through the same question wall as everyone else.</div>
+      <div class="moment-detail" style="margin-top:16px; opacity:0.85">A week earlier, his team was handed three lines from the wall, written by people who live beside his company's operations. His keynote opens with those three quotes. Thirty seconds of silence. Then he answers each one as if the person were in the room. The strategy builds from their words, not the brand's. Afterwards, attendees write one line on a card: "the target I'd set if I lived downwind." Feld reads five of them aloud. The room hears its own conscience alongside the plan.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S4 MAKING SPACE ═══ -->
+<section class="sc sc-bg" id="S4" aria-label="10:10 a.m., the makers tables">
+  <div class="time-badge">10:10 a.m., Dr Priya Nair, Carbon Integrity Lab</div>
+  <div class="mk-intro">
+    <h2>The Makers Tables</h2>
+    <p>Every strategy is a balancing act. At the makers tables, teams stack the pieces of a plan: ambition, cost, evidence, dependency, and risk. Then they feel where it holds, and where it starts to tip.</p>
+    <p class="mk-hint">Drag the stones. Build your own balance, or take it apart.</p>
+  </div>
+  <div class="mk-field" id="mkField"></div>
+</section>
+
+<!-- ═══ S5 HALL OF MIRRORS ═══ -->
+<section class="sc sc-bg" id="S5" aria-label="10:40 a.m., The Refraction Tables">
+  <div class="time-badge">10:40 a.m., Refreshments</div>
+  <div class="table-scene" id="tableScene">
+    <div class="table-top">
+      <div class="table-question">What does our climate strategy look like from where you sit?</div>
+    </div>
+  </div>
+  <div class="scene-label">Over refreshments, two kinds of table. At some, people from outside the field describe what they actually see in your plan: the gap between the claim and the reality, reflected back. At others, people who fundamentally disagree are seated together on a timer, to work the tension rather than smooth it away.</div>
+</section>
+
+<!-- ═══ S6 DRAPER ═══ -->
+<section class="sc sc-bg" id="S6" aria-label="11:10 a.m., Dr Sofia Reyes">
+  <div class="draper-scene" id="draperScene">
+    <div class="draper-center">
+      <div class="moment-time">11:10 a.m.</div>
+      <div class="moment-speaker">Dr Sofia Reyes</div>
+      <div class="moment-note">What the emissions data showed,<br>alongside what the community said.</div>
+      <div class="reyes-prep" id="reyesPrep">
+        <div class="reyes-prep-q">Before she starts, one for the room: what are you most here to figure out?</div>
+        <textarea id="reyesPrepIn" placeholder="Type your answer. It joins the room's live board." rows="2"></textarea>
+        <button onclick="submitPrep()">Add to the board</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S7 SESSION CHOICE ═══ -->
+<section class="sc sc-bg" id="S7" aria-label="11:45 a.m., choose your room">
+  <div class="time-badge">11:45 a.m., Two sessions, same time. Which fits you?</div>
+  <div class="door-choice">
+    <button class="door" onclick="pickDoor(this)">
+      <div class="d-label">Session A · 11:45 a.m.</div>
+      <h3>Coalitions for Policy Change</h3>
+      <p>How companies move from lobbying against the rules to building the ones worth having.</p>
+      <div class="d-foot">The room where the rules get written.</div>
+    </button>
+    <div class="door-divider"></div>
+    <button class="door" onclick="pickDoor(this)">
+      <div class="d-label">Session B · 11:45 a.m.</div>
+      <h3>The Just Transition &amp; the Workers Left Out</h3>
+      <p>Decarbonisation that doesn't quietly offshore its costs onto the people with the least say.</p>
+      <div class="d-foot">The room that remembers who pays.</div>
+    </button>
+  </div>
+  <div class="door-hint" id="doorHint">Tap the one you'd walk into. Both rooms are the right room, then press Next.</div>
+</section>
+
+<!-- ═══ S8 LUNCH COLLAGE ═══ -->
+<section class="sc sc-bg" id="S8" aria-label="12:25 p.m., the collage">
+  <div class="wall-time">12:25 p.m., Lunch</div>
+  <div class="wall-question" id="collageQ">What from this morning<br>is still with you?</div>
+  <div class="wall-surface" id="collageSurface"></div>
+  <div class="wall-prompt">
+    <textarea id="collageText" placeholder="Add it to the collage…" rows="2"></textarea>
+    <button id="collagePinBtn" onclick="addCollageNote()">Pin</button>
+  </div>
+</section>
+
+<!-- ═══ S9 SANDSETER / RISKY PLAY ═══ -->
+<section class="sc sc-bg" id="S9" aria-label="1:30 p.m., the unflinching cut">
+  <div class="dark-scene" id="darkScene">
+    <div style="text-align:center">
+      <div class="breath-line breath-1">Thirty seconds of unedited footage.</div>
+      <div class="breath-line breath-2">A community living with the cost. Sound on.</div>
+      <div class="breath-line breath-3">No framing. No commentary.</div>
+    </div>
+    <div class="dark-hold"></div>
+    <div class="speaker-emerge">
+      <div class="moment-time">1:30 p.m.</div>
+      <div class="moment-speaker" style="margin-top:12px">Professor Elias Thorne</div>
+      <div class="moment-note" style="margin-top:20px">The room had just seen what he was about to analyse, from the ground, before the expert interpretation arrived.</div>
+      <div class="post-activity">After the keynote, an opt-in commitment with real stakes: name a target you can't quietly walk back, publish a number you've been rounding, or pledge a change your board hasn't signed off yet. The brief is the same for everyone. What you're willing to put on the line is not.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S10 THREE TRACKS ═══ -->
+<section class="sc sc-bg" id="S10" aria-label="2:15 p.m., three simultaneous tracks">
+  <div class="time-badge">2:15 p.m., Three Tracks Running at Once</div>
+  <div class="tracks-container">
+    <div class="track track-panel">
+      <div class="track-label">Main Hall</div>
+      <h3>AI &amp; the Climate Claim</h3>
+      <p>Draft a "climate-neutral" claim with a live model, then see which are now illegal.</p>
+      <button class="track-cta" data-done="Checked in ✓" onclick="trackCta(this)">Check in</button>
+    </div>
+    <div class="track track-quiet" id="quietRoom" role="button" tabindex="0">
+      <div class="track-label">The Quiet Room</div>
+      <h3>The Quiet Room</h3>
+      <p>Low light. No task. A place to sit with the day so far.</p>
+      <span class="quiet-tap-hint">Tap to dim the lights</span>
+    </div>
+    <div class="track track-network">
+      <div class="track-label">Networking</div>
+      <h3>Connecting Networks</h3>
+      <p>Each table opens with a question from the communities you affect.</p>
+      <button class="track-cta" data-done="You're on the list ✓" onclick="trackCta(this)">Join the list</button>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ═══ S12 CLOSING ═══ -->
+<section class="sc sc-bg" id="S12" aria-label="4:15 p.m., closing">
+  <div class="closing-scene" id="closingScene">
+    <div class="closing-center">
+      <div class="moment-time">4:15 p.m.</div>
+      <div class="moment-speaker">Professor Hannah Osei</div>
+      <div class="moment-note" style="margin-top:12px">The collage was displayed at the front. The room produced these today.</div>
+      <div class="closing-final">The summit closed by naming the communities whose voices ran through the day, and asking what their absence from most boardrooms actually costs.</div>
+      <div class="closing-monday">What happens on Monday?</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ S13 CARD ON CHAIR ═══ -->
+<section class="sc sc-bg" id="S13" aria-label="the card on the chair">
+  <div class="particles" id="cardParticles"></div>
+  <div class="card-flip-container" tabindex="0" role="button" aria-label="card on your chair, press enter or click to flip" id="flipCard">
+    <div class="card-inner">
+      <div class="card-front">
+        <div class="card-commitment-label">Your Monday Commitment</div>
+        <div class="card-q">What is one thing you'll try, change, or refuse to keep pretending about in the next two weeks, however small?</div>
+        <textarea placeholder="Write here, or don't." aria-label="your response"></textarea>
+        <div class="card-sub">Take it with you or leave it on the table.</div>
+        <button class="card-flip-btn" onclick="flipToGarden(event)">To the garden &rarr;</button>
+      </div>
+      <div class="card-back">
+        <div class="card-back-label">Garden Party</div>
+        <div class="card-back-time">4:30 p.m. · The Garden</div>
+        <div class="card-back-body">If you want to stay in touch with people from today, your badge QR opens a simple directory in one week.</div>
+        <div class="card-flip-hint">Click to turn back</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING: THE REPORT -->
+<section class="sc" id="S15" aria-label="after the day, the report">
+  <div class="report-scene">
+    <div class="particles" id="finalParticles"></div>
+    <div class="report-inner">
+      <img class="report-phone" src="./coact-report.png" alt="The CoAct summit report">
+      <div class="report-text">
+        <div class="report-eyebrow">One week later</div>
+        <h2>The whole room, in your pocket</h2>
+        <p>Every attendee receives a report of everything Ground Truth produced: the question wall, the collage, the community voices, who was there, and what the room said, heard, and chose to keep.</p>
+        <div class="report-hook">This is the kind of day we design.</div>
+        <a href="/conferences" class="cta-btn cta-primary">&larr; Back to conferences</a>
+        <div class="report-fine">Ground Truth 2026 and CoAct are a fictional example.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ DOCK (unified control bar) ═══ -->
 <nav id="nav" aria-label="screen navigation">
-  <button class="n-btn" id="btnP" onclick="go(cur-1)" aria-label="previous">&larr; back</button>
-  <span class="n-label" id="nLabel"></span>
-  <button class="n-btn" id="btnN" onclick="go(cur+1)" aria-label="next">next &rarr;</button>
+  <button class="n-btn n-prev" id="btnP" onclick="go(cur-1)" aria-label="previous screen">
+    <span class="n-arrow">&larr;</span><span class="n-btn-label">Back</span>
+  </button>
+  <button class="dock-center" id="dockCenter" aria-haspopup="true" aria-expanded="false" aria-controls="agenda-card" aria-label="show the day's agenda">
+    <span class="dock-agenda-label">Agenda</span>
+    <span class="dock-caret" aria-hidden="true">&#9650;</span>
+    <span class="n-time" id="nTime" style="display:none"></span>
+    <span class="n-label" id="nLabel" style="display:none"></span>
+  </button>
+  <button class="n-btn n-why" id="narrator-toggle" aria-pressed="true" aria-label="toggle context panel">
+    <span class="eye-icon">&#9432;</span><span class="n-btn-label">Context</span>
+  </button>
+  <button class="n-btn n-next" id="btnN" onclick="go(cur+1)" aria-label="next screen">
+    <span class="n-btn-label">Next</span><span class="n-arrow">&rarr;</span>
+  </button>
 </nav>
 
 <script>
-/* ── Narrator data ── */
-var NARRATOR = [
-  null,
-  {label:'design decision · arrival', body:'most conferences start with logistics. this one starts with a question — already live when people walk in. arrival becomes the first act of participation, not a waiting room.'},
-  {label:'design decision · keynote', body:'the speaker prepares a talk. but the opening question comes from the wall. research follows the room\'s own language. the audience writes a sentence mid-talk. five are read aloud. the speaker and the room are in dialogue from the first minute.'},
-  {label:'design decision · break', body:'breaks are usually undesigned. this one places four perspectives on a single question around a table. people who would not naturally sit together do. the friction is the point — it surfaces assumptions before the afternoon.'},
-  {label:'design decision · sessions', body:'offering a quiet room is not a concession — it is an acknowledgement that people process differently. three formats running simultaneously means no one track is the "right" one to attend. the day validates more than one way of being present.'},
-  {label:'design decision · close', body:'the card on the chair closes a loop opened at the start of the day. the collage at the front is what the room produced — not what the speakers said. the conference ends by showing the participants to themselves.'},
-  null,
+/* ── META ── */
+const META = [
+  { t:'', l:'Ground Truth 2026', nav:false },
+  { t:'', l:'Before the Day' },
+  { t:'9:00 a.m.', l:'The Question Wall' },
+  { t:'9:40 a.m.', l:'Marcus Feld · Keynote' },
+  { t:'10:10 a.m.', l:'The Makers Tables' },
+  { t:'10:40 a.m.', l:'The Refraction Tables' },
+  { t:'11:10 a.m.', l:'Dr Sofia Reyes' },
+  { t:'11:45 a.m.', l:'Choose Your Room' },
+  { t:'12:25 p.m.', l:'The Collage' },
+  { t:'1:30 p.m.', l:'The Unflinching Cut' },
+  { t:'2:15 p.m.', l:'Three Tracks' },
+  { t:'4:15 p.m.', l:'Closing · Professor Osei' },
+  { t:'', l:'The Card on the Chair' },
+  { t:'', l:'After the Day', nav:false },
 ];
 
-var narratorVisible = true;
-var narratorToggle = document.getElementById('narrator-toggle');
-var narratorOverlay = document.getElementById('narrator-overlay');
-var narratorLabel = document.getElementById('narratorLabel');
-var narratorBody = document.getElementById('narratorBody');
+/* ── NARRATOR TEXT ── */
+const NARRATOR = [
+  {scene:'Cover', text:"Ground Truth is CoAct's annual summit for corporate climate leaders. CoAct is a collaborative impact consultancy, it advises on climate strategy and refuses greenwashing and performative CSR. The day is designed to say the same thing the work does: substance over story."},
+  {scene:'Before the Day', text:"Two weeks out, every attendee receives a question to sit with, a note on how the day is built, and a companion app linked to their badge QR, threading the digital layer through the whole day."},
+  {scene:'The Question Wall', text:"The wall fills in real time. It opens with the hardest question in the field: what did your last report leave out? By 09:30 it holds sixty or seventy admissions. It stays up all day."},
+  {scene:'Marcus Feld · Keynote', text:"A week before, the CSO's team is handed three lines from the wall, written by people who live beside the company's operations. His keynote opens with those quotes. Thirty seconds of silence. Then he answers each as if the person were in the room. Afterwards, attendees write: the target I'd set if I lived downwind. The room hears its own conscience alongside the plan."},
+  {scene:'The Makers Tables', text:"Scattered through the day are the makers tables. Teams stack the pieces of a plan, ambition, cost, evidence, dependency, risk, and watch how it balances. Load one side too heavily and it tips. Nothing is graded. The point is to feel the trade-offs, not to reach a single right answer."},
+  {scene:'The Refraction Tables', text:"Two table formats over refreshments. At some tables, people from outside the field describe what they actually see in your climate plan: the gap between the claim and the reality, reflected back. At others, people who fundamentally disagree are seated together on a timer, to work the tension rather than smooth it away."},
+  {scene:'Dr Sofia Reyes', text:"The emissions data appears not alone but as counterpoint, the community's testimony running alongside the findings, so the audience holds the number and the human cost at once."},
+  {scene:'Choose Your Room', text:"Both sessions run at the same time. Coalitions for policy change, or the just transition and the workers left out. Both rooms are the right room."},
+  {scene:'The Collage', text:"A collage station runs through lunch. Add something from this morning that's still with you, a phrase, a figure, an admission. It grows through the break. It's displayed at the close."},
+  {scene:'The Unflinching Cut', text:"The session opens with thirty seconds of unedited footage from a community living with the cost. No framing. The room sees what the expert is about to analyse, from the ground, before the interpretation arrives. Then an opt-in commitment with real stakes."},
+  {scene:'Three Tracks', text:"Three things at once. The AI panel, the room drafts 'climate-neutral' claims with a live model, then sees which would now be illegal. The quiet room, low light, no task. And connecting transition networks, where each table opens with a question from affected communities. Some need noise to process. Some need stillness. Both are legitimate."},
+  {scene:'Closing', text:"The collage is displayed at the front. The room produced these today. The summit closes by naming the communities whose voices ran through the day, and asking what their absence from most boardrooms costs."},
+  {scene:'The Card', text:"On every chair: a card. A question to take with you. The garden party invitation is on the back."},
+  {scene:'After the Day', text:"One week later, the badge QR resolves to this: what the room produced, who was there, and the community voices that ran through the day. The work doesn't end when people leave the building."},
+];
 
-narratorToggle.addEventListener('click', function() {
-  narratorVisible = !narratorVisible;
-  narratorOverlay.classList.toggle('hidden', !narratorVisible);
-  narratorToggle.setAttribute('aria-pressed', narratorVisible);
-  narratorToggle.textContent = (narratorVisible ? '◉' : '○') + ' narrator';
+/* ── AGENDA ── */
+const AGENDA = [
+  {time:'08:30', label:'Arrival', screen:2},
+  {time:'09:00', label:'Registration & the Question Wall', screen:2},
+  {time:'09:40', label:'Marcus Feld · Keynote', screen:3},
+  {time:'10:10', label:'The Makers Tables', screen:4},
+  {time:'10:40', label:'The Refraction Tables', screen:5},
+  {time:'11:10', label:'Dr Sofia Reyes · Keynote', screen:6},
+  {time:'12:25', label:'Lunch & the Collage', screen:8},
+  {time:'13:30', label:'Professor Thorne & the Unflinching Cut', screen:9},
+  {time:'14:15', label:'Three Tracks', screen:10},
+  {time:'16:15', label:'Professor Osei · Closing', screen:11},
+  {time:'16:30', label:'Garden Party', screen:12},
+];
+
+const screens = document.querySelectorAll('.sc');
+const nav = document.getElementById('nav');
+const nTime = document.getElementById('nTime');
+const nLabel = document.getElementById('nLabel');
+const btnP = document.getElementById('btnP');
+const btnN = document.getElementById('btnN');
+const prog = document.getElementById('progress');
+const narratorToggle = document.getElementById('narrator-toggle');
+const narratorOverlay = document.getElementById('narrator-overlay');
+const narratorScene = document.getElementById('narratorScene');
+const narratorText = document.getElementById('narratorText');
+const agendaCard = document.getElementById('agenda-card');
+const agendaList = document.getElementById('agendaList');
+const agendaToggle = document.getElementById('agendaToggle');
+const dockCenter = document.getElementById('dockCenter');
+const brandMark = document.getElementById('brandMark');
+const LIGHT_SCREENS = new Set([]);
+function updateBrand(i) {
+  if (!brandMark) return;
+  if (i === 0) { brandMark.classList.remove('show'); return; }
+  brandMark.src = LIGHT_SCREENS.has(i) ? './coact-mark-dark.png' : './coact-mark-light.png';
+  brandMark.classList.add('show');
+}
+let cur = 0;
+let transitioning = false;
+let narratorOn = false;
+narratorToggle.setAttribute('aria-pressed', narratorOn);
+if (!narratorOn) narratorOverlay.setAttribute('aria-hidden', 'true');
+
+/* ── Build agenda ── */
+function buildAgenda() {
+  agendaList.innerHTML = '';
+  AGENDA.forEach((a, i) => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'agenda-item';
+    btn.setAttribute('tabindex', '0');
+    btn.innerHTML =
+      '<span class="agenda-dot"></span>' +
+      '<span class="agenda-time">' + a.time + '</span>' +
+      '<span class="agenda-label">' + a.label + '</span>' +
+      '<span class="paul-avatar">P</span>';
+    btn.addEventListener('click', function() { go(a.screen); });
+    li.appendChild(btn);
+    agendaList.appendChild(li);
+  });
+}
+buildAgenda();
+
+/* ── Agenda popover open/close (driven from the dock) ── */
+function setAgendaOpen(open) {
+  agendaCard.classList.toggle('open', open);
+  nav.classList.toggle('agenda-open', open);
+  dockCenter.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) updateAgenda();
+}
+dockCenter.addEventListener('click', function(e) {
+  e.stopPropagation();
+  setAgendaOpen(!agendaCard.classList.contains('open'));
+});
+agendaToggle.addEventListener('click', function(e) {
+  e.stopPropagation();
+  setAgendaOpen(false);
+});
+/* close popover when clicking outside it or the dock trigger */
+document.addEventListener('click', function(e) {
+  if (agendaCard.classList.contains('open') &&
+      !agendaCard.contains(e.target) && !dockCenter.contains(e.target)) {
+    setAgendaOpen(false);
+  }
 });
 
-function updateNarrator(i) {
-  var n = NARRATOR[i];
-  if (!n) {
+function updateAgenda() {
+  const currentAgendaIdx = findCurrentAgendaIdx();
+  const items = agendaList.querySelectorAll('.agenda-item');
+  items.forEach((item, i) => {
+    item.classList.remove('done', 'current');
+    if (AGENDA[i].screen < cur) item.classList.add('done');
+    else if (i === currentAgendaIdx) item.classList.add('current');
+  });
+  // agenda unavailable on cover + closing CTA
+  if (cur === 0 || cur === 13) {
+    agendaCard.setAttribute('aria-hidden', 'true');
+    if (agendaCard.classList.contains('open')) setAgendaOpen(false);
+  } else {
+    agendaCard.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function findCurrentAgendaIdx() {
+  let best = 0;
+  for (let i = AGENDA.length - 1; i >= 0; i--) {
+    if (AGENDA[i].screen <= cur) { best = i; break; }
+  }
+  return best;
+}
+
+/* ── Narrator ── */
+function updateNarrator() {
+  const n = NARRATOR[cur];
+  if (!n || !narratorOn) {
     narratorOverlay.classList.add('hidden');
     return;
   }
-  narratorLabel.textContent = n.label;
-  narratorBody.textContent = n.body;
-  if (narratorVisible) narratorOverlay.classList.remove('hidden');
+  narratorScene.textContent = n.scene;
+  narratorText.textContent = n.text;
+  narratorOverlay.classList.remove('hidden');
 }
 
-var screens = document.querySelectorAll('.sc');
-var nav = document.getElementById('nav');
-var nLabel = document.getElementById('nLabel');
-var btnP = document.getElementById('btnP');
-var btnN = document.getElementById('btnN');
-var prog = document.getElementById('progress');
-var cur = 0;
-var transitioning = false;
+narratorToggle.addEventListener('click', function() {
+  narratorOn = !narratorOn;
+  narratorToggle.setAttribute('aria-pressed', narratorOn);
+  updateNarrator();
+});
 
-var LABELS = [
-  null,
-  'arrival — the question wall',
-  'keynote — the speaker responds',
-  'break — structured collision',
-  'sessions — three formats',
-  'close — the card on the chair',
-  null,
-];
-
-var TRANS = { 0:'fade', 6:'fade' };
-
+/* ── GO ── */
 function go(i) {
   if (i < 0 || i >= screens.length || i === cur || transitioning) return;
   transitioning = true;
-  var forward = i > cur;
-  var prev = screens[cur];
-  var next = screens[i];
+  const forward = i > cur;
+  const prev = screens[cur];
+  const next = screens[i];
 
-  var trans = TRANS[i] || (forward ? 'right' : 'left');
   prev.classList.remove('active');
-  prev.classList.add(TRANS[cur] === 'fade' ? 'exit-fade' : (forward ? 'exit-left' : 'exit-right'));
+  prev.classList.add(forward ? 'exit-left' : 'exit-right');
 
-  next.classList.add('enter-' + trans);
+  next.classList.add(forward ? 'enter-right' : 'enter-left');
   next.offsetHeight;
-  next.classList.remove('enter-' + trans);
+  next.classList.remove('enter-right', 'enter-left');
   next.classList.add('active');
 
   cur = i;
-  prog.style.width = (i / (screens.length - 1) * 100) + '%';
-  updateNarrator(i);
-
-  if (i === 0 || i === 6) {
-    nav.style.display = 'none';
-  } else {
-    nav.style.display = 'flex';
-    nLabel.textContent = LABELS[i] || '';
-  }
+  const m = META[i];
+  if (m.nav === false) { nav.style.display = 'none'; }
+  else { nav.style.display = 'flex'; nTime.textContent = m.t; nLabel.textContent = m.l; }
   btnP.disabled = i === 0;
   btnN.disabled = i === screens.length - 1;
+  prog.style.width = (i / (screens.length - 1) * 100) + '%';
 
-  if (i === 1 && !wallInit) initWall();
-  if (i === 2 && !keynoteInit) initKeynote();
-  if (i === 3 && !tableInit) initTable();
-  if (i === 5 && !collageInit) initCollage();
+  if (i === 2) initWall();
+  if (i === 3) initMorgan();
+  if (i === 4) initBench();
+  if (i === 5) initTable();
+  if (i === 6) initDraper();
+  if (i === 8) initCollage();
+  if (i === 11) initClosing();
 
-  setTimeout(function() {
-    prev.classList.remove('exit-left','exit-right','exit-fade');
-    transitioning = false;
-  }, 650);
+  setAgendaOpen(false);
+  updateBrand(i);
+  updateNarrator();
+  updateAgenda();
+
+  setTimeout(function() { prev.classList.remove('exit-left', 'exit-right'); transitioning = false; }, 800);
 }
 
+/* ── Keyboard nav ── */
 document.addEventListener('keydown', function(e) {
   if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
   if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur + 1); }
   if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'n' || e.key === 'N') {
+    narratorOn = !narratorOn;
+    narratorToggle.setAttribute('aria-pressed', narratorOn);
+    updateNarrator();
+  }
 });
 
-/* ── Particles ── */
-function spawnParticles(container, count, color) {
+/* ── Touch nav (disabled, navigation via buttons only) ── */
+
+/* ── Card flip ── */
+var flipCard = document.getElementById('flipCard');
+function flipToGarden(e) { if (e) e.stopPropagation(); document.getElementById('flipCard').classList.add('flipped'); }
+flipCard.addEventListener('click', function(e) {
+  if (e.target.tagName === 'TEXTAREA') return;
+  this.classList.toggle('flipped');
+});
+flipCard.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    this.classList.toggle('flipped');
+  }
+});
+
+/* ── Touch-aware text swaps ── */
+var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+if (isTouch) {
+  flipCard.setAttribute('aria-label', 'card on your chair, tap to flip');
+  document.querySelectorAll('.card-flip-hint').forEach(function(el) {
+    el.textContent = el.textContent.replace('click', 'tap');
+  });
+  var collagePaper = document.querySelector('.collage-paper textarea');
+  if (collagePaper) collagePaper.placeholder = 'something from this morning that is still with you...';
+}
+
+/* ── PARTICLES ── */
+function spawnParticles(container, count, opts) {
   for (var i = 0; i < count; i++) {
     var p = document.createElement('div');
     p.className = 'particle';
-    var size = 2 + Math.random() * 4;
+    var size = opts.minSize + Math.random() * (opts.maxSize - opts.minSize);
     p.style.width = size + 'px'; p.style.height = size + 'px';
     p.style.left = Math.random() * 100 + '%';
     p.style.top = (40 + Math.random() * 60) + '%';
-    p.style.background = color;
-    p.style.setProperty('--po', (0.1 + Math.random() * 0.2).toString());
-    p.style.setProperty('--py', -(80 + Math.random() * 200) + 'px');
-    p.style.setProperty('--px', (Math.random() * 40 - 20) + 'px');
-    p.style.animationDuration = (10 + Math.random() * 12) + 's';
-    p.style.animationDelay = (Math.random() * 8) + 's';
+    p.style.background = opts.color || 'rgba(177,135,67,0.3)';
+    if (opts.blur) {
+      p.style.filter = 'blur(' + (1 + Math.random() * 2.5) + 'px)';
+      p.style.boxShadow = '0 0 10px ' + (opts.glow || 'rgba(255,244,214,0.55)');
+    }
+    p.style.setProperty('--po', ((opts.blur ? 0.35 : 0.1) + Math.random() * 0.3).toString());
+    p.style.setProperty('--py', -(100 + Math.random() * 300) + 'px');
+    p.style.setProperty('--px', (Math.random() * 60 - 30) + 'px');
+    p.style.animationDuration = (8 + Math.random() * 12) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
     container.appendChild(p);
   }
 }
-spawnParticles(document.getElementById('coverParticles'), 16, 'rgba(234,86,33,0.25)');
-spawnParticles(document.getElementById('ctaParticles'), 12, 'rgba(234,86,33,0.15)');
+spawnParticles(document.getElementById('coverParticles'), 30, { minSize: 4, maxSize: 13, color: 'rgba(255,244,214,0.6)', glow: 'rgba(255,240,200,0.5)', blur: true });
+spawnParticles(document.getElementById('finalParticles'), 18, { minSize: 3, maxSize: 8, color: 'rgba(255,244,214,0.45)', glow: 'rgba(255,240,200,0.4)', blur: true });
+function spawnFireflies(container, count) {
+  if (!container) return;
+  for (var i = 0; i < count; i++) {
+    var f = document.createElement('div');
+    f.className = 'firefly';
+    var sz = 3 + Math.random() * 3;
+    f.style.width = sz + 'px'; f.style.height = sz + 'px';
+    f.style.left = Math.random() * 100 + '%';
+    f.style.top = (15 + Math.random() * 75) + '%';
+    f.style.setProperty('--fx', (Math.random() * 80 - 40) + 'px');
+    f.style.setProperty('--fy', -(40 + Math.random() * 90) + 'px');
+    f.style.animationDuration = (14 + Math.random() * 12) + 's, ' + (1.8 + Math.random() * 2.6) + 's';
+    f.style.animationDelay = (Math.random() * 6) + 's, ' + (Math.random() * 3) + 's';
+    container.appendChild(f);
+  }
+}
+spawnFireflies(document.getElementById('cardParticles'), 18);
 
-/* ── S1 Question wall ── */
+/* ── QUESTION WALL ── */
 var WALL_CARDS = [
-  {t:"it's a PDF the students download.", c:false, a:"primary teacher"},
-  {t:"genuinely open means the learner has agency.", c:false, a:"learning designer"},
-  {t:"open as in free? or open as in participatory?", c:false, a:"attendee"},
-  {t:"our LMS locks everything down. open is aspirational.", c:false, a:"HE lecturer"},
-  {t:"I didn't know I could just stop and ask a question.", c:true, a:"age 9"},
-  {t:"the best bit was when we made something.", c:true, a:"age 11"},
-  {t:"I don't know if open is a tool or a philosophy.", c:false, a:"researcher"},
-  {t:"I pretended to understand for three weeks.", c:true, a:"age 14"},
-  {t:"teacher confidence matters more than the tool.", c:false, a:"instructional designer"},
-  {t:"I learned more from my group than from the slides.", c:true, a:"age 22"},
-  {t:"proximity to a device doesn't predict learning.", c:false, a:"researcher"},
-  {t:"the children decide what counts as done.", c:false, a:"primary educator"},
+  {t:"We hit our target by selling the dirty division, not cleaning it.", c:false, a:"sustainability lead"},
+  {t:"You measured the emissions. You never measured us.", c:true, a:"resident, Halden"},
+  {t:"Our 'net zero' has a footnote nobody reads.", c:false, a:"head of ESG"},
+  {t:"The offset forest burned down in 2023. The claim didn't change.", c:false, a:"carbon analyst"},
+  {t:"We measure what's easy, then call it materiality.", c:false, a:"reporting manager"},
+  {t:"The plant got greener. Our air didn't.", c:true, a:"resident"},
+  {t:"Marketing signed off the claim before science saw the data.", c:false, a:"climate scientist"},
+  {t:"Scope 3 is 90% of us. It's the 10% we publish.", c:false, a:"supply chain lead"},
+  {t:"The board wants credit for the transition and none of the cost.", c:false, a:"chief sustainability officer"},
+  {t:"We rebranded the same plan three times and called it ambition.", c:false, a:"comms director"},
+  {t:"You planted trees where our homes used to be.", c:true, a:"displaced resident"},
+  {t:"Say the quiet part in the annual report.", c:true, a:"local councillor"},
 ];
+function arrangeNotes(s, cards, cap) {
+  var W = s.offsetWidth, H = s.offsetHeight, cx = W/2;
+  var cardW = 200, cardH = 132, margin = 40, topM = 112, botM = 96;
+  var circleR = Math.min(160, H*0.22) + 54;
+  var list = cards.slice(0, cap);
+  var cols = [
+    { x0: margin, x1: Math.max(margin, cx - circleR - cardW) },
+    { x0: cx + circleR, x1: Math.max(cx + circleR, W - margin - cardW) }
+  ];
+  var groups = [[], []];
+  list.forEach(function(c, i){ groups[i % 2].push({ c: c, gi: i }); });
+  var out = [];
+  groups.forEach(function(g, ci){
+    var col = cols[ci], n = g.length || 1;
+    var slot = (H - topM - botM) / n;
+    var freeY = Math.max(0, slot - cardH);
+    var xr = Math.max(0, col.x1 - col.x0);
+    g.forEach(function(it, j){
+      var y = topM + slot * j + Math.random() * freeY;
+      var x = col.x0 + Math.random() * xr;
+      out.push({ x: Math.round(x), y: Math.round(y), r: (Math.random()*7 - 3.5), c: it.c, gi: it.gi });
+    });
+  });
+  return out;
+}
 var wallInit = false;
 function initWall() {
-  wallInit = true;
+  if (wallInit) return; wallInit = true;
   var s = document.getElementById('wallSurface');
-  var W = s.offsetWidth, H = s.offsetHeight;
-  var cols = Math.max(2, Math.floor(W / 190));
-  WALL_CARDS.forEach(function(card, i) {
-    var col = i % cols, row = Math.floor(i / cols);
+  arrangeNotes(s, WALL_CARDS, 8).forEach(function(p) {
     var el = document.createElement('div');
-    el.className = 'wc' + (card.c ? ' child' : '');
-    el.style.left = (col * (W / cols) + 10 + Math.random() * 16) + 'px';
-    el.style.top = (8 + row * 130 + Math.random() * 20) + 'px';
-    el.style.setProperty('--d', (i * 0.12) + 's');
-    el.style.setProperty('--r', (Math.random() * 5 - 2.5) + 'deg');
-    el.innerHTML = card.t + '<div class="wc-attr">— ' + card.a + '</div>';
+    el.className = 'wc' + (p.c.c ? ' child' : '');
+    el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+    el.style.setProperty('--d', (p.gi * 0.09) + 's');
+    el.style.setProperty('--r', p.r + 'deg');
+    el.innerHTML = p.c.t + '<div class="wc-attr">' + p.c.a + '</div>';
     s.appendChild(el);
   });
-  setTimeout(function() {
-    var q = document.getElementById('wallQ');
-    if (q) { q.style.fontSize = '12px'; q.style.padding = '6px 14px'; q.style.opacity = '0.8'; }
-  }, 3000);
 }
 function addToWall() {
   var inp = document.getElementById('wallIn');
   var t = inp.value.trim(); if (!t) return;
   var s = document.getElementById('wallSurface');
+  var W = s.offsetWidth, H = s.offsetHeight;
+  var cx = W/2, cy = H/2, exRx = W*0.24, exRy = H*0.34, cardW = 180, cardH = 110;
+  var existing = s.querySelectorAll('.wc');
+  function bad(x, y) {
+    if (Math.pow((x+cardW/2-cx)/exRx,2) + Math.pow((y+cardH/2-cy)/exRy,2) < 1) return true;
+    if ((y+cardH/2) > cy + 40) return true;
+    for (var k = 0; k < existing.length; k++) {
+      var ex = parseFloat(existing[k].style.left), ey = parseFloat(existing[k].style.top);
+      if (!isNaN(ex) && Math.abs(x-ex) < cardW*0.9 && Math.abs(y-ey) < cardH*0.85) return true;
+    }
+    return false;
+  }
+  var x, y, tries = 0;
+  do { x = Math.max(28, Math.min(W-cardW-28, cx - cardW/2 + (Math.random()-0.5)*W*0.82)); y = Math.max(78, Math.min(H-cardH-16, cy - cardH/2 + (Math.random()-0.5)*H*0.78)); tries++; } while (tries < 200 && bad(x, y));
   var el = document.createElement('div');
-  el.className = 'wc';
-  el.style.left = (10 + Math.random() * 55) + '%';
-  el.style.top = (10 + Math.random() * 45) + '%';
-  el.style.setProperty('--d', '0s');
-  el.style.setProperty('--r', (Math.random() * 5 - 2.5) + 'deg');
-  el.style.zIndex = '10';
-  el.innerHTML = t + '<div class="wc-attr">— you</div>';
+  el.className = 'wc you';
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  el.style.setProperty('--d', '0s'); el.style.setProperty('--r', '0deg');
+  el.style.zIndex = '30';
+  el.innerHTML = t + '<div class="wc-attr">you</div>';
   s.appendChild(el);
   inp.value = '';
 }
@@ -810,106 +1758,243 @@ document.getElementById('wallIn').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addToWall(); }
 });
 
-/* ── S2 Ghost cards ── */
-var keynoteInit = false;
-function initKeynote() {
-  keynoteInit = true;
-  var scene = document.getElementById('keynoteSide');
-  var ghosts = [
-    "60% of edtech tools used < 3 months",
-    "learner agency increases retention 2×",
-    "most platforms designed for delivery, not learning",
-    "open licensing ≠ open pedagogy",
-    "teacher confidence > tool sophistication",
-    "proximity to a device ≠ learning outcomes",
-    "failure is data",
-    "design with, not for",
-  ];
+/* ── MORGAN ── */
+var morganInit = false;
+function initMorgan() {
+  if (morganInit) return; morganInit = true;
+  var scene = document.getElementById('morganScene');
+  var ghosts = [];
   var positions = [
-    {left:'2%',top:'8%',r:'-2deg'},{right:'2%',top:'14%',r:'1.5deg'},
-    {left:'1%',top:'42%',r:'-1deg'},{right:'1%',top:'55%',r:'2.5deg'},
-    {left:'4%',bottom:'18%',r:'-2.5deg'},{right:'3%',bottom:'22%',r:'1deg'},
-    {left:'55%',top:'4%',r:'1deg'},{right:'28%',bottom:'8%',r:'-1deg'},
+    {left:'5%',top:'8%',r:'-2deg'}, {right:'8%',top:'12%',r:'1deg'},
+    {left:'3%',top:'40%',r:'-1deg'}, {right:'4%',top:'55%',r:'3deg'},
+    {left:'10%',bottom:'20%',r:'-3deg'}, {right:'12%',bottom:'25%',r:'2deg'},
+    {left:'60%',top:'5%',r:'1deg'}, {right:'30%',bottom:'10%',r:'-1deg'},
+    {left:'25%',bottom:'8%',r:'2deg'},
   ];
   ghosts.forEach(function(g, i) {
     var el = document.createElement('div');
     el.className = 'ghost-card';
     el.textContent = g;
-    el.style.setProperty('--r', positions[i].r);
+    el.style.animationDelay = (0.4 + i * 0.22) + 's';
     Object.keys(positions[i]).forEach(function(k) { if (k !== 'r') el.style[k] = positions[i][k]; });
     scene.insertBefore(el, scene.firstChild);
   });
 }
 
-/* ── S3 Table lenses ── */
+/* ── MAKING SPACE ── */
+var benchInit = false;
+function initBench() {
+  if (benchInit) return; benchInit = true;
+  var field = document.getElementById('mkField');
+  if (!field) return;
+  var W = field.offsetWidth, H = field.offsetHeight, cx = W / 2, zTop = 60;
+  var stones = [
+    {label:'Evidence',   w:334, h:80, grad:'#ccc5b7,#9a927f', br:'49% 51% 48% 52%/58% 60% 42% 40%', dx:0},
+    {label:'Cost',       w:284, h:68, grad:'#c4bfb2,#9d9486', br:'51% 49% 53% 47%/60% 57% 43% 40%', dx:-16},
+    {label:'Ambition',   w:304, h:76, grad:'#d1cabb,#aba291', br:'48% 52% 46% 54%/56% 58% 44% 42%', dx:18},
+    {label:'Dependency', w:216, h:58, grad:'#c8c2b5,#a49b8b', br:'50% 50% 47% 53%/58% 60% 42% 40%', dx:-20},
+    {label:'Risk',       w:152, h:50, grad:'#dad4c9,#b7afa1', br:'52% 48% 55% 45%/62% 60% 40% 42%', dx:24}
+  ];
+  var margin = 40, sumW = 0;
+  stones.forEach(function(st){ sumW += st.w; });
+  var gap = Math.max(-24, Math.min(46, (W - margin * 2 - sumW) / (stones.length - 1)));
+  var x = cx - (sumW + gap * (stones.length - 1)) / 2, baseY = H * 0.76;
+  stones.forEach(function(st, i) {
+    var left = x, top = baseY - st.h + Math.round(Math.random() * 26 - 12);
+    var el = document.createElement('div');
+    el.className = 'mk-shape';
+    el.innerHTML = '<span>' + st.label + '</span>';
+    el.style.cssText = 'width:' + st.w + 'px;height:' + st.h + 'px;left:' + Math.round(left) + 'px;top:' + Math.round(top) + 'px;border-radius:' + st.br + ';background:linear-gradient(158deg,' + st.grad + ');z-index:' + (i + 1) + ';';
+    el.style.setProperty('--w', (1.1 + Math.random() * 1.5).toFixed(2) + 'deg');
+    el.style.setProperty('--dur', (4.4 + Math.random() * 2.2).toFixed(1) + 's');
+    el.style.animationDelay = (Math.random() * 2.5).toFixed(1) + 's';
+    field.appendChild(el);
+    makeDraggable(el);
+    var raise = function() { el.style.zIndex = (++zTop); };
+    el.addEventListener('mousedown', raise);
+    el.addEventListener('touchstart', raise, {passive:true});
+    x += st.w + gap;
+  });
+}
+function makeDraggable(el) {
+  var ox, oy;
+  var down = function(ex, ey) { el.classList.add('dragging'); var r = el.getBoundingClientRect(); ox = ex - r.left; oy = ey - r.top; };
+  var move = function(ex, ey) { if (!el.classList.contains('dragging')) return; el.style.left = (ex - ox) + 'px'; el.style.top = (ey - oy) + 'px'; el.style.transform = 'rotate(0deg)'; };
+  var up = function() { el.classList.remove('dragging'); };
+  el.addEventListener('mousedown', function(e) { e.preventDefault(); down(e.clientX, e.clientY); });
+  document.addEventListener('mousemove', function(e) { move(e.clientX, e.clientY); });
+  document.addEventListener('mouseup', up);
+  el.addEventListener('touchstart', function(e) { var t = e.touches[0]; down(t.clientX, t.clientY); }, {passive:true});
+  document.addEventListener('touchmove', function(e) { if (el.classList.contains('dragging')) { var t = e.touches[0]; move(t.clientX, t.clientY); } }, {passive:true});
+  document.addEventListener('touchend', up);
+}
+
+/* ── HALL OF MIRRORS ── */
 var tableInit = false;
 function initTable() {
-  tableInit = true;
+  if (tableInit) return; tableInit = true;
   var scene = document.getElementById('tableScene');
   var lenses = [
-    {role:'student', text:"I want to know why we're doing this before I do it. the platform never explains that."},
-    {role:'teacher', text:"open tools scare me because I can't control what students find. that's actually the point."},
-    {role:'institution', text:"we procure for compliance, not for learning. it's the wrong metric."},
-    {role:'community', text:'the best learning happens in WhatsApp groups at 11pm. not on the VLE.'},
+    {role:'auditor', text:"A pledge without a number isn't a commitment.", color:'#6f9a1e'},
+    {role:'epidemiologist', text:'You track emissions. We feel the health curve.', color:'#8c9016'},
+    {role:'structural engineer', text:'A plan is only as strong as its hidden assumption.', color:'#b18743'},
+    {role:'documentary maker', text:'Whose face never appears in your strategy?', color:'#5e3a2e'},
   ];
-  var pos = [{left:'4%',top:'10%'},{right:'4%',top:'15%'},{left:'2%',bottom:'20%'},{right:'2%',bottom:'18%'}];
+  var pos = [{x:-248,y:0},{x:248,y:0},{x:-150,y:-198},{x:150,y:-198}];
   lenses.forEach(function(l, i) {
     var el = document.createElement('div');
     el.className = 'table-lens';
+    el.style.background = l.color;
+    el.style.left = 'calc(50% + ' + pos[i].x + 'px)';
+    el.style.top = 'calc(50% + ' + pos[i].y + 'px)';
     el.style.animationDelay = (0.6 + i * 0.5) + 's';
-    Object.assign(el.style, pos[i]);
     el.innerHTML = '<div class="lens-role">' + l.role + '</div><div class="lens-text">' + l.text + '</div>';
     scene.appendChild(el);
   });
 }
 
-/* ── S4 Quiet room dim ── */
-document.getElementById('quietRoom').addEventListener('click', function() {
-  document.getElementById('S4').classList.toggle('quiet-dimmed');
-});
-document.getElementById('quietRoom').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('S4').classList.toggle('quiet-dimmed'); }
-});
-
-/* ── S5 Collage tags + card flip ── */
-var collageInit = false;
-function initCollage() {
-  collageInit = true;
-  var tags = [
-    {t:'design with, not for', bg:'rgba(234,86,33,0.08)', color:'var(--orange)'},
-    {t:'failure is data', bg:'rgba(67,177,135,0.1)', color:'var(--jade)'},
-    {t:'learner agency', bg:'rgba(88,114,203,0.08)', color:'var(--periwinkle)'},
-    {t:'questions > answers', bg:'rgba(214,192,45,0.1)', color:'#9c8a00'},
-    {t:'open is a stance', bg:'rgba(234,86,33,0.06)', color:'var(--orange)'},
-    {t:"I didn’t know I could just ask", bg:'rgba(67,177,135,0.08)', color:'var(--jade)'},
-    {t:'evidence matters', bg:'rgba(88,114,203,0.07)', color:'var(--periwinkle)'},
-    {t:'proximity ≠ learning', bg:'rgba(214,192,45,0.08)', color:'#9c8a00'},
+/* ── DRAPER ── */
+var draperInit = false;
+function initDraper() {
+  if (draperInit) return; draperInit = true;
+  var scene = document.getElementById('draperScene');
+  var voices = [
+    {t:"The dust comes in when the wind turns. We keep the windows shut all summer.", a:"resident"},
+    {t:"They call it a buffer zone. We called it our football pitch.", a:"youth delegate"},
+    {t:"Consult us before the permit, not after the pour.", a:"community organiser"},
+    {t:"Our well changed colour the year the plant expanded.", a:"farmer"},
+    {t:"We are not a risk to manage. We are the people who live here.", a:"resident"},
   ];
-  var container = document.getElementById('collageMini');
-  tags.forEach(function(tag, i) {
+  var yPositions = [15, 30, 50, 65, 82];
+  voices.forEach(function(v, i) {
     var el = document.createElement('div');
-    el.className = 'collage-tag';
-    el.textContent = tag.t;
-    el.style.background = tag.bg;
-    el.style.color = tag.color;
-    el.style.setProperty('--d', (i * 0.1) + 's');
-    container.appendChild(el);
+    el.className = 'floating-voice';
+    el.style.right = '8%'; el.style.top = yPositions[i] + '%';
+    el.style.animationDelay = (1 + i * 1.2) + 's';
+    el.style.animationDuration = (7 + i * 0.5) + 's';
+    el.style.setProperty('--wx', -(20 + Math.random() * 40) + 'px');
+    el.innerHTML = '\u201c' + v.t + '\u201d<div class="fv-age">' + v.a + '</div>';
+    scene.appendChild(el);
   });
 }
 
-var flipCard = document.getElementById('flipCard');
-flipCard.addEventListener('click', function(e) {
-  if (e.target.tagName === 'TEXTAREA') return;
-  this.classList.toggle('flipped');
+/* ── COLLAGE ── */
+var COLLAGE_CARDS = [
+  {t:"A pledge without a number isn't a commitment.", a:"the making space"},
+  {t:"Substance outlasts a good story.", a:"a delegate"},
+  {t:"Put the people it affects in the room.", a:"the keynote"},
+  {t:"An outside eye names the gap you can't.", a:"the tables"},
+  {t:"Scope 3 is most of the footprint, not a footnote.", a:"a CSO"},
+  {t:"Materiality is a choice, so choose honestly.", a:"a delegate"},
+  {t:"Credible is what you'd defend to their faces.", a:"a youth delegate"},
+  {t:"Worked-through disagreement is data.", a:"the tables"},
+  {t:"Data lands harder with the testimony beside it.", a:"Dr Reyes' talk"},
+];
+var collageInit = false;
+function initCollage() {
+  if (collageInit) return; collageInit = true;
+  var s = document.getElementById('collageSurface');
+  arrangeNotes(s, COLLAGE_CARDS, 6).forEach(function(p) {
+    var el = document.createElement('div');
+    el.className = 'wc';
+    el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+    el.style.setProperty('--d', (p.gi * 0.09) + 's');
+    el.style.setProperty('--r', p.r + 'deg');
+    el.innerHTML = p.c.t + '<div class="wc-attr">' + p.c.a + '</div>';
+    s.appendChild(el);
+  });
+}
+document.getElementById('collageSurface').addEventListener('click', function(e) {
+  if (cur !== 8) return;
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON') return;
+  document.getElementById('collageText').focus();
 });
-flipCard.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.classList.toggle('flipped'); }
+function addCollageNote() {
+  var inp = document.getElementById('collageText');
+  var t = inp.value.trim(); if (!t) return;
+  var s = document.getElementById('collageSurface');
+  var W = s.offsetWidth, H = s.offsetHeight;
+  var cx = W/2, cy = H/2, exRx = W*0.24, exRy = H*0.34, cardW = 180, cardH = 110;
+  var existing = s.querySelectorAll('.wc');
+  function bad(x, y) {
+    if (Math.pow((x+cardW/2-cx)/exRx,2) + Math.pow((y+cardH/2-cy)/exRy,2) < 1) return true;
+    if ((y+cardH/2) > cy + 40) return true;
+    for (var k = 0; k < existing.length; k++) {
+      var ex = parseFloat(existing[k].style.left), ey = parseFloat(existing[k].style.top);
+      if (!isNaN(ex) && Math.abs(x-ex) < cardW*0.9 && Math.abs(y-ey) < cardH*0.85) return true;
+    }
+    return false;
+  }
+  var x, y, tries = 0;
+  do { x = Math.max(28, Math.min(W-cardW-28, cx - cardW/2 + (Math.random()-0.5)*W*0.82)); y = Math.max(78, Math.min(H-cardH-16, cy - cardH/2 + (Math.random()-0.5)*H*0.78)); tries++; } while (tries < 200 && bad(x, y));
+  var el = document.createElement('div');
+  el.className = 'wc you';
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  el.style.setProperty('--d', '0s'); el.style.setProperty('--r', '0deg');
+  el.style.zIndex = '30';
+  el.innerHTML = t + '<div class="wc-attr">you</div>';
+  s.appendChild(el);
+  inp.value = '';
+}
+document.getElementById('collageText').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addCollageNote(); }
 });
 
-var isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-if (isTouch) {
-  document.querySelectorAll('.c-hint').forEach(function(el) { el.textContent = el.textContent.replace('click','tap'); });
+/* QUIET ROOM DIM */
+function trackCta(btn) {
+  if (!btn.dataset.orig) btn.dataset.orig = btn.textContent;
+  var done = btn.classList.toggle('done');
+  btn.textContent = done ? (btn.dataset.done || 'Done ✓') : btn.dataset.orig;
 }
+document.getElementById('quietRoom').addEventListener('click', function() {
+  document.getElementById('S10').classList.toggle('quiet-dimmed');
+});
+
+/* MAPPING */
+var mapInit = false;
+function initMap() { if (mapInit) return; mapInit = true; }
+
+/* CLOSING */
+var closingInit = false;
+function initClosing() {
+  if (closingInit) return; closingInit = true;
+  var scene = document.getElementById('closingScene');
+  var artifacts = [];
+  artifacts.forEach(function(a, i) {
+    var el = document.createElement('div');
+    el.className = 'cascade-item' + (a.type === 'voice' ? ' cascade-voice' : '');
+    el.textContent = a.t;
+    el.style.animationDelay = (0.2 + i * 0.18) + 's';
+    var angle = (i / artifacts.length) * Math.PI * 2 + Math.random() * 0.5;
+    var radius = 180 + Math.random() * 160;
+    el.style.left = 'calc(50% + ' + Math.cos(angle) * radius + 'px)';
+    el.style.top = 'calc(50% + ' + Math.sin(angle) * radius + 'px)';
+    el.style.transform = 'translate(-50%, -50%)';
+    scene.insertBefore(el, scene.firstChild);
+  });
+}
+
+/* S7 door pick (no navigation; just a choice) */
+function pickDoor(el) {
+  var doors = el.parentNode.querySelectorAll('.door');
+  doors.forEach(function(d) { d.classList.remove('chosen'); });
+  el.classList.add('chosen');
+  var hint = document.getElementById('doorHint');
+  if (hint) hint.textContent = "Noted. Both rooms are the right room. Press Next when you're ready.";
+}
+
+/* S6 prep prompt */
+function submitPrep() {
+  var wrap = document.getElementById('reyesPrep');
+  var inp = document.getElementById('reyesPrepIn');
+  if (!inp || !inp.value.trim()) return;
+  var n = 213 + Math.floor(Math.random() * 40);
+  wrap.classList.add('done');
+  wrap.innerHTML = '<div class="prep-thanks">Added to the board. ' + n + " responses so far, they'll shape what she opens with.</div>";
+}
+
+updateNarrator();
+updateAgenda();
 </script>
 </body>
 </html>
