@@ -93,6 +93,64 @@ async function checkR2EvidencePublic(): Promise<CustomCheckResult> {
   return { status: "green", response_time_ms: r.ms, details: { status_code: r.value } };
 }
 
+// ── tier 1: voice pilot (custom-llm auth handshake) ───────────────────────────
+
+/**
+ * Voice custom-LLM endpoint: exercises the exact path Vapi uses (OpenAI/JS UA,
+ * x-voice-secret auth) end-to-end — WAF carve-out + secret handshake + Anthropic
+ * call — via a tiny non-streaming completion against the Mo (cmo) assistant.
+ * Catches both failure modes seen in prod: WAF block (403, docs/decisions/
+ * 2026-06-22-voice-agents-waf-block-and-stacked-bugs.md) and secret drift (401,
+ * VOICE_LLM_SECRET on the worker vs. the x-voice-secret Vapi's assistants send).
+ * Either one is invisible to the human until a live call ejects mid-conversation
+ * — this check exists so it's caught within 5 minutes instead.
+ */
+async function checkVoiceEndpoint(): Promise<CustomCheckResult> {
+  const secret = process.env.VOICE_LLM_SECRET;
+  if (!secret) return skipped("awaiting credential: VOICE_LLM_SECRET");
+
+  const r = await timed(async () => {
+    const res = await fetch("https://port.windedvertigo.com/api/voice/cmo/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-voice-secret": secret,
+        // Mirrors Vapi's actual client so a WAF regression on this path is
+        // caught too, not just the secret handshake.
+        "User-Agent": "OpenAI/JS 4.20.0",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        stream: false,
+        messages: [{ role: "user", content: "reply with the single word: ok" }],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    const status = res.status;
+    let text = "";
+    try {
+      const body = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      text = body.choices?.[0]?.message?.content ?? "";
+    } catch {
+      // non-JSON body — status check below still fires
+    }
+    if (status !== 200) {
+      const hint = status === 403 ? " (WAF block?)" : status === 401 ? " (secret drift — worker VOICE_LLM_SECRET vs Vapi x-voice-secret mismatch)" : "";
+      throw new Error(`HTTP ${status}${hint}`);
+    }
+    if (!text.trim()) throw new Error("HTTP 200 but empty completion (Anthropic call may be failing)");
+    return text;
+  });
+
+  if (r.error) {
+    return { status: "red", response_time_ms: r.ms, symptoms: `voice custom-llm endpoint failed: ${r.error}`, details: { error: r.error } };
+  }
+  if (r.ms > 6000) {
+    return { status: "amber", response_time_ms: r.ms, symptoms: `voice custom-llm endpoint slow: ${r.ms}ms (threshold 6000ms)`, details: {} };
+  }
+  return { status: "green", response_time_ms: r.ms, details: {} };
+}
+
 // ── tier 3: external services ─────────────────────────────────────────────────
 
 /** Notion API: timed users/me. Rate-limit proximity isn't exposed in headers, so latency + status only. */
@@ -276,6 +334,7 @@ export const CHECKERS: Record<string, Checker> = {
   "supabase-pilot": checkSupabasePilot,
   "r2-port-assets": checkR2PortAssets,
   "r2-evidence-public": checkR2EvidencePublic,
+  voice: checkVoiceEndpoint,
   "notion-api": checkNotionApi,
   resend: checkResend,
   "dns-records": checkDnsRecords,
