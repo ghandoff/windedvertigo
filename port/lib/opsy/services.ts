@@ -76,6 +76,16 @@ export const SERVICES: MonitoredService[] = [
     url: "https://windedvertigo.com/harbour/creaseworks/api/health",
     amberMs: 2000,
   },
+  {
+    // Custom (not "http"): a plain GET only proves the route exists, not that
+    // Vapi's actual auth handshake still works. See lib/opsy/checks.ts
+    // checkVoiceEndpoint for what this exercises and why it's tier 1.
+    id: "voice",
+    name: "voice (Vapi custom-llm endpoint)",
+    platform: "port",
+    tier: 1,
+    kind: "custom",
+  },
 
   // ── tier 2: data layer (every 15 min) ───────────────────────────────────────
   { id: "supabase-pilot", name: "supabase wv-port-pilot", platform: "data", tier: 2, kind: "custom" },
