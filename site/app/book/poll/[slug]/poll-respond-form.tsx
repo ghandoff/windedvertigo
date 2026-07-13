@@ -225,7 +225,14 @@ export function PollRespondForm({
       {/* Calendar grid */}
       <div
         className="overflow-x-auto rounded-xl"
-        style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+        // overflow-x-auto / rounded-xl are Tailwind no-ops on this site — set inline so
+        // the wide grid scrolls *inside* its box instead of overflowing the page on mobile.
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          overflowX: "auto",
+          WebkitOverflowScrolling: "touch",
+          borderRadius: 12,
+        }}
       >
         <div
           style={{
