@@ -159,6 +159,30 @@ export async function addPollOptions(
   return (options ?? []) as PollOption[];
 }
 
+export async function updatePollDetails(
+  pollId: string,
+  input: { title: string; description?: string | null },
+): Promise<void> {
+  const { error } = await bookingDb
+    .from("polls")
+    .update({ title: input.title, description: input.description ?? null, updated_at: new Date().toISOString() })
+    .eq("id", pollId);
+  if (error) throw new Error(`[booking/polls] updatePollDetails: ${error.message}`);
+}
+
+export async function deletePollOption(optionId: string): Promise<void> {
+  const { error } = await bookingDb.from("poll_options").delete().eq("id", optionId);
+  if (error) throw new Error(`[booking/poll_options] deletePollOption: ${error.message}`);
+}
+
+export async function updatePollInvitees(pollId: string, emails: string[]): Promise<void> {
+  const { error } = await bookingDb
+    .from("polls")
+    .update({ invitee_emails: emails })
+    .eq("id", pollId);
+  if (error) throw new Error(`[booking/polls] updatePollInvitees: ${error.message}`);
+}
+
 export async function deletePoll(pollId: string): Promise<void> {
   const { data: opts } = await bookingDb
     .from("poll_options")

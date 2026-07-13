@@ -2,12 +2,15 @@
  * Generates concrete upcoming slots from the collective's working_hours.
  *
  * working_hours shape: Record<"mon"|"tue"|..., [startHH:MM, endHH:MM][]>
- * Returns windows where ALL active hosts have availability on that weekday,
- * expressed as ISO datetime strings in the host's local timezone.
  *
- * The result is a list of full working windows (not subdivided into hourly
- * chunks) for the next `daysAhead` calendar days, suitable for pre-populating
- * a poll creation form.
+ * Day filtering: a date is only included when ALL active hosts have at least
+ * one window defined for that weekday (collective intersection).
+ *
+ * Display timezone + time windows: taken from `creatorHost` (the logged-in
+ * user's host record). Falls back to the first active host if not supplied.
+ *
+ * `timeFrom`/`timeTo` override the natural start/end of the creator's windows
+ * and can expand OR narrow the visible range.
  */
 
 import type { Host, WorkingHours } from "./types";
@@ -52,21 +55,36 @@ export interface SuggestedSlot {
  * working_hours set has at least one window on that weekday — if any host has
  * no availability that day we skip it.
  *
- * Uses the timezone of the first host (or UTC as fallback) to express wall-clock
- * times since the poll creation UI is used by the host.
+ * The display timezone and time windows come from `creatorHost` (the logged-in
+ * user's host record). Falls back to the first active host when not supplied.
  *
- * @param startDate Optional start date (defaults to tomorrow). Allows date-range
- *   pickers to show slots weeks or months ahead.
+ * `timeFrom`/`timeTo` override the creator's natural window start/end, and can
+ * expand OR narrow the visible time range (e.g. "06:00"–"16:00").
+ *
+ * @param startDate Optional start date (defaults to tomorrow).
+ * @param creatorHost The host record for whoever is creating the poll.
+ * @param timeFrom Override the start of the displayed time window (HH:MM).
+ * @param timeTo Override the end of the displayed time window (HH:MM).
  */
 export function suggestCollectiveSlots(
   hosts: Host[],
   daysAhead = 28,
   startDate?: Date,
+  creatorHost?: Host,
+  timeFrom?: string,
+  timeTo?: string,
 ): SuggestedSlot[] {
-  const active = hosts.filter((h) => h.active && h.working_hours && Object.keys(h.working_hours).length > 0);
+  const active = hosts.filter((h) => {
+    const hours = h.poll_hours ?? h.working_hours;
+    return h.active && hours && Object.keys(hours).length > 0;
+  });
   if (active.length === 0) return [];
 
-  const tz = active[0].timezone || "America/Los_Angeles";
+  // Use the creator's timezone for all wall-clock display. Fallback to first
+  // active host so the function still works when called without auth context.
+  const displayHost = creatorHost ?? active[0];
+  const tz = displayHost.timezone || "America/Los_Angeles";
+  const creatorWh: WorkingHours = displayHost.poll_hours ?? displayHost.working_hours ?? {};
 
   const slots: SuggestedSlot[] = [];
   const now = new Date();
@@ -86,9 +104,9 @@ export function suggestCollectiveSlots(
     const localDay = new Date(date.toLocaleString("en-US", { timeZone: tz })).getDay();
     const dayKey = DAY_KEYS[localDay] as DayKey;
 
-    // Collect windows for this day from every active host
+    // Collect windows for this day from every active host (intersection check only)
     const windowsByHost: [string, string][][] = active.map((h) => {
-      const wh: WorkingHours = h.working_hours ?? {};
+      const wh: WorkingHours = h.poll_hours ?? h.working_hours ?? {};
       return wh[dayKey] ?? [];
     });
 
@@ -96,9 +114,21 @@ export function suggestCollectiveSlots(
     const allHaveWindows = windowsByHost.every((w) => w.length > 0);
     if (!allHaveWindows) continue;
 
-    // Merge all windows from all hosts into a unified set — use the first host's
-    // windows as the template (they all share working hours in practice)
-    const windows: [string, string][] = windowsByHost[0];
+    // Display windows come from the creator's hours (not the first active host)
+    const naturalWindows: [string, string][] =
+      creatorWh[dayKey] ?? windowsByHost[0] ?? [];
+    if (naturalWindows.length === 0) continue;
+
+    // Apply timeFrom/timeTo override: collapse to a single explicit range.
+    // This lets the creator expand (e.g. 06:00 start) or narrow the visible grid.
+    let windows: [string, string][];
+    if (timeFrom || timeTo) {
+      const naturalStart = naturalWindows[0][0];
+      const naturalEnd = naturalWindows[naturalWindows.length - 1][1];
+      windows = [[timeFrom ?? naturalStart, timeTo ?? naturalEnd]];
+    } else {
+      windows = naturalWindows;
+    }
 
     // Format the date part in tz for display
     const dateLabel = date.toLocaleDateString("en-GB", {

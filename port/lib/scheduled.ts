@@ -215,6 +215,11 @@ const CRON_TABLE: CronEntry[] = [
   // supabase RLS audit). Tiers 1-3 + email scan run on the */5 trigger below.
   { path: "/api/cron/opsy-health-check-t4", hours: [6] },
 
+  // Daily 08:00 UTC — Opsy data-quality sweep: duplicate detection, page-limit
+  // traps, blank statuses, stale knowledge nodes, overdue PaM commitments,
+  // zero-duration poll options. Logs incidents + patterns; auto-resolves on clear.
+  { path: "/api/cron/opsy-data-quality", hours: [8] },
+
   // Monday 07:00 UTC — Opsy weekly ops digest + pattern-detection learning
   // pass. Posts to #ops-alerts.
   { path: "/api/cron/opsy-digest", hours: [7], weekdays: [1] },

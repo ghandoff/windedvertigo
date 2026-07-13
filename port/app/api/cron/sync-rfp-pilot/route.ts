@@ -113,9 +113,42 @@ export async function GET(req: NextRequest) {
   });
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── name-based dedup: one canonical row per opportunity name ─────────────
+  // Same grant can arrive in Notion via two ingest paths (email + RSS), each
+  // with a different notion_page_id.  Keep the highest-status copy; delete any
+  // existing Supabase rows for the losing notion_page_ids so they don't persist.
+  const STATUS_PRIORITY: Record<string, number> = {
+    pursuing: 1, interviewing: 2, submitted: 3, won: 4,
+    "no-go": 5, lost: 6, "missed deadline": 7, reviewing: 8, radar: 9,
+  };
+  const nameMap = new Map<string, (typeof rows)[0]>();
+  for (const row of rows) {
+    const key = (row.opportunity_name ?? "").trim().toLowerCase();
+    const incumbent = nameMap.get(key);
+    const rowPri = STATUS_PRIORITY[row.status ?? ""] ?? 10;
+    const incPri = incumbent ? (STATUS_PRIORITY[incumbent.status ?? ""] ?? 10) : Infinity;
+    if (!incumbent || rowPri < incPri) nameMap.set(key, row);
+  }
+  const dedupedRows = [...nameMap.values()];
+  const winnerIds = new Set(dedupedRows.map((r) => r.notion_page_id));
+  const loserIds = rows.map((r) => r.notion_page_id).filter((id) => !winnerIds.has(id));
+
+  if (loserIds.length > 0) {
+    const { error: delErr } = await supabase
+      .from("rfp_opportunities")
+      .delete()
+      .in("notion_page_id", loserIds);
+    if (delErr) {
+      console.warn("[sync-rfp-pilot] dedup delete error:", delErr.message);
+    } else {
+      console.log(`[sync-rfp-pilot] dedup: evicted ${loserIds.length} duplicate notion page(s)`);
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const { error, count } = await supabase
     .from("rfp_opportunities")
-    .upsert(rows, { onConflict: "notion_page_id", count: "exact" });
+    .upsert(dedupedRows, { onConflict: "notion_page_id", count: "exact" });
 
   if (error) {
     console.error("[sync-rfp-pilot] upsert error:", error);

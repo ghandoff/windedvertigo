@@ -1,11 +1,20 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { createPoll } from "@/lib/booking/mutations";
-import { getHostByEmail } from "@/lib/booking/queries";
+import { createPoll, updatePollInvitees } from "@/lib/booking/mutations";
+import { getHostByEmail, getPollById } from "@/lib/booking/queries";
 import { auth } from "@/lib/auth";
+import { sendOutreachEmail } from "@/lib/email/resend";
 
-export async function createPollAction(formData: FormData) {
+export interface CreatePollResult {
+  slug: string;
+  shareUrl: string;
+  pollId: string;
+}
+
+export async function createPollAction(
+  _prev: CreatePollResult | null,
+  formData: FormData,
+): Promise<CreatePollResult | null> {
   const session = await auth();
   const email = session?.user?.email ?? null;
   const host = email ? await getHostByEmail(email).catch(() => null) : null;
@@ -39,5 +48,36 @@ export async function createPollAction(formData: FormData) {
     slots,
   });
 
-  redirect(`/bookings/polls/${poll.id}`);
+  return {
+    slug: poll.slug,
+    pollId: poll.id,
+    shareUrl: `${process.env.SITE_ORIGIN ?? "https://windedvertigo.com"}/book/poll/${poll.slug}`,
+  };
+}
+
+export async function sendPollInvitesAction(pollId: string, emails: string[]): Promise<void> {
+  const poll = await getPollById(pollId).catch(() => null);
+  const shareUrl = poll
+    ? `${process.env.SITE_ORIGIN ?? "https://windedvertigo.com"}/book/poll/${poll.slug}`
+    : "";
+
+  await updatePollInvitees(pollId, emails).catch((err) =>
+    console.error("[sendPollInvitesAction] failed to store invitees:", err),
+  );
+
+  for (const to of emails) {
+    try {
+      await sendOutreachEmail({
+        to,
+        from: `winded.vertigo polls <polls@windedvertigo.com>`,
+        subject: "you've been invited to vote on a time",
+        html: `<p>you've been invited to vote on a time.</p>${shareUrl ? `<p><a href="${shareUrl}">${shareUrl}</a></p>` : ""}`,
+        text: shareUrl
+          ? `you've been invited to vote on a time.\n\n${shareUrl}`
+          : "you've been invited to vote on a time.",
+      });
+    } catch (err) {
+      console.error(`[sendPollInvitesAction] failed to send to ${to}:`, err);
+    }
+  }
 }

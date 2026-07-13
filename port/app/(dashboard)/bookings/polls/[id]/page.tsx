@@ -15,6 +15,7 @@ import { LockPollButton } from "./lock-poll-button";
 import { DurationRecommender } from "./duration-recommender";
 import { DeletePollButton } from "./delete-poll-button";
 import { AddSlotsForm } from "./add-slots-form";
+import { RemindSection } from "./remind-section";
 
 export const dynamic = "force-dynamic";
 
@@ -51,10 +52,10 @@ export default async function PollHostPage({ params }: Props) {
     <div>
       <PageHeader title={poll.title} description={poll.description ?? "group availability poll"}>
         <Link
-          href="/bookings"
+          href="/bookings/polls"
           className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
         >
-          ← bookings
+          ← polls
         </Link>
         <CopyLinkButton url={shareUrl} label="copy share link" />
       </PageHeader>
@@ -74,6 +75,12 @@ export default async function PollHostPage({ params }: Props) {
         )}
         <div className="flex items-center gap-4 ml-auto">
           <AddSlotsForm pollId={poll.id} />
+          <Link
+            href={`/bookings/polls/${poll.id}/edit`}
+            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            edit poll
+          </Link>
           <DeletePollButton pollId={poll.id} pollTitle={poll.title} />
         </div>
       </div>
@@ -181,6 +188,17 @@ export default async function PollHostPage({ params }: Props) {
         responses={responses as { id: string; respondent_name: string }[]}
         choices={choices as { response_id: string; option_id: string; availability: "yes" | "if_need_be" | "no" }[]}
       />
+
+      {/* Remind non-responders — only shown when invitees were recorded */}
+      {(poll.invitee_emails ?? []).length > 0 && (
+        <div className="mt-6">
+          <RemindSection
+            pollId={poll.id}
+            inviteeEmails={poll.invitee_emails ?? []}
+            respondentNames={responses.map((r) => r.respondent_name)}
+          />
+        </div>
+      )}
     </div>
   );
 }

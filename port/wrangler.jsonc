@@ -66,6 +66,9 @@
   // API routes. Must match the production domain.
   "vars": {
     "PORT_URL": "https://port.windedvertigo.com",
+    // Public site origin — used to build externally shareable links (e.g. poll share URLs).
+    // Polls live at windedvertigo.com/book/poll/<slug>, not on port itself.
+    "SITE_ORIGIN": "https://windedvertigo.com",
     // listen-library TTS engine — must match wv-port-jobs so the dedupe content
     // hash (computed here at submit) lines up with what the consumer renders.
     "LISTEN_TTS_PROVIDER": "cloudflare-aura"

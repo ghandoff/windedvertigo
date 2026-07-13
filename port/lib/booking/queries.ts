@@ -198,6 +198,40 @@ export async function listPolls(): Promise<Poll[]> {
   return (data ?? []) as Poll[];
 }
 
+export interface PollWithMeta extends Poll {
+  responseCount: number;
+  allOptionsPast: boolean;
+}
+
+export async function listPollsWithCounts(): Promise<PollWithMeta[]> {
+  const [pollsResult, responsesResult, optionsResult] = await Promise.all([
+    bookingDb.from("polls").select("*").order("created_at", { ascending: false }),
+    bookingDb.from("poll_responses").select("poll_id"),
+    bookingDb.from("poll_options").select("poll_id, ends_at"),
+  ]);
+  if (pollsResult.error) throw new Error(`[booking/polls] ${pollsResult.error.message}`);
+
+  const responseCountMap = new Map<string, number>();
+  for (const r of (responsesResult.data ?? [])) {
+    responseCountMap.set(r.poll_id, (responseCountMap.get(r.poll_id) ?? 0) + 1);
+  }
+
+  const optionsByPoll = new Map<string, string[]>();
+  for (const o of (optionsResult.data ?? [])) {
+    if (!optionsByPoll.has(o.poll_id)) optionsByPoll.set(o.poll_id, []);
+    optionsByPoll.get(o.poll_id)!.push(o.ends_at);
+  }
+
+  const now = Date.now();
+  return (pollsResult.data ?? []).map((poll) => {
+    const responseCount = responseCountMap.get(poll.id) ?? 0;
+    const ends = optionsByPoll.get(poll.id) ?? [];
+    const allOptionsPast =
+      ends.length > 0 && ends.every((e) => new Date(e).getTime() < now);
+    return { ...poll, responseCount, allOptionsPast } as PollWithMeta;
+  });
+}
+
 export async function getPollBySlug(slug: string): Promise<Poll | null> {
   const { data, error } = await bookingDb
     .from("polls")
