@@ -1,49 +1,42 @@
 #!/usr/bin/env bash
-# Deploy the wv-port Vercel project from the monorepo root.
+# Deploy the wv-port Cloudflare Worker (OpenNext).
 #
-# This script temporarily swaps .vercel/project.json to target
-# wv-port, deploys, then restores the harbour default.
+# port ships to Cloudflare Workers, NOT Vercel. Build is OpenNext
+# (opennextjs-cloudflare); publish is wrangler. wrangler auth is the
+# OAuth login (`wrangler whoami`) — no CLOUDFLARE_API_TOKEN needed.
 #
 # Usage:
-#   ./scripts/deploy-port.sh            # production deploy
-#   ./scripts/deploy-port.sh --preview  # preview deploy
+#   ./scripts/deploy-port.sh                    # production deploy → port.windedvertigo.com
+#   ./scripts/deploy-port.sh --preview          # preview version on *.workers.dev (no prod traffic)
+#   ./scripts/deploy-port.sh --preview <alias>  # preview with a stable alias host:
+#                                               #   https://<alias>-wv-port.windedvertigo.workers.dev
+#
+# A stable --preview alias only needs its /api/auth/callback/google URL
+# whitelisted once in the port Google OAuth client for sign-in to work.
 
 set -euo pipefail
 
-# Ensure Homebrew bin is on PATH (needed when invoked from a non-login shell)
+# Ensure Homebrew bin is on PATH (needed when invoked from a non-login shell).
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERCEL_DIR="$REPO_ROOT/.vercel"
-PROJECT_JSON="$VERCEL_DIR/project.json"
-BACKUP_JSON="$VERCEL_DIR/project.json.bak"
 
-PORT_PROJECT_ID="prj_rlsjo62EFnVofPUyjt0eYgzcrjmC"
-PORT_ORG_ID="team_wrpRda7ZzXdu7nKcEVVXY3th"
-HARBOUR_PROJECT_ID="prj_O2JU3Algj8MuFt3DGuwGC32KuvXd"
+# wrangler.jsonc (name: wv-port) lives in port/, so build + publish run there.
+cd "$REPO_ROOT/port"
 
-DEPLOY_FLAGS="--prod"
+echo "→ Building OpenNext bundle (wv-port)"
+npx opennextjs-cloudflare build
+
 if [[ "${1:-}" == "--preview" ]]; then
-  DEPLOY_FLAGS=""
+  ALIAS="${2:-}"
+  if [[ -n "$ALIAS" ]]; then
+    echo "→ Uploading preview version with alias '$ALIAS' (no production traffic)"
+    npx wrangler versions upload --preview-alias "$ALIAS"
+  else
+    echo "→ Uploading preview version (no production traffic)"
+    npx wrangler versions upload
+  fi
+else
+  echo "→ Deploying to production (port.windedvertigo.com/*)"
+  npx wrangler deploy
 fi
-
-echo "→ Swapping .vercel/project.json to target wv-port"
-cp "$PROJECT_JSON" "$BACKUP_JSON"
-
-cleanup() {
-  echo "→ Restoring .vercel/project.json to harbour (windedvertigo)"
-  printf '{"projectId":"%s","orgId":"%s","projectName":"windedvertigo"}\n' \
-    "$HARBOUR_PROJECT_ID" "$PORT_ORG_ID" > "$PROJECT_JSON"
-  rm -f "$BACKUP_JSON"
-}
-trap cleanup EXIT
-
-printf '{"projectId":"%s","orgId":"%s","projectName":"wv-port"}\n' \
-  "$PORT_PROJECT_ID" "$PORT_ORG_ID" > "$PROJECT_JSON"
-
-echo "→ Deploying from monorepo root"
-cd "$REPO_ROOT"
-VERCEL_BIN="${VERCEL_BIN:-$(command -v vercel 2>/dev/null || echo /opt/homebrew/bin/vercel)}"
-"$VERCEL_BIN" deploy $DEPLOY_FLAGS
-
-# cleanup() runs automatically via trap on EXIT
