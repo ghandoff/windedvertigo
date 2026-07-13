@@ -54,7 +54,7 @@ export default async function NewPollPage({ searchParams }: Props) {
   );
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto">
       <PageHeader
         title="new group poll"
         description="pick a few candidate times — share the link and let everyone weigh in."
