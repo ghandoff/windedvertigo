@@ -101,7 +101,19 @@ export default async function PollRespondPage({ params }: Props) {
 
       <main
         className="mx-auto w-full max-w-4xl px-4 pb-16"
-        style={{ paddingTop: 120 }}
+        // NOTE: this site uses a static utility stylesheet (styles/main.css), not
+        // Tailwind's JIT — so max-w-*/px-* utilities are no-ops here. Set the
+        // container width/centering/gutters inline so they actually apply.
+        style={{
+          paddingTop: 120,
+          paddingBottom: 64,
+          paddingLeft: 16,
+          paddingRight: 16,
+          maxWidth: "56rem",
+          marginLeft: "auto",
+          marginRight: "auto",
+          width: "100%",
+        }}
       >
         {/* Header */}
         <div className="mb-8">

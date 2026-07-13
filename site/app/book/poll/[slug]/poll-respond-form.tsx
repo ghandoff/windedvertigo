@@ -385,9 +385,9 @@ export function PollRespondForm({
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 mt-3 mb-6 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div className="flex flex-wrap items-center gap-4 mt-3 mb-6 text-xs" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6, marginTop: 12, marginBottom: 24 }}>
         {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.22)", display: "inline-block" }}
             />
@@ -395,7 +395,7 @@ export function PollRespondForm({
           </span>
         )}
         {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.65)", display: "inline-block" }}
             />
@@ -403,7 +403,7 @@ export function PollRespondForm({
           </span>
         )}
         {localTotal > 0 && (
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.35)", display: "inline-block" }}
             />
@@ -411,7 +411,7 @@ export function PollRespondForm({
           </span>
         )}
         {isLocked && (
-          <span className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(34,197,94,0.35)", display: "inline-block" }}
             />
