@@ -64,7 +64,7 @@ export default async function EditPollPage({ params, searchParams }: Props) {
   );
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto">
       <PageHeader
         title={`edit · ${poll.title}`}
         description="update title, description, or time slots."

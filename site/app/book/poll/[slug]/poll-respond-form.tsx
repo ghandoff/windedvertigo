@@ -125,8 +125,12 @@ export function PollRespondForm({
 
   useEffect(() => {
     const end = () => { dragOpRef.current = null; };
-    document.addEventListener("mouseup", end);
-    return () => document.removeEventListener("mouseup", end);
+    document.addEventListener("pointerup", end);
+    document.addEventListener("pointercancel", end);
+    return () => {
+      document.removeEventListener("pointerup", end);
+      document.removeEventListener("pointercancel", end);
+    };
   }, []);
 
   const grid = useMemo(() => buildGrid(options, tz), [options, tz]);
@@ -205,7 +209,7 @@ export function PollRespondForm({
   }
 
   const isLocked = Boolean(lockedOptionId);
-  const CELL_H = 28; // px per 30-min row
+  const CELL_H = 36; // px per 30-min row — sized up for touch tap targets
   const DAY_COL_W = 96; // px per day column
   const LABEL_COL = 56; // px for time labels
 
@@ -231,11 +235,15 @@ export function PollRespondForm({
             minWidth: `${LABEL_COL + grid.dates.length * DAY_COL_W}px`,
           }}
         >
-          {/* Corner */}
+          {/* Corner — sticky so it holds the top-left while scrolling wide grids */}
           <div
             style={{
               gridRow: 1,
               gridColumn: 1,
+              position: "sticky",
+              left: 0,
+              zIndex: 20,
+              background: "#273248",
               borderBottom: "1px solid rgba(255,255,255,0.10)",
               borderRight: "1px solid rgba(255,255,255,0.10)",
             }}
@@ -271,6 +279,10 @@ export function PollRespondForm({
               style={{
                 gridRow: ri + 2,
                 gridColumn: 1,
+                position: "sticky",
+                left: 0,
+                zIndex: 10,
+                background: "#273248",
                 borderRight: "1px solid rgba(255,255,255,0.10)",
                 borderTop: rowMins % 60 === 0 ? "1px solid rgba(255,255,255,0.10)" : undefined,
                 color: rowMins % 60 === 0 ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)",
@@ -322,8 +334,10 @@ export function PollRespondForm({
               return (
                 <div
                   key={`${date}-${rowMins}`}
-                  onMouseDown={optionId && !submitted && !isLocked ? (e) => {
+                  onPointerDown={optionId && !submitted && !isLocked ? (e) => {
                     e.preventDefault(); // prevent text selection during drag
+                    // release implicit capture so pointerenter fires on sibling cells during a touch drag
+                    (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
                     const op = mySelections.has(optionId) ? "deselect" : "select";
                     dragOpRef.current = op;
                     setMySelections((prev) => {
@@ -340,9 +354,11 @@ export function PollRespondForm({
                     borderTop: `1px solid ${atHourBoundary ? "rgba(255,255,255,0.12)" : (optionId ? borderColor : "rgba(255,255,255,0.04)")}`,
                     borderRight: !isLastCol ? `1px solid rgba(255,255,255,0.08)` : undefined,
                     cursor: optionId && !submitted && !isLocked ? "pointer" : "default",
+                    // pan-x lets a horizontal swipe scroll the days while a vertical drag paints
+                    touchAction: optionId && !submitted && !isLocked ? "pan-x" : undefined,
                     transition: dragOpRef.current ? undefined : "background-color 0.12s ease",
                   }}
-                  onMouseEnter={optionId && !submitted && !isLocked ? (e) => {
+                  onPointerEnter={optionId && !submitted && !isLocked ? (e) => {
                     if (dragOpRef.current !== null) {
                       // during drag: apply the stored operation
                       setMySelections((prev) => {
@@ -351,12 +367,12 @@ export function PollRespondForm({
                         else next.delete(optionId);
                         return next;
                       });
-                    } else if (!isMine) {
-                      // hover highlight when not dragging
+                    } else if (e.pointerType === "mouse" && !isMine) {
+                      // hover highlight when not dragging (mouse only)
                       (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(45,212,191,0.22)";
                     }
                   } : undefined}
-                  onMouseLeave={optionId && !submitted && !isLocked ? (e) => {
+                  onPointerLeave={optionId && !submitted && !isLocked ? (e) => {
                     if (dragOpRef.current === null) {
                       (e.currentTarget as HTMLElement).style.backgroundColor = bg;
                     }

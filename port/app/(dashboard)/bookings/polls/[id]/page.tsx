@@ -49,7 +49,7 @@ export default async function PollHostPage({ params }: Props) {
   );
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto">
       <PageHeader title={poll.title} description={poll.description ?? "group availability poll"}>
         <Link
           href="/bookings/polls"

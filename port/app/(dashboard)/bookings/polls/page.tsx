@@ -12,7 +12,7 @@ export default async function PollsIndexPage() {
   const siteOrigin = process.env.SITE_ORIGIN ?? "https://windedvertigo.com";
 
   return (
-    <div>
+    <div className="max-w-5xl mx-auto">
       <PageHeader
         title="group polls"
         description="find a time that works for everyone — share the link, collect availability."

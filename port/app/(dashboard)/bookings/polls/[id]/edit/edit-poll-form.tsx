@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Trash2, RotateCcw } from "lucide-react";
 import { updatePollAction } from "./actions";
 import type { Poll, PollOption } from "@/lib/booking/types";
 import type { SuggestedSlot } from "@/lib/booking/collective-slots";
+import { AvailabilityGrid } from "@/app/(dashboard)/bookings/polls/_components/availability-grid";
 
 interface SlotMeta {
   option: PollOption;
@@ -27,26 +28,6 @@ interface Props {
   initialFromTime?: string;
   initialToTime?: string;
 }
-
-function parseTimeMins(hhmm: string): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function fmtMins(mins: number): string {
-  const h = Math.floor(mins / 60), m = mins % 60;
-  const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  const ampm = h < 12 ? "a" : "p";
-  if (m === 0) return `${display}${ampm}`;
-  return `${display}:${String(m).padStart(2, "0")}${ampm}`;
-}
-
-function fmtDateHeader(dateStr: string): string {
-  const d = new Date(`${dateStr}T12:00:00`);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
-}
-
-function slotKey(s: string, e: string) { return `${s}|${e}`; }
 
 function offsetDateStr(days: number): string {
   const d = new Date();
@@ -83,7 +64,6 @@ export function EditPollForm({
   const [toDate, setToDate] = useState(initialTo ?? offsetDateStr(28));
   const [fromTime, setFromTime] = useState(initialFromTime ?? "");
   const [toTime, setToTime] = useState(initialToTime ?? "");
-  const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
   function buildUrl(fd: string, td: string, ft: string, tt: string) {
     const p = new URLSearchParams();
@@ -93,39 +73,6 @@ export function EditPollForm({
     if (tt) p.set("toTime", tt);
     return `/bookings/polls/${poll.id}/edit?${p.toString()}`;
   }
-
-  const { dates, timeRows, cellMap } = useMemo(() => {
-    if (suggestedSlots.length === 0) return { dates: [], timeRows: [] as number[], cellMap: new Map<string, SuggestedSlot>() };
-    const byDate = new Map<string, SuggestedSlot[]>();
-    for (const s of suggestedSlots) {
-      const date = s.startsAt.split("T")[0];
-      if (!byDate.has(date)) byDate.set(date, []);
-      byDate.get(date)!.push(s);
-    }
-    const dates = [...byDate.keys()].sort();
-    const allStartMins = suggestedSlots.map((s) => parseTimeMins(s.startsAt.split("T")[1]));
-    const allEndMins = suggestedSlots.map((s) => parseTimeMins(s.endsAt.split("T")[1]));
-    const minMins = Math.min(...allStartMins);
-    const maxMins = Math.max(...allEndMins);
-    const timeRows: number[] = [];
-    for (let m = minMins; m < maxMins; m += 30) timeRows.push(m);
-    const cellMap = new Map<string, SuggestedSlot>();
-    for (const s of suggestedSlots) {
-      const date = s.startsAt.split("T")[0];
-      const m = parseTimeMins(s.startsAt.split("T")[1]);
-      cellMap.set(`${date}|${m}`, s);
-    }
-    return { dates, timeRows, cellMap };
-  }, [suggestedSlots]);
-
-  const toggleNew = useCallback((s: SuggestedSlot) => {
-    const k = slotKey(s.startsAt, s.endsAt);
-    setNewSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(k)) next.delete(k); else next.add(k);
-      return next;
-    });
-  }, []);
 
   async function handleSave() {
     if (!title.trim()) return;
@@ -274,70 +221,11 @@ export function EditPollForm({
             click or drag to select new slots to add. each cell = 30 min.
           </p>
 
-          <div className="overflow-x-auto rounded-md border">
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `44px repeat(${dates.length}, minmax(58px, 1fr))`,
-                gridTemplateRows: `28px repeat(${timeRows.length}, 20px)`,
-                minWidth: `${44 + dates.length * 58}px`,
-              }}
-            >
-              <div style={{ gridRow: 1, gridColumn: 1 }} className="border-b border-r border-border" />
-              {dates.map((d, ci) => (
-                <div key={d} style={{ gridRow: 1, gridColumn: ci + 2 }}
-                  className="border-b border-r border-border px-1 flex items-center justify-center text-[10px] text-muted-foreground font-medium truncate">
-                  {fmtDateHeader(d)}
-                </div>
-              ))}
-              {timeRows.map((rowMins, ri) => (
-                <div key={`lbl-${rowMins}`} style={{ gridRow: ri + 2, gridColumn: 1 }}
-                  className="border-r border-border flex items-center justify-end pr-1.5 text-[10px] text-muted-foreground">
-                  {rowMins % 60 === 0 ? fmtMins(rowMins) : ""}
-                </div>
-              ))}
-              {timeRows.map((rowMins, ri) =>
-                dates.map((date, ci) => {
-                  const s = cellMap.get(`${date}|${rowMins}`);
-                  const isSel = s ? newSelected.has(slotKey(s.startsAt, s.endsAt)) : false;
-                  return (
-                    <div
-                      key={`${date}-${rowMins}`}
-                      style={{ gridRow: ri + 2, gridColumn: ci + 2 }}
-                      onMouseDown={s ? (e) => {
-                        e.preventDefault();
-                        const k = slotKey(s.startsAt, s.endsAt);
-                        const op = newSelected.has(k) ? "deselect" : "select";
-                        dragOpRef.current = op;
-                        setNewSelected((prev) => {
-                          const next = new Set(prev);
-                          if (op === "select") next.add(k); else next.delete(k);
-                          return next;
-                        });
-                      } : undefined}
-                      onMouseEnter={s ? () => {
-                        if (dragOpRef.current !== null) {
-                          const k = slotKey(s.startsAt, s.endsAt);
-                          setNewSelected((prev) => {
-                            const next = new Set(prev);
-                            if (dragOpRef.current === "select") next.add(k); else next.delete(k);
-                            return next;
-                          });
-                        }
-                      } : undefined}
-                      title={s ? `${s.label}${isSel ? " — deselect" : " — select"}` : undefined}
-                      className={`border-r border-b border-border/40 transition-colors ${
-                        s ? isSel
-                          ? "bg-primary/60 hover:bg-primary/50 cursor-pointer"
-                          : "bg-muted/30 hover:bg-muted/50 cursor-pointer"
-                          : ""
-                      }`}
-                    />
-                  );
-                })
-              )}
-            </div>
-          </div>
+          <AvailabilityGrid
+            suggestedSlots={suggestedSlots}
+            selected={newSelected}
+            setSelected={setNewSelected}
+          />
         </div>
       )}
 

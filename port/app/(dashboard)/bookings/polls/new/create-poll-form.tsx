@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useActionState, useCallback } from "react";
+import { useState, useEffect, useMemo, useActionState, useCallback } from "react";
 import { useFormStatus } from "react-dom";
 
 const DRAFT_KEY = "poll-draft-v1";
@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RotateCcw } from "lucide-react";
 import type { SuggestedSlot } from "@/lib/booking/collective-slots";
+import { AvailabilityGrid, slotKey } from "@/app/(dashboard)/bookings/polls/_components/availability-grid";
 
 interface ManualSlot { key: number; startsAt: string; endsAt: string; }
 
@@ -43,30 +44,10 @@ interface Props {
   creatorTz?: string;
 }
 
-function slotKey(s: string, e: string) { return `${s}|${e}`; }
-
 function offsetDateStr(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
   return d.toLocaleDateString("en-CA"); // YYYY-MM-DD
-}
-
-function parseTimeMins(hhmm: string): number {
-  const [h, m] = hhmm.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function fmtMins(mins: number): string {
-  const h = Math.floor(mins / 60), m = mins % 60;
-  const display = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  const ampm = h < 12 ? "a" : "p";
-  if (m === 0) return `${display}${ampm}`;
-  return `${display}:${String(m).padStart(2, "0")}${ampm}`;
-}
-
-function fmtDateHeader(dateStr: string): string {
-  const d = new Date(`${dateStr}T12:00:00`);
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "numeric", day: "numeric" });
 }
 
 export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, initialFromTime, initialToTime, creatorTz }: Props) {
@@ -154,8 +135,6 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, in
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
     }
   }, [state?.slug]);
-  // drag-select: null when not dragging, otherwise the operation to apply
-  const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
   function buildUrl(fd: string, td: string, ft: string, tt: string) {
     const p = new URLSearchParams();
@@ -164,46 +143,6 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, in
     if (ft) p.set("fromTime", ft);
     if (tt) p.set("toTime", tt);
     return `/bookings/polls/new?${p.toString()}`;
-  }
-
-  useEffect(() => {
-    const end = () => { dragOpRef.current = null; };
-    document.addEventListener("mouseup", end);
-    return () => document.removeEventListener("mouseup", end);
-  }, []);
-
-  const { dates, timeRows, cellMap } = useMemo(() => {
-    if (suggestedSlots.length === 0) return { dates: [], timeRows: [] as number[], cellMap: new Map<string, SuggestedSlot>() };
-    const byDate = new Map<string, SuggestedSlot[]>();
-    for (const s of suggestedSlots) {
-      const date = s.startsAt.split("T")[0];
-      if (!byDate.has(date)) byDate.set(date, []);
-      byDate.get(date)!.push(s);
-    }
-    const dates = [...byDate.keys()].sort();
-    const allStartMins = suggestedSlots.map((s) => parseTimeMins(s.startsAt.split("T")[1]));
-    const allEndMins = suggestedSlots.map((s) => parseTimeMins(s.endsAt.split("T")[1]));
-    const minMins = Math.min(...allStartMins);
-    const maxMins = Math.max(...allEndMins);
-    const timeRows: number[] = [];
-    for (let m = minMins; m < maxMins; m += 30) timeRows.push(m);
-    const cellMap = new Map<string, SuggestedSlot>();
-    for (const s of suggestedSlots) {
-      const date = s.startsAt.split("T")[0];
-      const m = parseTimeMins(s.startsAt.split("T")[1]);
-      cellMap.set(`${date}|${m}`, s);
-    }
-    return { dates, timeRows, cellMap };
-  }, [suggestedSlots]);
-
-  function toggleCell(s: SuggestedSlot) {
-    const k = slotKey(s.startsAt, s.endsAt);
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(k)) next.delete(k);
-      else next.add(k);
-      return next;
-    });
   }
 
   const selectedArr = [...selected].map((k) => {
@@ -359,102 +298,11 @@ export function CreatePollForm({ suggestedSlots = [], initialFrom, initialTo, in
               each cell = 30 min.
             </p>
 
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-3 rounded-sm bg-primary/60" />
-                included in poll
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-3 rounded-sm bg-muted/50 border border-border" />
-                available (not included)
-              </span>
-            </div>
-
-            {/* Calendar grid — explicit grid positioning to avoid fragment issues */}
-            <div className="overflow-x-auto rounded-md border">
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `44px repeat(${dates.length}, minmax(58px, 1fr))`,
-                  gridTemplateRows: `28px repeat(${timeRows.length}, 20px)`,
-                  minWidth: `${44 + dates.length * 58}px`,
-                }}
-              >
-                {/* Corner */}
-                <div
-                  style={{ gridRow: 1, gridColumn: 1 }}
-                  className="border-b border-r border-border"
-                />
-
-                {/* Day headers */}
-                {dates.map((d, ci) => (
-                  <div
-                    key={d}
-                    style={{ gridRow: 1, gridColumn: ci + 2 }}
-                    className="border-b border-r border-border px-1 flex items-center justify-center text-[10px] text-muted-foreground font-medium truncate"
-                  >
-                    {fmtDateHeader(d)}
-                  </div>
-                ))}
-
-                {/* Time labels */}
-                {timeRows.map((rowMins, ri) => (
-                  <div
-                    key={`lbl-${rowMins}`}
-                    style={{ gridRow: ri + 2, gridColumn: 1 }}
-                    className="border-r border-border flex items-center justify-end pr-1.5 text-[10px] text-muted-foreground"
-                  >
-                    {rowMins % 60 === 0 ? fmtMins(rowMins) : ""}
-                  </div>
-                ))}
-
-                {/* Cells — drag-select: mousedown starts a select/deselect operation, mouseenter applies it */}
-                {timeRows.map((rowMins, ri) =>
-                  dates.map((date, ci) => {
-                    const s = cellMap.get(`${date}|${rowMins}`);
-                    const isSel = s ? selected.has(slotKey(s.startsAt, s.endsAt)) : false;
-                    return (
-                      <div
-                        key={`${date}-${rowMins}`}
-                        style={{ gridRow: ri + 2, gridColumn: ci + 2 }}
-                        onMouseDown={s ? (e) => {
-                          e.preventDefault();
-                          const k = slotKey(s.startsAt, s.endsAt);
-                          const op = selected.has(k) ? "deselect" : "select";
-                          dragOpRef.current = op;
-                          setSelected((prev) => {
-                            const next = new Set(prev);
-                            if (op === "select") next.add(k);
-                            else next.delete(k);
-                            return next;
-                          });
-                        } : undefined}
-                        onMouseEnter={s ? () => {
-                          if (dragOpRef.current !== null) {
-                            const k = slotKey(s.startsAt, s.endsAt);
-                            setSelected((prev) => {
-                              const next = new Set(prev);
-                              if (dragOpRef.current === "select") next.add(k);
-                              else next.delete(k);
-                              return next;
-                            });
-                          }
-                        } : undefined}
-                        title={s ? `${s.label}${isSel ? " — deselect" : " — select"}` : undefined}
-                        className={`border-r border-b border-border/40 transition-colors ${
-                          s
-                            ? isSel
-                              ? "bg-primary/60 hover:bg-primary/50 cursor-pointer"
-                              : "bg-muted/30 hover:bg-muted/50 cursor-pointer"
-                            : ""
-                        }`}
-                      />
-                    );
-                  }),
-                )}
-              </div>
-            </div>
+            <AvailabilityGrid
+              suggestedSlots={suggestedSlots}
+              selected={selected}
+              setSelected={setSelected}
+            />
           </>
         ) : (
           /* Manual entry fallback when no suggested slots */
