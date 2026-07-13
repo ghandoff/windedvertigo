@@ -24,26 +24,26 @@ if (!VAPI_KEY || !SECRET) {
 const SONNET = "claude-sonnet-4-6";
 const HAIKU = "claude-haiku-4-5-20251001";
 
-// slug, display name, Vapi-native voiceId + fallback chain, model, greeting.
+// slug, display name, Vapi-native voiceId, model, greeting.
 // Switched off Cartesia 2026-07-13: a BYOK Cartesia subscription is a fixed
 // monthly credit ceiling (100K-1.25M chars) that silently blocks ALL calls
 // once exhausted — which is what actually broke voice that day, not a code
 // bug. Vapi's own native voices (provider "vapi") are metered pay-as-you-go
 // at $0.0025/min with no ceiling to exceed, ~20x cheaper than Cartesia even
-// at real phone-pilot volume. See docs/decisions/ for the full comparison.
+// at real phone-pilot volume.
 // version:2 is opt-in per assistant and cheaper/higher-quality than v1;
 // Rohan has no v2 so it's excluded from the picks below.
-// fallback avoids Cartesia entirely per Garrett: another Vapi voice first
-// (near-zero cost, catches transient errors), then OpenAI TTS (true
-// cross-vendor redundancy if Vapi's own TTS pipeline has an outage).
+// No voice.fallbackPlan here: Vapi's own voices carry managed auto-fallback
+// server-side and reject an explicit fallbackPlan (confirmed via 400 on the
+// live API — "managed auto-fallback is always on").
 const ASSISTANTS = [
-  { slug: "pam",   name: "Pam",  voice: "Savannah",    fallback: "Emma New",    model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
-  { slug: "cmo",   name: "Mo",   voice: "Emma New",    fallback: "Savannah",    model: SONNET, greet: "hi, Mo here. what's on your mind?" },
-  { slug: "carl",  name: "Carl", voice: "Neil New",    fallback: "Godfrey New", model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
-  { slug: "fin",   name: "Finn", voice: "Godfrey New", fallback: "Neil New",    model: SONNET, greet: "hey, Finn here. want the numbers?" },
-  { slug: "opsy",  name: "Opsy", voice: "Kai New",     fallback: "Sid New",     model: SONNET, greet: "hi, it's Opsy. want a status check?" },
-  { slug: "biz",   name: "Biz",  voice: "Sagar New",   fallback: "Kai New",     model: SONNET, greet: "hey, it's Biz. what are we pursuing?" },
-  { slug: "claude",name: "Claude",voice: "Elliot",     fallback: "Nico New",    model: HAIKU, greet: "hi Garrett, it's Claude. what can I help you think through?" },
+  { slug: "pam",   name: "Pam",  voice: "Savannah", model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
+  { slug: "cmo",   name: "Mo",   voice: "Emma",     model: SONNET, greet: "hi, Mo here. what's on your mind?" },
+  { slug: "carl",  name: "Carl", voice: "Neil",     model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
+  { slug: "fin",   name: "Finn", voice: "Godfrey",  model: SONNET, greet: "hey, Finn here. want the numbers?" },
+  { slug: "opsy",  name: "Opsy", voice: "Kai",      model: SONNET, greet: "hi, it's Opsy. want a status check?" },
+  { slug: "biz",   name: "Biz",  voice: "Sagar",    model: SONNET, greet: "hey, it's Biz. what are we pursuing?" },
+  { slug: "claude",name: "Claude",voice: "Elliot",  model: HAIKU, greet: "hi Garrett, it's Claude. what can I help you think through?" },
 ];
 
 const PREFIX = "WV Voice — "; // assistant display-name prefix in Vapi
@@ -59,17 +59,7 @@ function bodyFor(a) {
       model: a.model,
       headers: { "x-voice-secret": SECRET },
     },
-    voice: {
-      provider: "vapi",
-      voiceId: a.voice,
-      version: 2,
-      fallbackPlan: {
-        voices: [
-          { provider: "vapi", voiceId: a.fallback },
-          { provider: "openai", voiceId: "shimmer" },
-        ],
-      },
-    },
+    voice: { provider: "vapi", voiceId: a.voice, version: 2 },
     transcriber: { provider: "deepgram", model: "nova-3", language: "en" },
     // 1:1 call turn-taking: respond promptly, allow barge-in interruptions.
     startSpeakingPlan: { waitSeconds: 0.4 },

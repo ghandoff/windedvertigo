@@ -4,16 +4,17 @@ _Last updated: 2026-07-13. Branch: `main` (all merged)._
 
 ## TTS provider: Vapi-native, not Cartesia (as of 2026-07-13)
 
-All 7 assistants now use `voice: {provider: "vapi", ...}` (see
+All 7 assistants now use `voice: {provider: "vapi", version: 2, ...}` (see
 `scripts/vapi-setup.mjs`) instead of Cartesia. Cause: a BYOK Cartesia
 subscription is a fixed monthly credit ceiling that silently kills every call
 once exhausted — that's what actually broke voice on 2026-07-12, alongside a
 separate `silenceTimeoutSeconds` issue (see below). Vapi's own voices are
 metered pay-as-you-go with no ceiling to exceed, and ~20x cheaper even at
-phone-pilot volume. Each assistant also carries a `fallbackPlan` (another Vapi
-voice, then OpenAI TTS) so a future TTS-layer failure degrades instead of
-killing the call. The Cartesia-specific failure mode in the section below is
-now historical — kept for context, not because it can still happen.
+phone-pilot volume. **No `voice.fallbackPlan` is configured** — Vapi rejects
+one for its own voices with a 400 (`"managed auto-fallback is always on"`),
+so redundancy is already handled server-side. The Cartesia-specific failure
+mode in the section below is now historical — kept for context, not because
+it can still happen.
 
 ## Known failure modes — read this first when a call dies
 
@@ -170,7 +171,7 @@ port.windedvertigo.com (or query `pam_decisions` where `session_type='voice'`).
 ## Key facts / IDs
 
 - **Endpoint:** `POST https://wv-port.windedvertigo.workers.dev/api/voice/{slug}/chat/completions` (and the custom-domain equivalent). Auth: `x-voice-secret` header OR `Authorization: Bearer` = `VOICE_LLM_SECRET`.
-- **Slugs → voice (Vapi-native, provider=vapi, as of 2026-07-13):** pam=Savannah, cmo(Mo)=Emma New, carl=Neil New, fin(Finn)=Godfrey New, opsy=Kai New, biz=Sagar New, claude=Elliot. Each has a `fallbackPlan` (another Vapi voice, then OpenAI TTS) — see `scripts/vapi-setup.mjs`.
+- **Slugs → voice (Vapi-native, provider=vapi, version=2, as of 2026-07-13):** pam=Savannah, cmo(Mo)=Emma, carl=Neil, fin(Finn)=Godfrey, opsy=Kai, biz=Sagar, claude=Elliot. See `scripts/vapi-setup.mjs`.
 - **Vapi assistant IDs:** Pam `ba635645-717d-4415-8bd6-640aa7a62a5c`, Mo `50aee5b0-e4e5-4b4f-8b19-d3ad05adae97`, Carl `9e3d60f5-47bd-4ca1-ad18-a0cc407c51f5`, Finn `083e9950-420e-459f-ae58-90f9ccb96ed9`, Opsy `d7d2a1e8-da87-42ad-997c-f0aa354f3549`, Claude `eadd9571-8cf7-44bc-a4b9-a2d0c4aaed69`. Named "WV Voice — {name}".
 - **Vapi public key (client, publishable):** `9248eb66-2766-42e5-8022-b749368dc750` (hardcoded in `app/voice/page.tsx`).
 - **Models:** agents `claude-sonnet-4-6`, claude line `claude-haiku-4-5-20251001`.
