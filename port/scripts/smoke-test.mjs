@@ -22,7 +22,7 @@ const ROUTES = [
   { path: "/projects",      expect: 307 },
   { path: "/contacts",      expect: 307 },
   { path: "/opportunities", expect: 307 },
-  { path: "/strategy",      expect: 307 },
+  { path: "/mo",            expect: 307 },
   { path: "/campaigns",     expect: 307 },
   { path: "/events",        expect: 307 },
   { path: "/organizations", expect: 307 },
