@@ -130,9 +130,20 @@ export function PollRespondForm({
     setScrollCue({ right: el.scrollLeft < max - 4, scrolled: el.scrollLeft > 4 });
   }, []);
   useEffect(() => {
-    updateScrollCues();
+    const el = scrollerRef.current;
+    if (!el) return;
+    // Measure after paint (once Tailwind's max-width has constrained the box), and
+    // re-measure on any size change — a plain window 'resize' misses the CSS settling
+    // during hydration, which would otherwise leave the cue stuck off.
+    const raf = requestAnimationFrame(updateScrollCues);
+    const ro = new ResizeObserver(() => updateScrollCues());
+    ro.observe(el);
     window.addEventListener("resize", updateScrollCues);
-    return () => window.removeEventListener("resize", updateScrollCues);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", updateScrollCues);
+    };
   }, [updateScrollCues, tz, options.length]);
 
   useEffect(() => {
