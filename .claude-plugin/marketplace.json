@@ -4,7 +4,7 @@
     "name": "winded.vertigo"
   },
   "metadata": {
-    "description": "winded.vertigo collective agents — Mo (CMO), PaM (project/momentum manager), and cARL (research). Each pairs a persona skill with a memory MCP server backed by the shared port.windedvertigo.com memory layer."
+    "description": "winded.vertigo collective agents — Mo (CMO), PaM (project/momentum manager), cARL (research), Opsy (ops), Fin (CFO), and Biz (business development). Each pairs a persona skill with a memory MCP server backed by the shared port.windedvertigo.com memory layer."
   },
   "plugins": [
     {
@@ -21,6 +21,21 @@
       "name": "carl-research",
       "source": "./docs/plugins/carl-research",
       "description": "cARL — winded.vertigo's cyber agent of research and learning. Living library of evidence and findings."
+    },
+    {
+      "name": "opsy-ops",
+      "source": "./docs/plugins/opsy-ops",
+      "description": "Opsy — winded.vertigo's operations + systems intelligence agent. live health checks, incident history, and persistent ops memory."
+    },
+    {
+      "name": "fin-cfo",
+      "source": "./docs/plugins/fin-cfo",
+      "description": "Fin — winded.vertigo's CFO agent. live financial briefings via QBO + Gusto + Gmail, persistent action-item tracking, and decision memory."
+    },
+    {
+      "name": "biz-bd",
+      "source": "./docs/plugins/biz-bd",
+      "description": "Biz — winded.vertigo's business-development agent. drives the RFP Lighthouse: live pipeline + bid deadlines, go/no-go + bid decision memory, and a roadmap of available upgrades."
     }
   ]
 }
