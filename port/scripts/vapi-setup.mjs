@@ -37,13 +37,20 @@ const HAIKU = "claude-haiku-4-5-20251001";
 // server-side and reject an explicit fallbackPlan (confirmed via 400 on the
 // live API — "managed auto-fallback is always on").
 const ASSISTANTS = [
-  { slug: "pam",   name: "Pam",  voice: "Savannah", model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
-  { slug: "cmo",   name: "Mo",   voice: "Emma",     model: SONNET, greet: "hi, Mo here. what's on your mind?" },
-  { slug: "carl",  name: "Carl", voice: "Neil",     model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
-  { slug: "fin",   name: "Finn", voice: "Godfrey",  model: SONNET, greet: "hey, Finn here. want the numbers?" },
-  { slug: "opsy",  name: "Opsy", voice: "Kai",      model: SONNET, greet: "hi, it's Opsy. want a status check?" },
-  { slug: "biz",   name: "Biz",  voice: "Sagar",    model: SONNET, greet: "hey, it's Biz. what are we pursuing?" },
-  { slug: "claude",name: "Claude",voice: "Elliot",  model: HAIKU, greet: "hi Garrett, it's Claude. what can I help you think through?" },
+  { slug: "pam",   name: "Pam",  voice: "Savannah", model: SONNET, greet: "hey, it's Pam. what are we moving today?",
+    idle: ["hey, you still with me? no rush — take the time you need."] },
+  { slug: "cmo",   name: "Mo",   voice: "Emma",     model: SONNET, greet: "hi, Mo here. what's on your mind?",
+    idle: ["still there? happy to wait, no pressure."] },
+  { slug: "carl",  name: "Carl", voice: "Neil",     model: SONNET, greet: "hi, it's Carl. what are we looking into?",
+    idle: ["take your time — i'm here when you're ready to continue."] },
+  { slug: "fin",   name: "Finn", voice: "Godfrey",  model: SONNET, greet: "hey, Finn here. want the numbers?",
+    idle: ["still with me? happy to wait while you check something."] },
+  { slug: "opsy",  name: "Opsy", voice: "Kai",      model: SONNET, greet: "hi, it's Opsy. want a status check?",
+    idle: ["just checking you're still there — no rush."] },
+  { slug: "biz",   name: "Biz",  voice: "Sagar",    model: SONNET, greet: "hey, it's Biz. what are we pursuing?",
+    idle: ["still there? take a beat, i'll wait."] },
+  { slug: "claude",name: "Claude",voice: "Elliot",  model: HAIKU, greet: "hi Garrett, it's Claude. what can I help you think through?",
+    idle: ["still there? take your time, no pressure."] },
 ];
 
 const PREFIX = "WV Voice — "; // assistant display-name prefix in Vapi
@@ -68,6 +75,17 @@ function bodyFor(a) {
     // not a code bug). 120s gives real thinking pauses more room.
     silenceTimeoutSeconds: 120,
     maxDurationSeconds: 1800,
+    // Idle check-in: speaks a per-agent nudge at 45s of silence (well above
+    // Vapi's reported ~40s floor for the hook to actually fire) instead of
+    // just letting the call go quiet until the 120s hard cutoff. Resets on
+    // any speech from Garrett; fires at most twice per call.
+    hooks: [
+      {
+        on: "customer.speech.timeout",
+        options: { timeoutSeconds: 45, triggerMaxCount: 2, triggerResetMode: "onUserSpeech" },
+        do: [{ type: "say", exact: a.idle }],
+      },
+    ],
     // Stage 4: end-of-call webhook saves transcript summary to agent memory.
     serverUrl: `${BASE}/api/voice/${a.slug}/end-of-call`,
     serverUrlSecret: SECRET,
