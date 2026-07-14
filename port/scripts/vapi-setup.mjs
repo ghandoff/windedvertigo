@@ -63,9 +63,10 @@ function bodyFor(a) {
     transcriber: { provider: "deepgram", model: "nova-3", language: "en" },
     // 1:1 call turn-taking: respond promptly, allow barge-in interruptions.
     startSpeakingPlan: { waitSeconds: 0.4 },
-    // 60s, raised from 30s 2026-07-12 after a call died to Vapi's own
-    // silence-timeout firing on a natural pause, not a code bug.
-    silenceTimeoutSeconds: 60,
+    // 30s -> 60s 2026-07-12, then -> 120s 2026-07-14: even 60s cut off a
+    // genuine 24-min conversation mid-thought (Vapi's own silence-timeout,
+    // not a code bug). 120s gives real thinking pauses more room.
+    silenceTimeoutSeconds: 120,
     maxDurationSeconds: 1800,
     // Stage 4: end-of-call webhook saves transcript summary to agent memory.
     serverUrl: `${BASE}/api/voice/${a.slug}/end-of-call`,

@@ -97,3 +97,16 @@ payton reported having "multiple conversations" with Mo via her cowork setup. th
 - the $482,500 curated figure includes ~$52,300 of unallocated pipeline that has no backing deal yet. the live /strategy bar shows the *concrete* pipeline only: **$430,200 (86%), $170,000 locked (34%), $69,800 to close**.
 - fixed the live revenue bar to exclude speculative `pursuing` radar RFPs (an $8M Gates grant was saturating it at 1699%); it now counts only submitted/interviewing proposals + signed deals.
 - $482,500 is retained here and in the strategy-data.ts fallback as Mo's tracking target; the live bar is the honest concrete number.
+
+---
+
+## 2026-07-14 — garrett × mo (voice call)
+
+garrett and mo discussed creating a july task list for jamie before his august holiday, focusing on three main work areas: finalising the transformative theory of change into a decision tool, documenting the RFP lighthouse process for internal collective use, and deepening jamie's involvement in the omnia evidence dashboard desk review. garrett clarified that the RFP lighthouse is an internal collective tool (not for consortium partners) and noted the importance of marketing strategy and brand identity for creaseworks and proposal delivery.
+
+- create july task list for jamie across three work areas
+- document RFP lighthouse as an internal collective process tool
+- embed jamie in the omnia evidence dashboard desk review
+- involve pam or marketing strategy in a separate conversation
+
+_captured automatically via the voice-call end-of-call webhook; backfilled here manually to keep the git log in sync._
