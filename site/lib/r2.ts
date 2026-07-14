@@ -34,7 +34,15 @@ function getR2Client(): S3Client {
   _client = new S3Client({
     region: "auto",
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentialDefaultProvider: () => async () => ({ accessKeyId, secretAccessKey }),
+    // Static credentials object, not credentialDefaultProvider — the latter
+    // only overrides the *fallback* used when `credentials` is unset, so the
+    // SDK still ran its default Node credential-provider chain first, which
+    // tries to read ~/.aws/credentials via fs.readFile. That's unimplemented
+    // in the Workers nodejs_compat polyfill and threw on every call, so R2
+    // sync silently failed 100% of the time (caught by syncImageToR2's
+    // try/catch) and every portfolio thumbnail fell back to the raw,
+    // 1-hour-expiring Notion S3 URL.
+    credentials: { accessKeyId, secretAccessKey },
   });
 
   return _client;
