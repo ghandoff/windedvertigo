@@ -305,7 +305,7 @@ export async function GET(req: NextRequest) {
         name: fn.name,
         ok: false,
         severity: "warning",
-        symptoms: `check threw: ${err instanceof Error ? err.message : String(err)}`,
+        symptoms: `check threw: ${err instanceof Error ? err.message : (err?.message ?? JSON.stringify(err))}`,
       })),
     ),
   );
