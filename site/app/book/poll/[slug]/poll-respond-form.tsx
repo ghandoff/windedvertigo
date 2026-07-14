@@ -135,6 +135,20 @@ export function PollRespondForm({
 
   const grid = useMemo(() => buildGrid(options, tz), [options, tz]);
 
+  // Daily candidate window (earliest start – latest end) in the VIEWER's own timezone,
+  // so everyone sees the hours relative to where they are (e.g. 7:00 am–2:00 pm PT reads
+  // as 5:00 pm–12:00 am in Cairo). Derived from the real slots, so it's always accurate.
+  const windowLabel = useMemo(() => {
+    if (options.length === 0) return null;
+    const fmt = (ms: number) =>
+      new Date(ms)
+        .toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" })
+        .toLowerCase();
+    const startMs = Math.min(...options.map((o) => new Date(o.starts_at).getTime()));
+    const endMs = Math.max(...options.map((o) => new Date(o.ends_at).getTime()));
+    return `${fmt(startMs)} – ${fmt(endMs)}`;
+  }, [options, tz]);
+
   const heatByOption = useMemo(() => {
     const map = new Map<string, number>();
     for (const c of localChoices) {
@@ -215,11 +229,19 @@ export function PollRespondForm({
 
   return (
     <div>
+      {/* Candidate window in the viewer's own timezone — replaces the old hard-coded
+          "times shown 9a-2p pacific" so every respondent sees their local hours. */}
+      {windowLabel && (
+        <p className="text-xs mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
+          times shown in your timezone ({tz}): {windowLabel}
+        </p>
+      )}
+
       {/* Response counter */}
       <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
         {localTotal === 0
           ? "no responses yet — be the first"
-          : `${localTotal} response${localTotal !== 1 ? "s" : ""} · times in ${tz}`}
+          : `${localTotal} response${localTotal !== 1 ? "s" : ""}`}
       </p>
 
       {/* Legend — placed ABOVE the grid so respondents (especially on mobile) learn
