@@ -43,6 +43,10 @@ export interface PamCommitment {
   // optional programme label (free-text, matches projects.project — no FK). groups
   // commitments under a timeline programme, e.g. "amna at 10".
   programme: string | null;
+  // optional TToC label from ttoc_gate (survival = legitimate but not
+  // mission-driven; mission = advances a Transformative Outcome; mixed).
+  // Only set for substantive commitments worth labelling.
+  survival_or_mission: "survival" | "mission" | "mixed" | null;
 }
 
 export async function insertPamDecision(data: {
@@ -162,6 +166,7 @@ export async function insertPamCommitment(data: {
   commitment_type?: "action" | "learning" | "connection" | "ritual";
   visibility?: "public" | "private";
   programme?: string;
+  survival_or_mission?: "survival" | "mission" | "mixed";
 }): Promise<PamCommitment> {
   const { data: row, error } = await supabase
     .from("pam_commitments")
@@ -177,6 +182,7 @@ export async function insertPamCommitment(data: {
       commitment_type: data.commitment_type ?? null,
       visibility: data.visibility ?? "public",
       programme: data.programme ?? null,
+      survival_or_mission: data.survival_or_mission ?? null,
       status: "not-started",
       updated_at: new Date().toISOString(),
     })
@@ -209,6 +215,7 @@ export async function updatePamCommitment(
     visibility?: string;
     work_item_id?: string | null;
     programme?: string | null;
+    survival_or_mission?: string | null;
   },
 ): Promise<PamCommitment> {
   const { data: row, error } = await supabase

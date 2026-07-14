@@ -98,7 +98,7 @@ const PAM_TOOLS: ToolDef[] = [
   { name: "pam_briefing", description: "Load PaM's full working state — active commitments, overdue items, blocked dependencies, working state, and 14 days of conversation history. Call silently at session start.", inputSchema: { type: "object", properties: {}, required: [] } },
   { name: "pam_log_decision", description: "Log a project-level decision or context shift to PaM's persistent memory. Call when commitments are made, status changes, or blockers surface.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Name of the person in the conversation" }, summary: { ...STR, description: "Summary of what was discussed" }, decisions: { ...STR_ARR, description: "List of specific decisions or action items" }, tags: { ...STR_ARR, description: "Relevant tags e.g. ['commitments', 'blockers', 'whirlpool']" }, session_type: { ...STR, description: "Session type, default 'cowork'" } }, required: ["who", "summary"] } },
   { name: "pam_update_memory", description: "Update a key in PaM's working state memory. Use when team state changes — someone's focus shifts, overdue items resolve, next whirlpool is scheduled.", inputSchema: { type: "object", properties: { key: { ...STR, description: "Memory key (e.g. 'garrett-commitments')" }, value: { ...STR, description: "New value" }, updated_by: { ...STR, description: "Who made the update" } }, required: ["key", "value", "updated_by"] } },
-  { name: "pam_create_commitment", description: "Create a new commitment in PaM's tracker. Use when a team member commits to doing something in a conversation. For whirlpool commitments, always pass cycle, commitment_type, and if_then_plan.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Person making the commitment (e.g. 'garrett')" }, what: { ...STR, description: "What they committed to" }, start_date: { ...STR, description: "Start date YYYY-MM-DD (optional — enables a Gantt bar span)" }, due_date: { ...STR, description: "Due date YYYY-MM-DD (optional)" }, source: { ...STR, description: "Where it was committed (e.g. 'whirlpool', 'cowork', 'slack')" }, depends_on: { ...STR_ARR, description: "IDs of commitments this depends on (optional)" }, cycle: { ...STR, description: "ISO Monday date of the whirlpool week this belongs to (YYYY-MM-DD). Compute as: today minus today's weekday offset + 1. Required for whirlpool commitments." }, if_then_plan: { ...STR, description: "Implementation intention: 'if <when/where cue>, then I will <specific action>'. Dramatically increases follow-through. Required for whirlpool commitments." }, commitment_type: { type: "string", enum: ["action", "learning", "connection", "ritual"], description: "action = deliver something; learning = explore/study; connection = a conversation to have; ritual = a regular practice." }, visibility: { type: "string", enum: ["public", "private"], description: "public = visible on the whirlpool board (default); private = PaM memory only (for sensitive commitments)." } }, required: ["who", "what"] } },
+  { name: "pam_create_commitment", description: "Create a new commitment in PaM's tracker. Use when a team member commits to doing something in a conversation. For whirlpool commitments, always pass cycle, commitment_type, and if_then_plan. For a substantive new commitment (a project, not a small task), consider calling ttoc_gate first and passing its tag as survival_or_mission.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Person making the commitment (e.g. 'garrett')" }, what: { ...STR, description: "What they committed to" }, start_date: { ...STR, description: "Start date YYYY-MM-DD (optional — enables a Gantt bar span)" }, due_date: { ...STR, description: "Due date YYYY-MM-DD (optional)" }, source: { ...STR, description: "Where it was committed (e.g. 'whirlpool', 'cowork', 'slack')" }, depends_on: { ...STR_ARR, description: "IDs of commitments this depends on (optional)" }, cycle: { ...STR, description: "ISO Monday date of the whirlpool week this belongs to (YYYY-MM-DD). Compute as: today minus today's weekday offset + 1. Required for whirlpool commitments." }, if_then_plan: { ...STR, description: "Implementation intention: 'if <when/where cue>, then I will <specific action>'. Dramatically increases follow-through. Required for whirlpool commitments." }, commitment_type: { type: "string", enum: ["action", "learning", "connection", "ritual"], description: "action = deliver something; learning = explore/study; connection = a conversation to have; ritual = a regular practice." }, visibility: { type: "string", enum: ["public", "private"], description: "public = visible on the whirlpool board (default); private = PaM memory only (for sensitive commitments)." }, survival_or_mission: { type: "string", enum: ["survival", "mission", "mixed"], description: "Optional TToC label (from ttoc_gate) — survival = legitimate but not mission-driven, mission = clearly advances a Transformative Outcome, mixed = both. Only set for substantive commitments worth labelling; skip for routine tasks." } }, required: ["who", "what"] } },
   { name: "pam_update_commitment", description: "Update the status of an existing commitment. Use when something is done, blocked, or changes.", inputSchema: { type: "object", properties: { id: { ...STR, description: "UUID of the commitment to update" }, status: { type: "string", enum: ["not-started", "in-progress", "blocked", "done", "parked"], description: "New status" }, blocker: { ...STR, description: "What's blocking it (if status is 'blocked')" }, completed_at: { ...STR, description: "Completion timestamp ISO (if marking done)" }, start_date: { ...STR, description: "Start date YYYY-MM-DD (optional)" }, due_date: { ...STR, description: "Due date YYYY-MM-DD (optional)" } }, required: ["id"] } },
 ];
 
@@ -116,7 +116,7 @@ async function callPam(name: string, a: Record<string, unknown>, token: string):
     return { text: `memory updated: ${d.key}` };
   }
   if (name === "pam_create_commitment") {
-    const d = (await apiFetch("/api/pam/commitments", token, { method: "POST", body: JSON.stringify({ who: a.who, what: a.what, start_date: a.start_date || undefined, due_date: a.due_date || undefined, source: a.source || undefined, depends_on: a.depends_on || undefined, cycle: a.cycle || undefined, if_then_plan: a.if_then_plan || undefined, commitment_type: a.commitment_type || undefined, visibility: a.visibility || undefined }) })) as { id: string };
+    const d = (await apiFetch("/api/pam/commitments", token, { method: "POST", body: JSON.stringify({ who: a.who, what: a.what, start_date: a.start_date || undefined, due_date: a.due_date || undefined, source: a.source || undefined, depends_on: a.depends_on || undefined, cycle: a.cycle || undefined, if_then_plan: a.if_then_plan || undefined, commitment_type: a.commitment_type || undefined, visibility: a.visibility || undefined, survival_or_mission: a.survival_or_mission || undefined }) })) as { id: string };
     const cycleNote = a.cycle ? ` [cycle ${a.cycle}]` : "";
     const typeNote = a.commitment_type ? ` · ${a.commitment_type}` : "";
     return { text: `commitment created (id: ${d.id}) — ${a.who}: ${a.what}${typeNote}${cycleNote}` };
@@ -553,9 +553,10 @@ const GONOGO_RECIPE = [
   "## score the go/no-go",
   "1. **eligibility (pass/fail)** — are we actually eligible? entity type, registrations, and any mandatory eligibility requirement above. if any hard requirement fails → **no-bid**, stop here.",
   "2. **weighted scorecard (0–100)** — fit (the win-probability + wv fit are a starting point, not the answer), capacity (do we have the team + bandwidth given days-to-deadline and current pipeline load?), strategic value (sector / funder relationship / portfolio fit), win-likelihood (competition, incumbency, our differentiation), economics (value vs effort + a defensible margin — pull rates from Fin via fin_briefing if it's close).",
-  "3. **verdict bands** — <40 **no-bid** · 40–70 **defer** (name the gap that would change it) · >70 **bid**.",
+  "3. **mission alignment** — call `ttoc_gate` (kind: 'opportunity') and fold the tag (survival/mission/mixed) + rationale into your call. a defer in the 40–70 band should say why in TToC terms, not just P-win.",
+  "4. **verdict bands** — <40 **no-bid** · 40–70 **defer** (name the gap that would change it) · >70 **bid**.",
   "",
-  "then: give garrett a clear bid · no-bid · defer with a one-line rationale, and record it with `biz_set_bid_decision`. on a **bid**, hand off: push the deadline + any contributor tasks to PaM (`pam_create_commitment`), and queue the QC pass (`biz_qc_review`) once a draft exists.",
+  "then: give garrett a clear bid · no-bid · defer with a one-line rationale (including the TToC tag), and record it with `biz_set_bid_decision`. on a **bid**, hand off: push the deadline + any contributor tasks to PaM (`pam_create_commitment`), and queue the QC pass (`biz_qc_review`) once a draft exists.",
 ].join("\n");
 
 // the gate-by-gate recipe the Cowork agent executes after biz_qc_review returns the facts
@@ -735,6 +736,48 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
   return { text: `unknown tool: ${name}`, isError: true };
 }
 
+// ---- TToC gate (shared — all agents) ----
+// Scores an opportunity/commitment/campaign against winded.vertigo's TToC
+// rubric. PLACEHOLDER rubric — see docs/cmo/ttoc-rubric.md: the source is an
+// unconfirmed Notion draft, not yet confirmed as canonical with Jamie.
+const TTOC_TOOLS: ToolDef[] = [
+  {
+    name: "ttoc_gate",
+    description:
+      "Score an opportunity/commitment/campaign against winded.vertigo's Transformative Theory of Change rubric (Must Have / Should Have / Clear Rejections) and get a survival-vs-mission tag. Returns a structured verdict and logs it for auditability — use this so a defer/no-go can say why in TToC terms, not just P-win or capacity. NOTE: the rubric is currently an unconfirmed placeholder (docs/cmo/ttoc-rubric.md) — treat verdicts as a useful second opinion, not gospel, until Jamie confirms the canonical source.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        kind: { type: "string", enum: ["opportunity", "commitment", "campaign"], description: "What's being scored" },
+        title: { ...STR, description: "Short title of the thing being scored" },
+        description: { ...STR, description: "Enough detail for a grounded verdict — what it is, who it's for, what it asks of the team" },
+        subject_id: { ...STR, description: "Optional id to link the scorecard back to its record (e.g. rfp_opportunities.notion_page_id, a pam_commitments id)" },
+        requested_by: { ...STR, description: "Who/what requested this (agent slug or person slug, default 'garrett')" },
+      },
+      required: ["kind", "title", "description"],
+    },
+  },
+];
+
+async function callTtoc(name: string, a: Record<string, unknown>, token: string): Promise<ToolResult> {
+  if (name === "ttoc_gate") {
+    const d = (await apiFetch("/api/ttoc/gate", token, {
+      method: "POST",
+      body: JSON.stringify({ kind: a.kind, title: a.title, description: a.description, subject_id: a.subject_id || undefined, requested_by: a.requested_by || undefined }),
+    })) as { id: string; verdict: { mustHavePass: boolean; shouldHave: string[]; rejections: string[]; tag: string; rationale: string } };
+    const v = d.verdict;
+    const lines = [
+      `**ttoc verdict — ${v.tag}** ${v.mustHavePass ? "✅ passes must-haves" : "⚠️ fails at least one must-have"}`,
+      v.rationale,
+      v.shouldHave.length ? `should-haves met: ${v.shouldHave.join("; ")}` : null,
+      v.rejections.length ? `⚠️ clear rejections flagged: ${v.rejections.join("; ")}` : null,
+      `[scorecard id: ${d.id}]`,
+    ].filter(Boolean);
+    return { text: lines.join("\n") };
+  }
+  return { text: `unknown tool: ${name}`, isError: true };
+}
+
 const AGENTS: Record<string, AgentSpec> = {
   mo: { serverName: "mo-memory", title: "Mo (CMO) memory", instructions: "Mo is winded.vertigo's chief marketing officer. Call cmo_briefing silently at session start to load persistent memory; log decisions as they're made.", tools: MO_TOOLS, call: callMo },
   pam: { serverName: "pam-memory", title: "PaM memory", instructions: "PaM is winded.vertigo's project + momentum manager. Call pam_briefing silently at session start; create/update commitments and log decisions as they happen.", tools: PAM_TOOLS, call: callPam },
@@ -755,14 +798,15 @@ async function callAll(name: string, a: Record<string, unknown>, token: string):
   if (name.startsWith("opsy_")) return callOpsy(name, a, token);
   if (name.startsWith("fin_")) return callFin(name, a, token);
   if (name.startsWith("biz_")) return callBiz(name, a, token);
+  if (name.startsWith("ttoc_")) return callTtoc(name, a, token);
   return { text: `unknown tool: ${name}`, isError: true };
 }
 AGENTS.all = {
   serverName: "wv-agents",
   title: "winded.vertigo agents",
   instructions:
-    "Mo, PaM, cARL, Opsy, Fin, and Biz in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL), opsy_* = infrastructure ops (Opsy), fin_* = CFO / finances (Fin), biz_* = business development / RFPs (Biz). Call the *_briefing tools at session start to load shared memory.",
-  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS, ...OPSY_TOOLS, ...FIN_TOOLS, ...BIZ_TOOLS],
+    "Mo, PaM, cARL, Opsy, Fin, and Biz in one connector. cmo_* = marketing (Mo), pam_* = projects/commitments (PaM), carl_* = research (cARL), opsy_* = infrastructure ops (Opsy), fin_* = CFO / finances (Fin), biz_* = business development / RFPs (Biz), ttoc_* = shared TToC alignment gate (any agent — call before a go/no-go or commitment intake where mission-fit is worth checking). Call the *_briefing tools at session start to load shared memory.",
+  tools: [...MO_TOOLS, ...PAM_TOOLS, ...CARL_TOOLS, ...OPSY_TOOLS, ...FIN_TOOLS, ...BIZ_TOOLS, ...TTOC_TOOLS],
   call: callAll,
 };
 
