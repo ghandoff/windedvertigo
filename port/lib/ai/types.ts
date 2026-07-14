@@ -66,6 +66,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // Haiku: extract commitment candidates from #whirlpool Slack chatter — short,
   // infrequent (weekly-ish), cost-sensitive.
   "whirlpool-sweep": "claude-haiku-4-5-20251001",
+  // Haiku: one short daily digest compiled from all six agents' overnight
+  // logs — low-cost, high-volume text, runs once a day.
+  "collective-digest": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -93,7 +96,8 @@ export type AiFeature =
   | "pam-action-triage"
   | "knowledge-extract"
   | "knowledge-reconcile"
-  | "whirlpool-sweep";
+  | "whirlpool-sweep"
+  | "collective-digest";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -119,6 +123,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "knowledge-extract": "Knowledge Graph Extract",
   "knowledge-reconcile": "Knowledge Graph Reconcile",
   "whirlpool-sweep": "Whirlpool Commitment Sweep",
+  "collective-digest": "Daily Collective Digest",
 };
 
 // ── token usage tracking ─────────────────────────────────

@@ -12,6 +12,7 @@ import { getUsageEntries } from "./usage-store";
 const FEATURE_AGENT: Partial<Record<AiFeature, string>> = {
   "pam-action-triage": "pam",
   "whirlpool-sweep": "pam",
+  "collective-digest": "pam",
   "rfp-triage": "biz",
   "proposal-generation": "biz",
   "rfp-document-extraction": "biz",
