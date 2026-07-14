@@ -6,6 +6,7 @@
  */
 
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { select, selectOne } from "@/lib/booking/supabase";
 import { SiteHeader } from "@/components/site-header";
@@ -13,6 +14,33 @@ import { SiteFooter } from "@/components/site-footer";
 import { PollRespondForm } from "./poll-respond-form";
 
 export const dynamic = "force-dynamic";
+
+/** Render a plain-text description with `[label](https://url)` markdown links as
+ *  real anchors. Only http(s) links are linkified; everything else stays literal. */
+function renderDescription(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  let last = 0;
+  let key = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    nodes.push(
+      <a
+        key={key++}
+        href={m[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ color: "rgba(45,212,191,0.9)", textDecoration: "underline", textUnderlineOffset: "2px" }}
+      >
+        {m[1]}
+      </a>,
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -128,7 +156,7 @@ export default async function PollRespondPage({ params }: Props) {
           </h1>
           {poll.description && (
             <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-              {poll.description}
+              {renderDescription(poll.description)}
             </p>
           )}
         </div>
