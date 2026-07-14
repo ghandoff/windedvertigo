@@ -222,6 +222,43 @@ export function PollRespondForm({
           : `${localTotal} response${localTotal !== 1 ? "s" : ""} · times in ${tz}`}
       </p>
 
+      {/* Legend — placed ABOVE the grid so respondents (especially on mobile) learn
+          what the colours mean before they start selecting. */}
+      <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6, marginTop: 0, marginBottom: 12 }}>
+        {!submitted && !isLocked && (
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.22)", display: "inline-block" }}
+            />
+            available — click to select
+          </span>
+        )}
+        {!submitted && !isLocked && (
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.65)", display: "inline-block" }}
+            />
+            your selection
+          </span>
+        )}
+        {localTotal > 0 && (
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.35)", display: "inline-block" }}
+            />
+            others available
+          </span>
+        )}
+        {isLocked && (
+          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(34,197,94,0.35)", display: "inline-block" }}
+            />
+            confirmed time
+          </span>
+        )}
+      </div>
+
       {/* Calendar grid */}
       <div
         className="overflow-x-auto rounded-xl"
@@ -400,42 +437,6 @@ export function PollRespondForm({
         <span aria-hidden style={{ display: "inline-block", animation: "wvScrollNudge 1.4s ease-in-out infinite" }}>›</span>
       </p>
       <style>{`@keyframes wvScrollNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}`}</style>
-
-      {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 mt-3 mb-6 text-xs" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6, marginTop: 12, marginBottom: 24 }}>
-        {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.22)", display: "inline-block" }}
-            />
-            available — click to select
-          </span>
-        )}
-        {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.65)", display: "inline-block" }}
-            />
-            your selection
-          </span>
-        )}
-        {localTotal > 0 && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.35)", display: "inline-block" }}
-            />
-            others available
-          </span>
-        )}
-        {isLocked && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(34,197,94,0.35)", display: "inline-block" }}
-            />
-            confirmed time
-          </span>
-        )}
-      </div>
 
       {/* Response form */}
       {!isLocked && (
