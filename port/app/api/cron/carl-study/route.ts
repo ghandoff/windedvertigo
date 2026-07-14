@@ -143,6 +143,36 @@ async function fileHit(hit: ScholarHit, topicDomain: string) {
   });
 }
 
+// deliverInsight writes a distilled 1-3 sentence finding, not raw model or
+// provider output. A well-formed title/summary is at most a couple hundred
+// characters. The `citation` argument is sourced from a scholar-search hit's
+// `fullCitation` field (see chosen[0]?.fullCitation in the main loop below) —
+// confirmed in production data that this field can occasionally come back as
+// an entire journal issue's table of contents (multiple unrelated articles,
+// abstracts, DOIs) rather than one citation, which then gets concatenated
+// verbatim into memory. Cap/reject all three inputs rather than trusting
+// either the model or the scholar-search provider to stay in shape.
+const TITLE_MAX = 120;
+const SUMMARY_MAX = 500;
+const CITATION_MAX = 400;
+const BLOB_REJECT_THRESHOLD = 1500;
+
+function looksLikeEchoedListDump(s: string): boolean {
+  if (s.length > BLOB_REJECT_THRESHOLD) return true;
+  if (s.includes("real search results:")) return true;
+  // 3+ numbered-list-style lines ("[0] ...", "1. ...") or 2+ "DOI Number:"/
+  // "Download Pdf" markers is shaped like an echoed citation list or a raw
+  // journal-issue TOC, not a single distilled finding/citation.
+  const numberedLines = s.split("\n").filter((line) => /^\s*(\[\d+\]|\d+[.)])\s/.test(line));
+  if (numberedLines.length >= 3) return true;
+  if ((s.match(/DOI (Number|Link):/g) ?? []).length >= 2) return true;
+  return false;
+}
+
+function truncate(s: string, max: number): string {
+  return s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s;
+}
+
 /** Deliver a Mo/Pam-audience finding into that agent's memory. */
 async function deliverInsight(
   audience: "mo" | "pam",
@@ -150,11 +180,20 @@ async function deliverInsight(
   f: FindingJson,
   citation: string | undefined,
 ) {
+  const title = f.title ?? "";
+  const summary = f.summary ?? "";
+  if (looksLikeEchoedListDump(`${title}\n${summary}`) || (citation && looksLikeEchoedListDump(citation))) {
+    console.warn(`[carl-study] deliverInsight skipped — oversized/list-shaped input for "${title.slice(0, 80)}"`);
+    return;
+  }
+  const cleanTitle = truncate(title, TITLE_MAX);
+  const cleanSummary = truncate(summary, SUMMARY_MAX);
+  const cleanCitation = citation ? truncate(citation, CITATION_MAX) : citation;
   const today = new Date().toISOString().slice(0, 10);
-  const key = `carl-insight-${today}-${slugify(f.title)}`;
+  const key = `carl-insight-${today}-${slugify(cleanTitle)}`;
   const value =
-    `${f.title} — ${f.summary}` +
-    (citation ? ` (${citation})` : "") +
+    `${cleanTitle} — ${cleanSummary}` +
+    (cleanCitation ? ` (${cleanCitation})` : "") +
     (f.relevance ? ` · why it matters: ${f.relevance}` : "") +
     ` · track: ${domain}`;
   if (audience === "mo") await upsertCmoMemory(key, value, "carl-automation");
