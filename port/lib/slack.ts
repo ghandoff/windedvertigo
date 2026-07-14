@@ -77,6 +77,12 @@ export async function getSlackUserByEmail(email: string): Promise<string | null>
   return data?.user?.id ?? null;
 }
 
+/** Resolve a Slack user ID to a display name (falls back to real name, then the ID itself). */
+export async function getSlackUserName(userId: string): Promise<string> {
+  const data = await slackApi({ method: "users.info", body: { user: userId } });
+  return data?.user?.profile?.display_name || data?.user?.real_name || userId;
+}
+
 /**
  * Open (or reuse) a DM channel with a user and return the channel ID.
  */
@@ -158,6 +164,27 @@ export async function postToChannel(
 }
 
 /**
+ * Post to a channel, self-healing on first use — mirrors lib/opsy/alerts.ts's
+ * postOps(): try a direct post, and if that fails (channel missing or bot not
+ * a member) create/join the channel + invite the given emails, then retry
+ * once. Returns whether the message actually landed, and always warns on
+ * final failure rather than swallowing it — callers should surface this
+ * (log it, reflect it in a response body) instead of a bare `.catch(() => {})`,
+ * which hides every Slack failure with no trace.
+ */
+export async function postToChannelResilient(
+  channel: string,
+  text: string,
+  inviteEmails: string[] = [],
+): Promise<boolean> {
+  if (await postToChannel(channel, text)) return true;
+  const id = await ensureChannel(channel, inviteEmails);
+  if (id && (await postToChannel(id, text))) return true;
+  console.warn(`[slack] could not post to ${channel} — create it and /invite the bot`);
+  return false;
+}
+
+/**
  * Ensure a public channel exists and the bot is a member; invite the given
  * users. Returns the channel ID, or null if the bot lacks the scopes
  * (channels:manage / channels:join) — callers should fall back gracefully.
@@ -211,6 +238,62 @@ export async function ensureChannel(
     }
   }
   return channelId;
+}
+
+/**
+ * Resolve a #channel-name to its Slack channel ID via conversations.list.
+ * Returns null if not found or the bot lacks channels:read.
+ */
+export async function getChannelIdByName(name: string): Promise<string | null> {
+  const plain = name.replace(/^#/, "");
+  if (/^[CG][A-Z0-9]{8,}$/.test(plain)) return plain; // already an ID
+  const list = await slackApi({
+    method: "conversations.list",
+    body: { types: "public_channel,private_channel", limit: 1000, exclude_archived: true },
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return list?.channels?.find((c: any) => c.name === plain)?.id ?? null;
+}
+
+export interface SlackMessage {
+  ts: string;
+  user?: string;
+  text: string;
+}
+
+/**
+ * Read a channel's message history since a given Slack timestamp (exclusive).
+ * Requires the channels:history (or groups:history for private channels)
+ * bot scope — returns an empty array (with a console.warn) if the scope is
+ * missing or the channel can't be resolved, rather than throwing, so a sweep
+ * cron degrades to "found nothing new" instead of crashing.
+ */
+export async function readChannelHistory(channel: string, oldest?: string): Promise<SlackMessage[]> {
+  const channelId = await getChannelIdByName(channel);
+  if (!channelId) {
+    console.warn(`[slack] readChannelHistory: could not resolve channel ${channel}`);
+    return [];
+  }
+  const messages: SlackMessage[] = [];
+  let cursor: string | undefined;
+  do {
+    const data = await slackApi({
+      method: "conversations.history",
+      body: { channel: channelId, oldest, limit: 200, cursor },
+    });
+    if (!data?.ok) {
+      if (data?.error) console.warn(`[slack] conversations.history failed for ${channel}:`, data.error);
+      break;
+    }
+    for (const m of data.messages ?? []) {
+      // Skip bot/system messages (joins, other agents' own posts) — the sweep
+      // only wants human commitment talk.
+      if (m.bot_id || m.subtype) continue;
+      messages.push({ ts: m.ts, user: m.user, text: m.text ?? "" });
+    }
+    cursor = data.response_metadata?.next_cursor || undefined;
+  } while (cursor);
+  return messages;
 }
 
 /**

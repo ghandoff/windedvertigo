@@ -12,7 +12,9 @@
 import { NextRequest } from "next/server";
 import { json, error } from "@/lib/api-helpers";
 import { getWhirlpoolCommitments } from "@/lib/supabase/pam";
-import { postToChannel } from "@/lib/slack";
+import { postToChannelResilient } from "@/lib/slack";
+
+const WHIRLPOOL_LEAD_EMAIL = "garrett@windedvertigo.com";
 
 function verifyCronAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -45,11 +47,13 @@ export async function GET(req: NextRequest) {
     const commitments = await getWhirlpoolCommitments(cycle);
 
     if (commitments.length === 0) {
-      await postToChannel(
+      const posted = await postToChannelResilient(
         "#whirlpool",
         `*whirlpool midpoint check-in* (${cycle})\n\nno public commitments recorded for this cycle yet — ask PaM to capture them from Monday's session.`,
-      ).catch(() => {});
-      return json({ cycle, posted: true, commitments: 0 });
+        [WHIRLPOOL_LEAD_EMAIL],
+      );
+      if (!posted) console.warn("[cron/whirlpool-checkin] Slack post failed (empty-cycle message) — see lib/slack.ts warning above for cause");
+      return json({ cycle, posted, commitments: 0 });
     }
 
     // group by owner
@@ -85,7 +89,8 @@ export async function GET(req: NextRequest) {
       blockerLines +
       `\n\n_full board at port.windedvertigo.com/pam_`;
 
-    await postToChannel("#whirlpool", message).catch(() => {});
+    const posted = await postToChannelResilient("#whirlpool", message, [WHIRLPOOL_LEAD_EMAIL]);
+    if (!posted) console.warn("[cron/whirlpool-checkin] Slack post failed — digest was computed but never reached #whirlpool");
 
     return json({
       cycle,
@@ -93,7 +98,7 @@ export async function GET(req: NextRequest) {
       done,
       blocked: blocked.length,
       pct,
-      posted: true,
+      posted,
     });
   } catch (err) {
     console.error("[cron/whirlpool-checkin] failed:", err);
