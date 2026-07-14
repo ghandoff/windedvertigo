@@ -242,7 +242,7 @@ async function checkOverduePamCommitments(): Promise<CheckResult> {
   const { count, error: err } = await supabase
     .from("pam_commitments")
     .select("id", { count: "exact", head: true })
-    .in("status", ["open", "in_progress"])
+    .in("status", ["not-started", "in-progress", "blocked"])
     .lt("due_date", now)
     .not("due_date", "is", null);
   if (err) throw err;
@@ -254,7 +254,7 @@ async function checkOverduePamCommitments(): Promise<CheckResult> {
     name: "pam-overdue-commitments",
     ok: false,
     severity: overdue >= 5 ? "warning" : "info",
-    symptoms: `${overdue} PaM commitment(s) are past their due date with status open or in_progress`,
+    symptoms: `${overdue} PaM commitment(s) are past their due date and still open (not-started, in-progress, or blocked)`,
     cause: "Commitments were not completed or rescheduled",
     remediation: "Review overdue items at /pam and either complete, snooze, or mark blocked",
     details: { overdueCount: overdue },
