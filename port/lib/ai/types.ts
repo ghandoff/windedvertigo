@@ -63,6 +63,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // Haiku: adjudicate whether a human CV capability and an agent-observed concept
   // name the same thing (fuzzy /brain reconciliation). Batched, cached per pair.
   "knowledge-reconcile": "claude-haiku-4-5-20251001",
+  // Haiku: extract commitment candidates from #whirlpool Slack chatter — short,
+  // infrequent (weekly-ish), cost-sensitive.
+  "whirlpool-sweep": "claude-haiku-4-5-20251001",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -89,7 +92,8 @@ export type AiFeature =
   | "opsy-digest"
   | "pam-action-triage"
   | "knowledge-extract"
-  | "knowledge-reconcile";
+  | "knowledge-reconcile"
+  | "whirlpool-sweep";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -114,6 +118,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "pam-action-triage": "PaM Action Triage",
   "knowledge-extract": "Knowledge Graph Extract",
   "knowledge-reconcile": "Knowledge Graph Reconcile",
+  "whirlpool-sweep": "Whirlpool Commitment Sweep",
 };
 
 // ── token usage tracking ─────────────────────────────────

@@ -102,6 +102,14 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/rfp-outcome-scan",         hours: [10] },
 
   // ── Friday-only ─────────────────────────────────────────────────────────────
+  // owner: pam — sweep #whirlpool for commitments BEFORE the midpoint check-in
+  // digest below, so same-day (or earlier-in-week) commitments are captured
+  // in time to appear in it. Also runs Mon/Wed (whirlpool cadence per
+  // CLAUDE.md) at 20:00 UTC (1pm PT) to catch same-day commitments without
+  // waiting for Friday — adjust the hour if the actual whirlpool end time
+  // differs.
+  { path: "/api/cron/whirlpool-sweep",   hours: [16], weekdays: [5] },
+  { path: "/api/cron/whirlpool-sweep",   hours: [20], weekdays: [1, 3] },
   // owner: pam — midpoint check-in for the current whirlpool cycle; posts digest to #whirlpool
   { path: "/api/cron/whirlpool-checkin", hours: [17], weekdays: [5] },
 
