@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
 interface PollOption {
   id: string;
@@ -119,6 +119,22 @@ export function PollRespondForm({
   // drag-select: "select" or "deselect" — null when not dragging
   const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
+  // Horizontal-scroll affordance: is there more grid to the right, and has the
+  // respondent scrolled at all yet (the "teach" nudge runs only until they do).
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [scrollCue, setScrollCue] = useState({ right: false, scrolled: false });
+  const updateScrollCues = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    setScrollCue({ right: el.scrollLeft < max - 4, scrolled: el.scrollLeft > 4 });
+  }, []);
+  useEffect(() => {
+    updateScrollCues();
+    window.addEventListener("resize", updateScrollCues);
+    return () => window.removeEventListener("resize", updateScrollCues);
+  }, [updateScrollCues, tz, options.length]);
+
   useEffect(() => {
     setTz(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
@@ -222,11 +238,12 @@ export function PollRespondForm({
           : `${localTotal} response${localTotal !== 1 ? "s" : ""} · times in ${tz}`}
       </p>
 
-      {/* Calendar grid */}
+      {/* Calendar grid — wrapped so the scroll-affordance overlay can sit over its edge */}
+      <div style={{ position: "relative" }}>
       <div
+        ref={scrollerRef}
+        onScroll={updateScrollCues}
         className="overflow-x-auto rounded-xl"
-        // overflow-x-auto / rounded-xl are Tailwind no-ops on this site — set inline so
-        // the wide grid scrolls *inside* its box instead of overflowing the page on mobile.
         style={{
           border: "1px solid rgba(255,255,255,0.08)",
           overflowX: "auto",
@@ -389,6 +406,44 @@ export function PollRespondForm({
             }),
           )}
         </div>
+      </div>
+
+        {/* Right-edge scroll cue: a soft fade + chevron shown only while more dates
+            exist to the right; a gentle nudge draws the eye until the first scroll. */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 1,
+            right: 1,
+            bottom: 1,
+            width: 52,
+            pointerEvents: "none",
+            borderRadius: "0 12px 12px 0",
+            background: "linear-gradient(to right, rgba(39,50,72,0), rgba(39,50,72,0.92))",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingRight: 10,
+            opacity: scrollCue.right ? 1 : 0,
+            transition: "opacity 0.25s ease",
+          }}
+        >
+          <span
+            style={{
+              color: "rgba(255,255,255,0.6)",
+              fontSize: 22,
+              lineHeight: 1,
+              animation:
+                scrollCue.right && !scrollCue.scrolled
+                  ? "wvScrollNudge 1.4s ease-in-out infinite"
+                  : "none",
+            }}
+          >
+            ›
+          </span>
+        </div>
+        <style>{`@keyframes wvScrollNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}`}</style>
       </div>
 
       {/* Legend */}
