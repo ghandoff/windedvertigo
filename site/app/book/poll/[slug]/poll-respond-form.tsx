@@ -224,7 +224,7 @@ export function PollRespondForm({
 
       {/* Legend — placed ABOVE the grid so respondents (especially on mobile) learn
           what the colours mean before they start selecting. */}
-      <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6, marginTop: 0, marginBottom: 12 }}>
+      <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6, marginTop: 0, marginBottom: 6 }}>
         {!submitted && !isLocked && (
           <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             <span
@@ -258,6 +258,14 @@ export function PollRespondForm({
           </span>
         )}
       </div>
+
+      {/* How-to hint beside the legend, above the grid, so respondents can start
+          straight away. The "N selected → submit" line stays by the button below. */}
+      {!submitted && !isLocked && (
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)", marginTop: 0, marginBottom: 12 }}>
+          click cells to select, or drag across multiple to select a range.
+        </p>
+      )}
 
       {/* Calendar grid */}
       <div
@@ -487,14 +495,10 @@ export function PollRespondForm({
               />
             </div>
 
-            {mySelections.size > 0 ? (
+            {mySelections.size > 0 && (
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
                 {mySelections.size} slot{mySelections.size !== 1 ? "s" : ""} selected —{" "}
                 click or drag to adjust, then submit.
-              </p>
-            ) : (
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-                click cells to select, or drag across multiple to select a range.
               </p>
             )}
 
