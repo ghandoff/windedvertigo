@@ -203,6 +203,7 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "knowledge-extract":      summary.byFeature["knowledge-extract"]?.costUsd       ?? 0,
     "knowledge-reconcile":    summary.byFeature["knowledge-reconcile"]?.costUsd     ?? 0,
     "whirlpool-sweep":        summary.byFeature["whirlpool-sweep"]?.costUsd         ?? 0,
+    "collective-digest":      summary.byFeature["collective-digest"]?.costUsd       ?? 0,
   };
 
   // Estimate Notion API calls: ~3 per AI request (fetch context)
