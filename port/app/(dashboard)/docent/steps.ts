@@ -30,6 +30,11 @@ export const STEPS: Step[] = [
           kind: 'paragraph',
           text: "estimate: about 30 minutes, most of it waiting for installs and OAuth browsers.",
         },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "just here for the agents, not to build code? click **the port** in the stepper above (or hit next once) — you're basically done after that page. the rest of this docent (set up → connect → how we work) is for anyone setting up a local build environment.",
+        },
         { kind: 'heading', text: 'before you start — avoiding collisions' },
         {
           kind: 'callout',
@@ -65,6 +70,108 @@ export const STEPS: Step[] = [
     },
   },
   // ────────────────────────────────────────────────────────────────
+  // 1b. the port, today (no setup path)
+  // ────────────────────────────────────────────────────────────────
+  {
+    id: 'port-today',
+    section: 'the-port',
+    title: "you don't need any of this to start.",
+    subtitle: 'the port is already live for you — sign in and you\'re in.',
+    shared: {
+      intro:
+        "before any of the builder setup below: the port (port.windedvertigo.com) is live right now, for you, today. no invite, no terminal, no waiting on garrett.",
+      body: [
+        {
+          kind: 'paragraph',
+          text: "sign in at **port.windedvertigo.com** with your **winded.vertigo google account** — the same one you use for gmail and calendar. that's it. you're in.",
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "which of this docent is for you? **if you're here to build code** — change files, ship deploys, open PRs — the rest of this docent (set up → connect → how we work) is for you; keep going to the next step. **if you just need to reach the agents right now** — check what's on your plate, ask a question, log a decision — you're basically done after the next page (a room-by-room map of what's on the port). come back to the rest whenever you're ready to start building.",
+        },
+        { kind: 'heading', text: "your next unlock: cowork" },
+        {
+          kind: 'paragraph',
+          text: "once you're comfortable clicking around the port, the next step up is **claude cowork** (the desktop app) — the same six agents, plus the reach to actually do things: web research, drafting documents, email, calendar. one connector, sign in with google, no token to paste anywhere.",
+        },
+        {
+          kind: 'callout',
+          tone: 'tip',
+          text: "in cowork: **settings → connectors → add custom connector**. url: `https://port.windedvertigo.com/api/mcp/agents/all`, leave oauth client id/secret blank, **add**, then **connect** → sign in with your winded.vertigo google account → **approve**. full details are in the \"meet your agents\" step later in this docent — no rush, the port alone is a complete starting point.",
+        },
+      ],
+      doneLooksLike:
+        "you can sign in at port.windedvertigo.com with your winded.vertigo google account and see a dashboard.",
+      helpPrompt:
+        "i'm trying to sign in to port.windedvertigo.com with my winded.vertigo google account and [describe what happened — access denied, wrong account, blank page]. what should i do?",
+    },
+  },
+  // ────────────────────────────────────────────────────────────────
+  // 1c. room by room: what's on the port
+  // ────────────────────────────────────────────────────────────────
+  {
+    id: 'port-map',
+    section: 'the-port',
+    title: 'room by room: what\'s on the port.',
+    subtitle: "seven rooms, each with a different job. here's what you'll actually find in each.",
+    shared: {
+      intro:
+        "the port is one app with several rooms. some you can talk to; some are read-only status boards. here's the accurate map — click any of them now to look around.",
+      body: [
+        {
+          kind: 'accounts',
+          items: [
+            {
+              label: '/mo',
+              href: 'https://port.windedvertigo.com/mo',
+              instruction: "marketing strategy, campaigns, pipeline, and audience — plus a **live chat with mo**, right on the page. this is also the port's front door: `/` redirects here.",
+            },
+            {
+              label: '/pam',
+              href: 'https://port.windedvertigo.com/pam',
+              instruction: "commitments board, project timeline, the weekly \"whirlpool\" cycle, and a meeting-actions inbox — plus a **live chat with pam**. **this is where your assigned tasks live** — if you want to know what's on your plate, start here.",
+            },
+            {
+              label: '/carl',
+              href: 'https://port.windedvertigo.com/carl',
+              instruction: "the research findings library, curriculum topics, and a link to `/bibliography` (citation search) — plus a **live chat with carl**.",
+            },
+            {
+              label: '/biz',
+              href: 'https://port.windedvertigo.com/biz',
+              instruction: "a business-development **snapshot** — bid deadlines, bd upgrades available, recent decisions. the actual rfp pipeline board (\"rfp lighthouse\") lives one click further, at `/opportunities`. **no chat on this page** — talk to biz through cowork or claude code.",
+            },
+            {
+              label: '/ops',
+              href: 'https://port.windedvertigo.com/ops',
+              instruction: "infrastructure health — service status, incidents, cron job health, auto-fixes. a noc-style status board. **no chat on this page** — talk to opsy through cowork or claude code.",
+            },
+            {
+              label: '/finn',
+              href: 'https://port.windedvertigo.com/finn',
+              instruction: "company + garrett's personal finances (cash, p&l, payroll, bills). **owner-only** — everyone else who visits gets redirected back. **no chat on this page** — talk to fin through cowork or claude code.",
+            },
+            {
+              label: '/brain',
+              href: 'https://port.windedvertigo.com/brain',
+              instruction: "a knowledge-graph view of how the whole collective — people and agents — connects, plus a gap-analysis of what's under-documented. (not to be confused with an agent's own \"brain\" folder in the repo — same word, different thing.) **no chat on this page.**",
+            },
+          ],
+        },
+        {
+          kind: 'callout',
+          tone: 'info',
+          text: "the short version: **mo, pam, and carl you can talk to right here on the port.** biz, opsy, and fin's pages are read-only status boards — their tools are reachable through cowork or claude code, not the port's browser chat.",
+        },
+      ],
+      doneLooksLike:
+        "you've opened at least one or two of these pages and know which room to check for which kind of question.",
+      helpPrompt:
+        "i'm looking at the port's room-by-room map and [describe what happened — a page didn't load, you're not sure which room covers something, an agent's chat isn't responding]. what should i check?",
+    },
+  },
+  // ────────────────────────────────────────────────────────────────
   // 2. accounts
   // ────────────────────────────────────────────────────────────────
   {
@@ -74,7 +181,7 @@ export const STEPS: Step[] = [
     subtitle: 'a few sign-ups. the only part of the voyage your pilot can\'t handle for you.',
     shared: {
       intro:
-        "think of each as a different window at the harbour office. you'll want github, notion, the anthropic console, and cloudflare; vercel is optional (only the few apps that haven't migrated yet).",
+        "think of each as a different window at the harbour office. you'll want github, notion, the anthropic console, and cloudflare.",
       body: [
         {
           kind: 'paragraph',
@@ -101,12 +208,6 @@ export const STEPS: Step[] = [
               requiresInvite: true,
             },
             {
-              label: 'vercel',
-              href: 'https://vercel.com/signup',
-              instruction: "still hosts a few non-port apps: creaseworks, vault, ops dashboard, and wv-claw (our slack bot). **in practice:** these are self-contained apps that haven't migrated to cloudflare yet. **when you'll feel it:** rarely — mostly when working on creaseworks or the ops dashboard. **next (optional):** if you'll work on those apps, sign up with your github account and ask garrett to invite you to the `ghandoffs-projects` team. otherwise you can skip vercel for now.",
-              requiresInvite: true,
-            },
-            {
               label: 'anthropic console',
               href: 'https://console.anthropic.com',
               instruction: "the **pilot's guild** — trains and credentials the pilots. **in practice:** anthropic is the company behind claude. if you want to use the claude api directly (to write scripts or integrations), you need an account here. your claude code or claude desktop subscription is separate — this is api access. **when you'll feel it:** generating api keys for local tooling or integrations. **next:** sign up. add $5-10 to start; usage is pennies per minute at our scale.",
@@ -120,7 +221,7 @@ export const STEPS: Step[] = [
         },
       ],
       doneLooksLike:
-        "you've signed up for github, notion, the anthropic console, and cloudflare (vercel if you need it), messaged garrett about the ones marked 'needs invite', and have your accounts confirmed.",
+        "you've signed up for github, notion, the anthropic console, and cloudflare, messaged garrett about the ones marked 'needs invite', and have your accounts confirmed.",
       helpPrompt:
         "i'm on the accounts step. i signed up for [service name] but [describe what happened — didn't get an invite, can't find settings, sign-up failed]. what should i do?",
     },
@@ -174,26 +275,26 @@ export const STEPS: Step[] = [
     id: 'install-clis',
     section: 'set-up',
     title: 'hand the pilot their instruments.',
-    subtitle: "three tools the pilot uses to steer through specific parts of the harbour.",
+    subtitle: "two tools the pilot uses to steer through specific parts of the harbour.",
     shared: {
       intro:
-        "pnpm installs project dependencies, wrangler talks to cloudflare workers (our primary host), and the vercel cli is still needed for the few apps that haven't migrated yet.",
+        "pnpm installs project dependencies, and wrangler talks to cloudflare workers — our host for everything now.",
       body: [
         {
           kind: 'claudePrompt',
           label: 'paste into Claude Code, press return',
           prompt:
-            "please install three global npm packages for me: pnpm, wrangler, and vercel. after each install completes, run its version command (pnpm -v, wrangler -v, vercel -v) to confirm it works. if any fails with a permissions or execution-policy error, tell me exactly what to do next for my operating system. narrate what you're doing as you go.",
+            "please install two global npm packages for me: pnpm and wrangler. after each install completes, run its version command (pnpm -v, wrangler -v) to confirm it works. if any fails with a permissions or execution-policy error, tell me exactly what to do next for my operating system. narrate what you're doing as you go.",
         },
         { kind: 'heading', text: "what you'll see" },
         {
           kind: 'paragraph',
-          text: "Claude will ask for permission to run bash commands. approve each one. expect some yellow \"deprecated\" warnings — harmless. at the end, three version numbers printed in sequence.",
+          text: "Claude will ask for permission to run bash commands. approve each one. expect some yellow \"deprecated\" warnings — harmless. at the end, two version numbers printed in sequence.",
         },
         {
           kind: 'callout',
           tone: 'success',
-          text: "success: Claude reports three version numbers (e.g., `pnpm 9.15.2`, `wrangler 4.5.0`, `vercel 38.2.0`).",
+          text: "success: Claude reports two version numbers (e.g., `pnpm 9.15.2`, `wrangler 4.5.0`).",
         },
         {
           kind: 'callout',
@@ -202,7 +303,7 @@ export const STEPS: Step[] = [
         },
       ],
       doneLooksLike:
-        "Claude confirms all three tools installed and printed version numbers.",
+        "Claude confirms both tools installed and printed version numbers.",
       helpPrompt:
         "i ran the install prompt in Claude Code. Claude reported [paste Claude's response, especially anything red or anything about a failure]. what do i do next?",
     },
@@ -217,18 +318,18 @@ export const STEPS: Step[] = [
     subtitle: 'the pilot\'s credentials get checked once per service, then carried forward.',
     shared: {
       intro:
-        "Claude will run the sign-in commands for you. each opens your default browser for an OAuth sign-in. sign in with the matching account when each tab opens.",
+        "Claude will run the sign-in command for you. it opens your default browser for an OAuth sign-in with cloudflare.",
       body: [
         {
           kind: 'claudePrompt',
           label: 'paste into Claude Code, press return',
           prompt:
-            "please sign me in to cloudflare and vercel. run `wrangler login` first (i'll sign in with my cloudflare account when the browser opens), then `vercel login` (i'll sign in with my github account). wait for each to confirm success before moving to the next. tell me when both are done.",
+            "please sign me in to cloudflare. run `wrangler login` — i'll sign in with my cloudflare account when the browser opens. tell me once it confirms success.",
         },
         { kind: 'heading', text: 'what happens in your browser' },
         {
           kind: 'paragraph',
-          text: "for each command, a browser tab opens with the service's sign-in page. sign in, approve the requested permissions, return to Claude Code. the terminal will print a success message.",
+          text: "a browser tab opens with cloudflare's sign-in page. sign in, approve the requested permissions, return to Claude Code. the terminal will print a success message.",
         },
         {
           kind: 'callout',
@@ -236,9 +337,9 @@ export const STEPS: Step[] = [
           text: "if you sign in with the wrong account by accident, just tell Claude: \"i signed in to the wrong cloudflare account — log me out and let me try again.\" Claude will run `wrangler logout` and re-trigger login.",
         },
       ],
-      doneLooksLike: 'Claude reports `wrangler login` and `vercel login` both completed with success messages.',
+      doneLooksLike: 'Claude reports `wrangler login` completed with a success message.',
       helpPrompt:
-        "i'm on the sign-in step. Claude ran wrangler login / vercel login and [describe what happened — browser didn't open, wrong account, error]. how do i fix it?",
+        "i'm on the sign-in step. Claude ran wrangler login and [describe what happened — browser didn't open, wrong account, error]. how do i fix it?",
     },
   },
   // ────────────────────────────────────────────────────────────────
@@ -263,7 +364,7 @@ export const STEPS: Step[] = [
           kind: 'claudePrompt',
           label: 'paste into Claude Code, press return',
           prompt:
-            "please set up my MCP servers. run these plugin installs:\n\n- `claude plugin install github@claude-plugins-official`\n- `claude plugin install slack@claude-plugins-official`\n- `claude plugin install vercel@claude-plugins-official`\n- `claude plugin install cloudflare@claude-plugins-official` (skip if it isn't in the marketplace yet)\n\nfor notion (not in the official marketplace yet), run:\n- `claude mcp add --transport http notion https://mcp.notion.com/mcp`\n\nafter all of them, run `claude mcp list` so i can see the result. tell me which ones show \"needs authentication\" — those are normal; the browser OAuth triggers on first actual use, not now.",
+            "please set up my MCP servers. run these plugin installs:\n\n- `claude plugin install github@claude-plugins-official`\n- `claude plugin install slack@claude-plugins-official`\n- `claude plugin install notion@claude-plugins-official`\n- `claude plugin install cloudflare@claude-plugins-official` (skip if it isn't in the marketplace yet)\n\nafter all of them, run `claude mcp list` so i can see the result. tell me which ones show \"needs authentication\" — those are normal; the browser OAuth triggers on first actual use, not now.",
         },
         { kind: 'heading', text: "what happens" },
         {
@@ -282,7 +383,7 @@ export const STEPS: Step[] = [
         },
       ],
       doneLooksLike:
-        "`claude mcp list` shows github, slack, notion, and vercel registered (probably \"needs authentication\" — that's fine).",
+        "`claude mcp list` shows github, slack, notion, and cloudflare registered (probably \"needs authentication\" — that's fine).",
       helpPrompt:
         "i ran the MCP setup prompt. Claude reported [paste `claude mcp list` output]. one or more servers is missing or failing — how do i fix it?",
     },
@@ -308,32 +409,32 @@ export const STEPS: Step[] = [
           kind: 'claudePrompt',
           label: 'paste into Claude Code, press return',
           prompt:
-            "please set up the port (crm) project on my laptop. here's what i want:\n\n1. make a `Projects` folder in my home directory if one doesn't exist\n2. clone `git@github.com:ghandoff/windedvertigo.git` into that Projects folder\n3. cd into `windedvertigo/port`\n4. run `npm install` to install all dependencies\n5. run `wrangler whoami` to confirm cloudflare auth is working\n6. run `vercel link` if this project has a vercel fallback — when it asks, pick the `ghandoffs-projects` scope and the `wv-crm` project\n7. run `vercel env pull .env.local` to download the secrets\n\nnarrate each step. if the clone fails with a publickey error, walk me through setting up an SSH key for github (generate key → copy public key to clipboard → paste into github.com/settings/keys → retry the clone). at the end, confirm the final folder contents so i know it worked.",
+            "please set up the port (crm) project on my laptop. here's what i want:\n\n1. make a `Projects` folder in my home directory if one doesn't exist\n2. clone `git@github.com:ghandoff/windedvertigo.git` into that Projects folder\n3. cd into `windedvertigo/port`\n4. run `npm install` to install all dependencies\n5. run `wrangler whoami` to confirm cloudflare auth is working\n\nnarrate each step. if the clone fails with a publickey error, walk me through setting up an SSH key for github (generate key → copy public key to clipboard → paste into github.com/settings/keys → retry the clone). at the end, confirm the final folder contents so i know it worked.",
         },
         { kind: 'heading', text: "what you'll see" },
         {
           kind: 'paragraph',
-          text: "Claude will talk you through each step. npm install may take 2-3 minutes. wrangler whoami confirms you're logged into the right cloudflare account. env pull creates a `.env.local` file that git is configured to ignore.",
+          text: "Claude will talk you through each step. npm install may take 2-3 minutes. wrangler whoami confirms you're logged into the right cloudflare account.",
         },
         {
           kind: 'callout',
           tone: 'success',
-          text: "success: Claude reports a `.env.local` file exists in the port folder and that wrangler whoami shows the correct cloudflare account.",
+          text: "success: Claude reports the port folder exists, dependencies installed cleanly, and wrangler whoami shows the correct cloudflare account.",
         },
         {
           kind: 'callout',
-          tone: 'warn',
-          text: "never commit `.env.local`. git ignores it already. if you ever see it in `git status`, stop and tell garrett.",
+          tone: 'info',
+          text: "you don't need a `.env.local` file for the everyday loop — describing changes, letting claude edit and commit, opening a PR. that's all local-file work, no live secrets required. if you ever need to run `npm run dev` against live data, ask garrett for the values directly — we don't have an automated secrets-pull set up right now.",
         },
         { kind: 'heading', text: 'stack orientation' },
         {
           kind: 'callout',
           tone: 'info',
-          text: "our hosting stack as of 2026: the port (crm), windedvertigo.com, harbour apps, and background cron jobs all run on **cloudflare workers** (deployed with `wrangler deploy`). vercel still hosts creaseworks, vault, and the ops dashboard. the primary database is **supabase** (postgres). notion is our editorial / knowledge layer, not the data source for most operational queries.",
+          text: "our hosting stack as of 2026: the port (crm), windedvertigo.com, harbour apps, and background cron jobs all run on **cloudflare workers** (deployed with `wrangler deploy`). the primary database is **supabase** (postgres). notion is our editorial / knowledge layer, not the data source for most operational queries.",
         },
       ],
       doneLooksLike:
-        "Claude confirms the port folder exists, dependencies are installed, wrangler is connected, and a `.env.local` file is present.",
+        "Claude confirms the port folder exists, dependencies are installed, and wrangler is connected to the correct cloudflare account.",
       helpPrompt:
         "i ran the clone prompt. Claude got as far as [describe where it stopped] and reported [paste Claude's message]. what should i do next?",
     },
@@ -354,7 +455,7 @@ export const STEPS: Step[] = [
           kind: 'claudePrompt',
           label: 'paste into Claude Code, press return',
           prompt:
-            "please verify my setup with four quick checks:\n\n1. using the github mcp, show me the 5 most recent commits on the `main` branch of the `windedvertigo` repo (just commit messages and dates — no code)\n2. fetch the most recent page titled \"welcome\" or similar from my notion workspace\n3. run `wrangler deployments list --name wv-port` and show me the 3 most recent deployments with their dates\n4. show me the NAMES of the environment variables in the port's `.env.local` (names only — never show values)\n\nif any of these trigger a browser OAuth sign-in, tell me to check my browser. once all four are done, summarise what you can and can't see.",
+            "please verify my setup with three quick checks:\n\n1. using the github mcp, show me the 5 most recent commits on the `main` branch of the `windedvertigo` repo (just commit messages and dates — no code)\n2. fetch the most recent page titled \"welcome\" or similar from my notion workspace\n3. run `wrangler deployments list --name wv-port` and show me the 3 most recent deployments with their dates\n\nif any of these trigger a browser OAuth sign-in, tell me to check my browser. once all three are done, summarise what you can and can't see.",
         },
         { kind: 'heading', text: "what success looks like" },
         {
@@ -448,12 +549,12 @@ export const STEPS: Step[] = [
         {
           kind: 'callout',
           tone: 'tip',
-          text: "**lamis** — same loop as payton. start with something small (a typo fix on the harbour page, a date change on a campaign card) so the cadence feels natural by your second or third ship. the review wait stops feeling like a wait once you've done it a few times — it becomes the moment you switch tasks and let the PR cook.",
+          text: "**lamis** — same loop as payton, once you're ready to ship. you've already got the repo cloned locally, so the builder steps in this docent are done — this section is what's waiting for you. and in the meantime, the port works for you today too: sign in at port.windedvertigo.com with your winded.vertigo google account and check `/pam` for what's on your plate. start with something small (a typo fix on the harbour page, a date change on a campaign card) so the cadence feels natural by your second or third ship. the review wait stops feeling like a wait once you've done it a few times — it becomes the moment you switch tasks and let the PR cook.",
         },
         {
           kind: 'callout',
           tone: 'tip',
-          text: "**jamie** — once your github account is set and garrett's added you to the repo, you're on the same local setup as payton and lamis. you've spent more time with claude (cowork + chat) than they had at this point, so the natural-language side will feel like familiar ground. the new piece is reading a PR diff on github.com — the \"explain this PR\" claude trick works as a safety net while you build the muscle.",
+          text: "**jamie** — you're not on this loop yet, and that's fine — your github account exists but garrett hasn't added you to the repo, so skip the builder steps in this docent for now. what's live for you **today**: sign in at port.windedvertigo.com with your winded.vertigo google account (no setup, nothing to install) and check `/pam` — that's where your assigned tasks live. you've spent more time with claude (cowork + chat) than payton or lamis had at this point, so the natural-language side will feel familiar once you do start building. once garrett adds you to the `ghandoff` org, this same loop (describe → PR → github review) is what you'll move into, and reading a PR diff on github.com will be the new piece — the \"explain this PR\" claude trick works as a safety net while you build that muscle.",
         },
         { kind: 'heading', text: 'your first real ship' },
         {
@@ -564,16 +665,16 @@ export const STEPS: Step[] = [
         { kind: 'heading', text: 'two ways to reach them' },
         {
           kind: 'paragraph',
-          text: "**the port (browser — zero setup):** sign in at port.windedvertigo.com and chat with any agent from its dashboard page. they auto-load the shared memory and persona — nothing to install. they can *think and log* but can't browse the live web or create documents. the port also hosts **`/bibliography`** — cARL's citation library plus a scholarly search tool.",
+          text: "**the port (browser — zero setup):** sign in at port.windedvertigo.com. **mo, pam, and cARL you can chat with directly**, right on their dashboard page — they auto-load the shared memory and persona, nothing to install. **biz, opsy, and fin's port pages are read-only status boards** — no chat there; reach their tools through cowork or claude code instead. (full room-by-room breakdown: see the \"the port\" section earlier in this docent.) the port also hosts **`/bibliography`** — cARL's citation library plus a scholarly search tool.",
         },
         {
           kind: 'paragraph',
-          text: "**cowork / claude code (full power):** the same agents, the same memory — plus the reach to *do the work*: live web research, drafting proposals and decks, creating documents, email, calendar, notion, slack. rule of thumb: use the port when you just want to think and log; use cowork or claude code when you want the agent to act.",
+          text: "**cowork / claude code (full power):** all six agents, the same memory — plus the reach to *do the work*: live web research, drafting proposals and decks, creating documents, email, calendar, notion, slack. rule of thumb: use the port when you want mo, pam, or cARL to think and log; use cowork or claude code for biz, opsy, and fin, or any time you want an agent to act.",
         },
         {
           kind: 'callout',
           tone: 'tip',
-          text: "short on setup time? the port is browser-only and needs nothing — sign in and start chatting. it's the recommended starting point for anyone who works in short bursts; you can add cowork later when you want an agent to research or draft.",
+          text: "short on setup time? the port is browser-only and needs nothing — sign in and start chatting with mo, pam, or cARL. it's the recommended starting point for anyone who works in short bursts; you can add cowork later for biz, opsy, fin, or when you want an agent to research or draft.",
         },
         { kind: 'heading', text: 'cowork: connect once, then sign in (no token)' },
         {
@@ -689,4 +790,4 @@ export const STEPS: Step[] = [
   },
 ];
 
-export const firstContentStepIndex = 1; // accounts is the first non-meta step
+export const firstContentStepIndex = 1; // port-today is the first non-meta step

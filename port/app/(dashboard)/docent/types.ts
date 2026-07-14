@@ -56,6 +56,7 @@ export type Step = {
 
 /** Ordered sections for the docent stepper. Content steps map to these via Step.section. */
 export const DOCENT_SECTIONS: { key: string; label: string }[] = [
+  { key: 'the-port', label: 'the port' },
   { key: 'set-up', label: 'set up' },
   { key: 'connect', label: 'connect' },
   { key: 'how-we-work', label: 'how we work' },
