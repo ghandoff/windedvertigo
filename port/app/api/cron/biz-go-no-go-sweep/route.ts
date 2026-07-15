@@ -40,7 +40,7 @@ import { getGoNoGoInputs, winProbability } from "@/lib/biz-go-no-go";
 import { setBidDecision } from "@/lib/supabase/rfp-opportunities";
 import { transitionRfpStatus } from "@/lib/rfp/transition";
 import { createBizDecision } from "@/lib/biz-data";
-import { postToChannel } from "@/lib/slack";
+import { escalate } from "@/lib/escalation";
 
 export const maxDuration = 60;
 
@@ -286,6 +286,21 @@ export async function GET(req: NextRequest) {
         logged_by: "biz-cron",
       }).catch(() => {});
 
+      // Level-2 escalation ladder marker: "deferred" means a human still
+      // has to decide — log it as a decision-needed row (no Slack post; see
+      // lib/escalation.ts) so collective-digest can fold it into its
+      // "decisions needed" line. Fires once per card here (when it first
+      // defers) — sweepStaleDeferred() re-surfaces the biz_decisions row
+      // in the channel digest, but doesn't re-escalate.
+      if (verdict === "deferred") {
+        await escalate({
+          agent: "biz",
+          level: 2,
+          message: `${name} — ${reason}`,
+          context: { rfp_id: id },
+        }).catch(() => {});
+      }
+
       results.push({ id, name, verdict, score: s, reason, movedTo: target });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -351,7 +366,16 @@ async function postAgingDigest(
   }
   lines.push(`\n_override any decision by opening the card in port_`);
 
-  await postToChannel(CHANNEL, lines.join("\n")).catch((err) => {
-    console.warn("[biz-go-no-go-sweep] Slack post failed (non-fatal):", err);
+  // Level 3 of the escalation ladder: threaded channel post (already
+  // topical — #funding-opportunities). Not auto-resolved here — this is a
+  // running digest, not a single closeable incident; resolveEscalation()
+  // is there for whoever picks up the thread.
+  await escalate({
+    agent: "biz",
+    level: 3,
+    channel: CHANNEL,
+    message: lines.join("\n"),
+  }).catch((err) => {
+    console.warn("[biz-go-no-go-sweep] escalate() failed (non-fatal):", err);
   });
 }
