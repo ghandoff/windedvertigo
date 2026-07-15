@@ -41,12 +41,16 @@ import { DistributionTab } from "./components/distribution-tab";
 import { TimelineTab } from "./components/timeline-tab";
 import { CompetitorsTab } from "./components/competitors-tab";
 import { MoLogTab } from "./components/mo-log-tab";
+import { StrategyBriefTab } from "./components/strategy-brief-tab";
 import { getCmoDecisions, getCmoMemory } from "@/lib/supabase/cmo";
+import { getStrategyBrief } from "@/lib/supabase/cmo-strategy-brief";
 import { CarlInsightsPanel } from "@/app/components/carl-insights-panel";
 import { AgentPageWithChat } from "@/app/components/agent-page-with-chat";
+import { auth } from "@/lib/auth";
 
 const TABS: readonly TabDef[] = [
   { key: "strategy", label: "strategy" },
+  { key: "strategy-brief", label: "strategy brief" },
   { key: "campaigns", label: "campaigns" },
   { key: "channels", label: "channels" },
   { key: "audience", label: "audience" },
@@ -70,7 +74,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, moDecisions, revenueSummary, moMemory] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, moDecisions, revenueSummary, moMemory, strategyBrief, session] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -98,6 +102,10 @@ export default async function StrategyPage({
     getRevenueProgress().catch(() => null),
     // Mo's working memory — used to surface cARL's prepared insights at the top.
     getCmoMemory().catch(() => []),
+    // Strategy brief — the port's first human write-UI. Null on first load
+    // (no brief saved yet) or on fetch error; the tab handles both.
+    getStrategyBrief().catch(() => null),
+    auth().catch(() => null),
   ]);
   const pmProjects = pmProjectsResult.data;
   const crmCampaigns = allCampaigns.map((c) => ({
@@ -134,6 +142,9 @@ export default async function StrategyPage({
       <UrlTabs tabs={TABS} activeTab={activeTab} />
 
       {activeTab === "strategy" && <StrategyTab />}
+      {activeTab === "strategy-brief" && (
+        <StrategyBriefTab brief={strategyBrief} isSignedIn={!!session?.user?.email} />
+      )}
       {activeTab === "campaigns" && (
         <CampaignsTab
           crmCampaigns={crmCampaigns}
