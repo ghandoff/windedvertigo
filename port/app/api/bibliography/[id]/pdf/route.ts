@@ -7,8 +7,7 @@
 
 import { NextRequest } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { r2, R2_BUCKET } from "@/lib/r2/client";
+import { getObject } from "@/lib/r2/client";
 import "@/lib/cf-env";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -35,11 +34,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     // not in CF Workers context — fall through to S3
   }
 
-  // S3 fallback (local dev)
+  // aws4fetch fallback (local dev)
   try {
-    const out = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: key }));
-    if (!out.Body) return new Response("not found", { status: 404 });
-    return new Response(out.Body as unknown as ReadableStream, {
+    const out = await getObject(key);
+    if (!out.ok || !out.body) return new Response("not found", { status: 404 });
+    return new Response(out.body, {
       headers: { "Content-Type": "application/pdf", "Content-Disposition": "inline" },
     });
   } catch {
