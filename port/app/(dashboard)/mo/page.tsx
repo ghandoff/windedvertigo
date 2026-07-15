@@ -28,6 +28,7 @@ import { fetchRfpAnalytics, fetchEmailAnalytics, fetchActivePipelineOpportunitie
 import { getCampaignsFromSupabase } from "@/lib/supabase/campaigns";
 import { getProjectsFromSupabase } from "@/lib/supabase/projects";
 import { getStrategyTimelines } from "@/lib/supabase/strategy-timelines";
+import { getTimelineItems } from "@/lib/supabase/cmo-timeline-items";
 import { getStrategyDistribution } from "@/lib/supabase/strategy-distribution";
 import { CAMPAIGN_TIMELINES, DISTRIBUTION, getRevenueProgress } from "@/lib/strategy-data";
 import { TeamPulseStrip } from "./components/team-pulse-strip";
@@ -74,7 +75,7 @@ export default async function StrategyPage({
     TABS.find((t) => t.key === tabParam)?.key ?? "strategy";
   const memberFilter = memberParam ?? null;
 
-  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, moDecisions, revenueSummary, moMemory, strategyBrief, session] = await Promise.all([
+  const [stats, allCampaigns, pipelineProgress, rfpAnalytics, emailAnalytics, livePipeline, pmProjectsResult, liveTimelines, liveDistribution, moDecisions, revenueSummary, moMemory, strategyBrief, timelineItems, session] = await Promise.all([
     getSocialStatsFromSnapshot().catch(() => null),
     getCampaignsFromSupabase().catch(
       () => [] as Awaited<ReturnType<typeof getCampaignsFromSupabase>>,
@@ -105,6 +106,9 @@ export default async function StrategyPage({
     // Strategy brief — the port's first human write-UI. Null on first load
     // (no brief saved yet) or on fetch error; the tab handles both.
     getStrategyBrief().catch(() => null),
+    // Multi-view Gantt items (cmo_timeline_items) — falls back to an empty
+    // list on error; the tab renders an empty state rather than 500ing.
+    getTimelineItems().catch(() => []),
     auth().catch(() => null),
   ]);
   const pmProjects = pmProjectsResult.data;
@@ -160,7 +164,7 @@ export default async function StrategyPage({
       {activeTab === "distribution" && (
         <DistributionTab memberFilter={memberFilter} items={liveDistribution} pmProjects={pmProjects} />
       )}
-      {activeTab === "timeline" && <TimelineTab timelines={liveTimelines} />}
+      {activeTab === "timeline" && <TimelineTab timelines={liveTimelines} items={timelineItems} />}
       {activeTab === "competitors" && (
         <Suspense fallback={<CardGridSkeleton />}>
           <CompetitorsTab />
