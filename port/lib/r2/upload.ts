@@ -9,14 +9,15 @@
  *      getCloudflareContext() is not available.
  *
  * Background: @aws-sdk/client-s3 internally calls fs.readFile (credential
- * chain detection) which unenv polyfills as not-implemented, breaking every
- * PutObjectCommand call inside CF Workers. The native binding avoids this
- * entirely. See: github.com/unjs/unenv / cloudflare workers compat flags.
+ * chain detection, plus ~10 other loadConfig() lookups for retry mode,
+ * checksum config, etc.) which unenv polyfills as not-implemented, breaking
+ * every S3 command inside CF Workers. The native binding avoids this
+ * entirely; the fallback below uses aws4fetch instead of @aws-sdk/client-s3
+ * for the same reason (see lib/r2/client.ts, and site/lib/r2.ts PRs #382/#384).
  */
 
-import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { r2, R2_BUCKET, R2_PUBLIC_URL } from "./client";
+import { putObject, deleteObject, R2_PUBLIC_URL } from "./client";
 import "@/lib/cf-env"; // ensure CloudflareEnv is augmented with PORT_ASSETS
 
 /**
@@ -50,27 +51,15 @@ export async function uploadAsset(
     // Not in CF Workers context — fall through to S3 SDK below.
   }
 
-  // ── S3 SDK fallback (local dev only) ───────────────────────────────────
-  await r2.send(
-    new PutObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-    }),
-  );
+  // ── aws4fetch fallback (local dev only) ─────────────────────────────────
+  await putObject(key, buffer, contentType);
 
   return `${R2_PUBLIC_URL}/${key}`;
 }
 
 /** Delete an asset from R2. */
 export async function deleteAsset(key: string): Promise<void> {
-  await r2.send(
-    new DeleteObjectCommand({
-      Bucket: R2_BUCKET,
-      Key: key,
-    }),
-  );
+  await deleteObject(key);
 }
 
 /** Generate a storage key from a filename. */
