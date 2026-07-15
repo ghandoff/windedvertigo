@@ -23,6 +23,7 @@ import { buildHealthRollup } from "@/lib/opsy/rollup";
 import { getRecentAutoFixes, getRecentCronFailures } from "@/lib/supabase/opsy";
 import { getRecentBizDecisions } from "@/lib/biz-data";
 import { getRecentDecisions as getRecentFinDecisions } from "@/lib/fin-data";
+import { getOpenLevel2Escalations } from "@/lib/escalation";
 
 export const maxDuration = 60;
 
@@ -46,7 +47,8 @@ design principle: agents work at night, humans get one well-shaped touch a day. 
 
 format, strictly:
 - max 7 lines total
-- wins first (what shipped/got done/resolved)
+- if any "decisions needed" facts are given below, that's the very first line: "*decisions needed:*" followed by each one, terse — these are level-2 escalation-ladder markers (agents flagging something a human still has to decide), so they always lead, even before wins
+- wins next (what shipped/got done/resolved)
 - then deadlines (due today/this week, especially anything overdue)
 - then at most ONE ask per human, only if something genuinely needs their attention — most days most people get zero asks
 - lowercase per w.v brand, plain language, no corporate throat-clearing
@@ -79,6 +81,7 @@ export async function GET(req: NextRequest) {
       finDecisionsRaw,
       overdueCommitments,
       dueThisWeek,
+      openLevel2Escalations,
     ] = await Promise.all([
       getCmoDecisions({ days: 1, limit: 20 }).catch(() => []),
       getPamDecisions({ days: 1, limit: 20 }).catch(() => []),
@@ -90,6 +93,7 @@ export async function GET(req: NextRequest) {
       getRecentFinDecisions(20).catch(() => []),
       getPamCommitments({ due_before: today, limit: 50 }).catch(() => []),
       getPamCommitments({ due_before: weekAhead, due_after: tomorrow, limit: 50 }).catch(() => []),
+      getOpenLevel2Escalations(sinceIso).catch(() => []),
     ]);
 
     // getCarlFindings/getRecentBizDecisions/getRecentFinDecisions have no
@@ -103,6 +107,7 @@ export async function GET(req: NextRequest) {
     const incidents24h = rollup?.incidents_7d.filter((i) => i.opened_at >= sinceIso) ?? [];
 
     const facts = [
+      `decisions needed — ${openLevel2Escalations.length} open level-2 escalation(s) from the agents: ${openLevel2Escalations.slice(0, 8).map((e) => `[${e.agent}] ${e.message}`).join(" || ") || "none"}`,
       `mo — ${cmoDecisions.length} decision(s) logged: ${cmoDecisions.slice(0, 5).map((d) => d.summary).join(" || ") || "none"}`,
       `pam — ${pamDecisions.length} decision(s) logged: ${pamDecisions.slice(0, 5).map((d) => d.summary).join(" || ") || "none"}`,
       `carl — ${carlFindings.length} new finding(s): ${carlFindings.slice(0, 5).map((f) => f.title).join(" || ") || "none"}`,
@@ -132,6 +137,7 @@ export async function GET(req: NextRequest) {
       overdueCommitments: overdueOpen.length,
       dueThisWeek: dueThisWeekOpen.length,
       incidents24h: incidents24h.length,
+      decisionsNeeded: openLevel2Escalations.length,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";

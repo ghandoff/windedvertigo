@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAllRfpOpportunities } from "@/lib/notion/rfp-radar";
 import { supabase } from "@/lib/supabase/client";
 import { createBizDecision } from "@/lib/biz-data";
-import { postToChannel } from "@/lib/slack";
+import { escalate } from "@/lib/escalation";
 
 export const maxDuration = 60;
 
@@ -204,8 +204,16 @@ export async function GET(req: NextRequest) {
       `*deadline change${survivingDeltas.length !== 1 ? "s" : ""} detected (${survivingDeltas.length})*`,
       ...survivingDeltas.map((d) => `• ${d.name} — ${d.from ?? "no date"} → ${d.to ?? "no date"}`),
     ];
-    await postToChannel(DELTA_CHANNEL, lines.join("\n")).catch((err) => {
-      console.warn("[sync-rfp-pilot] delta-alert Slack post failed (non-fatal):", err);
+    // Level 3 of the escalation ladder: topical, threaded channel post —
+    // silent deadline slippage is exactly the "genuine gate" this level is for.
+    await escalate({
+      agent: "biz",
+      level: 3,
+      channel: DELTA_CHANNEL,
+      message: lines.join("\n"),
+      context: { rfpIds: survivingDeltas.map((d) => d.notionPageId) },
+    }).catch((err) => {
+      console.warn("[sync-rfp-pilot] escalate() failed (non-fatal):", err);
     });
   }
 

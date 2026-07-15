@@ -152,6 +152,27 @@ export async function postToChannel(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   blocks?: any[],
 ): Promise<boolean> {
+  return (await postToChannelDetailed(channel, text, blocks)).ok;
+}
+
+export interface PostToChannelDetail {
+  ok: boolean;
+  /** message timestamp — the id you thread a resolve-note reply against (postThreadReply). */
+  ts?: string;
+}
+
+/**
+ * Same as postToChannel(), but also returns the posted message's `ts` so a
+ * caller can later thread a reply against it (see postThreadReply()). Kept
+ * separate from postToChannel() so the many existing boolean-returning call
+ * sites don't need to change.
+ */
+export async function postToChannelDetailed(
+  channel: string,
+  text: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
+): Promise<PostToChannelDetail> {
   const data = await slackApi({
     method: "chat.postMessage",
     body: {
@@ -160,7 +181,7 @@ export async function postToChannel(
       ...(blocks ? { blocks } : {}),
     },
   });
-  return data?.ok === true;
+  return { ok: data?.ok === true, ts: data?.ts };
 }
 
 /**
@@ -177,11 +198,57 @@ export async function postToChannelResilient(
   text: string,
   inviteEmails: string[] = [],
 ): Promise<boolean> {
-  if (await postToChannel(channel, text)) return true;
+  return (await postToChannelResilientDetailed(channel, text, inviteEmails)).posted;
+}
+
+export interface PostToChannelResilientDetail {
+  posted: boolean;
+  ts?: string;
+  /** the channel the message actually landed in — may differ from the input if ensureChannel() resolved it (e.g. name → id). */
+  resolvedChannel?: string;
+}
+
+/**
+ * Same self-healing behaviour as postToChannelResilient(), but also returns
+ * the message `ts` + the channel it actually landed in — needed by callers
+ * (lib/escalation.ts's level-3 escalate()) that later thread a resolve-note
+ * reply via postThreadReply().
+ */
+export async function postToChannelResilientDetailed(
+  channel: string,
+  text: string,
+  inviteEmails: string[] = [],
+): Promise<PostToChannelResilientDetail> {
+  const first = await postToChannelDetailed(channel, text);
+  if (first.ok) return { posted: true, ts: first.ts, resolvedChannel: channel };
   const id = await ensureChannel(channel, inviteEmails);
-  if (id && (await postToChannel(id, text))) return true;
+  if (id) {
+    const retry = await postToChannelDetailed(id, text);
+    if (retry.ok) return { posted: true, ts: retry.ts, resolvedChannel: id };
+  }
   console.warn(`[slack] could not post to ${channel} — create it and /invite the bot`);
-  return false;
+  return { posted: false };
+}
+
+/**
+ * Post a threaded reply to an existing message — used for resolve-notes
+ * (Opsy's `:large_green_circle: *resolved* — …` pattern, generalized in
+ * lib/escalation.ts's resolveEscalation()). `replyBroadcast` also surfaces
+ * the reply in the channel's main timeline, not just inside the thread, so a
+ * closed alert is visible without opening the thread. Fail-open: returns
+ * false rather than throwing.
+ */
+export async function postThreadReply(
+  channel: string,
+  threadTs: string,
+  text: string,
+  replyBroadcast = true,
+): Promise<boolean> {
+  const data = await slackApi({
+    method: "chat.postMessage",
+    body: { channel, thread_ts: threadTs, text, reply_broadcast: replyBroadcast },
+  });
+  return data?.ok === true;
 }
 
 /**
