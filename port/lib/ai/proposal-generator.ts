@@ -47,12 +47,52 @@ export interface ProposalDraft {
   clarifyingQuestions: string[];
   missingInfo: string[];
   references: string[];
+  /**
+   * BIZ-C1: which specific claim in which section drew on which pre-matched
+   * citation (index into the relevantCitations array sent in the prompt).
+   * Additive to `references` — that flat list is unchanged; this is the
+   * machine-traceable link `references` never had.
+   */
+  citationTrace: Array<{ section: string; claimSummary: string; citationIndex: number }>;
   /** True if the RFP explicitly or implicitly requires a cover letter. */
   requiresCoverLetter: boolean;
   /** Cover letter text (only populated when requiresCoverLetter is true). */
   coverLetter: string;
   /** Names of team members who should have CVs appended (empty if not required). */
   teamMembersForCvs: string[];
+}
+
+/** BIZ-C2: deterministic traceability/confidence score — not model-generated, computed from citationTrace. */
+export interface TraceabilityScore {
+  /** 0-100, or null if no citations were available to trace against (not applicable, not a failure). */
+  score: number | null;
+  breakdown: string[];
+}
+
+// Sections where an unsupported claim is the real hallucination risk — not
+// valueProposition/budgetFramework, which are framing/pricing, not evidence.
+const EVIDENCE_SECTIONS = ["understandingOfRequirements", "proposedApproach", "relevantExperience", "riskMitigation"] as const;
+
+export function computeTraceabilityScore(draft: ProposalDraft, citationCount: number): TraceabilityScore {
+  if (citationCount === 0) {
+    return { score: null, breakdown: ["no relevantCitations were available to trace against for this topic"] };
+  }
+
+  const tracedSections = new Set(draft.citationTrace.map((t) => t.section));
+  const evidenceSectionsTraced = EVIDENCE_SECTIONS.filter((s) => tracedSections.has(s)).length;
+  const coverage = evidenceSectionsTraced / EVIDENCE_SECTIONS.length;
+
+  const distinctCitationsUsed = new Set(draft.citationTrace.map((t) => t.citationIndex)).size;
+  const utilization = Math.min(distinctCitationsUsed, citationCount) / citationCount;
+
+  const score = Math.round(coverage * 70 + utilization * 30);
+  return {
+    score,
+    breakdown: [
+      `${evidenceSectionsTraced}/${EVIDENCE_SECTIONS.length} evidence-bearing sections have at least one traced citation`,
+      `${distinctCitationsUsed}/${citationCount} pre-matched citations were actually traced to a claim`,
+    ],
+  };
 }
 
 // ── QuestionBank types (inlined from lib/inngest/functions/parse-rfp-questions.ts) ──
@@ -112,7 +152,9 @@ Direct, principled, evidence-grounded. Name problems honestly. No corporate fill
 Always note explicitly if a local partner or context-specific expert is needed that the team does not currently have.
 
 ## Citations
-You will be given a relevantCitations array — a curated subset of winded.vertigo's annotated bibliography pre-selected for this RFP topic. Use these as your primary citation sources. Cite inline as (Author, year) and include the full citation in the references array. You may also cite authoritative policy sources (UNICEF, OECD, World Bank, Learning Policy Institute) not in the list if directly relevant. Never invent citations — omit rather than fabricate.
+You will be given a relevantCitations array — a curated subset of winded.vertigo's annotated bibliography pre-selected for this RFP topic, each with an index (its position in the array, 0-based). Use these as your primary citation sources. Cite inline as (Author, year) and include the full citation in the references array. You may also cite authoritative policy sources (UNICEF, OECD, World Bank, Learning Policy Institute) not in the list if directly relevant. Never invent citations — omit rather than fabricate.
+
+For every claim you support with one of the relevantCitations entries specifically (not the policy sources you added yourself), also add one entry to citationTrace: which section the claim is in (the exact field name, e.g. "proposedApproach"), a one-sentence summary of the claim itself, and citationIndex — the 0-based index of the relevantCitations entry it draws on. This is a traceability record, not a rewrite of the prose — the section text stays exactly as you'd otherwise write it.
 
 ## Visual aide suggestions
 For complex relationships (theory of change, phased approach, transfer rate comparisons, MEL feedback loops), include a visual aide suggestion as a note in the relevant section: "🎨 Visual aide: [description of what to show and why]".
@@ -151,6 +193,7 @@ Output ONLY valid JSON matching this schema (no prose outside the JSON):
   "clarifyingQuestions": ["3–5 questions that show the brief was read carefully"],
   "missingInfo": ["up to 4 gaps, each with assignee and action"],
   "references": ["Full APA citation for each source cited inline"],
+  "citationTrace": [{ "section": "proposedApproach", "claimSummary": "one sentence on the claim", "citationIndex": 0 }],
   "requiresCoverLetter": true/false,
   "coverLetter": "full cover letter text, or empty string if not required",
   "teamMembersForCvs": ["FirstName1", "FirstName2"] or []
@@ -222,7 +265,8 @@ export async function generateProposal(ctx: ProposalContext): Promise<ProposalDr
       description: a.description?.slice(0, 400) ?? null,
     })),
     relevantCitations: ctx.relevantCitations
-      ? ctx.relevantCitations.slice(0, 15).map((c) => ({
+      ? ctx.relevantCitations.slice(0, 15).map((c, index) => ({
+          index,
           fullCitation: c.fullCitation,
           abstract: c.abstract?.slice(0, 400) ?? null,
           notes: c.notes?.slice(0, 200) ?? null,
@@ -263,6 +307,17 @@ export async function generateProposal(ctx: ProposalContext): Promise<ProposalDr
     clarifyingQuestions: Array.isArray(draft.clarifyingQuestions) ? draft.clarifyingQuestions : [],
     missingInfo: Array.isArray(draft.missingInfo) ? draft.missingInfo : [],
     references: Array.isArray(draft.references) ? draft.references : [],
+    citationTrace: Array.isArray(draft.citationTrace)
+      ? draft.citationTrace.filter(
+          (t) =>
+            t &&
+            typeof t.section === "string" &&
+            typeof t.claimSummary === "string" &&
+            typeof t.citationIndex === "number" &&
+            t.citationIndex >= 0 &&
+            t.citationIndex < (ctx.relevantCitations?.length ?? 0),
+        )
+      : [],
     requiresCoverLetter: draft.requiresCoverLetter ?? false,
     coverLetter: draft.coverLetter ?? "",
     teamMembersForCvs: Array.isArray(draft.teamMembersForCvs) ? draft.teamMembersForCvs : [],
