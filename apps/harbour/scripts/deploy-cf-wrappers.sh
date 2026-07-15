@@ -11,9 +11,10 @@
 # tsconfig.json, wrangler.jsonc, and package.json. Each app is independent;
 # script continues past failures and reports per-app status at the end.
 #
-# Pre-requisite: ~/.cf-token must contain a valid CF API token with
-# Workers Scripts:Edit + Workers Routes:Edit + Zone DNS:Edit on the
-# windedvertigo.com zone.
+# CF auth: none required to store — wrangler is authed via its own OAuth login
+# (garrett@windedvertigo.com). Optionally, export CLOUDFLARE_API_TOKEN (or place a
+# token in ~/.cf-token) with Workers Scripts:Edit + Workers Routes:Edit + Zone
+# DNS:Edit on the windedvertigo.com zone to override the OAuth session.
 #
 # Usage:
 #   ./scripts/deploy-cf-wrappers.sh           # deploy all 16 apps
@@ -28,12 +29,15 @@ set -uo pipefail  # do NOT use -e — we want to continue on app-level failures
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-if [ ! -f "$HOME/.cf-token" ]; then
-  echo "ERROR: ~/.cf-token not found. Create a CF API token first." >&2
-  exit 2
+# CF auth is optional. Precedence: an already-exported CLOUDFLARE_API_TOKEN wins;
+# else a non-empty ~/.cf-token file; else fall through unset and let wrangler use
+# its own OAuth login (garrett@windedvertigo.com). ~/.cf-token is deprecated — an
+# empty or absent file is expected now that wrangler is OAuth-authed, so we no
+# longer hard-error when it is missing.
+if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] && [ -s "$HOME/.cf-token" ]; then
+  CLOUDFLARE_API_TOKEN="$(cat "$HOME/.cf-token")"
 fi
-export CLOUDFLARE_API_TOKEN
-CLOUDFLARE_API_TOKEN="$(cat "$HOME/.cf-token")"
+[ -n "${CLOUDFLARE_API_TOKEN:-}" ] && export CLOUDFLARE_API_TOKEN
 
 # Per-app fully-qualified worker URLs for header verification
 declare -a APPS=(

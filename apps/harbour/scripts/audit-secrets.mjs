@@ -158,11 +158,15 @@ const CF_WORKERS = [
 ];
 
 function wranglerSecretList(worker) {
-  const cfToken = readFileSync(`${HOME}/.cf-token`, "utf8").trim();
+  // ~/.cf-token is optional — use it only if present with content; otherwise let
+  // wrangler authenticate via its own OAuth login.
+  const tokenPath = `${HOME}/.cf-token`;
+  const cfToken = existsSync(tokenPath) ? readFileSync(tokenPath, "utf8").trim() : "";
+  const env = cfToken ? { ...process.env, CLOUDFLARE_API_TOKEN: cfToken } : process.env;
   const r = spawnSync("npx", ["wrangler", "secret", "list", "--name", worker], {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, CLOUDFLARE_API_TOKEN: cfToken },
+    env,
   });
   if (r.status !== 0) return null;
   const names = [];
