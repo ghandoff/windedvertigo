@@ -65,8 +65,9 @@ import { queryBdAssets, incrementBdAssetUsage } from "@/lib/notion/bd-assets";
 import { queryBibliography } from "@/lib/notion/bibliography";
 import { queryRateReference } from "@/lib/notion/rate-reference";
 import { createDeal } from "@/lib/notion/deals";
-import { generateProposal, TEAM_BIOS } from "@/lib/ai/proposal-generator";
+import { generateProposal, TEAM_BIOS, computeTraceabilityScore } from "@/lib/ai/proposal-generator";
 import { matchCitations } from "@/lib/ai/citation-matcher";
+import { upsertProposalTraceability } from "@/lib/supabase/rfp-proposal-traceability";
 import { postToSlack } from "@/lib/slack";
 import { notion } from "@/lib/notion/client";
 import {
@@ -397,6 +398,18 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       return { success: false, error: "generation_failed" };
     }
 
+    // BIZ-C1/C2: compute + persist the citation traceability score so
+    // biz_qc_review can surface it without re-reading the Notion doc.
+    // Regenerating the same rfp upserts and replaces the prior trace.
+    const citationCount = relevantCitations?.length ?? 0;
+    const traceabilityScore = computeTraceabilityScore(draft, citationCount);
+    upsertProposalTraceability({
+      rfpId,
+      citationTrace: draft.citationTrace,
+      traceabilityScore,
+      citationCount,
+    }).catch((e) => console.warn("[proposal] traceability persist failed (non-fatal):", e));
+
     // 6. Create Deal in Notion
     setProposalStep(rfpId, "building_documents").catch((e) =>
       console.warn("[proposal] step tracking:", e),
@@ -460,6 +473,23 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     }
     if (draft.references.length > 0) {
       blocks.push(divider(), heading2("References"), ...draft.references.map((r) => para(r)));
+    }
+    if (draft.citationTrace.length > 0) {
+      // citationIndex refers into `relevantCitations` (the pre-matched bibliography
+      // entries sent in the prompt) — NOT draft.references (the model's own free-text
+      // reference list, different order/content entirely).
+      blocks.push(
+        divider(),
+        heading2("Citation Traceability (internal QC)"),
+        para(
+          traceabilityScore.score !== null
+            ? `traceability score: ${traceabilityScore.score}/100 — ${traceabilityScore.breakdown.join("; ")}`
+            : traceabilityScore.breakdown.join("; "),
+        ),
+        ...draft.citationTrace.map((t) =>
+          bulletItem(`${t.section}: "${t.claimSummary}" ← ${relevantCitations?.[t.citationIndex]?.fullCitation ?? `citation ${t.citationIndex}`}`),
+        ),
+      );
     }
 
     try {
