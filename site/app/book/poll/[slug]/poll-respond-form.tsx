@@ -82,6 +82,18 @@ function buildGrid(options: PollOption[], tz: string): GridData {
 
 // ── formatters ────────────────────────────────────────────────────────────────
 
+function formatLockedClient(opt: PollOption, tz: string): string {
+  const start = new Date(opt.starts_at);
+  const end = new Date(opt.ends_at);
+  return (
+    start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: tz }) +
+    " · " +
+    start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short", timeZone: tz }) +
+    "–" +
+    end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz })
+  );
+}
+
 function fmtDayHeader(dateStr: string): string {
   const d = new Date(`${dateStr}T12:00:00`);
   const wd = d.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase();
@@ -108,7 +120,7 @@ export function PollRespondForm({
   totalResponses,
   lockedOptionId,
 }: Props) {
-  const [tz, setTz] = useState("America/Los_Angeles");
+  const [tz, setTz] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [mySelections, setMySelections] = useState<Set<string>>(new Set());
   const [submitted, setSubmitted] = useState(false);
@@ -116,6 +128,7 @@ export function PollRespondForm({
   const [error, setError] = useState<string | null>(null);
   const [localChoices, setLocalChoices] = useState<PollResponseChoice[]>(existingChoices);
   const [localTotal, setLocalTotal] = useState(totalResponses);
+  const [isMobile, setIsMobile] = useState(false);
   // drag-select: "select" or "deselect" — null when not dragging
   const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
@@ -125,29 +138,26 @@ export function PollRespondForm({
 
   useEffect(() => {
     const end = () => { dragOpRef.current = null; };
-    document.addEventListener("pointerup", end);
-    document.addEventListener("pointercancel", end);
-    return () => {
-      document.removeEventListener("pointerup", end);
-      document.removeEventListener("pointercancel", end);
-    };
+    document.addEventListener("mouseup", end);
+    return () => document.removeEventListener("mouseup", end);
   }, []);
 
-  const grid = useMemo(() => buildGrid(options, tz), [options, tz]);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
-  // Daily candidate window (earliest start – latest end) in the VIEWER's own timezone,
-  // so everyone sees the hours relative to where they are (e.g. 7:00 am–2:00 pm PT reads
-  // as 5:00 pm–12:00 am in Cairo). Derived from the real slots, so it's always accurate.
-  const windowLabel = useMemo(() => {
-    if (options.length === 0) return null;
-    const fmt = (ms: number) =>
-      new Date(ms)
-        .toLocaleTimeString("en-US", { timeZone: tz, hour: "numeric", minute: "2-digit" })
-        .toLowerCase();
-    const startMs = Math.min(...options.map((o) => new Date(o.starts_at).getTime()));
-    const endMs = Math.max(...options.map((o) => new Date(o.ends_at).getTime()));
-    return `${fmt(startMs)} – ${fmt(endMs)}`;
-  }, [options, tz]);
+  const lockedOption = useMemo(
+    () => (lockedOptionId ? options.find((o) => o.id === lockedOptionId) ?? null : null),
+    [options, lockedOptionId],
+  );
+
+  const grid = useMemo(
+    () => tz ? buildGrid(options, tz) : { dates: [], timeRows: [], cellMap: new Map<string, string>() },
+    [options, tz],
+  );
 
   const heatByOption = useMemo(() => {
     const map = new Map<string, number>();
@@ -206,16 +216,25 @@ export function PollRespondForm({
     }
   }
 
+  // Wait for the browser to report its timezone before rendering time-sensitive content.
+  // This prevents flashing wrong times for non-PT respondents during SSR hydration.
+  if (!tz) {
+    return (
+      <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)", paddingTop: 8 }}>
+        detecting your timezone…
+      </p>
+    );
+  }
+
   if (grid.dates.length === 0) {
     return (
       <div
-        className="rounded-xl px-5 py-6 text-center"
-        style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}
+        style={{ borderRadius: 12, padding: "24px 20px", textAlign: "center", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}
       >
-        <p className="text-sm font-medium mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+        <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 4, color: "rgba(255,255,255,0.6)" }}>
           no time slots available
         </p>
-        <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
           the organiser may need to recreate this poll with valid time windows.
         </p>
       </div>
@@ -223,81 +242,48 @@ export function PollRespondForm({
   }
 
   const isLocked = Boolean(lockedOptionId);
-  const CELL_H = 36; // px per 30-min row — sized up for touch tap targets
-  const DAY_COL_W = 96; // px per day column
-  const LABEL_COL = 56; // px for time labels
+  const CELL_H = 36; // px per 30-min row — 36px minimum for touch targets
+  const DAY_COL_W = 80; // px per day column
+  const LABEL_COL = 52; // px for time labels
 
   return (
     <div>
-      {/* Candidate window in the viewer's own timezone — replaces the old hard-coded
-          "times shown 9a-2p pacific" so every respondent sees their local hours. */}
-      {windowLabel && (
-        <p className="text-xs mb-2" style={{ color: "rgba(255,255,255,0.5)" }}>
-          times shown in your timezone ({tz}): {windowLabel}
-        </p>
+      {/* Locked banner — rendered client-side so timezone reflects the viewer, not the server */}
+      {isLocked && lockedOption && (
+        <div
+          style={{
+            marginBottom: 24,
+            borderRadius: 12,
+            padding: "16px 20px",
+            background: "rgba(34,197,94,0.08)",
+            border: "1px solid rgba(34,197,94,0.25)",
+          }}
+        >
+          <p style={{ color: "#86efac", fontSize: 14, fontWeight: 600 }}>
+            time confirmed ✓
+          </p>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginTop: 2 }}>
+            {formatLockedClient(lockedOption, tz)}
+          </p>
+        </div>
       )}
 
       {/* Response counter */}
-      <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginBottom: 16 }}>
         {localTotal === 0
           ? "no responses yet — be the first"
-          : `${localTotal} response${localTotal !== 1 ? "s" : ""}`}
+          : `${localTotal} response${localTotal !== 1 ? "s" : ""} · times in ${tz}`}
       </p>
-
-      {/* Legend — placed ABOVE the grid so respondents (especially on mobile) learn
-          what the colours mean before they start selecting. */}
-      <div className="flex flex-wrap items-center gap-4 text-xs" style={{ color: "rgba(255,255,255,0.4)", display: "flex", flexWrap: "wrap", alignItems: "center", columnGap: 16, rowGap: 6, marginTop: 0, marginBottom: 6 }}>
-        {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.22)", display: "inline-block" }}
-            />
-            available — click to select
-          </span>
-        )}
-        {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.65)", display: "inline-block" }}
-            />
-            your selection
-          </span>
-        )}
-        {localTotal > 0 && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.35)", display: "inline-block" }}
-            />
-            others available
-          </span>
-        )}
-        {isLocked && (
-          <span className="flex items-center gap-1.5" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span
-              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(34,197,94,0.35)", display: "inline-block" }}
-            />
-            confirmed time
-          </span>
-        )}
-      </div>
-
-      {/* How-to hint beside the legend, above the grid, so respondents can start
-          straight away. The "N selected → submit" line stays by the button below. */}
-      {!submitted && !isLocked && (
-        <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)", marginTop: 0, marginBottom: 12 }}>
-          click cells to select, or drag across multiple to select a range.
-        </p>
-      )}
 
       {/* Calendar grid */}
       <div
-        className="overflow-x-auto rounded-xl"
         style={{
-          border: "1px solid rgba(255,255,255,0.08)",
           overflowX: "auto",
-          WebkitOverflowScrolling: "touch",
           borderRadius: 12,
-        }}
+          border: "1px solid rgba(255,255,255,0.08)",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
+        } as React.CSSProperties}
       >
         <div
           style={{
@@ -307,15 +293,11 @@ export function PollRespondForm({
             minWidth: `${LABEL_COL + grid.dates.length * DAY_COL_W}px`,
           }}
         >
-          {/* Corner — sticky so it holds the top-left while scrolling wide grids */}
+          {/* Corner */}
           <div
             style={{
               gridRow: 1,
               gridColumn: 1,
-              position: "sticky",
-              left: 0,
-              zIndex: 20,
-              background: "#273248",
               borderBottom: "1px solid rgba(255,255,255,0.10)",
               borderRight: "1px solid rgba(255,255,255,0.10)",
             }}
@@ -351,10 +333,6 @@ export function PollRespondForm({
               style={{
                 gridRow: ri + 2,
                 gridColumn: 1,
-                position: "sticky",
-                left: 0,
-                zIndex: 10,
-                background: "#273248",
                 borderRight: "1px solid rgba(255,255,255,0.10)",
                 borderTop: rowMins % 60 === 0 ? "1px solid rgba(255,255,255,0.10)" : undefined,
                 color: rowMins % 60 === 0 ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)",
@@ -406,10 +384,8 @@ export function PollRespondForm({
               return (
                 <div
                   key={`${date}-${rowMins}`}
-                  onPointerDown={optionId && !submitted && !isLocked ? (e) => {
+                  onMouseDown={optionId && !submitted && !isLocked ? (e) => {
                     e.preventDefault(); // prevent text selection during drag
-                    // release implicit capture so pointerenter fires on sibling cells during a touch drag
-                    (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
                     const op = mySelections.has(optionId) ? "deselect" : "select";
                     dragOpRef.current = op;
                     setMySelections((prev) => {
@@ -426,11 +402,10 @@ export function PollRespondForm({
                     borderTop: `1px solid ${atHourBoundary ? "rgba(255,255,255,0.12)" : (optionId ? borderColor : "rgba(255,255,255,0.04)")}`,
                     borderRight: !isLastCol ? `1px solid rgba(255,255,255,0.08)` : undefined,
                     cursor: optionId && !submitted && !isLocked ? "pointer" : "default",
-                    // pan-x lets a horizontal swipe scroll the days while a vertical drag paints
-                    touchAction: optionId && !submitted && !isLocked ? "pan-x" : undefined,
                     transition: dragOpRef.current ? undefined : "background-color 0.12s ease",
-                  }}
-                  onPointerEnter={optionId && !submitted && !isLocked ? (e) => {
+                    WebkitTapHighlightColor: "rgba(0,0,0,0)",
+                  } as React.CSSProperties}
+                  onMouseEnter={optionId && !submitted && !isLocked ? (e) => {
                     if (dragOpRef.current !== null) {
                       // during drag: apply the stored operation
                       setMySelections((prev) => {
@@ -439,12 +414,12 @@ export function PollRespondForm({
                         else next.delete(optionId);
                         return next;
                       });
-                    } else if (e.pointerType === "mouse" && !isMine) {
-                      // hover highlight when not dragging (mouse only)
+                    } else if (!isMine) {
+                      // hover highlight when not dragging
                       (e.currentTarget as HTMLElement).style.backgroundColor = "rgba(45,212,191,0.22)";
                     }
                   } : undefined}
-                  onPointerLeave={optionId && !submitted && !isLocked ? (e) => {
+                  onMouseLeave={optionId && !submitted && !isLocked ? (e) => {
                     if (dragOpRef.current === null) {
                       (e.currentTarget as HTMLElement).style.backgroundColor = bg;
                     }
@@ -456,41 +431,73 @@ export function PollRespondForm({
         </div>
       </div>
 
-      {/* Mobile-only hint: the grid scrolls sideways to reveal more dates. Shown only
-          below the `sm` breakpoint (Tailwind responsive) — pure CSS, no scroll
-          measurement, so it's reliable across hydration and devices. */}
-      <p
-        className="flex sm:hidden"
-        style={{ marginTop: 8, fontSize: 11, alignItems: "center", gap: 6, color: "rgba(255,255,255,0.4)" }}
-      >
-        swipe sideways to see all dates
-        <span aria-hidden style={{ display: "inline-block", animation: "wvScrollNudge 1.4s ease-in-out infinite" }}>›</span>
-      </p>
-      <style>{`@keyframes wvScrollNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}`}</style>
+      {/* Mobile swipe hint */}
+      {isMobile && grid.dates.length > 3 && (
+        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 6, textAlign: "center", letterSpacing: "0.04em" }}>
+          swipe to see all {grid.dates.length} days →
+        </p>
+      )}
+
+      {/* Legend */}
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16, marginTop: 12, marginBottom: 24, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+        {!submitted && !isLocked && (
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.22)", display: "inline-block" }}
+            />
+            available — click to select
+          </span>
+        )}
+        {!submitted && !isLocked && (
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.65)", display: "inline-block" }}
+            />
+            your selection
+          </span>
+        )}
+        {localTotal > 0 && (
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.35)", display: "inline-block" }}
+            />
+            others available
+          </span>
+        )}
+        {isLocked && (
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(34,197,94,0.35)", display: "inline-block" }}
+            />
+            confirmed time
+          </span>
+        )}
+      </div>
 
       {/* Response form */}
       {!isLocked && (
         submitted ? (
           <div
-            className="rounded-xl px-5 py-4 text-sm"
             style={{
+              borderRadius: 12,
+              padding: "16px 20px",
+              fontSize: 14,
               background: "rgba(45,212,191,0.08)",
               border: "1px solid rgba(45,212,191,0.25)",
               color: "rgba(255,255,255,0.85)",
             }}
           >
-            <p className="font-medium text-teal-300">availability submitted ✓</p>
-            <p className="mt-0.5 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <p style={{ fontWeight: 500, color: "#5eead4" }}>availability submitted ✓</p>
+            <p style={{ marginTop: 2, fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
               thanks {name}! the heat map above now includes your response.
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
               <label
                 htmlFor="respondent-name"
-                className="block text-xs mb-1.5"
-                style={{ color: "rgba(255,255,255,0.5)" }}
+                style={{ display: "block", fontSize: 12, marginBottom: 6, color: "rgba(255,255,255,0.5)" }}
               >
                 your name
               </label>
@@ -498,34 +505,43 @@ export function PollRespondForm({
                 id="respondent-name"
                 type="text"
                 required
+                autoComplete="name"
+                autoCapitalize="words"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. jamie"
                 style={{
                   width: "100%",
-                  maxWidth: 280,
+                  maxWidth: isMobile ? "100%" : 280,
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.12)",
                   borderRadius: 8,
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   color: "#fff",
-                  fontSize: 14,
+                  fontSize: 16, // 16px prevents iOS Safari auto-zoom on focus
                   outline: "none",
+                  boxSizing: "border-box",
                 }}
                 onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
                 onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.12)")}
               />
             </div>
 
-            {mySelections.size > 0 && (
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+            {mySelections.size > 0 ? (
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
                 {mySelections.size} slot{mySelections.size !== 1 ? "s" : ""} selected —{" "}
-                click or drag to adjust, then submit.
+                {isMobile ? "tap to adjust, then submit." : "click or drag to adjust, then submit."}
+              </p>
+            ) : (
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                {isMobile
+                  ? "tap time slots above to mark your availability."
+                  : "click cells to select, or drag across multiple to select a range."}
               </p>
             )}
 
             {error && (
-              <p className="text-xs" style={{ color: "#f87171" }}>
+              <p style={{ fontSize: 12, color: "#f87171" }}>
                 {error}
               </p>
             )}
@@ -534,12 +550,13 @@ export function PollRespondForm({
               type="submit"
               disabled={submitting}
               style={{
+                alignSelf: isMobile ? "stretch" : "flex-start",
                 background: submitting ? "rgba(45,212,191,0.3)" : "rgba(45,212,191,0.75)",
                 border: "none",
                 borderRadius: 8,
-                padding: "10px 24px",
+                padding: isMobile ? "14px 24px" : "10px 24px",
                 color: "#fff",
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 600,
                 cursor: submitting ? "not-allowed" : "pointer",
                 transition: "background 0.15s",

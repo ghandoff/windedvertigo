@@ -6,7 +6,6 @@
  */
 
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { select, selectOne } from "@/lib/booking/supabase";
 import { SiteHeader } from "@/components/site-header";
@@ -14,33 +13,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { PollRespondForm } from "./poll-respond-form";
 
 export const dynamic = "force-dynamic";
-
-/** Render a plain-text description with `[label](https://url)` markdown links as
- *  real anchors. Only http(s) links are linkified; everything else stays literal. */
-function renderDescription(text: string): ReactNode[] {
-  const nodes: ReactNode[] = [];
-  const re = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-  let last = 0;
-  let key = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) nodes.push(text.slice(last, m.index));
-    nodes.push(
-      <a
-        key={key++}
-        href={m[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ color: "rgba(45,212,191,0.9)", textDecoration: "underline", textUnderlineOffset: "2px" }}
-      >
-        {m[1]}
-      </a>,
-    );
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) nodes.push(text.slice(last));
-  return nodes;
-}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -112,74 +84,53 @@ export default async function PollRespondPage({ params }: Props) {
         )
       : [];
 
-  const locked =
-    poll.locked_option_id
-      ? options.find((o) => o.id === poll.locked_option_id) ?? null
-      : null;
-
-  function formatLocked(opt: PollOption) {
-    const start = new Date(opt.starts_at);
-    const end = new Date(opt.ends_at);
-    return `${start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} · ${start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}–${end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
-  }
-
   return (
     <div style={{ background: "#273248", color: "#fff", minHeight: "100vh" }}>
       <SiteHeader />
 
       <main
-        className="mx-auto w-full max-w-4xl px-4 pb-16"
-        // NOTE: this site uses a static utility stylesheet (styles/main.css), not
-        // Tailwind's JIT — so max-w-*/px-* utilities are no-ops here. Set the
-        // container width/centering/gutters inline so they actually apply.
         style={{
-          paddingTop: 120,
-          paddingBottom: 64,
-          paddingLeft: 16,
-          paddingRight: 16,
           maxWidth: "56rem",
           marginLeft: "auto",
           marginRight: "auto",
           width: "100%",
+          paddingTop: "clamp(80px, 16vw, 120px)",
+          paddingBottom: "4rem",
+          paddingLeft: "clamp(1.25rem, 5vw, 2.5rem)",
+          paddingRight: "clamp(1.25rem, 5vw, 2.5rem)",
         }}
       >
         {/* Header */}
-        <div className="mb-8">
+        <div style={{ marginBottom: 32 }}>
           <p
-            className="text-xs uppercase tracking-widest mb-2"
-            style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}
+            style={{
+              color: "rgba(255,255,255,0.4)",
+              letterSpacing: "0.12em",
+              fontSize: 11,
+              textTransform: "uppercase",
+              marginBottom: 8,
+            }}
           >
             group playdate
           </p>
-          <h1 className="text-3xl font-bold lowercase" style={{ letterSpacing: "-0.01em" }}>
+          <h1
+            style={{
+              letterSpacing: "-0.01em",
+              fontSize: "clamp(1.6rem, 5vw, 2rem)",
+              fontWeight: 700,
+              lineHeight: 1.15,
+            }}
+          >
             {poll.title}
           </h1>
           {poll.description && (
-            <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-              {renderDescription(poll.description)}
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, marginTop: 8 }}>
+              {poll.description}
             </p>
           )}
         </div>
 
-        {/* Locked banner */}
-        {locked && (
-          <div
-            className="mb-6 rounded-xl px-5 py-4"
-            style={{
-              background: "rgba(34,197,94,0.08)",
-              border: "1px solid rgba(34,197,94,0.25)",
-            }}
-          >
-            <p className="text-sm font-semibold" style={{ color: "#86efac" }}>
-              time confirmed ✓
-            </p>
-            <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-              {formatLocked(locked)}
-            </p>
-          </div>
-        )}
-
-        {/* Grid + form */}
+        {/* Grid + form (locked banner rendered client-side so it uses the viewer's timezone) */}
         <PollRespondForm
           pollSlug={slug}
           options={options}
