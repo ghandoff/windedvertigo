@@ -43,9 +43,17 @@ interface SlackApiOptions {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function slackApi({ method, body }: SlackApiOptions): Promise<any> {
-  const token = process.env.SLACK_BOT_TOKEN;
+  // SLACK_AGENT_BOT_TOKEN (wv-claw) preferred: confirmed live as of 2026-07-20.
+  // SLACK_BOT_TOKEN (the older, separately-maintained "digest bot") started
+  // returning account_inactive on every call the same night — dead, not just
+  // uninvited to a channel. Falls back to it only so this doesn't go fully
+  // silent if SLACK_AGENT_BOT_TOKEN is ever unset in some other environment.
+  // If the digest-bot identity needs restoring later (separate Slack posting
+  // name/avatar for whirlpool-checkin/weekly-digest etc.), that's a follow-up
+  // — get SLACK_BOT_TOKEN a live credential again and flip the preference.
+  const token = process.env.SLACK_AGENT_BOT_TOKEN ?? process.env.SLACK_BOT_TOKEN;
   if (!token) {
-    console.warn("[slack] SLACK_BOT_TOKEN not set — skipping");
+    console.warn("[slack] SLACK_AGENT_BOT_TOKEN / SLACK_BOT_TOKEN not set — skipping");
     return null;
   }
 
