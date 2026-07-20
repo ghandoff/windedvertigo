@@ -204,6 +204,8 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "knowledge-reconcile":    summary.byFeature["knowledge-reconcile"]?.costUsd     ?? 0,
     "whirlpool-sweep":        summary.byFeature["whirlpool-sweep"]?.costUsd         ?? 0,
     "collective-digest":      summary.byFeature["collective-digest"]?.costUsd       ?? 0,
+    "ambient-prefilter":      summary.byFeature["ambient-prefilter"]?.costUsd       ?? 0,
+    "ambient-agent-run":      summary.byFeature["ambient-agent-run"]?.costUsd       ?? 0,
   };
 
   // Estimate Notion API calls: ~3 per AI request (fetch context)

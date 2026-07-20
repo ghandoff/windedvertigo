@@ -245,23 +245,56 @@ const CRON_TABLE: CronEntry[] = [
   // agent logs (agent) + curated seed → knowledge_nodes/edges, then reconcile
   // the human↔agent merge bridges. Powers /brain. Idempotent.
   { path: "/api/cron/knowledge-sync", hours: [11], originalMinute: 20 },
+
+  // ── ambient-agent spine (docs/prompts/executive-agents-phase1-build.md) ────
+  // Hourly default-deny sweep — flips any HIGH-tier agent_interventions row
+  // still `proposed` past its expires_at to `expired`. The debounce/judgment
+  // sweep itself (agent-ambient-sweep) rides the */5 trigger below, not this
+  // table — event_log needs 5-minute granularity to debounce meaningfully.
+  { path: "/api/cron/agent-interventions-expire" },
+
+  // Mo — Friday pipeline scorecard (charter: "reported Fridays"). Same slot
+  // pattern as whirlpool-checkin (Fri 17:00 UTC), offset an hour earlier so
+  // Mo's scorecard lands before PaM's midpoint check-in.
+  { path: "/api/cron/mo-friday-scorecard", hours: [16], weekdays: [5] },
+
+  // Mo — content-queue runway watch (charter: "<2 weeks runway → fills it").
+  { path: "/api/cron/mo-content-runway-check", hours: [8] },
+
+  // PaM — Monday per-person commitment DM + exceptions note (charter:
+  // "reported Mondays"). Deliberately distinct from whirlpool-checkin's
+  // Friday PUBLIC #whirlpool digest — this is private per-person DMs at
+  // cycle start, not a mid-cycle channel post.
+  { path: "/api/cron/pam-monday-digest", hours: [14], weekdays: [1] },
+
+  // PaM — absence-horizon check (charter: "an absence approaching →
+  // redistribution proposal two weeks out").
+  { path: "/api/cron/pam-absence-horizon", hours: [9] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
 // (the hourly router would under-fire them to once per hour).
 //   sweep-stuck-proposals  — proposal pipeline watchdog
 //   opsy-health-check-t1   — Opsy tier-1 platform probes (posture.md tier 1)
+//   agent-ambient-sweep    — ambient-spine event_log debounce/judgment sweep;
+//     needs 5-min granularity to detect the "10 min quiet" debounce window —
+//     the hourly router would under-fire it and blow the spec's latency bar.
 const FIVE_MINUTE_PATHS = [
   "/api/cron/sweep-stuck-proposals",
   "/api/cron/opsy-health-check-t1",
+  "/api/cron/agent-ambient-sweep",
 ];
 
 // Sub-hourly Opsy jobs ride the same */5 trigger, slotted by the scheduled
 // minute (controller.scheduledTime, so a delayed invocation can't miss its
 // slot): :00/:15/:30/:45 → tier 2 + email scan; :00/:30 → tier 3.
+// PaM's owner-confirmation sweep rides the :00/:15/:30/:45 slot too — meeting
+// action items don't need tighter than 15-min latency to hit the charter's
+// "within the hour" target.
 const FIFTEEN_MINUTE_PATHS = [
   "/api/cron/opsy-health-check-t2",
   "/api/cron/opsy-email-scan",
+  "/api/cron/pam-owner-confirmation-sweep",
 ];
 const THIRTY_MINUTE_PATHS = ["/api/cron/opsy-health-check-t3"];
 

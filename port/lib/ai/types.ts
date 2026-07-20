@@ -69,6 +69,14 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // Haiku: one short daily digest compiled from all six agents' overnight
   // logs — low-cost, high-volume text, runs once a day.
   "collective-digest": "claude-haiku-4-5-20251001",
+  // Haiku: router-side "is this event batch charter-relevant at all" check
+  // before spending a full agent run — high volume (every ambient-sweep
+  // tick), cost-sensitive by design (spec §3 cost guard).
+  "ambient-prefilter": "claude-haiku-4-5-20251001",
+  // Sonnet: the actual ambient-agent judgment call (silent/act/notify/preview
+  // + drafted artifact) — only reached after the prefilter says relevant, so
+  // infrequent relative to the prefilter.
+  "ambient-agent-run": "claude-sonnet-4-6",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -97,7 +105,9 @@ export type AiFeature =
   | "knowledge-extract"
   | "knowledge-reconcile"
   | "whirlpool-sweep"
-  | "collective-digest";
+  | "collective-digest"
+  | "ambient-prefilter"
+  | "ambient-agent-run";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -124,6 +134,8 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "knowledge-reconcile": "Knowledge Graph Reconcile",
   "whirlpool-sweep": "Whirlpool Commitment Sweep",
   "collective-digest": "Daily Collective Digest",
+  "ambient-prefilter": "Ambient Agent Pre-filter",
+  "ambient-agent-run": "Ambient Agent Run",
 };
 
 // ── token usage tracking ─────────────────────────────────

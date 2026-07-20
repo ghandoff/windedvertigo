@@ -154,6 +154,17 @@ All four share a memory API (`/api/{cmo,pam,carl,opsy}/`); decisions are
 transparent on the strategy page's mo-log tab. Per-agent "how to talk to" notes
 + OAuth/MCP implementation detail: `docs/decisions/CLAUDE-full-snapshot-2026-06-19.md`.
 
+### executive agent charters (`docs/agents/executive-charters.md`)
+
+Governance-gated: **Garrett edits this file only.** It defines each agent's
+watch-list, standing permissions, and risk tiers for the ambient-agent spine
+(proactive interventions, preview cards). It is NOT hand-copied into code —
+`npm run sync:charters` (`scripts/sync-charters.mjs`) parses it into
+`port/lib/agent/charters.generated.ts` (same pattern + direction as
+`sync:tokens`). After editing the charters file: run `npm run sync:charters`,
+commit the regenerated file, then redeploy port. `npm run audit:charters`
+checks for drift without writing (useful in CI).
+
 ## file output rules (ALL conversations)
 
 **Never write files to Google Drive or Cowork output folders.** Everything —

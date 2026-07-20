@@ -84,6 +84,17 @@ export async function getSlackUserName(userId: string): Promise<string> {
 }
 
 /**
+ * Resolve a Slack user ID to their email — the reverse of getSlackUserByEmail.
+ * Requires the users:read.email bot scope; returns null (not throw) if the
+ * scope is missing or the user has no email on file, same fail-open posture
+ * as the rest of this file.
+ */
+export async function getSlackUserEmail(userId: string): Promise<string | null> {
+  const data = await slackApi({ method: "users.info", body: { user: userId } });
+  return data?.user?.profile?.email ?? null;
+}
+
+/**
  * Open (or reuse) a DM channel with a user and return the channel ID.
  */
 export async function openDm(slackUserId: string): Promise<string | null> {
@@ -197,8 +208,10 @@ export async function postToChannelResilient(
   channel: string,
   text: string,
   inviteEmails: string[] = [],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
 ): Promise<boolean> {
-  return (await postToChannelResilientDetailed(channel, text, inviteEmails)).posted;
+  return (await postToChannelResilientDetailed(channel, text, inviteEmails, blocks)).posted;
 }
 
 export interface PostToChannelResilientDetail {
@@ -218,12 +231,14 @@ export async function postToChannelResilientDetailed(
   channel: string,
   text: string,
   inviteEmails: string[] = [],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
 ): Promise<PostToChannelResilientDetail> {
-  const first = await postToChannelDetailed(channel, text);
+  const first = await postToChannelDetailed(channel, text, blocks);
   if (first.ok) return { posted: true, ts: first.ts, resolvedChannel: channel };
   const id = await ensureChannel(channel, inviteEmails);
   if (id) {
-    const retry = await postToChannelDetailed(id, text);
+    const retry = await postToChannelDetailed(id, text, blocks);
     if (retry.ok) return { posted: true, ts: retry.ts, resolvedChannel: id };
   }
   console.warn(`[slack] could not post to ${channel} — create it and /invite the bot`);
