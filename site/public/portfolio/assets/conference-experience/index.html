@@ -283,7 +283,7 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
 #S0 .sub { font: 300 clamp(16px,2.2vw,20px)/1.4 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.92); text-align: center; padding: 0 20px; }
 #S0 .sub em { color: var(--accent-em); font-style: normal; }
 #S0 .cover-context { font: 400 12px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85); margin-top: 16px; }
-#S0 .foot { position: absolute; bottom: 28px; font: 300 11px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.85); }
+#S0 .foot { font-size: 9px; position: absolute; bottom: 56px; left: 50%; transform: translateX(-50%); white-space: nowrap; }
 #S0 .enter {
   margin-top: 36px; background: var(--redwood); color: #fff; border: none;
   padding: 14px 40px; font: 500 14px 'Open Sauce Sans', sans-serif; letter-spacing: 0.03em;
@@ -573,6 +573,18 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
 .door:hover::before { background: rgba(255,255,255,0.05); }
 .door:hover { transform: scale(1.01); }
 .door-divider { width: 1px; background: rgba(255,255,255,0.15); align-self: stretch; }
+  /* session confirmation as a centered, dismissible popup */
+  .door-hint {
+    position: fixed; top: 50%; left: 50%; bottom: auto;
+    transform: translate(-50%, -50%) scale(0.96);
+    width: 86%; max-width: 340px; padding: 26px 22px 22px;
+    font-size: 15px; line-height: 1.5; color: var(--dark); text-align: center;
+    background: #fff; border-radius: 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    opacity: 0; pointer-events: none; z-index: 250;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .door-hint.picked { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+  .door-hint-close { display: block; position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 24px; line-height: 1; color: var(--grey); cursor: pointer; padding: 4px 8px; }
 .door .d-label { font: 600 11px 'Open Sauce Sans', sans-serif; letter-spacing: 0.03em; color: rgba(255,255,255,0.6); margin-bottom: 20px; z-index: 1; }
 .door h3 { font: 700 clamp(22px,3vw,32px)/1.2 'Open Sauce Sans', sans-serif; color: var(--champagne); margin-bottom: 16px; z-index: 1; text-align: center; }
 .door p { font: 400 15px/1.6 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.82); max-width: 300px; text-align: center; z-index: 1; }
@@ -850,7 +862,15 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
     padding-top: 52px; /* clear top agenda bar */
     align-items: flex-start; /* allow content to grow beyond viewport for scroll */
   }
-  .sc.active > * { flex-shrink: 0; } /* prevent content from squishing */
+  .sc.active > * { flex-shrink: 0; }
+
+  /* mobile: keep the dark overlay covering the whole page while scrolling */
+  .sc-bg::before { position: fixed; }
+  /* cover: center logo + content */
+  #S0 { align-items: center; }
+  /* monday commitment card: fully centered */
+  #S13 { align-items: center; justify-content: center; }
+  #S13 .card-flip-container { margin: auto; } /* prevent content from squishing */
 
   /* ── Narrator panel (mobile), sits above the dock ── */
   #narrator-overlay {
@@ -1081,6 +1101,7 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
   background: rgba(255,255,255,0.85); padding: 8px 18px; border-radius: 20px; max-width: 90%;
   backdrop-filter: blur(8px); transition: opacity 0.4s;
 }
+.door-hint-close { display: none; }
 /* ── S6 Reyes prep prompt ── */
 .reyes-prep { margin-top: 22px; text-align: center; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 16px; }
 .reyes-prep-q { font: 600 13px/1.4 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.9); margin-bottom: 8px; }
@@ -1137,7 +1158,7 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
 .report-text p { font: 400 15px/1.7 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.82); }
 .report-hook { font: 300 clamp(16px,2vw,19px)/1.5 'Open Sauce Sans', sans-serif; color: var(--accent-em); margin: 24px 0 20px; }
 .report-fine { font: 400 12px 'Open Sauce Sans', sans-serif; color: rgba(255,255,255,0.5); margin-top: 20px; }
-@media (max-width: 768px) { .report-phone { max-width: 78%; height: auto; width: 240px; } .report-text { text-align: center; } }
+@media (max-width: 768px) { .report-phone { max-width: 78%; height: auto; width: 240px; } .report-text { text-align: center; } .report-text .cta-btn { display: inline-flex; } }
 .token { position: absolute; cursor: grab; user-select: none; border-radius: 999px; padding: 11px 18px; font: 700 12.5px/1.25 'Open Sauce Sans', sans-serif; text-align: center; max-width: 190px; box-shadow: 0 8px 20px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.32), inset 0 -3px 8px rgba(0,0,0,0.16); animation: tokenFloat var(--dur,4s) ease-in-out infinite; animation-delay: var(--adelay,0s); will-change: transform; }
 .token:hover { box-shadow: 0 16px 34px rgba(0,0,0,0.48), inset 0 1px 0 rgba(255,255,255,0.4); z-index: 45; animation-play-state: paused; }
 .token.dragging { cursor: grabbing; z-index: 50; animation: none; box-shadow: 0 22px 46px rgba(0,0,0,0.55); }
@@ -1308,7 +1329,7 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
       <div class="d-foot">The room that remembers who pays.</div>
     </button>
   </div>
-  <div class="door-hint" id="doorHint">Tap the one you'd walk into. Both rooms are the right room, then press Next.</div>
+  <div class="door-hint" id="doorHint"><button class="door-hint-close" type="button" onclick="closeDoorHint()" aria-label="Close">&times;</button><span id="doorHintText">Tap the one you'd walk into. Both rooms are the right room, then press Next.</span></div>
 </section>
 
 <!-- ═══ S8 LUNCH COLLAGE ═══ -->
@@ -1351,7 +1372,6 @@ body { font-family: 'Open Sauce Sans', sans-serif; font-size: 16px; color: var(-
       <button class="track-cta" data-done="Checked in ✓" onclick="trackCta(this)">Check in</button>
     </div>
     <div class="track track-quiet" id="quietRoom" role="button" tabindex="0">
-      <div class="track-label">The Quiet Room</div>
       <h3>The Quiet Room</h3>
       <p>Low light. No task. A place to sit with the day so far.</p>
       <span class="quiet-tap-hint">Tap to dim the lights</span>
@@ -2066,8 +2086,13 @@ function pickDoor(el) {
   el.classList.add('chosen');
   el.parentNode.classList.add('has-pick'); /* dims the unchosen door (touch has no hover) */
   var hint = document.getElementById('doorHint');
-  if (hint) hint.textContent = "Noted. Both rooms are the right room. Press Next when you're ready.";
+  if (hint) {
+    var ht = document.getElementById('doorHintText');
+    if (ht) ht.textContent = "Noted. Both rooms are the right room. Press Next when you're ready.";
+    hint.classList.add('picked');
+  }
 }
+function closeDoorHint() { var h = document.getElementById('doorHint'); if (h) h.classList.remove('picked'); }
 
 /* S6 prep prompt */
 function submitPrep() {
