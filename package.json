@@ -16,6 +16,8 @@
     "sync:footer": "node scripts/sync-footer.mjs",
     "sync:tokens": "node scripts/sync-tokens.mjs",
     "audit:tokens": "node scripts/sync-tokens.mjs --check",
+    "sync:charters": "node scripts/sync-charters.mjs",
+    "audit:charters": "node scripts/sync-charters.mjs --check",
     "dev:values-auction": "npm run dev -w apps/harbour/values-auction",
     "build:values-auction": "npm run build -w apps/harbour/values-auction",
     "deploy:values-auction": "npm run deploy:spa -w apps/harbour/values-auction",

@@ -4,62 +4,23 @@
  * Receives Slack Events API webhooks for the port agent.
  * Verifies the Slack signing secret, then routes events.
  *
- * Phase 0 (this commit):
  *   - URL verification handshake (run once at Slack app setup)
- *   - Signature validation (HMAC SHA-256 + timestamp skew rejection)
- *   - Synchronous 200 ack; no agent work yet
- *
- * Phase 1+ (later commits):
- *   - Dispatch `app_mention` and `message.im` events to the agent loop
- *   - Use waitUntil() from @vercel/functions to do agent work after ack,
- *     staying under Slack's 3-second response requirement
+ *   - Signature validation (HMAC SHA-256 + timestamp skew rejection,
+ *     lib/slack-verify.ts — shared with the interactive endpoint)
+ *   - app_mention / DM events → the conversational agent loop (runAgentTurn),
+ *     after() the 200 ack so Slack's 3s budget is respected
+ *   - channel messages (not DMs) on the ambient-rollout watch-list →
+ *     event_log, for the agent-ambient-sweep cron to debounce/batch
+ *     (docs/prompts/executive-agents-phase1-build.md §2.1). Requires the
+ *     `message.channels` event subscription + channels:history/channels:read
+ *     scopes on the wv-claw Slack app — not auto-granted, a human gate.
  */
 
 import { NextRequest, NextResponse, after } from "next/server";
-import crypto from "node:crypto";
 import { runAgentTurn } from "@/lib/agent";
-
-// Slack's recommended skew window for replay protection.
-const MAX_TIMESTAMP_SKEW_SEC = 60 * 5;
-
-function verifySlackSignature(
-  rawBody: string,
-  timestamp: string,
-  signature: string,
-): boolean {
-  const secret = process.env.SLACK_SIGNING_SECRET;
-  if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("[slack/events] SLACK_SIGNING_SECRET not set — rejecting");
-      return false;
-    }
-    console.warn(
-      "[slack/events] SLACK_SIGNING_SECRET not set — skipping verification (dev only)",
-    );
-    return true;
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const ts = Number.parseInt(timestamp, 10);
-  if (Number.isNaN(ts) || Math.abs(now - ts) > MAX_TIMESTAMP_SKEW_SEC) {
-    console.warn("[slack/events] timestamp skew too large — rejecting");
-    return false;
-  }
-
-  const basestring = `v0:${timestamp}:${rawBody}`;
-  const expected =
-    "v0=" +
-    crypto.createHmac("sha256", secret).update(basestring).digest("hex");
-
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, "utf8"),
-      Buffer.from(expected, "utf8"),
-    );
-  } catch {
-    return false;
-  }
-}
+import { verifySlackSignature } from "@/lib/slack-verify";
+import { insertEventLogRow } from "@/lib/supabase/event-log";
+import { ambientWatchedChannelIds } from "@/lib/agent/ambient-rollout";
 
 interface SlackEvent {
   type?: string;
@@ -69,6 +30,7 @@ interface SlackEvent {
   channel_type?: string;
   bot_id?: string;
   subtype?: string;
+  ts?: string;
 }
 
 interface SlackEventPayload {
@@ -77,6 +39,24 @@ interface SlackEventPayload {
   event?: SlackEvent;
   team_id?: string;
   event_id?: string;
+}
+
+/**
+ * Write a channel message to event_log if its channel is on the current
+ * rollout stage's watch-list. Runs inside after() — never on the hot ack
+ * path. No agent run happens here; the agent-ambient-sweep cron (every 5
+ * min) reads unprocessed rows and applies the quiet-window/high-signal
+ * debounce before invoking any agent.
+ */
+async function ingestChannelMessage(ev: SlackEvent): Promise<void> {
+  const watched = await ambientWatchedChannelIds();
+  if (!watched.has(ev.channel!)) return;
+  await insertEventLogRow({
+    source: "slack",
+    type: ev.type ?? "message",
+    channel: ev.channel!,
+    payload: { user: ev.user, text: ev.text, ts: ev.ts, channel_type: ev.channel_type },
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -114,6 +94,12 @@ export async function POST(req: NextRequest) {
     const isDirectMessage =
       ev?.type === "message" && ev?.channel_type === "im" && !ev?.subtype;
     const isBotMessage = !!ev?.bot_id;
+    // Ambient-spine ingestion: channel messages (not DMs), for the
+    // agent-ambient-sweep cron to debounce/batch. Distinct from the
+    // conversational app_mention/DM path above — this never calls
+    // runAgentTurn directly (docs/prompts/executive-agents-phase1-build.md §2.1).
+    const isChannelMessage =
+      ev?.type === "message" && ev?.channel_type !== "im" && !ev?.subtype;
 
     if (!isBotMessage && (isAppMention || isDirectMessage)) {
       console.log(
@@ -124,6 +110,8 @@ export async function POST(req: NextRequest) {
       // long as it needs (bounded internally by MAX_AGENT_TURNS +
       // AGENT_TIMEOUT_MS).
       after(runAgentTurn(payload));
+    } else if (!isBotMessage && isChannelMessage && ev?.channel) {
+      after(ingestChannelMessage(ev));
     } else {
       console.log(
         `[slack/events] skip ${ev?.type ?? "?"} channel_type=${ev?.channel_type ?? "?"} bot_id=${ev?.bot_id ?? "none"} subtype=${ev?.subtype ?? "none"} event_id=${eventId}`,
