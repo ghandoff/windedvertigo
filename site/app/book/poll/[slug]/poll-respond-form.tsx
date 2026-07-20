@@ -82,6 +82,18 @@ function buildGrid(options: PollOption[], tz: string): GridData {
 
 // ── formatters ────────────────────────────────────────────────────────────────
 
+function formatLockedClient(opt: PollOption, tz: string): string {
+  const start = new Date(opt.starts_at);
+  const end = new Date(opt.ends_at);
+  return (
+    start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: tz }) +
+    " · " +
+    start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short", timeZone: tz }) +
+    "–" +
+    end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz })
+  );
+}
+
 function fmtDayHeader(dateStr: string): string {
   const d = new Date(`${dateStr}T12:00:00`);
   const wd = d.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase();
@@ -108,7 +120,7 @@ export function PollRespondForm({
   totalResponses,
   lockedOptionId,
 }: Props) {
-  const [tz, setTz] = useState("America/Los_Angeles");
+  const [tz, setTz] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [mySelections, setMySelections] = useState<Set<string>>(new Set());
   const [submitted, setSubmitted] = useState(false);
@@ -116,6 +128,7 @@ export function PollRespondForm({
   const [error, setError] = useState<string | null>(null);
   const [localChoices, setLocalChoices] = useState<PollResponseChoice[]>(existingChoices);
   const [localTotal, setLocalTotal] = useState(totalResponses);
+  const [isMobile, setIsMobile] = useState(false);
   // drag-select: "select" or "deselect" — null when not dragging
   const dragOpRef = useRef<"select" | "deselect" | null>(null);
 
@@ -129,7 +142,22 @@ export function PollRespondForm({
     return () => document.removeEventListener("mouseup", end);
   }, []);
 
-  const grid = useMemo(() => buildGrid(options, tz), [options, tz]);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const lockedOption = useMemo(
+    () => (lockedOptionId ? options.find((o) => o.id === lockedOptionId) ?? null : null),
+    [options, lockedOptionId],
+  );
+
+  const grid = useMemo(
+    () => tz ? buildGrid(options, tz) : { dates: [], timeRows: [], cellMap: new Map<string, string>() },
+    [options, tz],
+  );
 
   const heatByOption = useMemo(() => {
     const map = new Map<string, number>();
@@ -188,16 +216,25 @@ export function PollRespondForm({
     }
   }
 
+  // Wait for the browser to report its timezone before rendering time-sensitive content.
+  // This prevents flashing wrong times for non-PT respondents during SSR hydration.
+  if (!tz) {
+    return (
+      <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)", paddingTop: 8 }}>
+        detecting your timezone…
+      </p>
+    );
+  }
+
   if (grid.dates.length === 0) {
     return (
       <div
-        className="rounded-xl px-5 py-6 text-center"
-        style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}
+        style={{ borderRadius: 12, padding: "24px 20px", textAlign: "center", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)" }}
       >
-        <p className="text-sm font-medium mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>
+        <p style={{ fontSize: 14, fontWeight: 500, marginBottom: 4, color: "rgba(255,255,255,0.6)" }}>
           no time slots available
         </p>
-        <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
           the organiser may need to recreate this poll with valid time windows.
         </p>
       </div>
@@ -205,14 +242,34 @@ export function PollRespondForm({
   }
 
   const isLocked = Boolean(lockedOptionId);
-  const CELL_H = 28; // px per 30-min row
-  const DAY_COL_W = 96; // px per day column
-  const LABEL_COL = 56; // px for time labels
+  const CELL_H = 36; // px per 30-min row — 36px minimum for touch targets
+  const DAY_COL_W = 80; // px per day column
+  const LABEL_COL = 52; // px for time labels
 
   return (
     <div>
+      {/* Locked banner — rendered client-side so timezone reflects the viewer, not the server */}
+      {isLocked && lockedOption && (
+        <div
+          style={{
+            marginBottom: 24,
+            borderRadius: 12,
+            padding: "16px 20px",
+            background: "rgba(34,197,94,0.08)",
+            border: "1px solid rgba(34,197,94,0.25)",
+          }}
+        >
+          <p style={{ color: "#86efac", fontSize: 14, fontWeight: 600 }}>
+            time confirmed ✓
+          </p>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginTop: 2 }}>
+            {formatLockedClient(lockedOption, tz)}
+          </p>
+        </div>
+      )}
+
       {/* Response counter */}
-      <p className="text-xs mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12, marginBottom: 16 }}>
         {localTotal === 0
           ? "no responses yet — be the first"
           : `${localTotal} response${localTotal !== 1 ? "s" : ""} · times in ${tz}`}
@@ -220,8 +277,13 @@ export function PollRespondForm({
 
       {/* Calendar grid */}
       <div
-        className="overflow-x-auto rounded-xl"
-        style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+        style={{
+          overflowX: "auto",
+          borderRadius: 12,
+          border: "1px solid rgba(255,255,255,0.08)",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
+        } as React.CSSProperties}
       >
         <div
           style={{
@@ -341,7 +403,8 @@ export function PollRespondForm({
                     borderRight: !isLastCol ? `1px solid rgba(255,255,255,0.08)` : undefined,
                     cursor: optionId && !submitted && !isLocked ? "pointer" : "default",
                     transition: dragOpRef.current ? undefined : "background-color 0.12s ease",
-                  }}
+                    WebkitTapHighlightColor: "rgba(0,0,0,0)",
+                  } as React.CSSProperties}
                   onMouseEnter={optionId && !submitted && !isLocked ? (e) => {
                     if (dragOpRef.current !== null) {
                       // during drag: apply the stored operation
@@ -368,10 +431,17 @@ export function PollRespondForm({
         </div>
       </div>
 
+      {/* Mobile swipe hint */}
+      {isMobile && grid.dates.length > 3 && (
+        <p style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 6, textAlign: "center", letterSpacing: "0.04em" }}>
+          swipe to see all {grid.dates.length} days →
+        </p>
+      )}
+
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 mt-3 mb-6 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16, marginTop: 12, marginBottom: 24, fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
         {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5">
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(255,255,255,0.11)", border: "1px solid rgba(255,255,255,0.22)", display: "inline-block" }}
             />
@@ -379,7 +449,7 @@ export function PollRespondForm({
           </span>
         )}
         {!submitted && !isLocked && (
-          <span className="flex items-center gap-1.5">
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.65)", display: "inline-block" }}
             />
@@ -387,7 +457,7 @@ export function PollRespondForm({
           </span>
         )}
         {localTotal > 0 && (
-          <span className="flex items-center gap-1.5">
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(45,212,191,0.35)", display: "inline-block" }}
             />
@@ -395,7 +465,7 @@ export function PollRespondForm({
           </span>
         )}
         {isLocked && (
-          <span className="flex items-center gap-1.5">
+          <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span
               style={{ width: 12, height: 12, borderRadius: 2, background: "rgba(34,197,94,0.35)", display: "inline-block" }}
             />
@@ -408,25 +478,26 @@ export function PollRespondForm({
       {!isLocked && (
         submitted ? (
           <div
-            className="rounded-xl px-5 py-4 text-sm"
             style={{
+              borderRadius: 12,
+              padding: "16px 20px",
+              fontSize: 14,
               background: "rgba(45,212,191,0.08)",
               border: "1px solid rgba(45,212,191,0.25)",
               color: "rgba(255,255,255,0.85)",
             }}
           >
-            <p className="font-medium text-teal-300">availability submitted ✓</p>
-            <p className="mt-0.5 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <p style={{ fontWeight: 500, color: "#5eead4" }}>availability submitted ✓</p>
+            <p style={{ marginTop: 2, fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
               thanks {name}! the heat map above now includes your response.
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
               <label
                 htmlFor="respondent-name"
-                className="block text-xs mb-1.5"
-                style={{ color: "rgba(255,255,255,0.5)" }}
+                style={{ display: "block", fontSize: 12, marginBottom: 6, color: "rgba(255,255,255,0.5)" }}
               >
                 your name
               </label>
@@ -434,19 +505,22 @@ export function PollRespondForm({
                 id="respondent-name"
                 type="text"
                 required
+                autoComplete="name"
+                autoCapitalize="words"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. jamie"
                 style={{
                   width: "100%",
-                  maxWidth: 280,
+                  maxWidth: isMobile ? "100%" : 280,
                   background: "rgba(255,255,255,0.06)",
                   border: "1px solid rgba(255,255,255,0.12)",
                   borderRadius: 8,
-                  padding: "8px 12px",
+                  padding: "10px 14px",
                   color: "#fff",
-                  fontSize: 14,
+                  fontSize: 16, // 16px prevents iOS Safari auto-zoom on focus
                   outline: "none",
+                  boxSizing: "border-box",
                 }}
                 onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
                 onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.12)")}
@@ -454,18 +528,20 @@ export function PollRespondForm({
             </div>
 
             {mySelections.size > 0 ? (
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
                 {mySelections.size} slot{mySelections.size !== 1 ? "s" : ""} selected —{" "}
-                click or drag to adjust, then submit.
+                {isMobile ? "tap to adjust, then submit." : "click or drag to adjust, then submit."}
               </p>
             ) : (
-              <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-                click cells to select, or drag across multiple to select a range.
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                {isMobile
+                  ? "tap time slots above to mark your availability."
+                  : "click cells to select, or drag across multiple to select a range."}
               </p>
             )}
 
             {error && (
-              <p className="text-xs" style={{ color: "#f87171" }}>
+              <p style={{ fontSize: 12, color: "#f87171" }}>
                 {error}
               </p>
             )}
@@ -474,12 +550,13 @@ export function PollRespondForm({
               type="submit"
               disabled={submitting}
               style={{
+                alignSelf: isMobile ? "stretch" : "flex-start",
                 background: submitting ? "rgba(45,212,191,0.3)" : "rgba(45,212,191,0.75)",
                 border: "none",
                 borderRadius: 8,
-                padding: "10px 24px",
+                padding: isMobile ? "14px 24px" : "10px 24px",
                 color: "#fff",
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 600,
                 cursor: submitting ? "not-allowed" : "pointer",
                 transition: "background 0.15s",

@@ -84,62 +84,53 @@ export default async function PollRespondPage({ params }: Props) {
         )
       : [];
 
-  const locked =
-    poll.locked_option_id
-      ? options.find((o) => o.id === poll.locked_option_id) ?? null
-      : null;
-
-  function formatLocked(opt: PollOption) {
-    const start = new Date(opt.starts_at);
-    const end = new Date(opt.ends_at);
-    return `${start.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })} · ${start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" })}–${end.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
-  }
-
   return (
     <div style={{ background: "#273248", color: "#fff", minHeight: "100vh" }}>
       <SiteHeader />
 
       <main
-        className="mx-auto w-full max-w-4xl px-4 pb-16"
-        style={{ paddingTop: 120 }}
+        style={{
+          maxWidth: "56rem",
+          marginLeft: "auto",
+          marginRight: "auto",
+          width: "100%",
+          paddingTop: "clamp(80px, 16vw, 120px)",
+          paddingBottom: "4rem",
+          paddingLeft: "clamp(1.25rem, 5vw, 2.5rem)",
+          paddingRight: "clamp(1.25rem, 5vw, 2.5rem)",
+        }}
       >
         {/* Header */}
-        <div className="mb-8">
+        <div style={{ marginBottom: 32 }}>
           <p
-            className="text-xs uppercase tracking-widest mb-2"
-            style={{ color: "rgba(255,255,255,0.4)", letterSpacing: "0.12em" }}
+            style={{
+              color: "rgba(255,255,255,0.4)",
+              letterSpacing: "0.12em",
+              fontSize: 11,
+              textTransform: "uppercase",
+              marginBottom: 8,
+            }}
           >
             group playdate
           </p>
-          <h1 className="text-3xl font-bold lowercase" style={{ letterSpacing: "-0.01em" }}>
+          <h1
+            style={{
+              letterSpacing: "-0.01em",
+              fontSize: "clamp(1.6rem, 5vw, 2rem)",
+              fontWeight: 700,
+              lineHeight: 1.15,
+            }}
+          >
             {poll.title}
           </h1>
           {poll.description && (
-            <p className="mt-2 text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, marginTop: 8 }}>
               {poll.description}
             </p>
           )}
         </div>
 
-        {/* Locked banner */}
-        {locked && (
-          <div
-            className="mb-6 rounded-xl px-5 py-4"
-            style={{
-              background: "rgba(34,197,94,0.08)",
-              border: "1px solid rgba(34,197,94,0.25)",
-            }}
-          >
-            <p className="text-sm font-semibold" style={{ color: "#86efac" }}>
-              time confirmed ✓
-            </p>
-            <p className="mt-0.5 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-              {formatLocked(locked)}
-            </p>
-          </div>
-        )}
-
-        {/* Grid + form */}
+        {/* Grid + form (locked banner rendered client-side so it uses the viewer's timezone) */}
         <PollRespondForm
           pollSlug={slug}
           options={options}

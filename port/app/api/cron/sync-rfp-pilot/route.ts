@@ -113,9 +113,42 @@ export async function GET(req: NextRequest) {
   });
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── URL dedup guard ───────────────────────────────────────────────────────
+  // When multiple Notion pages share the same URL (e.g. one per Google Alert
+  // email), all N would otherwise be upserted as N separate Supabase rows.
+  // Keep only the highest-priority status per URL so deleted duplicates aren't
+  // recreated on every sync run.
+  const STATUS_SCORE: Record<string, number> = {
+    pursuing: 7, reviewing: 6, submitted: 5, won: 5, lost: 5,
+    "no-go": 4, "missed deadline": 3, radar: 2,
+  };
+  function urlStatusScore(s: string | null): number {
+    return s ? (STATUS_SCORE[s] ?? 1) : 0;
+  }
+
+  const urlBest = new Map<string, { idx: number; score: number }>();
+  const deduplicatedRows: typeof rows = [];
+  for (const row of rows) {
+    if (!row.url) {
+      deduplicatedRows.push(row);
+      continue;
+    }
+    const score = urlStatusScore(row.status);
+    const prev = urlBest.get(row.url);
+    if (prev === undefined) {
+      urlBest.set(row.url, { idx: deduplicatedRows.length, score });
+      deduplicatedRows.push(row);
+    } else if (score > prev.score) {
+      deduplicatedRows[prev.idx] = row;
+      urlBest.set(row.url, { idx: prev.idx, score });
+    }
+    // else: existing entry has equal/higher priority — skip this row
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const { error, count } = await supabase
     .from("rfp_opportunities")
-    .upsert(rows, { onConflict: "notion_page_id", count: "exact" });
+    .upsert(deduplicatedRows, { onConflict: "notion_page_id", count: "exact" });
 
   if (error) {
     console.error("[sync-rfp-pilot] upsert error:", error);

@@ -20,6 +20,7 @@ import { triageRfpOpportunity } from "./rfp-triage";
 import { queryRfpOpportunities, createRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { callClaude, parseJsonResponse } from "./client";
 import { uploadAsset } from "@/lib/r2/upload";
+import { supabase } from "@/lib/supabase/client";
 import { upsertRfpOpportunityToSupabase } from "@/lib/supabase/rfp-opportunities";
 import type { RfpSource } from "@/lib/notion/types";
 import type { RfpTriageResult } from "./rfp-triage";
@@ -691,17 +692,20 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
   const url = sanitiseIngestUrl(input.url);
 
   // ── Deduplication ─────────────────────────────────────
-  // Use dedupKey when provided (e.g. gmail:message:{id}), otherwise fall back to url.
-  const deduplicateBy = dedupKey ?? url;
-  if (deduplicateBy) {
-    const { data: recent } = await queryRfpOpportunities(undefined, { pageSize: 100 });
-    // Check against stored URL (canonical) and also dedupKey stored in URL field for
-    // legacy records that still have gmail:message: pseudo-URLs.
-    const duplicate = recent.find(
-      (o) => o.url && (o.url === deduplicateBy || (url && o.url === url)),
-    );
-    if (duplicate) {
-      return { created: false, skipped: "duplicate", existingId: duplicate.id };
+  // Query Supabase directly by URL — single indexed lookup, no horizon limit.
+  // The old approach (100-item Notion scan + per-email dedupKey) failed in two ways:
+  //   1. With 221+ rows, ~121 were invisible to the 100-item scan window.
+  //   2. gmail:message:{id} is unique per-email, so 26 alerts about the same
+  //      posting each passed dedup and became 26 separate Notion pages.
+  if (url) {
+    const { data: existing } = await supabase
+      .from("rfp_opportunities")
+      .select("notion_page_id")
+      .eq("url", url)
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      return { created: false, skipped: "duplicate", existingId: existing.notion_page_id as string };
     }
   }
 
