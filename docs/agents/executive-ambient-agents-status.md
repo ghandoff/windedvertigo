@@ -72,21 +72,22 @@ so far. Everything proactive is gated to a private sandbox until explicitly prom
 
 ---
 
-## OPEN BUGS (fix before promoting off sandbox)
-1. **Notification budget NOT enforced on standalone crons.** Charter caps interventions at ≤3/agent/day, ≤5/human/day. That check lives only in `port/lib/agent/ambient-run.ts` (`getRecentInterventionCount` / `…ForHuman`); the standalone crons call `insertIntervention` + post directly and skip it. **Must fix before promotion** — graduating off sandbox would fire a flood of real DMs (the sweep would DM up to 10 owners/tick × every 15 min). Spec §2.2 semantics: over budget → **still insert the row** (nothing lost; it queues in `/inbox` as low-priority) and **skip only the Slack post/DM.** Fix: extract the budget check into a shared helper (`lib/agent/intervention-budget.ts`) with a stateful in-loop tracker, and apply it in the crons that surface per-item cards — `pam-owner-confirmation-sweep` (the flood source) and `pam-absence-horizon`. **Decision (flag for Garrett):** the scheduled standing reports — `pam-monday-digest`, `mo-friday-scorecard`, `mo-content-runway-check` — are the charter-mandated once-per-cadence "Number, reported [Mondays/Fridays]"; each surfaces a single bounded row (Monday DMs one message per person once/week), so capping them would wrongly suppress a legitimate weekly report. Proposed: **exempt** those; cap only the event-driven per-item loops. Say if you'd rather cap everything.
-2. **Sandbox marker invisible.** In sandbox mode the "would-DM" cards land in `#agent-sandbox`, but the `[sandbox — would DM x]` prefix sits in the Block Kit *fallback text*, which Slack hides when `blocks` are present. Move the marker into a visible context block in `port/lib/agent/intervention-card.ts`.
+## FIXED THIS SESSION — merged, **pending deploy** (2026-07-21)
+_All in one PR on branch `fix/ambient-budget-cap`. No schema change → no migration. **Not live until Garrett runs `cd port && npm run deploy:cf`.**_
+1. **Notification budget now enforced on the standalone crons.** New shared helper `port/lib/agent/intervention-budget.ts` (`AGENT_DAILY_CAP=3`, `HUMAN_DAILY_CAP=5`; one-shot `isOverNotificationBudget()` + a stateful `NotificationBudget` tracker for multi-surface crons). `ambient-run.ts` refactored onto it (no behavior change). `pam-owner-confirmation-sweep` + `pam-absence-horizon` now check the budget per card — the row is **always inserted** (spec §2.2, queues in `/inbox`), only the Slack DM is skipped when over budget; both return `suppressedByBudget`. **Scope (confirmed with Garrett): the scheduled standing reports — `pam-monday-digest`, `mo-friday-scorecard`, `mo-content-runway-check` — are exempt** (once-per-cadence "Number, reported [day]"; each surfaces one bounded row).
+2. **Sandbox marker now visible.** `buildInterventionBlocks` (`port/lib/agent/intervention-card.ts`) prepends a real `context` block (`🧪 sandbox — would DM \`x\` in production · nothing was sent`) whenever `ambientRolloutStage()==='sandbox'`, derived from the row's `targetHuman`/`channel`. Empty in every other stage, so live cards stay unmarked.
+3. **Sweep recency window (from the stranded-backlog finding).** `listPendingTriageActions` gained an optional `createdSince` param (mirrors `listUntriagedActions`); the sweep passes a `CANDIDATE_WINDOW_DAYS = 14` window so old pending items age out **by design** instead of lurking below the newest-100 `limit`. The 232 pre-2026-07-02 items now age out intentionally.
 
-## NEW FINDINGS (2026-07-21, decide scope)
-- **Stranded triaged backlog (232 items).** Because the sweep only scans the newest-100 pending items, **232 triaged-meaningful items (created 2026-06-01 → 07-02) will never be carded** — they sit permanently below the window. Partly by design (the pipeline deliberately prioritises live inflow over historical backlog — see `listUntriagedActions`' doc comment) and it *bounds* card creation, but it means those owners never get a confirmation DM. Options: leave as-is (stale-by-design), add an explicit recency filter so old items age out cleanly, or do a one-off backlog card/dismiss pass. Not blocking bug #1 — flagged for a call.
+## NEW FINDINGS (2026-07-21)
+- **Stranded triaged backlog (232 items): RESOLVED by design** via the recency window (fix #3 above). The 232 pre-Jul-2 items are intentionally not harvested now (a months-old commitment is stale). If any of them still need action, that's a separate one-off card/dismiss pass — flagged, not done.
 - **Dedup (was the "minor" item): RESOLVED / non-issue.** Verified: **0** `meetingActionItemId`s appear more than once across all PaM cards. The "×3 same-title" cards are genuinely distinct `meeting_action_items` rows (same title recorded in different meetings). `listRecentByAgent("pam", 7)`'s `7` is **days, not a row cap** — a full 7-day dedup window with no truncation, so it's robust.
 
 ## NEXT STEPS (in order)
-1. Fix open bug #1 (budget cap) — highest priority; the flood is latent (harmless in sandbox, but promotion off sandbox turns it into real DMs).
-2. Fix open bug #2 (sandbox marker visibility).
-3. Run the remaining phase-1 acceptance criteria (spec §4): Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test; `/inbox` render + working buttons; metrics endpoint.
-4. Seed `time_off` for the absence-horizon behavior.
-5. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full`, with a whirlpool rollout note before `full`.
-6. Phase 2/3 — extend ambient behaviors to Biz, cARL, Fin, Opsy per their charters; Opsy's graduation-metrics loop.
+1. **Garrett: deploy** (`cd port && npm run deploy:cf`) to make the three fixes above live, then confirm `/api/version` `built` advances past merge time.
+2. Run the remaining phase-1 acceptance criteria (spec §4): Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test (now unblocked — trigger the sweep and confirm `dmed ≤ 3`); `/inbox` render + working buttons; metrics endpoint.
+3. Seed `time_off` for the absence-horizon behavior.
+4. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full`, with a whirlpool rollout note before `full`.
+5. Phase 2/3 — extend ambient behaviors to Biz, cARL, Fin, Opsy per their charters; Opsy's graduation-metrics loop.
 
 ## how we work (constraints learned this session)
 - **Claude writes + commits + pushes; Garrett runs the deploy.** `npm run deploy:cf` gets blocked by this environment's permission classifier when Claude runs it. Same occasionally for Supabase DDL — apply blocked migrations by hand in the SQL editor.

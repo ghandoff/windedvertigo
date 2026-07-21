@@ -38,6 +38,12 @@ import { ambientDirectDmsAllowed, ambientNotifyChannel } from "@/lib/agent/ambie
 
 const MAX_PER_RUN = 10;
 const EXPIRES_HOURS = 72;
+// Only harvest commitments from meetings in the trailing window. Older pending
+// items are stale — confirming a months-old commitment is worse than useless,
+// and this makes the "recent inflow only" behavior explicit rather than an
+// incidental side-effect of the newest-N `limit` (which silently stranded ~232
+// pre-window items). Tunable.
+const CANDIDATE_WINDOW_DAYS = 14;
 
 function verifyCronAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -58,8 +64,9 @@ function alreadyHandledIds(recent: Awaited<ReturnType<typeof listRecentByAgent>>
 export async function GET(req: NextRequest) {
   if (!verifyCronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
+  const windowSince = new Date(Date.now() - CANDIDATE_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const [pending, recentPam] = await Promise.all([
-    listPendingTriageActions(),
+    listPendingTriageActions(null, 100, windowSince),
     listRecentByAgent("pam", 7),
   ]);
   const handled = alreadyHandledIds(recentPam);
