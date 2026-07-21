@@ -1,5 +1,5 @@
 # executive + ambient agents — development status & reference
-_living doc · last verified 2026-07-20 by Claude (MacBook session) against live Supabase + Slack + Cloudflare · companion to `executive-charters.md` (Garrett-only) and `../prompts/executive-agents-phase1-build.md`_
+_living doc · last verified 2026-07-21 by cloud Claude against live Supabase + Cloudflare (direct curl) + code · companion to `executive-charters.md` (Garrett-only) and `../prompts/executive-agents-phase1-build.md`_
 
 This is the single source of truth for the state of the winded.vertigo executive-agent
 platform as it moves from "reactive, summoned" to "ambient, proactive." Keep it current —
@@ -63,21 +63,25 @@ so far. Everything proactive is gated to a private sandbox until explicitly prom
 
 ---
 
-## current live state (verified 2026-07-20)
-- `agent_interventions`: **102 PaM `proposed`** (climbing ~10 / 15 min), 1 PaM + 2 Mo `executed`. → see open bug #1.
-- `event_log`: 0 rows. `time_off`: 0 rows. `agent_escalations`: 4 open (Biz).
-- Deploy: live, `built` 2026-07-20T07:00 UTC (includes the Slack token fix, PR #394).
-- Slack token fix confirmed working — PaM cards are posting to `#agent-sandbox` correctly; no real DMs sent.
+## current live state (verified 2026-07-21 by cloud Claude — direct curl + Supabase + code read)
+- **Deploy:** direct `curl https://port.windedvertigo.com/api/version` → `{"worker":"wv-port","sha":"dev","ref":"unknown","built":"2026-07-20T07:00:20.874Z"}`. `built` matches the 07-20 deploy — **the spine is running current code.** `sha:"dev"`/`ref:"unknown"` is **normal**, not an anomaly: `app/api/version/route.ts` defaults `BUILD_SHA→"dev"` and `BUILD_REF→"unknown"`; only `BUILD_TIME` is injected at deploy. **Always compare `built`, never `sha`** (matches CLAUDE.md). The 07-21 Cowork session's anomalous `built:2026-06-06T07:14:08Z` was a **stale/cached proxy response** — a direct curl resolves it; it was never a real deploy problem. (Nice-to-have: inject a real `BUILD_SHA` at deploy so `/api/version` is more useful — known limitation, not a bug.)
+- **`agent_interventions`:** 102 PaM `proposed`, 1 PaM `executed`, 2 Mo `executed`. The PaM proposed count is **unchanged since 07-20 (still 102) — NOT climbing** (the handoff's "~10/15 min" held only during the two bursts below). Last proposed row: 2026-07-21 10:45:23 UTC = 03:45 PDT.
+- **Card flow stopped after 03:45 PDT 07-21 — cause found, NOT an error and NOT a drained backlog.** The owner-confirmation sweep only scans the **100 newest** pending items (`listPendingTriageActions` — `limit=100`, `created_at DESC`), then cards the eligible-and-not-yet-carded ones. That top-100 window is now fully carded, so the sweep emits 0/tick. Cards fired in two bursts (07-20 06:30–08:15 UTC ≈ 79 rows; 07-21 10:15–10:45 UTC = 23 rows), each draining the then-current window; burst 2 started right after `pam-action-triage` (daily 10:00 UTC) marked newer items. Backlog now: **1,373** action items, **449** pending, **334** eligible (pending + owner + meaningful) → **102 carded / 232 uncarded**. The 232 uncarded were all created **2026-06-01 → 07-02** — *older than every carded item* (2026-07-06 → 07-20), i.e. permanently below the newest-100 window. → see **new finding: stranded backlog** below.
+- **`event_log`:** 0 rows (no human message has posted to a watched channel yet). **`time_off`:** 0 rows (needs seeding). **`agent_escalations`:** 4 open (Biz).
+- Slack token fix (PR #394) confirmed working — PaM cards posted to `#agent-sandbox`; no real DMs sent.
 
 ---
 
 ## OPEN BUGS (fix before promoting off sandbox)
-1. **Notification budget NOT enforced on standalone crons.** Charter caps interventions at ≤3/agent/day, ≤5/human/day. That check lives only in `port/lib/agent/ambient-run.ts`; the standalone crons (`pam-owner-confirmation-sweep`, `pam-monday-digest`, `pam-absence-horizon`, `mo-*`) call `insertIntervention` directly and skip it. That's why 100+ PaM cards have accumulated. **Must fix before promotion** or graduating off sandbox fires a flood of real DMs. Fix: extract the budget check into a shared helper and apply it in every cron that surfaces an intervention.
+1. **Notification budget NOT enforced on standalone crons.** Charter caps interventions at ≤3/agent/day, ≤5/human/day. That check lives only in `port/lib/agent/ambient-run.ts` (`getRecentInterventionCount` / `…ForHuman`); the standalone crons call `insertIntervention` + post directly and skip it. **Must fix before promotion** — graduating off sandbox would fire a flood of real DMs (the sweep would DM up to 10 owners/tick × every 15 min). Spec §2.2 semantics: over budget → **still insert the row** (nothing lost; it queues in `/inbox` as low-priority) and **skip only the Slack post/DM.** Fix: extract the budget check into a shared helper (`lib/agent/intervention-budget.ts`) with a stateful in-loop tracker, and apply it in the crons that surface per-item cards — `pam-owner-confirmation-sweep` (the flood source) and `pam-absence-horizon`. **Decision (flag for Garrett):** the scheduled standing reports — `pam-monday-digest`, `mo-friday-scorecard`, `mo-content-runway-check` — are the charter-mandated once-per-cadence "Number, reported [Mondays/Fridays]"; each surfaces a single bounded row (Monday DMs one message per person once/week), so capping them would wrongly suppress a legitimate weekly report. Proposed: **exempt** those; cap only the event-driven per-item loops. Say if you'd rather cap everything.
 2. **Sandbox marker invisible.** In sandbox mode the "would-DM" cards land in `#agent-sandbox`, but the `[sandbox — would DM x]` prefix sits in the Block Kit *fallback text*, which Slack hides when `blocks` are present. Move the marker into a visible context block in `port/lib/agent/intervention-card.ts`.
-- Minor: confirm dedup in `pam-owner-confirmation-sweep` (same-titled items appear repeatedly — likely distinct `meeting_action_items` rows, worth checking).
+
+## NEW FINDINGS (2026-07-21, decide scope)
+- **Stranded triaged backlog (232 items).** Because the sweep only scans the newest-100 pending items, **232 triaged-meaningful items (created 2026-06-01 → 07-02) will never be carded** — they sit permanently below the window. Partly by design (the pipeline deliberately prioritises live inflow over historical backlog — see `listUntriagedActions`' doc comment) and it *bounds* card creation, but it means those owners never get a confirmation DM. Options: leave as-is (stale-by-design), add an explicit recency filter so old items age out cleanly, or do a one-off backlog card/dismiss pass. Not blocking bug #1 — flagged for a call.
+- **Dedup (was the "minor" item): RESOLVED / non-issue.** Verified: **0** `meetingActionItemId`s appear more than once across all PaM cards. The "×3 same-title" cards are genuinely distinct `meeting_action_items` rows (same title recorded in different meetings). `listRecentByAgent("pam", 7)`'s `7` is **days, not a row cap** — a full 7-day dedup window with no truncation, so it's robust.
 
 ## NEXT STEPS (in order)
-1. Fix open bug #1 (budget cap) — highest priority; it's actively accumulating.
+1. Fix open bug #1 (budget cap) — highest priority; the flood is latent (harmless in sandbox, but promotion off sandbox turns it into real DMs).
 2. Fix open bug #2 (sandbox marker visibility).
 3. Run the remaining phase-1 acceptance criteria (spec §4): Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test; `/inbox` render + working buttons; metrics endpoint.
 4. Seed `time_off` for the absence-horizon behavior.
