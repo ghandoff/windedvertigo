@@ -298,10 +298,19 @@ export async function listUntriagedActions(
 /**
  * Actions awaiting human review in the PaM inbox (triage_state = 'pending').
  * Optionally scoped to one owner. Most-recent first.
+ *
+ * `createdSince` (ISO) bounds the window to recent items — same pattern as
+ * `listUntriagedActions`. The owner-confirmation sweep passes it so meeting
+ * commitments older than its window aren't harvested (a months-old commitment
+ * is stale; DMing an owner to confirm it is worse than useless — the same
+ * "live inflow over historical backlog" posture the triage pipeline already
+ * takes). Without it, the bare `limit` silently strands everything ranked
+ * past the newest N by created_at.
  */
 export async function listPendingTriageActions(
   ownerEmail?: string | null,
   limit = 100,
+  createdSince?: string,
 ): Promise<MeetingActionItem[]> {
   try {
     let query = supabase
@@ -311,6 +320,7 @@ export async function listPendingTriageActions(
       .order("created_at", { ascending: false })
       .limit(limit);
     if (ownerEmail) query = query.eq("owner_email", ownerEmail.toLowerCase());
+    if (createdSince) query = query.gte("created_at", createdSince);
     const { data, error } = await query;
     if (error) {
       console.warn("[supabase/meeting-action-items] list-pending-triage failed:", error.message);

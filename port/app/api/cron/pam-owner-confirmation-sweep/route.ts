@@ -31,12 +31,19 @@ import {
   insertIntervention,
   listRecentByAgent,
 } from "@/lib/supabase/agent-interventions";
+import { NotificationBudget } from "@/lib/agent/intervention-budget";
 import { sendDmByEmail, postToChannelResilientDetailed } from "@/lib/slack";
 import { buildInterventionBlocks, interventionFallbackText } from "@/lib/agent/intervention-card";
 import { ambientDirectDmsAllowed, ambientNotifyChannel } from "@/lib/agent/ambient-rollout";
 
 const MAX_PER_RUN = 10;
 const EXPIRES_HOURS = 72;
+// Only harvest commitments from meetings in the trailing window. Older pending
+// items are stale — confirming a months-old commitment is worse than useless,
+// and this makes the "recent inflow only" behavior explicit rather than an
+// incidental side-effect of the newest-N `limit` (which silently stranded ~232
+// pre-window items). Tunable.
+const CANDIDATE_WINDOW_DAYS = 14;
 
 function verifyCronAuth(req: NextRequest): boolean {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -57,8 +64,9 @@ function alreadyHandledIds(recent: Awaited<ReturnType<typeof listRecentByAgent>>
 export async function GET(req: NextRequest) {
   if (!verifyCronAuth(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
+  const windowSince = new Date(Date.now() - CANDIDATE_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
   const [pending, recentPam] = await Promise.all([
-    listPendingTriageActions(),
+    listPendingTriageActions(null, 100, windowSince),
     listRecentByAgent("pam", 7),
   ]);
   const handled = alreadyHandledIds(recentPam);
@@ -68,8 +76,16 @@ export async function GET(req: NextRequest) {
     .slice(0, MAX_PER_RUN);
 
   const dmsAllowed = ambientDirectDmsAllowed();
+  // Notification-budget guard (≤3/agent/day, ≤5/human/day). Over budget → the
+  // row is still inserted (queues in /inbox as low-priority) but the DM is
+  // skipped, so promotion off sandbox can't fire a flood of owner DMs.
+  const budget = await NotificationBudget.load("pam");
   let dmed = 0;
+  let suppressedByBudget = 0;
   for (const item of candidates) {
+    const ownerEmail = item.ownerEmail!; // guaranteed by the candidates filter
+    const overBudget = await budget.wouldExceed(ownerEmail);
+
     const deadlineNote = item.deadline ? ` — due ${item.deadline}` : "";
     const row = await insertIntervention({
       agent: "pam",
@@ -82,19 +98,25 @@ export async function GET(req: NextRequest) {
         executeAction: { type: "pam_promote_commitment", meetingActionItemId: item.id },
       },
       rationale: "charter: harvested commitments → owner DM for confirmation; that confirmation IS the human gate",
-      channel: `dm:${item.ownerEmail}`,
+      channel: `dm:${ownerEmail}`,
       expiresAt: new Date(Date.now() + EXPIRES_HOURS * 60 * 60 * 1000).toISOString(),
-      targetHuman: item.ownerEmail,
+      targetHuman: ownerEmail,
     });
     if (!row) continue;
+    budget.record(ownerEmail);
+
+    if (overBudget) {
+      suppressedByBudget += 1;
+      continue; // inserted, left `proposed` in /inbox — no ping
+    }
 
     const blocks = buildInterventionBlocks(row);
     const text = interventionFallbackText(row);
     const sent = dmsAllowed
-      ? await sendDmByEmail(item.ownerEmail!, text, blocks)
-      : (await postToChannelResilientDetailed(ambientNotifyChannel(), `[sandbox — would DM ${item.ownerEmail}]\n${text}`, [], blocks)).posted;
+      ? await sendDmByEmail(ownerEmail, text, blocks)
+      : (await postToChannelResilientDetailed(ambientNotifyChannel(), `[sandbox — would DM ${ownerEmail}]\n${text}`, [], blocks)).posted;
     if (sent) dmed += 1;
   }
 
-  return NextResponse.json({ candidates: candidates.length, dmed });
+  return NextResponse.json({ candidates: candidates.length, dmed, suppressedByBudget });
 }
