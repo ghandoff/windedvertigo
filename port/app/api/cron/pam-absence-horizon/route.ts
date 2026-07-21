@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 import { getPamCommitments } from "@/lib/supabase/pam";
 import { insertIntervention } from "@/lib/supabase/agent-interventions";
+import { NotificationBudget } from "@/lib/agent/intervention-budget";
 import { buildInterventionBlocks, interventionFallbackText } from "@/lib/agent/intervention-card";
 import { sendDmByEmail, postToChannelResilientDetailed } from "@/lib/slack";
 import { ambientDirectDmsAllowed, ambientNotifyChannel } from "@/lib/agent/ambient-rollout";
@@ -56,7 +57,13 @@ export async function GET(req: NextRequest) {
   const upcoming = (data ?? []) as TimeOffRow[];
 
   const dmsAllowed = ambientDirectDmsAllowed();
+  // Notification-budget guard (≤3/agent/day, ≤5/human/day — all these cards
+  // target Garrett, so the per-human cap also applies). Over budget → the row
+  // is still inserted (queues in /inbox, and the HIGH-tier default-deny expiry
+  // still applies) but the DM is skipped.
+  const budget = await NotificationBudget.load("pam");
   let proposalsRaised = 0;
+  let suppressedByBudget = 0;
 
   for (const absence of upcoming) {
     const who = absence.owner_email.split("@")[0].toLowerCase();
@@ -64,6 +71,8 @@ export async function GET(req: NextRequest) {
       await getPamCommitments({ who, due_after: absence.start_date, due_before: absence.end_date })
     ).filter((c) => c.status !== "done");
     if (atRisk.length === 0) continue;
+
+    const overBudget = await budget.wouldExceed(GARRETT_EMAIL);
 
     const body =
       `${absence.owner_email} is out ${absence.start_date} → ${absence.end_date}` +
@@ -84,6 +93,12 @@ export async function GET(req: NextRequest) {
       expiresAt: new Date(`${absence.start_date}T00:00:00Z`).toISOString(),
     });
     if (!row) continue;
+    budget.record(GARRETT_EMAIL);
+
+    if (overBudget) {
+      suppressedByBudget += 1;
+      continue; // inserted, left `proposed` in /inbox — no ping
+    }
 
     const blocks = buildInterventionBlocks(row);
     const text = interventionFallbackText(row);
@@ -95,5 +110,5 @@ export async function GET(req: NextRequest) {
     proposalsRaised += 1;
   }
 
-  return NextResponse.json({ absencesChecked: upcoming.length, proposalsRaised });
+  return NextResponse.json({ absencesChecked: upcoming.length, proposalsRaised, suppressedByBudget });
 }

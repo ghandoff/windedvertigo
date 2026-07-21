@@ -31,6 +31,7 @@ import {
   insertIntervention,
   listRecentByAgent,
 } from "@/lib/supabase/agent-interventions";
+import { NotificationBudget } from "@/lib/agent/intervention-budget";
 import { sendDmByEmail, postToChannelResilientDetailed } from "@/lib/slack";
 import { buildInterventionBlocks, interventionFallbackText } from "@/lib/agent/intervention-card";
 import { ambientDirectDmsAllowed, ambientNotifyChannel } from "@/lib/agent/ambient-rollout";
@@ -68,8 +69,16 @@ export async function GET(req: NextRequest) {
     .slice(0, MAX_PER_RUN);
 
   const dmsAllowed = ambientDirectDmsAllowed();
+  // Notification-budget guard (≤3/agent/day, ≤5/human/day). Over budget → the
+  // row is still inserted (queues in /inbox as low-priority) but the DM is
+  // skipped, so promotion off sandbox can't fire a flood of owner DMs.
+  const budget = await NotificationBudget.load("pam");
   let dmed = 0;
+  let suppressedByBudget = 0;
   for (const item of candidates) {
+    const ownerEmail = item.ownerEmail!; // guaranteed by the candidates filter
+    const overBudget = await budget.wouldExceed(ownerEmail);
+
     const deadlineNote = item.deadline ? ` — due ${item.deadline}` : "";
     const row = await insertIntervention({
       agent: "pam",
@@ -82,19 +91,25 @@ export async function GET(req: NextRequest) {
         executeAction: { type: "pam_promote_commitment", meetingActionItemId: item.id },
       },
       rationale: "charter: harvested commitments → owner DM for confirmation; that confirmation IS the human gate",
-      channel: `dm:${item.ownerEmail}`,
+      channel: `dm:${ownerEmail}`,
       expiresAt: new Date(Date.now() + EXPIRES_HOURS * 60 * 60 * 1000).toISOString(),
-      targetHuman: item.ownerEmail,
+      targetHuman: ownerEmail,
     });
     if (!row) continue;
+    budget.record(ownerEmail);
+
+    if (overBudget) {
+      suppressedByBudget += 1;
+      continue; // inserted, left `proposed` in /inbox — no ping
+    }
 
     const blocks = buildInterventionBlocks(row);
     const text = interventionFallbackText(row);
     const sent = dmsAllowed
-      ? await sendDmByEmail(item.ownerEmail!, text, blocks)
-      : (await postToChannelResilientDetailed(ambientNotifyChannel(), `[sandbox — would DM ${item.ownerEmail}]\n${text}`, [], blocks)).posted;
+      ? await sendDmByEmail(ownerEmail, text, blocks)
+      : (await postToChannelResilientDetailed(ambientNotifyChannel(), `[sandbox — would DM ${ownerEmail}]\n${text}`, [], blocks)).posted;
     if (sent) dmed += 1;
   }
 
-  return NextResponse.json({ candidates: candidates.length, dmed });
+  return NextResponse.json({ candidates: candidates.length, dmed, suppressedByBudget });
 }

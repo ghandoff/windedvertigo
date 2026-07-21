@@ -22,11 +22,10 @@ import { fetchAgentBriefing } from "./agent-prompts";
 import {
   insertIntervention,
   setInterventionStatus,
-  getRecentInterventionCount,
-  getRecentInterventionCountForHuman,
   type InterventionDecision,
   type RiskTier,
 } from "@/lib/supabase/agent-interventions";
+import { isOverNotificationBudget } from "./intervention-budget";
 import { postToChannelResilientDetailed, sendDmByEmail } from "@/lib/slack";
 import { buildInterventionBlocks, interventionFallbackText } from "./intervention-card";
 import { ambientDirectDmsAllowed, ambientNotifyChannel } from "./ambient-rollout";
@@ -34,8 +33,6 @@ import type { EventLogRow } from "@/lib/supabase/event-log";
 
 export type AmbientAgentId = "mo" | "pam";
 
-const AGENT_DAILY_CAP = 3;
-const HUMAN_DAILY_CAP = 5;
 const HIGH_TIER_DEFAULT_EXPIRY_HOURS = 24;
 
 interface AmbientDecisionOutput {
@@ -135,16 +132,10 @@ export async function runAmbientAgentPass(
   const { decision, riskTier } = output;
 
   // Budget check BEFORE surfacing (spec §2.2) — silent decisions are never
-  // gated or counted against the ≤3/agent/day, ≤5/human/day caps.
-  let suppressedByBudget = false;
-  if (decision !== "silent") {
-    const agentCount = await getRecentInterventionCount(agentId);
-    const humanCount = output.targetHuman
-      ? await getRecentInterventionCountForHuman(output.targetHuman)
-      : 0;
-    suppressedByBudget =
-      agentCount >= AGENT_DAILY_CAP || (!!output.targetHuman && humanCount >= HUMAN_DAILY_CAP);
-  }
+  // gated or counted against the ≤3/agent/day, ≤5/human/day caps. Shared with
+  // the standalone crons via lib/agent/intervention-budget.ts.
+  const suppressedByBudget =
+    decision !== "silent" && (await isOverNotificationBudget(agentId, output.targetHuman));
 
   const expiresAt =
     riskTier === "high"
