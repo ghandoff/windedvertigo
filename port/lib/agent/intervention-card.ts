@@ -14,6 +14,7 @@
  */
 
 import type { InterventionRow } from "@/lib/supabase/agent-interventions";
+import { ambientRolloutStage } from "./ambient-rollout";
 
 const AGENT_LABELS: Record<InterventionRow["agent"], string> = {
   mo: "Mo",
@@ -29,6 +30,33 @@ const TIER_EMOJI: Record<InterventionRow["riskTier"], string> = {
   medium: "🟡",
   high: "🔴",
 };
+
+/**
+ * Bug #2 fix: during the "sandbox" rollout stage every interactive card is
+ * redirected to #agent-sandbox instead of DMing its real target. The old
+ * `[sandbox — would DM x]` marker lived in the Block Kit *fallback text*,
+ * which Slack hides whenever `blocks` are present — so a reader couldn't tell
+ * a sandbox draft from a live post. This renders the marker as a real (and
+ * therefore visible) context block, prepended to the card. Empty in every
+ * other stage, so live cards are unmarked.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function sandboxMarkerBlocks(row: InterventionRow): any[] {
+  if (ambientRolloutStage() !== "sandbox") return [];
+  const wouldReach = row.targetHuman
+    ? `would DM \`${row.targetHuman}\``
+    : row.channel
+      ? `would post to \`${row.channel}\``
+      : "preview only";
+  return [
+    {
+      type: "context",
+      elements: [
+        { type: "mrkdwn", text: `🧪 *sandbox* — ${wouldReach} in production · nothing was sent to a real teammate` },
+      ],
+    },
+  ];
+}
 
 function artifactText(artifact: Record<string, unknown> | null): string {
   if (!artifact) return "_(no artifact attached)_";
@@ -54,6 +82,7 @@ export function buildInterventionBlocks(row: InterventionRow): any[] {
     : "";
 
   return [
+    ...sandboxMarkerBlocks(row),
     {
       type: "section",
       text: {
