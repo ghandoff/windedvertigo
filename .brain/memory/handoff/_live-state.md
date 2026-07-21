@@ -5,53 +5,52 @@
 >
 > history and per-session notes live in sibling files in this directory. the archive of everything pre-split is `_archive-pre-split-2026-05-19.md`.
 
-**last synced:** 2026-07-08 21:15 pt (context-sync autonomous run)
+**last synced:** 2026-07-20 21:15 pt (context-sync autonomous run)
 
-**where we are right now:** a lighter news day than yesterday's cleanup marathon, but two new time-sensitive items landed. the nordic $50k invoice still hasn't gone out despite the contract being signed since 2 jul, and amna's £6k wire confirmation is still silent — but amna does have a fresh **kick-off meeting tomorrow (9 jul, 7:30am pt)** for the "amna at 10" impact paper, with lamis, jamie, and hejer. the idb el salvador LTP consortium is now actively scheduling: a group availability poll went out and garrett, maria, and lamis have all responded. new and notable: **ellen spencer (winchester) is chasing outstanding publisher queries** on garrett's book chapter proofs — today (8 jul) was the original review deadline, hard cutoff is 22 jul, and she flagged she's "very limited" availability after today. also new: today's whirlpool happened (gemini notes landed, not yet read/synthesized into `TASKS.md`), straight talk cpas wants to book a **q2 cfo review**, and a handful more taxdome secure messages piled up (aakib qureshi, abhishek sachdeva) on top of the still-unread sabir thread. engineering kept moving on nordic's platform — a `NOTION_ENABLED` kill-switch shipped (notion-writes cutover stage 1), the dead `wv-nordic-pcs` poc scaffold was retired, plus a ~201mb image de-dup and a safe reorg batch/estate-structure plan — all merged, port deploy unverified again this run (recurring bot-waf sandbox limitation). cash is still stale at $34,026 (20 apr, _source unavailable_ this run); the adp 401k form 5500 verification is now due in **6 days** (14 jul). notion source was unavailable again this run — recurring gap, worth a real fix (see handoffs below).
+**where we are right now:** the nordic payment for invoice #31 is in flight — ramp confirms nordic naturals sent it 17 jul with estimated arrival **tomorrow, tue 21 jul** (yesterday's "expected monday" was the send-side view; ramp's own estimate is the 21st). today was a four-meeting day (ops stewardship, whirlpool, payton, mo) and produced real forward motion: the whirlpool sharpened the conference-experience angle ("we help conferences create movements and connections that last beyond a single day"), edgardo (education for sharing) replied enthusiastically to the LTP consortium reconvening and the availability poll hit 4 responses, and an intro sync with august kinloch landed for fri 24 jul. engineering shipped the ambient-agent spine phase 1 (#393) plus a slack bot-token fix (#394), conference-demo mobile polish (#395), and booking poll form updates — and the macbook → mac mini machine handoff completed (windedvertigo checkout now clean and even with origin, no index.lock). the drag: **sixth consecutive zero-sent-mail day**, form 5500 is now 6 days overdue, taxdome is still locked out (2 nudges today), and the gusto sept-1 carrier window closed sunday with no visible decision. cash figure still stale at $34,026 (20 apr) — refresh queued for when the nordic deposit lands.
 
 ### open threads
 
 | project | last action | next action | link |
 |---|---|---|---|
-| nordic naturals — contract | signed (box, 2 jul); still **no invoice sent** | send the $50k budget A invoice now that the contract is executed | [box completion email](https://mail.google.com/mail/u/0/#inbox/19f238edbcddf847) |
-| amna — signed $25k, build | wire still unconfirmed since the 2 jul swift/bic fix; **new kick-off meeting tomorrow 9 jul 7:30am pt** (lamis, jamie, hejer) for the "amna at 10" impact paper | confirm the wire landed; prep for tomorrow's kick-off | [amna payment thread](https://mail.google.com/mail/u/0/#inbox/19f02b04b1892648) |
-| idb el salvador → LTP consortium | scheduling poll live — garrett, maria, lamis responded (3 so far); enmienda no.1 + aclaración no.2 landed 7→8 jul | confirm remaining consortium responses; read + fold the new amendment into bid prep (credential strategy, 9th deadline, fedex submission) | [amendment thread](https://mail.google.com/mail/u/0/#inbox/19f3f0b8f632bdc9) |
-| 2025 tax return + q2 cfo review — straight talk cpas | taxdome pending signature forms + unread secure messages (sabir, aakib, abhishek) pile up; abhi separately asked to **book the q2 cfo review** | re-auth via chrome (google login) at straighttalkcpas.taxdome.com, sign the 2025 return forms, read the secure messages, and get the q2 cfo review on the calendar | [taxdome reminder](https://mail.google.com/mail/u/0/#inbox/19f3d6debffb49f0) |
-| winchester — handbook of creativity book chapter | ellen spencer chasing outstanding publisher queries; today (8 jul) was the review ask, hard deadline **22 jul**, ellen has very limited availability after today | garrett to review the proof + resolve any outstanding queries before 22 jul | [proofs thread](https://mail.google.com/mail/u/0/#inbox/19f419722f355864) |
-| caipb audit-fixes — nordic | `feat/caipb-audit-fixes` pushed to origin (38/38 tests green) | surface for garrett's review/merge decision; do **not** merge straight to main (auto-deploys nordic) | `.brain/memory/handoff/2026-06-15-nordic-caipb-audit-fixes.md` |
-| engineering cleanup (7–8 jul) | today: `NOTION_ENABLED` kill-switch (nordic notion-writes cutover stage 1), dead `wv-nordic-pcs` poc scaffold retired, ~201mb image de-dup, safe reorg batch + estate-structure plan — all merged (#341–#345) | verify port actually deployed (`cd port && npm run deploy:cf`; check `/api/version` `built`) — merged ≠ live, unreachable from the sandbox again this run | [git log](https://github.com) · main @ `e322f8f4` |
-| adp 401k — plan #156733 | 2025 form 5500 verification still outstanding; 30 jun "indirect compensation" notice unread | complete the 5500 verification before **14 jul** (6 days out); read the indirect-comp notice | _adp / american century_ |
+| nordic naturals — invoice #31 | ramp: payment sent 17 jul, est arrival **21 jul** | confirm the deposit lands tomorrow; refresh cash position; then send invoices 32–34 | [ramp email](https://mail.google.com/mail/u/0/#inbox/19f704f95b0c4267) |
+| LTP consortium / idb el salvador | edgardo (education for sharing) replied enthusiastic 20 jul; poll at 4 responses; MINEDUCYT technical proposal v8 in drive | follow up with edgardo; reach out to dina re US charity status (william t. grant foundation); convert poll into a consortium call | [edgardo reply](https://mail.google.com/mail/u/0/#inbox/19f8073b150b7b37) |
+| adp 401k — form 5500 | verification was due **14 jul**; now 6 days overdue | complete the 5500 verification first thing | _adp / american century_ |
+| gusto — sept-1 401k carrier window | window closed sun 19 jul with no decision visible in sent mail or inbox | check in-app whether the decision was made; if missed, ask gusto about the next window | _gusto app_ |
+| straight talk cpas — taxdome + q2 cfo review | session expired again (self-dm nudges 08:03 + 17:09); q2 review still unbooked | re-auth via chrome at straighttalkcpas.taxdome.com, sign 2025 return forms, clear secure messages, book q2 review | [taxdome](https://straighttalkcpas.taxdome.com) |
+| winchester — book chapter proofs | hard deadline **22 jul (2 days)**; no reply visible in sent mail, so presumed still open (_partial source_) | resolve ellen spencer's outstanding publisher queries before the 22nd | see 07-08 note |
+| august kinloch intro | intro sync scheduled + accepted — fri 24 jul, 11:00–11:30 pt | prep context before friday | [cal.com email](https://mail.google.com/mail/u/0/#inbox/19f814d62bc1162c) |
+| engineering — ambient-agent spine | phase 1 merged (#393) with mo/pam pilots; resume note + 2 open bugs in `docs/prompts/cowork-handoff-2026-07-20.md`; #394/#395 + booking poll also merged | resume from the handoff note; verify port deploy (merged ≠ live) | main @ `2e3b5957` |
 
 ### waiting on external
 
-- **amna (hejer ben jaballah)** — corrected swift/bic sent 2 jul for the £6k signature payment; no confirmation the wire actually processed since; kick-off meeting tomorrow regardless.
-- **straight talk cpas (sabir ghoghari, aakib qureshi, abhishek sachdeva)** — multiple secure messages unread; taxdome session keeps expiring; abhi is also waiting on garrett to book the q2 cfo review.
-- **adp / american century — 401k plan #156733** — 2025 form 5500 verification due **14 jul**; 30 jun "indirect compensation" plan notice still unread.
-- **mined.gob.sv (nadia nochez, IDB SDP process)** — new amendment + clarification sent overnight; on us to read and fold into the LTP consortium bid.
-- **ellen spencer (winchester)** — chasing garrett on outstanding book-chapter publisher queries; she has very limited availability past today.
-- lower-priority carry-forwards: PRME PO2069 contractor invoice (finn), ppcs impact report final pass (garrett + payton's graphics, survey holding ~209 responses), attio keep-or-cancel decision, peace track initiative confirmed receipt of garrett's consultant application (no action needed yet, just an ack).
+- **nordic naturals** — invoice #31 payment in transit via ramp since 17 jul; est arrival 21 jul.
+- **adp / american century — 401k plan #156733** — form 5500 verification overdue since 14 jul; 30 jun indirect-compensation notice still unread.
+- **straight talk cpas (sabir, aakib, abhishek)** — secure messages unread behind the taxdome lockout; abhi still waiting on the q2 cfo review booking.
+- **amna (hejer)** — £6k wire was still unconfirmed at the 08 jul snapshot; no fresh signal since (_partial source this run_).
+- **edgardo (education for sharing)** — replied 20 jul; ball is now with garrett to follow up.
 
 ### environment handoffs
 
 **cowork → claude code (engineering queued up):**
 
-- **confirm port deployed** — today's `NOTION_ENABLED` kill-switch, dead-scaffold retirement, image de-dup, and reorg batch are all merged (#341–#345), but `/api/version` was unreachable from the sandbox this run. Verify + `cd port && npm run deploy:cf` from the desktop if not already live.
-- **surface `feat/caipb-audit-fixes` for review** — still pushed to origin (38/38 tests green), still awaiting garrett's review/merge call; **do not merge straight to main** (auto-deploys nordic).
-- **branch cleanup sweep** — local branch list is still well past claude.md's 3-day rule. Audit against main, delete merged ones.
-- **fix the handoff-file commit hygiene gap for real** — checked directly this run: none of the dated session files from `2026-06-18` through `2026-07-07` were ever actually committed, despite the 7 jul sync's note claiming they were. Committed all of them (plus today's) as part of this run — worth a root-cause look at why the scheduled task's `git add -f` + commit step isn't sticking.
+- **resume ambient-spine phase 1** — resume point + 2 open bugs documented in `docs/prompts/cowork-handoff-2026-07-20.md` (untracked — commit it).
+- **weekly dependency review (self-dm 06:27)** — nordic-sqr-rct: 1 critical + 14 high (bump workflow → 4.6.0, next → 16.2.10); windedvertigo: `npm update hono` (14 CVEs incl. CORS credentials leak). safe-tier bumps ready to apply.
+- **commit the 5 untracked agent docs** — `docs/pam/handoff-2026-07-20.md`, `docs/prompts/cowork-handoff-2026-07-20.md`, plus older carl/cmo/opsy handoffs sitting untracked.
+- **mac mini first sit-down** — run the push-first-then-pull ritual from the 00:47 self-dm; verify wv-brain `82bd6b7` got pushed (windedvertigo side is confirmed synced).
 
 **claude code → cowork (ops queued up):**
 
-- **send nordic's $50k budget A invoice** — contract signed (box, 2 jul), nothing invoiced yet.
-- **confirm amna's wire cleared** — chase hejer for confirmation on the corrected swift/bic payment; prep for tomorrow's 7:30am pt kick-off meeting.
-- **respond to the IDB SDP amendment** — read enmienda no.1 + aclaración no.2, fold into LTP consortium bid prep; confirm remaining poll responses for the consortium call.
-- **re-auth taxdome, clear the secure-message backlog, and book the q2 cfo review** — open straighttalkcpas.taxdome.com in chrome, log in with google, sign the 2025 return forms, read all pending secure messages, reply to abhi to schedule q2 cfo review.
-- **review winchester book chapter proofs** — resolve ellen spencer's outstanding publisher queries before the 22 jul hard deadline; she's hard to reach after today.
-- **read today's whirlpool notes + log action items** — gemini notes for the 8 jul whirlpool landed but haven't been synthesized into `TASKS.md` yet.
-- **reconnect notion mcp** — unavailable for the second run in a row (non-interactive session can't complete oauth); re-authorize via claude.ai connector settings so notion project-status changes stop being a blind spot in this sync.
-- **refresh cash position** — stale at $34,026 since 20 apr; pull a current figure ahead of the nordic invoice + amna inflow.
-- **complete ADP form 5500 verification** — due 14 jul (6 days out); read the 30 jun indirect-compensation notice.
+- **confirm the nordic deposit lands 21 jul** + refresh the cash position (stale since 20 apr); then invoices 32–34.
+- **form 5500** — 6 days overdue, do first.
+- **taxdome re-auth + book the q2 cfo review** with abhi.
+- **gusto carrier-window check** — confirm whether the sept-1 decision was made before sunday's cutoff.
+- **follow up edgardo + reach out to dina** (US charity status for the william t. grant foundation angle).
+- **winchester proofs** — 22 jul hard deadline.
+- **synthesize today's meeting notes into TASKS.md** — gemini notes landed for both the whirlpool and the payton weekly (conference-experience angle, edgardo/dina follow-ups).
 
 ### mobile bookmarks
 
-- no new content bookmarks in the last 24h — only the standing **"taxdome session expired"** re-auth nudge, sent to self-dm twice today (08:10 and 17:08 pt). see waiting-on-external / open threads for the underlying task.
+- **00:47 — macbook → mac mini finish-up instructions** — windedvertigo push confirmed done (checkout even with origin); wv-brain push + mini ritual still to verify.
+- **06:27 — weekly dependency review** — safe-tier bumps pending (see engineering queue).
+- **08:03 + 17:09 — taxdome session-expired nudges** — standing re-auth ask, see open threads.
