@@ -82,7 +82,8 @@ _No schema change → no migration. Deploy confirmed live (`/api/version` `built
 - **Stranded triaged backlog (232 items): RESOLVED by design** via the recency window (fix #3 above). The 232 pre-Jul-2 items are intentionally not harvested now (a months-old commitment is stale). If any of them still need action, that's a separate one-off card/dismiss pass — flagged, not done.
 - **Dedup (was the "minor" item): RESOLVED / non-issue.** Verified: **0** `meetingActionItemId`s appear more than once across all PaM cards. The "×3 same-title" cards are genuinely distinct `meeting_action_items` rows (same title recorded in different meetings). `listRecentByAgent("pam", 7)`'s `7` is **days, not a row cap** — a full 7-day dedup window with no truncation, so it's robust.
 
-## Opsy governance layer — built, **pending deploy** (2026-07-21, branch `feat/opsy-governance-layer`)
+## Opsy governance layer — merged + **DEPLOYED** 2026-07-21T21:40:40Z (PR #399)
+_Route confirmed live: `GET /api/cron/opsy-initiative-metrics` returns 401 (auth-gated, deployed). First real run: Monday 12:00 UTC. (Note: the first deploy attempt built from a stale checkout — needed `git pull --rebase origin main` before `npm run deploy:cf`; verify the new route is 401 not 404 after any deploy that adds a route.)_
 Opsy's first spine-integrated behavior, per its charter ("initiative-quality metrics for all agents · noisy/quiet/wrong → threshold-tuning proposal · graduation candidates after ~100 clean instances → proposal to Garrett"). No schema change → no migration.
 - **`getActionTypeMetrics(days)`** (`port/lib/supabase/agent-interventions.ts`) — acted-on/dismissed/false-escalation/expired sliced by **(agent, action-type)**, because autonomy graduates per ACTION TYPE, not per agent. Action-type key = `artifact.executeAction.type` ?? `decision/riskTier`.
 - **`port/lib/agent/opsy-governance.ts`** — tunable *proposal* thresholds (distinct from the Garrett-only charter) + `classifyGovernance()` → `{graduation, wrong, noisy, quiet}` + `renderGovernanceDigest()`. Graduation = ≥100 **resolved** clean instances, ≥90% acted-on, ≤5% false-escalation, ≤10% dismissed. Noisy/wrong gate on **resolved** (not raw volume) so unresolved sandbox cards don't cry wolf.
@@ -90,7 +91,7 @@ Opsy's first spine-integrated behavior, per its charter ("initiative-quality met
 - Against today's data it would correctly emit **nothing** (the 102 PaM cards are unresolved, not "noisy"; nothing has ≥100 resolved instances yet).
 
 ## NEXT STEPS (in order)
-1. **Garrett: deploy** the Opsy governance layer (`cd port && npm run deploy:cf`) — the three phase-1 fixes are already live (21:12Z); this deploy adds the weekly governance cron.
+1. ~~Deploy the Opsy governance layer~~ **DONE** — live 21:40Z. First governance run: Monday 12:00 UTC.
 2. Run the remaining phase-1 acceptance criteria (spec §4) as data arrives: Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test (trigger the sweep, confirm `dmed ≤ 3`); `/inbox` render + working buttons; metrics endpoint. (Deferred to the natural cycle.)
 3. Seed `time_off` for the absence-horizon behavior.
 4. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full`, with a whirlpool rollout note before `full`.
