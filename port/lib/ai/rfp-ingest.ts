@@ -24,7 +24,8 @@ import { triageRfpOpportunity } from "./rfp-triage";
 import { queryRfpOpportunities, createRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { callClaude, parseJsonResponse } from "./client";
 import { uploadAsset } from "@/lib/r2/upload";
-import { upsertRfpOpportunityToSupabase, findActiveRfpDuplicateByName } from "@/lib/supabase/rfp-opportunities";
+import { upsertRfpOpportunityToSupabase, findActiveRfpDuplicateByName, setRfpOnePager } from "@/lib/supabase/rfp-opportunities";
+import { generateOnePager } from "./rfp-one-pager";
 import type { RfpSource } from "@/lib/notion/types";
 import type { RfpTriageResult } from "./rfp-triage";
 
@@ -816,6 +817,27 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
   if (torStatus === "missing" && opp.rfpDocumentUrl) {
     recordedTorUrl = opp.rfpDocumentUrl;
     torStatus = "pdf";
+  }
+
+  // ── One-pager brief (R1) ──────────────────────────────
+  // Generate the cheap review brief for every ingested grant, from the
+  // already-extracted triage + raw body (no re-fetch), so the collective can
+  // scan it and "pursuing" can surface it as a glance instead of spending 12k
+  // tokens on a full draft up front. Fail-open — never blocks creation.
+  try {
+    const brief = await generateOnePager({
+      opportunityName: triage.opportunityName,
+      requirementsSnapshot: triage.requirementsSnapshot,
+      decisionNotes: triage.decisionNotes,
+      torText: body,
+      torUrl: recordedTorUrl ?? (url || undefined),
+      source,
+      geography: triage.geography,
+      serviceMatch: triage.serviceMatch,
+    });
+    if (brief) await setRfpOnePager(opp.id, brief.onePager);
+  } catch (err) {
+    console.warn("[rfp-ingest/one-pager] failed:", err);
   }
 
   return {

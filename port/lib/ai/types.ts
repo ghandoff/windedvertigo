@@ -26,6 +26,10 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   "org-enrichment": "claude-haiku-4-5-20251001",
   // Haiku: high-volume (every email + RSS item), cost-sensitive
   "rfp-triage": "claude-haiku-4-5-20251001",
+  // Haiku: cheap one-pager brief generated for every ingested grant — the
+  // collective-review preprocessing step (replaces spending on full drafts
+  // before a human has looked). ~1k tokens vs the 12k proposal bundle.
+  "rfp-one-pager": "claude-haiku-4-5-20251001",
   // Sonnet: complex multi-source synthesis, infrequent (5-20 RFPs/month)
   "proposal-generation": "claude-sonnet-4-6",
   // Haiku: document extraction — fast, cost-effective for structured extraction
@@ -88,6 +92,7 @@ export type AiFeature =
   | "next-best-action"
   | "org-enrichment"
   | "rfp-triage"
+  | "rfp-one-pager"
   | "proposal-generation"
   | "rfp-document-extraction"
   | "rfp-question-parse"
@@ -116,6 +121,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "next-best-action": "Next Best Action",
   "org-enrichment": "Org Enrichment",
   "rfp-triage": "RFP Triage",
+  "rfp-one-pager": "RFP One-Pager",
   "proposal-generation": "Proposal Generation",
   "rfp-document-extraction": "RFP Document Extraction",
   "rfp-question-parse": "RFP Question Parser",

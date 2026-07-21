@@ -564,6 +564,41 @@ export type RfpSource =
   | "Email Alert"
   | "Manual Entry";
 
+/**
+ * Lightweight "one-pager" brief auto-generated at intake for every grant so the
+ * collective can review it quickly instead of reading the full TOR — and so
+ * "pursuing" can surface this glance instead of spending 12k tokens on a full
+ * draft. Structured, cheap (Haiku). Stored as a `one_pager` jsonb column on
+ * rfp_opportunities (Supabase-only). See lib/ai/rfp-one-pager.ts.
+ */
+export interface OnePager {
+  /** What the grant is about (2–3 sentences). */
+  summary: string;
+  /** Why it's worth applying, in w.v terms. */
+  whyApply: string;
+  /** Main deliverables the funder wants. */
+  deliverables: string[];
+  /** Capabilities / consultant profile requested. */
+  capabilitiesRequested: string;
+  /** Quick eligibility read for w.v. */
+  eligibility: {
+    verdict: "likely-eligible" | "likely-ineligible" | "uncertain";
+    note: string;
+  };
+  /** Suggested angle / approach if we pursue. */
+  suggestedApproach: string;
+  /** Things a human must verify before applying. */
+  itemsToVerify: string[];
+  /** Hard conditions the funder imposes (e.g. national consultant, in-country entity). */
+  requiredConditions: string[];
+  /** Materials/credentials the submission requires. */
+  requiredMaterials: string[];
+  /** True if the fetched document is a genuine full TOR, not just a website/announcement. */
+  torIsReal: boolean;
+  /** Note when torIsReal is false (what was fetched instead), else null. */
+  torConcern: string | null;
+}
+
 export interface RfpOpportunity {
   id: string;
   opportunityName: string;
@@ -582,6 +617,13 @@ export interface RfpOpportunity {
   requirementsSnapshot: string;
   decisionNotes: string;
   url: string;
+  /**
+   * Auto-generated review brief (see OnePager). Populated at intake; surfaced as
+   * the "glance" on pursuing. Supabase-only (`one_pager` jsonb). Null until generated.
+   */
+  onePager: OnePager | null;
+  /** ISO timestamp the one-pager was generated. Supabase-only. */
+  onePagerGeneratedAt: string | null;
   proposalStatus: "queued" | "generating" | "ready-for-review" | "complete" | "failed" | null;
   proposalDraftUrl: string | null;
   rfpDocumentUrl: string | null;
