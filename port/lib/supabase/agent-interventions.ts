@@ -432,3 +432,94 @@ export async function getInterventionMetrics(
     return [];
   }
 }
+
+export interface ActionTypeMetrics {
+  agent: InterventionAgent;
+  /** `artifact.executeAction.type` when structured, else `decision/riskTier`. */
+  actionType: string;
+  total: number;      // all non-silent rows in the window (incl. still-`proposed`)
+  resolved: number;   // rows that reached a terminal status
+  actedUpon: number;  // approved + edited + executed
+  dismissed: number;  // ignored
+  falseEscalation: number; // redirected — proxy for "wrong human/tier"
+  expired: number;    // default-deny timeouts
+  actedUponRate: number;
+  dismissedRate: number;
+  falseEscalationRate: number;
+}
+
+/**
+ * The stable "action type" key autonomy graduates against. The charter
+ * graduates per ACTION TYPE, not per agent — so a structured
+ * `artifact.executeAction.type` (e.g. `pam_promote_commitment`) is the ideal
+ * bucket; rows without one fall back to a coarse `decision/riskTier` bucket so
+ * every non-silent row still lands somewhere.
+ */
+export function interventionActionType(row: {
+  decision: InterventionDecision;
+  riskTier: RiskTier;
+  artifact: Record<string, unknown> | null;
+}): string {
+  const execAction = row.artifact?.executeAction as { type?: string } | undefined;
+  return execAction?.type ?? `${row.decision}/${row.riskTier}`;
+}
+
+/**
+ * Per-(agent, action-type) initiative-quality metrics — the finer slice
+ * Opsy's graduation analysis needs (graduation is per-action-type, not
+ * per-agent). Same fail-open posture as getInterventionMetrics.
+ */
+export async function getActionTypeMetrics(days = 30): Promise<ActionTypeMetrics[]> {
+  const sinceIso = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  try {
+    const { data, error } = await supabase
+      .from("agent_interventions")
+      .select("agent, status, decision, risk_tier, artifact")
+      .neq("decision", "silent")
+      .gte("created_at", sinceIso);
+    if (error) {
+      console.warn("[supabase/agent-interventions] action-type metrics query failed:", error.message);
+      return [];
+    }
+    const byKey = new Map<string, { agent: InterventionAgent; actionType: string; total: number; statuses: Record<string, number> }>();
+    for (const row of data ?? []) {
+      const agent = row.agent as InterventionAgent;
+      const actionType = interventionActionType({
+        decision: row.decision as InterventionDecision,
+        riskTier: row.risk_tier as RiskTier,
+        artifact: (row.artifact as Record<string, unknown> | null) ?? null,
+      });
+      const key = `${agent} ${actionType}`;
+      const entry = byKey.get(key) ?? { agent, actionType, total: 0, statuses: {} };
+      entry.total += 1;
+      entry.statuses[row.status as string] = (entry.statuses[row.status as string] ?? 0) + 1;
+      byKey.set(key, entry);
+    }
+    return [...byKey.values()].map(({ agent, actionType, total, statuses }) => {
+      const actedUpon = (statuses.approved ?? 0) + (statuses.edited ?? 0) + (statuses.executed ?? 0);
+      const dismissed = statuses.ignored ?? 0;
+      const falseEscalation = statuses.redirected ?? 0;
+      const expired = statuses.expired ?? 0;
+      const resolved = actedUpon + dismissed + falseEscalation + expired;
+      return {
+        agent,
+        actionType,
+        total,
+        resolved,
+        actedUpon,
+        dismissed,
+        falseEscalation,
+        expired,
+        actedUponRate: resolved > 0 ? actedUpon / resolved : 0,
+        dismissedRate: resolved > 0 ? dismissed / resolved : 0,
+        falseEscalationRate: resolved > 0 ? falseEscalation / resolved : 0,
+      };
+    });
+  } catch (err) {
+    console.warn(
+      "[supabase/agent-interventions] action-type metrics query threw:",
+      err instanceof Error ? err.message : err,
+    );
+    return [];
+  }
+}

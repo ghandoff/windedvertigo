@@ -270,6 +270,14 @@ const CRON_TABLE: CronEntry[] = [
   // PaM — absence-horizon check (charter: "an absence approaching →
   // redistribution proposal two weeks out").
   { path: "/api/cron/pam-absence-horizon", hours: [9] },
+
+  // Opsy — weekly initiative-quality review (charter: "initiative-quality
+  // metrics for all agents · noisy/quiet/wrong → threshold-tuning proposal ·
+  // graduation candidates after ~100 clean instances → proposal to Garrett").
+  // Reads the per-action-type agent_interventions metrics and DMs Garrett a
+  // governance digest only when there's a signal. Monday 12:00 UTC — after
+  // opsy-digest (07:00) so the week's data is settled.
+  { path: "/api/cron/opsy-initiative-metrics", hours: [12], weekdays: [1] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE

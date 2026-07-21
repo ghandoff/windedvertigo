@@ -28,7 +28,7 @@ so far. Everything proactive is gated to a private sandbox until explicitly prom
 | **Fin** | CFO — margin, invoices, runway | `/finn` | `fin_*` | 10 / 8 / 81 items |
 | **Biz** | BD — pipeline coverage, go/no-go, proposals | `/biz` | `biz_*` | 172 / 42 / 31 roadmap |
 
-- **Pilot proactive behaviors wired so far:** Mo (win-event reaction, content-runway watch, Friday scorecard, claim-boundary flags via the ambient sweep) and PaM (meeting→owner-confirmation DM, promise detection, Monday digest, absence-horizon). Biz/cARL/Fin/Opsy are **phase 3** per the charters — not yet ambient.
+- **Pilot proactive behaviors wired so far:** Mo (win-event reaction, content-runway watch, Friday scorecard, claim-boundary flags via the ambient sweep) and PaM (meeting→owner-confirmation DM, promise detection, Monday digest, absence-horizon). **Opsy** now has its first spine-integrated behavior — the weekly initiative-quality / governance review (graduation + threshold-tuning proposals to Garrett; see "Opsy governance layer" below). Biz/cARL/Fin remain **phase 3** per the charters — not yet ambient.
 - Governance: `docs/agents/executive-charters.md` defines each agent's watch-list, permissions, and risk tiers. **Garrett edits it only.** Edits reach the code via `npm run sync:charters` → `port/lib/agent/charters.generated.ts` (build-time bundle; no runtime file reads on Workers).
 
 ---
@@ -72,8 +72,8 @@ so far. Everything proactive is gated to a private sandbox until explicitly prom
 
 ---
 
-## FIXED THIS SESSION — merged, **pending deploy** (2026-07-21)
-_All in one PR on branch `fix/ambient-budget-cap`. No schema change → no migration. **Not live until Garrett runs `cd port && npm run deploy:cf`.**_
+## FIXED THIS SESSION — merged + **DEPLOYED** 2026-07-21T21:12:41Z (PR #398)
+_No schema change → no migration. Deploy confirmed live (`/api/version` `built` advanced to 21:12:41Z). Post-deploy: `rows_since_deploy=0` — the spine is correctly quiescent (recent window carded + the new 14-day filter → no candidates; **no flood**). The budget-suppression + new-marker paths will self-verify over the next natural triage cycle (deferred by Garrett)._
 1. **Notification budget now enforced on the standalone crons.** New shared helper `port/lib/agent/intervention-budget.ts` (`AGENT_DAILY_CAP=3`, `HUMAN_DAILY_CAP=5`; one-shot `isOverNotificationBudget()` + a stateful `NotificationBudget` tracker for multi-surface crons). `ambient-run.ts` refactored onto it (no behavior change). `pam-owner-confirmation-sweep` + `pam-absence-horizon` now check the budget per card — the row is **always inserted** (spec §2.2, queues in `/inbox`), only the Slack DM is skipped when over budget; both return `suppressedByBudget`. **Scope (confirmed with Garrett): the scheduled standing reports — `pam-monday-digest`, `mo-friday-scorecard`, `mo-content-runway-check` — are exempt** (once-per-cadence "Number, reported [day]"; each surfaces one bounded row).
 2. **Sandbox marker now visible.** `buildInterventionBlocks` (`port/lib/agent/intervention-card.ts`) prepends a real `context` block (`🧪 sandbox — would DM \`x\` in production · nothing was sent`) whenever `ambientRolloutStage()==='sandbox'`, derived from the row's `targetHuman`/`channel`. Empty in every other stage, so live cards stay unmarked.
 3. **Sweep recency window (from the stranded-backlog finding).** `listPendingTriageActions` gained an optional `createdSince` param (mirrors `listUntriagedActions`); the sweep passes a `CANDIDATE_WINDOW_DAYS = 14` window so old pending items age out **by design** instead of lurking below the newest-100 `limit`. The 232 pre-2026-07-02 items now age out intentionally.
@@ -82,12 +82,19 @@ _All in one PR on branch `fix/ambient-budget-cap`. No schema change → no migra
 - **Stranded triaged backlog (232 items): RESOLVED by design** via the recency window (fix #3 above). The 232 pre-Jul-2 items are intentionally not harvested now (a months-old commitment is stale). If any of them still need action, that's a separate one-off card/dismiss pass — flagged, not done.
 - **Dedup (was the "minor" item): RESOLVED / non-issue.** Verified: **0** `meetingActionItemId`s appear more than once across all PaM cards. The "×3 same-title" cards are genuinely distinct `meeting_action_items` rows (same title recorded in different meetings). `listRecentByAgent("pam", 7)`'s `7` is **days, not a row cap** — a full 7-day dedup window with no truncation, so it's robust.
 
+## Opsy governance layer — built, **pending deploy** (2026-07-21, branch `feat/opsy-governance-layer`)
+Opsy's first spine-integrated behavior, per its charter ("initiative-quality metrics for all agents · noisy/quiet/wrong → threshold-tuning proposal · graduation candidates after ~100 clean instances → proposal to Garrett"). No schema change → no migration.
+- **`getActionTypeMetrics(days)`** (`port/lib/supabase/agent-interventions.ts`) — acted-on/dismissed/false-escalation/expired sliced by **(agent, action-type)**, because autonomy graduates per ACTION TYPE, not per agent. Action-type key = `artifact.executeAction.type` ?? `decision/riskTier`.
+- **`port/lib/agent/opsy-governance.ts`** — tunable *proposal* thresholds (distinct from the Garrett-only charter) + `classifyGovernance()` → `{graduation, wrong, noisy, quiet}` + `renderGovernanceDigest()`. Graduation = ≥100 **resolved** clean instances, ≥90% acted-on, ≤5% false-escalation, ≤10% dismissed. Noisy/wrong gate on **resolved** (not raw volume) so unresolved sandbox cards don't cry wolf.
+- **`/api/cron/opsy-initiative-metrics`** (weekly, Mon 12:00 UTC in `CRON_TABLE`) — classifies, and *only when there's a signal* DMs Garrett a digest + logs one LOW-tier Opsy row. Quiet week → silent (no row, no ping). Budget-exempt (scheduled standing report). It only **proposes** — granting a permission is Garrett editing the charter → `npm run sync:charters` → redeploy; no code path auto-grants.
+- Against today's data it would correctly emit **nothing** (the 102 PaM cards are unresolved, not "noisy"; nothing has ≥100 resolved instances yet).
+
 ## NEXT STEPS (in order)
-1. **Garrett: deploy** (`cd port && npm run deploy:cf`) to make the three fixes above live, then confirm `/api/version` `built` advances past merge time.
-2. Run the remaining phase-1 acceptance criteria (spec §4): Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test (now unblocked — trigger the sweep and confirm `dmed ≤ 3`); `/inbox` render + working buttons; metrics endpoint.
+1. **Garrett: deploy** the Opsy governance layer (`cd port && npm run deploy:cf`) — the three phase-1 fixes are already live (21:12Z); this deploy adds the weekly governance cron.
+2. Run the remaining phase-1 acceptance criteria (spec §4) as data arrives: Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test (trigger the sweep, confirm `dmed ≤ 3`); `/inbox` render + working buttons; metrics endpoint. (Deferred to the natural cycle.)
 3. Seed `time_off` for the absence-horizon behavior.
 4. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full`, with a whirlpool rollout note before `full`.
-5. Phase 2/3 — extend ambient behaviors to Biz, cARL, Fin, Opsy per their charters; Opsy's graduation-metrics loop.
+5. Phase 3 — extend spine-integrated ambient behaviors to Biz (RFP go/no-go cards), cARL (citation gate), Fin (margin-floor alerts). Grow `ACTIVE_AMBIENT_AGENTS` in `opsy-governance.ts` as each lands so quiet-detection covers them.
 
 ## how we work (constraints learned this session)
 - **Claude writes + commits + pushes; Garrett runs the deploy.** `npm run deploy:cf` gets blocked by this environment's permission classifier when Claude runs it. Same occasionally for Supabase DDL — apply blocked migrations by hand in the SQL editor.
