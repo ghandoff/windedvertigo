@@ -272,6 +272,68 @@ export async function getRfpsByOrg(
   return (data as unknown as RfpOpportunityRow[]).map(mapRowToRfpOpportunity);
 }
 
+// ─── Dedup ───────────────────────────────────────────────────────────────────
+
+/**
+ * Pipeline statuses that drop a card off the active radar/board. A grant with
+ * one of these is "closed" — a re-issued or re-considered opportunity may
+ * legitimately re-enter the radar, so dedup deliberately ignores closed rows.
+ */
+const TERMINAL_PIPELINE_STATUSES: string[] = ["won", "lost", "no-go", "missed deadline"];
+
+/**
+ * Normalise an opportunity name to the same key the DB `dedup_key` generated
+ * column produces: lowercased, alphanumeric-only. This collapses the
+ * punctuation/spacing variance ("… – Turkmenistan" vs "… (Turkmenistan)") that
+ * defeated the old exact-match dedup and spawned duplicate radar cards.
+ *
+ * MUST stay in lockstep with the SQL expression in
+ * supabase/migrations/20260721_rfp_dedup_key_col.sql.
+ */
+export function normaliseRfpDedupKey(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+/**
+ * Find an existing ACTIVE opportunity that duplicates `name` (same normalised
+ * dedup key). Returns its canonical RfpOpportunity (id = notion page id) or null.
+ *
+ * Queries Supabase — the board's read layer, kept current by the immediate
+ * upsert in ingest plus the hourly sync — via the indexed `dedup_key` column, so
+ * it's a fast point lookup rather than pulling 500 rows into memory. Closed rows
+ * are ignored. Fail-open: returns null on any DB error (e.g. if deployed before
+ * the dedup_key migration is applied) so a hiccup never blocks ingest.
+ */
+export async function findActiveRfpDuplicateByName(
+  name: string,
+  excludeNotionPageId?: string,
+): Promise<RfpOpportunity | null> {
+  const key = normaliseRfpDedupKey(name);
+  if (!key) return null;
+
+  const { data, error } = await supabase
+    .from("rfp_opportunities")
+    .select(SELECT_COLS)
+    .eq("dedup_key", key);
+
+  if (error) {
+    console.warn(
+      `[supabase/rfp-opportunities] findActiveRfpDuplicateByName: ${error.message}`,
+    );
+    return null;
+  }
+
+  const match = (data as unknown as RfpOpportunityRow[])
+    .map(mapRowToRfpOpportunity)
+    .find(
+      (o) =>
+        o.id !== excludeNotionPageId &&
+        !TERMINAL_PIPELINE_STATUSES.includes(o.status),
+    );
+
+  return match ?? null;
+}
+
 // ─── Atomic proposal-status writes ───────────────────────────────────────────
 
 /**

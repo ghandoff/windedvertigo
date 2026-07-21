@@ -142,7 +142,7 @@ function RfpCard({
 
   return (
     <Card
-      className={`hover:shadow-md transition-shadow cursor-pointer ${deadlineUrgent ? "border-destructive/50" : ""}`}
+      className={`hover:shadow-md transition-shadow cursor-pointer ${deadlineUrgent ? "border-destructive/50" : ""} ${overdue ? "opacity-60" : ""}`}
       onMouseEnter={() => router.prefetch(href)}
       onClick={() => router.push(href)}
     >
@@ -464,10 +464,21 @@ export function RfpKanban({ opportunities }: RfpKanbanProps) {
     return () => clearInterval(timer);
   }, [hasGenerating, router]);
 
-  // Only active-pipeline items appear on the board; outcomes go to the completed table
+  // Only active-pipeline items appear on the board; outcomes go to the completed table.
+  //
+  // F2: demote past-due cards to the bottom of their column. The board otherwise
+  // sorts by due-date ascending, so an overdue grant sits at the TOP looking like
+  // the freshest item until the daily missed-deadline sweep archives it. Sinking
+  // them (stable sort keeps the due-date order within each group) means a
+  // between-sweeps lapse can't mislead triage. The card also dims when overdue.
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const isPastDue = (r: RfpOpportunity) =>
+    !!r.dueDate?.start && parseDateOnly(r.dueDate.start) < todayMidnight;
   const items: RfpKanbanItem[] = opportunities
     .filter((r) => ACTIVE_STATUSES.includes(r.status as RfpStatus))
-    .map((r) => ({ ...r, kanbanStatus: r.status }));
+    .map((r) => ({ ...r, kanbanStatus: r.status }))
+    .sort((a, b) => Number(isPastDue(a)) - Number(isPastDue(b)));
 
   const handleStatusChange = useCallback(
     async (itemId: string, newStatus: string) => {
