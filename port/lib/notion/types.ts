@@ -635,6 +635,10 @@ export interface RfpOpportunity {
   /** ISO timestamp the one-pager was generated. Supabase-only. */
   onePagerGeneratedAt: string | null;
   proposalStatus: "queued" | "generating" | "ready-for-review" | "complete" | "failed" | null;
+  /** True when the TOR was replaced after the current draft was generated — the
+   *  draft predates the current document. Cleared when a new draft is generated.
+   *  Supabase-only. */
+  proposalStale: boolean;
   proposalDraftUrl: string | null;
   rfpDocumentUrl: string | null;
   /** Human TOR-verification (Supabase-only). Set via the verify-tor gate; the

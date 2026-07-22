@@ -25,7 +25,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { updateRfpOpportunity } from "@/lib/notion/rfp-radar";
-import { claimProposalGeneration, resetProposalToFailed } from "@/lib/supabase/rfp-opportunities";
+import { claimProposalGeneration, resetProposalToFailed, setRfpProposalStale } from "@/lib/supabase/rfp-opportunities";
 import { auth } from "@/lib/auth";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { publishJob } from "@windedvertigo/job-queue";
@@ -67,6 +67,9 @@ export async function POST(
   updateRfpOpportunity(id, { proposalStatus: "generating" }).catch((err) => {
     console.warn("[regenerate-proposal] notion status sync failed (non-fatal):", err);
   });
+
+  // Fresh draft from the current TOR → clear any stale flag from a replacement.
+  setRfpProposalStale(id, false).catch(() => {});
 
   const triggeredBy = session.user.email ?? "system";
   const proposalPayload: RfpProposalJob = {
