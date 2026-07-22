@@ -39,7 +39,7 @@ so far. Everything proactive is gated to a private sandbox until explicitly prom
 
 **Risk tiers (from the charters):** LOW = act, no gate · MEDIUM = act + notify, reversible · HIGH = preview card + explicit approval, default-deny on timeout.
 
-**Rollout gate:** env var `AMBIENT_ROLLOUT_STAGE` (`sandbox` → `studio-comms` → `full`). **Currently UNSET → defaults to `sandbox`** → every channel post and every "would-DM" is redirected to `#agent-sandbox` (Slack channel id `C0BJHKZGZ28`, currently just Garrett + wv-claw). No real teammate is being DMed.
+**Rollout gate:** `AMBIENT_ROLLOUT_STAGE` in `port/wrangler.jsonc` `vars` (`sandbox` → `studio-comms` → `full`). **Currently `studio-comms` — LIVE as of 2026-07-22 ~03:13Z deploy, verified 07:49Z.** Real DMs are on, and Mo/PaM read `#studio-comms` (`C08PBCT5E0N`); `#agent-sandbox` (`C0BJHKZGZ28`) is still watched too. Verified via `event_log` picking up `#studio-comms` messages (only happens in this stage) after the wv-claw bot was invited to the channel. Budget caps (≤3/agent/day, ≤5/human/day) are the flood insurance. Next stage `full` adds `#whirlpool` (invite the bot there first). Emergency rollback: dashboard var → `sandbox` (instant), then revert `wrangler.jsonc`.
 
 ---
 
@@ -105,7 +105,7 @@ Fin's first spine-integrated behavior (charter: "invoice hygiene · Watches: inv
 1. ~~Deploy the Opsy governance layer~~ **DONE** — live 21:40Z. First governance run: Monday 12:00 UTC.
 2. Run the remaining phase-1 acceptance criteria (spec §4) as data arrives: Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test (trigger the sweep, confirm `dmed ≤ 3`); `/inbox` render + working buttons; metrics endpoint. (Deferred to the natural cycle.)
 3. **Promotion-readiness pack written** → `docs/agents/ambient-rollout-note.md` (team-facing card guide, the staged-promotion runbook, and the `time_off` seed SQL). Remaining human steps: seed `time_off`, post part 1 to the team, then flip `AMBIENT_ROLLOUT_STAGE`.
-4. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full` per the runbook. **`studio-comms` is the big step** (real DMs + `#studio-comms` watching turn on together). **The stage now lives in `port/wrangler.jsonc` `vars`** (not dashboard-only) so a routine deploy can't silently reset it — `wrangler deploy` replaces the Worker's vars each time. Team announced in `#studio-comms` 2026-07-22. Activation = set the var to `"studio-comms"` (done in config) + `npm run deploy:cf`; instant emergency rollback = dashboard var → `sandbox`.
+4. ~~Promote to `studio-comms`~~ **DONE + verified live 2026-07-22** (team announced, bot invited to `#studio-comms`, `event_log` confirmed). Stage lives in `port/wrangler.jsonc` `vars` (durable across deploys). **Now: watch the first 48h** — real posts appearing, no agent breaking 3/day, how cards land — then decide on `full` (adds `#whirlpool`; invite the bot there first).
 5. Phase 3 — remaining spine-integrated ambient behaviors: **Fin obligations digest ✓ built** (above); **Biz** (RFP go/no-go cards) and **cARL** (citation gate) are **blocked by open PRs #296 / #405–#406** — build once they merge. Fin's margin-floor behavior waits on an engagement-cost data model. Grow `ACTIVE_AMBIENT_AGENTS` in `opsy-governance.ts` as each *continuously-firing* behavior lands (Fin's digest is intentionally excluded — a silent week is fine).
 
 ## how we work (constraints learned this session)
