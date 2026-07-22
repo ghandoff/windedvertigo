@@ -117,7 +117,9 @@ ${torText || "(none — only the triage snapshot is available)"}`;
       system: systemPrompt,
       userMessage,
       userId: "automation",
-      maxTokens: 1200,
+      // 2000 (not 1200): a content-rich TOR with many deliverables/conditions can
+      // otherwise truncate the JSON mid-response → parse failure → null brief.
+      maxTokens: 2000,
       temperature: 0.2,
     });
 
