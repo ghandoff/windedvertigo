@@ -53,6 +53,8 @@ interface RfpOpportunityRow {
   tor_verified_by: string | null;
   tor_thumbnail_url: string | null;
   tor_thumbnail_generated_at: string | null;
+  slack_thread_ts: string | null;
+  slack_channel_id: string | null;
   proposal_draft_url: string | null;
   question_bank_url: string | null;
   question_count: number | null;
@@ -105,6 +107,8 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     torVerifiedBy: row.tor_verified_by ?? null,
     torThumbnailUrl: row.tor_thumbnail_url ?? null,
     torThumbnailGeneratedAt: row.tor_thumbnail_generated_at ?? null,
+    slackThreadTs: row.slack_thread_ts ?? null,
+    slackChannelId: row.slack_channel_id ?? null,
     questionBankUrl: row.question_bank_url ?? null,
     questionCount: row.question_count ?? null,
     coverLetterUrl: row.cover_letter_url ?? null,
@@ -180,6 +184,7 @@ const SELECT_COLS =
   "estimated_value, due_date, wv_fit_score, service_match, category, geography, source, " +
   "proposal_status, proposal_stale, requirements_snapshot, decision_notes, one_pager, one_pager_generated_at, deadline_timezone, " +
   "url, rfp_document_url, tor_verified_at, tor_verified_by, tor_thumbnail_url, tor_thumbnail_generated_at, " +
+  "slack_thread_ts, slack_channel_id, " +
   "proposal_draft_url, question_bank_url, question_count, " +
   "cover_letter_url, team_cvs_url, expression_of_interest_url, financial_proposal_url, " +
   "what_worked, what_fell_flat, client_feedback, " +
@@ -604,6 +609,29 @@ export async function setRfpTorThumbnail(
     .eq("notion_page_id", notionPageId);
   if (error) {
     console.warn(`[supabase/rfp-opportunities] setRfpTorThumbnail: ${error.message}`);
+  }
+}
+
+/**
+ * Store the Slack thread anchor for an RFP's deferred-review notification (R4),
+ * so re-defers don't double-post and inbound replies can be correlated later.
+ * Supabase-only. Fire-and-forget safe.
+ */
+export async function setRfpSlackThread(
+  notionPageId: string,
+  threadTs: string,
+  channelId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      slack_thread_ts: threadTs,
+      slack_channel_id: channelId,
+      slack_notified_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpSlackThread: ${error.message}`);
   }
 }
 

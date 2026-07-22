@@ -16,9 +16,11 @@ import type { RfpStatus } from "@/lib/notion/types";
 import {
   setRfpStatus,
   getRfpOpportunityByIdFromSupabase,
+  setRfpSlackThread,
 } from "@/lib/supabase/rfp-opportunities";
 import { createRfpDeadlineEvent } from "@/lib/gcal";
 import { postToChannel } from "@/lib/slack";
+import { notifyDeferredRfp } from "@/lib/rfp/notify";
 import { syncWonRfpToDeal } from "@/lib/rfp/deal-sync";
 
 export interface TransitionOpts {
@@ -78,5 +80,18 @@ export async function transitionRfpStatus(
     // still surface the deadline on the calendar — fire-and-forget
     const fresh = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
     if (fresh) createRfpDeadlineEvent(fresh).catch(() => {});
+  }
+
+  // 3. reviewing (deferred) → R4: ping the collective to review the one-pager
+  //    brief async and reply in-thread before the Wednesday whirlpool.
+  //    Idempotent — skip if a notification thread already exists for this card
+  //    (so re-deferring doesn't double-post). Fire-and-forget.
+  if (status === "reviewing") {
+    const opp = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
+    if (opp && !opp.slackThreadTs) {
+      notifyDeferredRfp({ id, opp })
+        .then(({ ts, channel }) => (ts ? setRfpSlackThread(id, ts, channel) : undefined))
+        .catch(() => {});
+    }
   }
 }
