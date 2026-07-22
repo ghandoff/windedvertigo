@@ -28,7 +28,7 @@ _companion to `executive-ambient-agents-status.md` and `executive-charters.md` (
 ## part 2 — promotion runbook (Garrett only)
 
 ### the one control
-`AMBIENT_ROLLOUT_STAGE` — a Cloudflare env var on the `wv-port` Worker. Unset ⇒ defaults to `sandbox` (fail-closed). Read at runtime by `port/lib/agent/ambient-rollout.ts`. Three stages, and **each stage flips two things at once**: which channels the agents *read*, and whether they may *DM real people*.
+`AMBIENT_ROLLOUT_STAGE` — read at runtime by `port/lib/agent/ambient-rollout.ts`; unset ⇒ `sandbox` (fail-closed). **It lives in `port/wrangler.jsonc` `vars`, not the dashboard** — because `wrangler deploy` replaces the Worker's vars with that block on every deploy, so a dashboard-only value gets silently wiped back to `sandbox` on the next unrelated deploy (we deploy often). Changing stages = edit the line + redeploy. Three stages, and **each stage flips two things at once**: which channels the agents *read*, and whether they may *DM real people*.
 
 | stage | agents read (event_log) | channel posts go to | real DMs? |
 |---|---|---|---|
@@ -52,7 +52,7 @@ The ≤3/agent/day + ≤5/human/day budget caps are your flood insurance across 
    - Post part 1 to `#studio-comms` (and `#whirlpool`) so the team knows what's coming.
    - Seed `time_off` (part 3) so absence-horizon has data — otherwise it's a silent no-op.
    - Skim the last week of `#agent-sandbox` — are the drafts good enough to send a real person? If a behavior is embarrassing, fix it before promoting (charters are yours to tune; thresholds live in code).
-2. **Flip:** Cloudflare dashboard → Workers & Pages → `wv-port` → Settings → Variables and Secrets → set `AMBIENT_ROLLOUT_STAGE = studio-comms` → Save. Plain vars apply to the running Worker on save; if behavior doesn't change within a few minutes, redeploy (`npm run deploy:cf`) to force it.
+2. **Flip:** edit `AMBIENT_ROLLOUT_STAGE` in `port/wrangler.jsonc` `vars` to `"studio-comms"` (commit it), then `git pull --rebase origin main` in your port checkout and `npm run deploy:cf`. The deploy applies the stage. (Same flow as any other deploy — durable, version-controlled.)
 3. **Watch (first 48h):**
    - `agent_interventions` — rows should now show `executed` / `approved` / `ignored`, not just `proposed`. Confirm no agent exceeds 3 posted/day (budget working).
    - `#studio-comms` — are cards landing usefully? watch the acted-on vs ignored mix.
@@ -61,7 +61,9 @@ The ≤3/agent/day + ≤5/human/day budget caps are your flood insurance across 
 4. **Then `full`** (adds `#whirlpool` watching) once `studio-comms` has settled — same flip, value `full`.
 
 ### rollback
-Set `AMBIENT_ROLLOUT_STAGE = sandbox` (or delete the var) → Save. Everything re-redirects to `#agent-sandbox` immediately; no real DMs. Reversible, no data loss — in-flight `proposed` rows just stop being posted.
+- **Instant (emergency):** Cloudflare dashboard → `wv-port` → Settings → Variables → set `AMBIENT_ROLLOUT_STAGE = sandbox` → Save. Takes effect on the running Worker immediately — everything re-redirects to `#agent-sandbox`, no real DMs. (The next deploy re-asserts `wrangler.jsonc`, so also do the durable step if the rollback is permanent.)
+- **Durable:** edit the value back to `"sandbox"` in `port/wrangler.jsonc` + redeploy.
+Reversible either way, no data loss — in-flight `proposed` rows just stop being posted.
 
 ### the graduation loop this unlocks
 Promotion is also what makes **Opsy's governance layer** (live, Mondays 12:00 UTC) do its job: real teammates resolving cards → `agent_interventions` accumulates *resolved* instances → Opsy starts flagging graduation candidates (≥100 clean instances per action-type) and noisy/mis-targeted behaviors. Graduating an action-type to standing autonomy is then *your* call: edit `docs/agents/executive-charters.md` → `npm run sync:charters` → redeploy.
