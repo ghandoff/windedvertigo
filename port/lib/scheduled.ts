@@ -284,6 +284,13 @@ const CRON_TABLE: CronEntry[] = [
   // but nothing surfaced them). Monday 13:00 UTC — after the daily fin scans
   // (07:00/08:00) refresh the data. Only DMs Garrett when there's something.
   { path: "/api/cron/fin-obligations-digest", hours: [13], weekdays: [1] },
+
+  // Biz — estimated-value proposer (charter: "weighted pipeline coverage").
+  // Active RFPs have no estimated_value (a manual Notion field the ingest never
+  // fills), so the pipeline number can't be computed. Proposes a value per RFP
+  // via Claude → preview card → on approve, writes to Notion. Daily 15:00 UTC,
+  // budget-paced so the ~39-item backfill drips out instead of flooding.
+  { path: "/api/cron/biz-value-proposer", hours: [15] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
