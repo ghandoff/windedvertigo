@@ -15,6 +15,7 @@
  */
 
 import { promoteActionToCommitment } from "@/lib/pam/promote-commitment";
+import { updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import type { InterventionRow } from "@/lib/supabase/agent-interventions";
 
 export interface ExecuteResult {
@@ -47,6 +48,19 @@ export async function executeApprovedIntervention(
           ? `already linked to commitment ${result.commitmentId}`
           : `commitment created: ${result.commitmentId}`,
       };
+    }
+    case "biz_set_estimated_value": {
+      // Biz proposed an estimated value for an RFP; on approve, write it to
+      // NOTION (the source of truth) — the hourly Notion→Supabase sync then
+      // flows it to rfp_opportunities.estimated_value. Writing to Supabase
+      // directly would be clobbered by the next sync.
+      const notionPageId = action.notionPageId as string | undefined;
+      const value = action.value as number | undefined;
+      if (!notionPageId || typeof value !== "number" || !Number.isFinite(value)) {
+        return { ok: false, note: "missing notionPageId or invalid value" };
+      }
+      await updateRfpOpportunity(notionPageId, { estimatedValue: value });
+      return { ok: true, note: `wrote estimated value $${value.toLocaleString("en-US")} to Notion` };
     }
     default:
       return { ok: false, note: `unknown executeAction type "${action.type}"` };

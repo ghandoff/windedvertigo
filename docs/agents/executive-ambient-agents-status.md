@@ -28,7 +28,7 @@ so far. Everything proactive is gated to a private sandbox until explicitly prom
 | **Fin** | CFO — margin, invoices, runway | `/finn` | `fin_*` | 10 / 8 / 81 items |
 | **Biz** | BD — pipeline coverage, go/no-go, proposals | `/biz` | `biz_*` | 172 / 42 / 31 roadmap |
 
-- **Pilot proactive behaviors wired so far:** Mo (win-event reaction, content-runway watch, Friday scorecard, claim-boundary flags via the ambient sweep) and PaM (meeting→owner-confirmation DM, promise detection, Monday digest, absence-horizon). **Opsy** has its first spine-integrated behavior — the weekly initiative-quality / governance review (see "Opsy governance layer" below). **Fin** now has its first — a weekly obligations-hygiene digest (see "Fin obligations digest" below). **Biz + cARL remain phase 3** and are **blocked from ambient work by open PRs** (#296 cARL dashboard; #405/#406 RFP/Biz) — build once those merge to avoid file collisions.
+- **Pilot proactive behaviors wired so far:** Mo (win-event reaction, content-runway watch, Friday scorecard, claim-boundary flags via the ambient sweep) and PaM (meeting→owner-confirmation DM, promise detection, Monday digest, absence-horizon). **Opsy** — weekly initiative-quality / governance review (see "Opsy governance layer"). **Fin** — weekly obligations-hygiene digest (see "Fin obligations digest"). **Biz** — estimated-value proposer (see "Biz value-proposer"). **cARL is the only agent still without an ambient behavior** — held until PR #296 (cARL dashboard + symbiosis) merges to avoid file collisions. (Note: #319 was a stale duplicate of the already-merged #295 Biz eligibility gates — closed 2026-07-22; it never actually blocked Biz.)
 - Governance: `docs/agents/executive-charters.md` defines each agent's watch-list, permissions, and risk tiers. **Garrett edits it only.** Edits reach the code via `npm run sync:charters` → `port/lib/agent/charters.generated.ts` (build-time bundle; no runtime file reads on Workers).
 
 ---
@@ -104,6 +104,13 @@ Fin's first spine-integrated behavior (charter: "invoice hygiene · Watches: inv
 ### Fin — flagged (not done)
 - **Margin-per-engagement (40% floor) — data prerequisite.** The charter's headline Fin behavior needs per-engagement revenue/cost data; the `fin_*` schema is operational-finance only (bills/invoices/snapshots), no engagement margins. Needs a data model before it can be built.
 - **3 stale >90-day `fin_items`** (2024 dates) — one-time cleanup: mark actioned/dismissed in `/finn`. Not a code fix.
+
+## Biz value-proposer — built, **pending deploy** (2026-07-22, branch `feat/biz-value-proposer`)
+Biz's first spine behavior **and** the data-unlock for its charter Number (weighted pipeline coverage). No schema change.
+- **The gap:** `estimated_value` is null on all 39 active RFPs — it's a **manual Notion field** the RFP ingest never fills, so there's no data to weight the pipeline with. (All 39 do have a `one_pager` to extract from.)
+- **`/api/cron/biz-value-proposer`** (daily 15:00 UTC) — for active RFPs (radar/pursuing) missing a value, Claude (Haiku, `rfp-document-extraction`) proposes an estimated value from the one-pager (`lib/biz/value-extract.ts`), surfaced as a MEDIUM-tier **preview card** to Garrett. **On approve**, a new intervention executor `biz_set_estimated_value` writes it to **Notion** via `updateRfpOpportunity` (source of truth) → the hourly sync flows it to Supabase. Budget-gated + dedup by `notion_page_id`, so the ~39-item backfill paces itself (~3/day) and new RFPs get a proposal as they land. Skips RFPs where Claude finds no basis.
+- **Data constraint learned:** the sync is Notion→Supabase, so a Supabase-only write to `estimated_value` would be clobbered — approvals MUST write to Notion (they do).
+- **Display note (deferred):** Garrett reported the RFP "Lighthouse" shows no pursuing/submitted cards, but the DB has 12 pursuing (synced 22:00 2026-07-22) and the `/opportunities` board code includes them in `ACTIVE_STATUSES` — so it's a display/filter issue to chase separately, not missing data. `submitted` is genuinely 0 (RFPs go pursuing→won/lost).
 
 ## NEXT STEPS (in order)
 1. ~~Deploy the Opsy governance layer~~ **DONE** — live 21:40Z. First governance run: Monday 12:00 UTC.
