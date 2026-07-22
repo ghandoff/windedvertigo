@@ -5,7 +5,10 @@
  *   - user resolution (lib/agent/user-mapping)
  *   - per-user scope (lib/agent/user-scope)
  *   - tool whitelist + execution (lib/agent/tools/*)
- *   - Claude via AI Gateway (env-routed via `new Anthropic()`)
+ *   - Claude via the shared lazy client (lib/ai/client getAnthropic) — must be
+ *     acquired per-request, NOT at module scope, because Worker env vars aren't
+ *     available at isolate-init time (a bare module-level `new Anthropic()` gets
+ *     no key and falls back to the AI Gateway → 401)
  *   - bounded agentic loop (MAX_AGENT_TURNS + wall-clock deadline)
  *   - DM reply via slackAgentApi (uses SLACK_AGENT_BOT_TOKEN)
  *
@@ -13,7 +16,7 @@
  *   - waitUntil wiring (PR E — lives in the webhook route handler)
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropic } from "@/lib/ai/client";
 
 import { resolveUser } from "./user-mapping";
 import { getUserScope } from "./user-scope";
@@ -46,10 +49,6 @@ const HIGH_COST_TURN_THRESHOLD_USD = 0.10;
 const MAX_AGENT_TURNS = 5;
 const AGENT_TIMEOUT_MS = 30_000;
 const MODEL_ID: ModelId = "claude-sonnet-4-6";
-
-// `new Anthropic()` reads ANTHROPIC_API_KEY + ANTHROPIC_BASE_URL env vars,
-// which on Vercel prod + dev point at the AI Gateway (vck_ key + gateway URL).
-const anthropic = new Anthropic();
 
 interface SlackEventPayload {
   type?: string;
@@ -234,6 +233,11 @@ export async function runAgentTurn(payload: SlackEventPayload): Promise<void> {
   // W0.3 follow-up: track cache buckets separately for accurate weighted cost.
   let totalCacheCreateTokens = 0;
   let totalCacheReadTokens = 0;
+
+  // Acquire the Anthropic client per-request (see file header) — never at
+  // module scope: Worker env isn't available at isolate-init, so a bare
+  // module-level `new Anthropic()` has no key and 401s via the AI Gateway.
+  const anthropic = getAnthropic();
 
   try {
     while (turn < MAX_AGENT_TURNS) {
