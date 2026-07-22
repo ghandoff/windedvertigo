@@ -89,9 +89,16 @@ export async function transitionRfpStatus(
   if (status === "reviewing") {
     const opp = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
     if (opp && !opp.slackThreadTs) {
-      notifyDeferredRfp({ id, opp })
-        .then(({ ts, channel }) => (ts ? setRfpSlackThread(id, ts, channel) : undefined))
-        .catch(() => {});
+      // AWAIT — a fire-and-forget promise is dropped when the Worker isolate
+      // suspends after the response, so the post never runs. Await ensures the
+      // Slack post + ts-store complete first. Fail-open: never block the status
+      // change on Slack.
+      try {
+        const { ts, channel } = await notifyDeferredRfp({ id, opp });
+        if (ts) await setRfpSlackThread(id, ts, channel);
+      } catch {
+        /* Slack hiccup must not block the transition */
+      }
     }
   }
 }
