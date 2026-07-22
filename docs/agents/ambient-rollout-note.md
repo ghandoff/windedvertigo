@@ -49,6 +49,7 @@ The ≤3/agent/day + ≤5/human/day budget caps are your flood insurance across 
 
 ### procedure
 1. **Pre-flight (still on `sandbox`):**
+   - **Invite the wv-claw bot to the target channel** (`/invite @wv-claw` in `#studio-comms`; repeat for `#whirlpool` before `full`). REQUIRED for the channel-reading + channel-posting half — Slack only delivers a channel's messages to a bot that's a member, and channel posts can fail with `not_in_channel` otherwise. The DM behaviors work without it, so it's easy to miss (it was, on the first `studio-comms` flip 2026-07-22). Verify after: post a line in the channel and confirm it lands in `event_log`.
    - Post part 1 to `#studio-comms` (and `#whirlpool`) so the team knows what's coming.
    - Seed `time_off` (part 3) so absence-horizon has data — otherwise it's a silent no-op.
    - Skim the last week of `#agent-sandbox` — are the drafts good enough to send a real person? If a behavior is embarrassing, fix it before promoting (charters are yours to tune; thresholds live in code).
