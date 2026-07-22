@@ -37,10 +37,35 @@ async function renderPdfFirstPage(
   page: any,
   targetUrl: string,
 ): Promise<Buffer | null> {
-  const res = await fetch(targetUrl);
-  if (!res.ok) return null;
+  const LOG = "[tor-thumbnail]";
+  // A browser User-Agent is REQUIRED: without it many funder CDNs (e.g.
+  // brightspotcdn) block the Worker's default fetch and it fails. Some sites
+  // still hard-403 datacenter IPs (e.g. unicef.org's WAF) — those fail-open.
+  let res: Response;
+  try {
+    res = await fetch(targetUrl, {
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        accept: "application/pdf,*/*",
+      },
+      redirect: "follow",
+    });
+  } catch (e) {
+    console.warn(`${LOG} fetch threw for ${targetUrl.slice(0, 70)}: ${e instanceof Error ? e.message : e}`);
+    return null;
+  }
+  const ct = res.headers.get("content-type") ?? "";
+  if (!res.ok) {
+    console.warn(`${LOG} fetch ${res.status} (ct=${ct}) for ${targetUrl.slice(0, 70)}`);
+    return null;
+  }
   const bytes = Buffer.from(await res.arrayBuffer());
   if (bytes.length === 0 || bytes.length > 12_000_000) return null;
+  if (!ct.toLowerCase().includes("pdf") && bytes.subarray(0, 5).toString("latin1") !== "%PDF-") {
+    console.warn(`${LOG} not a PDF (ct=${ct}) for ${targetUrl.slice(0, 70)} — skipping`);
+    return null;
+  }
   const b64 = bytes.toString("base64");
 
   await page.setContent(
@@ -50,12 +75,12 @@ async function renderPdfFirstPage(
     { waitUntil: "load", timeout: 20_000 },
   );
 
-  const ok: boolean = await page.evaluate(
+  const result: { ok: boolean; err?: string } = await page.evaluate(
     async (b64data: string, workerSrc: string) => {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const lib = (window as any).pdfjsLib;
-        if (!lib) return false;
+        if (!lib) return { ok: false, err: "pdfjsLib not loaded" };
         lib.GlobalWorkerOptions.workerSrc = workerSrc;
         const raw = atob(b64data);
         const arr = new Uint8Array(raw.length);
@@ -64,21 +89,24 @@ async function renderPdfFirstPage(
         const p = await pdf.getPage(1);
         const viewport = p.getViewport({ scale: 1.4 });
         const canvas = document.getElementById("c") as HTMLCanvasElement | null;
-        if (!canvas) return false;
+        if (!canvas) return { ok: false, err: "no canvas" };
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         const ctx = canvas.getContext("2d");
-        if (!ctx) return false;
+        if (!ctx) return { ok: false, err: "no 2d ctx" };
         await p.render({ canvasContext: ctx, viewport }).promise;
-        return true;
-      } catch {
-        return false;
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, err: String((e && (e as Error).message) || e) };
       }
     },
     b64,
     `${PDFJS_BASE}/pdf.worker.min.js`,
   );
-  if (!ok) return null;
+  if (!result.ok) {
+    console.warn(`${LOG} pdfjs render failed for ${targetUrl.slice(0, 70)}: ${result.err ?? "unknown"}`);
+    return null;
+  }
 
   const el = await page.$("#c");
   if (!el) return null;
