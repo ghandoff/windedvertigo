@@ -71,6 +71,11 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     proposalStatus: (getSelect(props[P.proposalStatus]) as RfpOpportunity["proposalStatus"]) ?? null,
     proposalDraftUrl: getUrl(props[P.proposalDraftUrl]) ?? null,
     rfpDocumentUrl: getUrl(props[P.rfpDocumentUrl]) ?? null,
+    // TOR verification + thumbnail are Supabase-only — not Notion properties.
+    torVerifiedAt: null,
+    torVerifiedBy: null,
+    torThumbnailUrl: null,
+    torThumbnailGeneratedAt: null,
     questionBankUrl: getUrl(props[P.questionBankUrl]) ?? null,
     questionCount: getNumber(props[P.questionCount]),
     coverLetterUrl: getUrl(props[P.coverLetterUrl]) ?? null,

@@ -16,6 +16,7 @@ import mammoth from "mammoth";
 import { uploadAsset } from "@/lib/r2/upload";
 import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { setRfpDocumentUrl } from "@/lib/supabase/rfp-opportunities";
+import { scheduleBriefRegen } from "@/lib/rfp/regenerate-brief";
 import { clearExtractedRequirements, insertRequirements } from "@/lib/supabase/rfp-requirements";
 import { extractRequirements, extractRequirementsFromPdf } from "@/lib/ai/rfp-requirements-extractor";
 import { recordUsage } from "@/lib/ai/usage-store";
@@ -342,11 +343,15 @@ export async function POST(
 
   // Sync document URL to Supabase immediately — the detail page reads from
   // Supabase so without this write the widget shows "no document" until the
-  // next 15-min sync cron. Fire-and-forget: the Notion write is the critical
-  // path; a Supabase failure here is non-fatal (sync cron will catch up).
-  setRfpDocumentUrl(id, publicUrl).catch((err) => {
+  // next 15-min sync cron. Await so the brief regen below sees the new TOR.
+  await setRfpDocumentUrl(id, publicUrl).catch((err) => {
     console.warn("[rfp/document] supabase url sync failed (non-fatal):", err);
   });
+
+  // A real TOR just arrived → rebuild the one-pager brief from it (provenance
+  // → unverified-tor-doc until a human verifies) and refresh the TOR thumbnail.
+  // Background (waitUntil) so the upload response stays fast.
+  await scheduleBriefRegen(id);
 
   // Fire question parsing job (fire-and-forget — never blocks the response)
   const docPayload: RfpDocumentUploadedJob = {

@@ -28,7 +28,21 @@ export interface OnePagerInput {
   source?: string;
   geography?: string[];
   serviceMatch?: string[];
+  /**
+   * What text the caller is actually supplying — set the provenance HONESTLY so
+   * the brief is calibrated and never over-trusted. Not model-inferred.
+   */
+  sourceBasis: OnePager["sourceBasis"];
 }
+
+const SOURCE_BASIS_GUIDANCE: Record<OnePager["sourceBasis"], string> = {
+  "verified-tor":
+    "The text below is a human-VERIFIED full Terms of Reference. You may rely on it.",
+  "unverified-tor-doc":
+    "The text below appears to be a TOR document but has NOT been human-verified — ground every claim in it and flag anything ambiguous.",
+  "description-only":
+    "The text below is only an aggregator LISTING/DESCRIPTION, NOT a full TOR. Do NOT infer deliverables, conditions, or requirements that are not explicitly stated — leave those arrays empty rather than guessing, keep eligibility 'uncertain' unless a hard fact is knowable, and make clear in itemsToVerify that the real TOR must be located and read.",
+};
 
 export interface OnePagerResult {
   onePager: OnePager;
@@ -65,6 +79,8 @@ export async function generateOnePager(
 ${WV_PROFILE}
 
 Your task: read a grant/RFP and produce a concise ONE-PAGER the collective can review in under a minute — so a human can give early feedback and decide whether to pursue BEFORE any full proposal is drafted. Be specific and honest; if the fit or eligibility is weak, say so plainly.
+
+GROUNDING (critical — no hallucination): ${SOURCE_BASIS_GUIDANCE[input.sourceBasis]} Never invent facts, deliverables, budgets, timelines, or requirements that are not present in the provided text. If something is not stated, leave the field out (empty array / brief note) rather than guessing — an honest gap is far more useful than a plausible fabrication.
 
 Also judge whether the provided text is a FULL Terms of Reference (background, scope, deliverables, timeline, eligibility, submission requirements) or merely an announcement/website snippet linking to one — set "torIsReal" accordingly.
 
@@ -128,6 +144,8 @@ ${torText || "(none — only the triage snapshot is available)"}`;
       torConcern: typeof parsed.torConcern === "string" && parsed.torConcern.trim()
         ? parsed.torConcern.trim()
         : null,
+      // Provenance is authoritative from the caller, never the model's guess.
+      sourceBasis: input.sourceBasis,
     };
 
     return {

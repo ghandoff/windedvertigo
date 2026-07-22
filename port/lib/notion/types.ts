@@ -597,6 +597,16 @@ export interface OnePager {
   torIsReal: boolean;
   /** Note when torIsReal is false (what was fetched instead), else null. */
   torConcern: string | null;
+  /**
+   * What the brief was actually generated from — set EXPLICITLY by the caller,
+   * not guessed by the model. Drives the provenance badge and signals how much to
+   * trust the brief:
+   *   "verified-tor"       — a human-confirmed TOR document
+   *   "unverified-tor-doc" — a TOR doc/text was found but not human-confirmed
+   *   "description-only"    — only the aggregator listing/snapshot was available
+   *                           (treat as preliminary — no real TOR yet)
+   */
+  sourceBasis: "verified-tor" | "unverified-tor-doc" | "description-only";
 }
 
 export interface RfpOpportunity {
@@ -627,6 +637,14 @@ export interface RfpOpportunity {
   proposalStatus: "queued" | "generating" | "ready-for-review" | "complete" | "failed" | null;
   proposalDraftUrl: string | null;
   rfpDocumentUrl: string | null;
+  /** Human TOR-verification (Supabase-only). Set via the verify-tor gate; the
+   *  brief's provenance flips to "verified-tor" once this is set. */
+  torVerifiedAt: string | null;
+  torVerifiedBy: string | null;
+  /** R2 URL of a screenshot of the TOR doc / source page — visual confirmation
+   *  that a real TOR (not a website) is attached. Supabase-only. */
+  torThumbnailUrl: string | null;
+  torThumbnailGeneratedAt: string | null;
   questionBankUrl: string | null;
   questionCount: number | null;
   coverLetterUrl: string | null;

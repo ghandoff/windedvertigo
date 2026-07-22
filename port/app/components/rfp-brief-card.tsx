@@ -1,12 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ListChecks } from "lucide-react";
+import { AlertTriangle, ListChecks, CheckCircle2 } from "lucide-react";
 import type { OnePager } from "@/lib/notion/types";
 
 const ELIGIBILITY_STYLE: Record<OnePager["eligibility"]["verdict"], string> = {
   "likely-eligible": "bg-green-50 text-green-700 border-green-200",
   "likely-ineligible": "bg-red-50 text-red-700 border-red-200",
   uncertain: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
+// Provenance drives how much to trust the brief. Set explicitly at generation,
+// never guessed. The colour makes "no real TOR yet" impossible to miss.
+const PROVENANCE: Record<OnePager["sourceBasis"], { label: string; cls: string; icon: typeof CheckCircle2 }> = {
+  "verified-tor": {
+    label: "from verified TOR",
+    cls: "bg-green-50 text-green-700 border-green-200",
+    icon: CheckCircle2,
+  },
+  "unverified-tor-doc": {
+    label: "from unverified TOR — confirm",
+    cls: "bg-amber-50 text-amber-700 border-amber-200",
+    icon: AlertTriangle,
+  },
+  "description-only": {
+    label: "from listing only — no TOR yet",
+    cls: "bg-red-50 text-red-700 border-red-200",
+    icon: AlertTriangle,
+  },
 };
 
 function BulletList({ label, items }: { label: string; items: string[] }) {
@@ -33,14 +53,15 @@ export function RfpBriefCard({ onePager }: { onePager: OnePager }) {
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base">brief</CardTitle>
-          {!onePager.torIsReal && (
-            <Badge
-              variant="outline"
-              className="text-[10px] bg-amber-50 text-amber-700 border-amber-200 gap-1"
-            >
-              <AlertTriangle className="h-3 w-3" /> unverified TOR
-            </Badge>
-          )}
+          {(() => {
+            const p = PROVENANCE[onePager.sourceBasis ?? "description-only"];
+            const Icon = p.icon;
+            return (
+              <Badge variant="outline" className={`text-[10px] gap-1 ${p.cls}`}>
+                <Icon className="h-3 w-3" /> {p.label}
+              </Badge>
+            );
+          })()}
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">

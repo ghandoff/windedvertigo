@@ -17,6 +17,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { uploadAsset } from "@/lib/r2/upload";
 import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { setRfpDocumentUrl } from "@/lib/supabase/rfp-opportunities";
+import { scheduleBriefRegen } from "@/lib/rfp/regenerate-brief";
 import { clearExtractedRequirements, insertRequirements } from "@/lib/supabase/rfp-requirements";
 import { extractRequirements } from "@/lib/ai/rfp-requirements-extractor";
 import { recordUsage } from "@/lib/ai/usage-store";
@@ -242,6 +244,14 @@ export async function POST(
   };
   const { env } = getCloudflareContext();
   publishJob(env.RFP_DOCUMENT_QUEUE, docPayload).catch(() => {});
+
+  // The paste route previously wrote only Notion — sync the TOR URL to Supabase
+  // (the read layer) too, then rebuild the brief from the pasted TOR + refresh
+  // the thumbnail (background).
+  await setRfpDocumentUrl(id, publicUrl).catch((err) => {
+    console.warn("[rfp/document/paste] supabase url sync failed (non-fatal):", err);
+  });
+  await scheduleBriefRegen(id);
 
   return NextResponse.json({ ok: true, url: publicUrl, notionUpdated: true, extraction, requirementsTruncated });
 }

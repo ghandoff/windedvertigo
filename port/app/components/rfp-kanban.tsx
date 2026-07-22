@@ -267,6 +267,11 @@ function RfpCard({
           // Brief-ready indicator — signals the card has a review one-pager, with
           // the eligibility read as the most triage-useful at-a-glance signal.
           <div className="flex items-center gap-1 text-[10px] text-muted-foreground/80">
+            {(() => {
+              const b = rfp.onePager.sourceBasis ?? "description-only";
+              const dot = b === "verified-tor" ? "bg-green-500" : b === "unverified-tor-doc" ? "bg-amber-500" : "bg-red-500";
+              return <span className={`h-1.5 w-1.5 rounded-full ${dot}`} title={`brief source: ${b}`} />;
+            })()}
             <FileText className="h-3 w-3" />
             <span>brief</span>
             <span className="opacity-50">·</span>

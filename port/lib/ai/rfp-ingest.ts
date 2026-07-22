@@ -26,6 +26,7 @@ import { callClaude, parseJsonResponse } from "./client";
 import { uploadAsset } from "@/lib/r2/upload";
 import { upsertRfpOpportunityToSupabase, findActiveRfpDuplicateByName, setRfpOnePager } from "@/lib/supabase/rfp-opportunities";
 import { generateOnePager } from "./rfp-one-pager";
+import { scheduleTorThumbnail } from "@/lib/rfp/tor-thumbnail";
 import type { RfpSource } from "@/lib/notion/types";
 import type { RfpTriageResult } from "./rfp-triage";
 
@@ -834,11 +835,19 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
       source,
       geography: triage.geography,
       serviceMatch: triage.serviceMatch,
+      // Honest provenance: a TOR doc/text was found (inline/pdf) but not yet
+      // human-verified → "unverified-tor-doc"; otherwise only the listing → description-only.
+      sourceBasis: torStatus === "missing" ? "description-only" : "unverified-tor-doc",
     });
     if (brief) await setRfpOnePager(opp.id, brief.onePager);
   } catch (err) {
     console.warn("[rfp-ingest/one-pager] failed:", err);
   }
+
+  // ── TOR thumbnail (R1.5) ──────────────────────────────
+  // When enrichment found a TOR link, screenshot it (background/fail-open) so
+  // triage can see at a glance whether it's a real TOR document or a website.
+  if (recordedTorUrl) await scheduleTorThumbnail(opp.id, recordedTorUrl);
 
   return {
     created: true,
