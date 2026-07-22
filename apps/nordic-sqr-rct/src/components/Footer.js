@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 export default function Footer() {
   const { user } = useAuth();
   const pathname = usePathname();
-  const isPcs = pathname?.startsWith('/pcs');
+  const isPcs = pathname?.startsWith('/research/pcs') || pathname?.startsWith('/pcs');
 
   return (
     <footer className="bg-white border-t border-gray-200 mt-auto">

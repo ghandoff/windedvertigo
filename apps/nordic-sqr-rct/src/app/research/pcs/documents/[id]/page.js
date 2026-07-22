@@ -23,10 +23,14 @@ export default function PcsDocumentDetail() {
   useEffect(() => {
     Promise.all([
       fetch(`/api/pcs/documents/${id}`).then(r => r.json()),
-      fetch(`/api/pcs/versions?documentId=${id}`).then(r => r.json()),
+      // Defensive: on API error, fall back to [] so the sourceType redirect
+      // effect below never throws on versions.some(...) and strands the user.
+      fetch(`/api/pcs/versions?documentId=${id}`)
+        .then(r => (r.ok ? r.json() : []))
+        .catch(() => []),
     ]).then(([docData, versionsData]) => {
       setDoc(docData);
-      setVersions(versionsData);
+      setVersions(Array.isArray(versionsData) ? versionsData : []);
     }).finally(() => setLoading(false));
   }, [id]);
 

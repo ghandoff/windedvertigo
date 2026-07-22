@@ -22,6 +22,7 @@ function PcsClaims() {
   const versionId = searchParams.get('versionId');
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -30,12 +31,14 @@ function PcsClaims() {
     if (versionId) params.set('versionId', versionId);
     const qs = params.toString();
 
+    setError(null);
     fetch(`/api/pcs/claims${qs ? `?${qs}` : ''}`)
-      .then(res => res.json())
+      .then(res => (res.ok ? res.json() : Promise.reject(new Error(`Server error (${res.status})`))))
       // 2026-05-05 — Defensively unwrap. If the API errors (returns
       // {error: '…'}) or paginates ({items, nextCursor}) the PcsTable
       // below would crash on data.filter. Always coerce to array.
       .then((data) => setClaims(Array.isArray(data) ? data : (data?.items || [])))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [bucket, noEvidence, versionId]);
 
@@ -116,6 +119,18 @@ function PcsClaims() {
     : noEvidence === 'true'
     ? 'Claims — Evidence gaps'
     : 'All claims';
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Couldn&rsquo;t load claims — {error}. Refresh to try again; if it keeps
+          happening, use the feedback button to let us know.
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
