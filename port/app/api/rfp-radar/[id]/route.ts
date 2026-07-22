@@ -67,18 +67,16 @@ export async function PATCH(
     const updated = await updateRfpOpportunity(id, body);
 
     // Status change → the ONE shared transition path (identical to the Biz path):
-    // ensures the Supabase status write + the pursuing side-effect (proposal
-    // enqueue + GCal). Notion status was just written above, so skip the redundant
-    // write. This is what makes a drag and biz_set_bid_decision behave identically.
+    // ensures the Supabase status write + status side-effects (e.g. the GCal
+    // deadline event on pursuing). Notion status was just written above, so skip
+    // the redundant write. This is what makes a drag and biz_set_bid_decision
+    // behave identically. Note (R2): pursuing no longer auto-generates a proposal.
     if (body.status !== undefined) {
       const session = await auth();
       await transitionRfpStatus(id, body.status, {
         triggeredBy: session?.user?.email ?? "system",
         notionAlreadyWritten: true,
       });
-      if (body.status === "pursuing") {
-        return json({ ...updated, proposalStatus: "generating" as const });
-      }
     }
 
     return json(updated);

@@ -31,6 +31,7 @@ import { WinProbabilityBadge, computeWinProbability } from "@/app/components/ai-
 import { RfpDocumentUpload } from "@/app/components/rfp-document-upload";
 import { RfpReEnrichButton } from "@/app/components/rfp-re-enrich-button";
 import { RfpRegenerateButton } from "@/app/components/rfp-regenerate-button";
+import { RfpBriefCard } from "@/app/components/rfp-brief-card";
 import { ProposalProgressTracker } from "@/app/components/proposal-progress";
 import type { Organization } from "@/lib/notion/types";
 import type { RequirementKind } from "@/lib/supabase/rfp-requirements";
@@ -328,6 +329,9 @@ export default async function RfpDetailPage({ params }: Props) {
             </CardContent>
           </Card>
 
+          {/* one-pager brief (R1) — the review glance surfaced on pursuing (R2) */}
+          {rfp.onePager && <RfpBriefCard onePager={rfp.onePager} />}
+
           {/* requirements snapshot */}
           {rfp.requirementsSnapshot && (
             <Card>
@@ -455,8 +459,8 @@ export default async function RfpDetailPage({ params }: Props) {
                   ) : (
                     <span className="text-xs text-muted-foreground">
                       {rfp.status === "pursuing" || rfp.status === "submitted"
-                        ? "not yet generated"
-                        : "move to pursuing to generate"}
+                        ? "not yet generated — use the button below"
+                        : "review the brief, then generate when pursuing"}
                     </span>
                   )}
                 </div>
@@ -544,7 +548,7 @@ export default async function RfpDetailPage({ params }: Props) {
 
               {!hasProposalOutput && !rfp.proposalStatus && (
                 <p className="text-xs text-muted-foreground">
-                  proposal documents will appear here once generated. move the opportunity to pursuing to trigger generation.
+                  full proposal drafting no longer runs automatically — review the brief, then generate the full draft when the opportunity is pursued.
                 </p>
               )}
             </CardContent>

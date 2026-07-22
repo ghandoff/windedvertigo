@@ -263,6 +263,26 @@ function RfpCard({
             {rfp.requirementsSnapshot}
           </p>
         )}
+        {rfp.onePager && (
+          // Brief-ready indicator — signals the card has a review one-pager, with
+          // the eligibility read as the most triage-useful at-a-glance signal.
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground/80">
+            <FileText className="h-3 w-3" />
+            <span>brief</span>
+            <span className="opacity-50">·</span>
+            <span
+              className={
+                rfp.onePager.eligibility.verdict === "likely-ineligible"
+                  ? "text-red-600"
+                  : rfp.onePager.eligibility.verdict === "likely-eligible"
+                    ? "text-green-700"
+                    : ""
+              }
+            >
+              {rfp.onePager.eligibility.verdict.replace(/-/g, " ")}
+            </span>
+          </div>
+        )}
         {rfp.proposalStatus && (
           <div className="flex items-center gap-1.5 pt-0.5 border-t border-border/40">
             {rfp.proposalStatus === "generating" ? (

@@ -21,7 +21,7 @@
  */
 
 import { supabase } from "./client";
-import type { RfpOpportunity } from "@/lib/notion/types";
+import type { RfpOpportunity, OnePager } from "@/lib/notion/types";
 
 // ─── Row type ────────────────────────────────────────────────────────────────
 
@@ -42,6 +42,8 @@ interface RfpOpportunityRow {
   proposal_status: string | null;
   requirements_snapshot: string | null;
   decision_notes: string | null;
+  one_pager: OnePager | null;
+  one_pager_generated_at: string | null;
   source: string | null;
   deadline_timezone: string | null;
   url: string | null;
@@ -87,6 +89,8 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     source: (row.source as RfpOpportunity["source"]) ?? "Manual Entry",
     requirementsSnapshot: row.requirements_snapshot ?? "",
     decisionNotes: row.decision_notes ?? "",
+    onePager: row.one_pager ?? null,
+    onePagerGeneratedAt: row.one_pager_generated_at ?? null,
     url: row.url ?? "",
     proposalStatus: (row.proposal_status as RfpOpportunity["proposalStatus"]) ?? null,
     proposalDraftUrl: row.proposal_draft_url ?? null,
@@ -164,7 +168,7 @@ const SELECT_COLS =
   "notion_page_id, opportunity_name, status, opportunity_type, " +
   "organization_ids, related_project_ids, owner_ids, " +
   "estimated_value, due_date, wv_fit_score, service_match, category, geography, source, " +
-  "proposal_status, requirements_snapshot, decision_notes, deadline_timezone, " +
+  "proposal_status, requirements_snapshot, decision_notes, one_pager, one_pager_generated_at, deadline_timezone, " +
   "url, rfp_document_url, proposal_draft_url, question_bank_url, question_count, " +
   "cover_letter_url, team_cvs_url, expression_of_interest_url, financial_proposal_url, " +
   "what_worked, what_fell_flat, client_feedback, " +
@@ -548,6 +552,27 @@ export async function upsertRfpOpportunityToSupabase(
 
   if (error) {
     console.warn(`[supabase/rfp-opportunities] upsertRfpOpportunityToSupabase: ${error.message}`);
+  }
+}
+
+/**
+ * Persist the auto-generated one-pager brief for an RFP. Supabase-only (Notion
+ * has no equivalent), so this never round-trips through the sync. Fire-and-forget
+ * safe — logs a warning but never throws so it can't block ingest.
+ */
+export async function setRfpOnePager(
+  notionPageId: string,
+  onePager: OnePager,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      one_pager: onePager,
+      one_pager_generated_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpOnePager: ${error.message}`);
   }
 }
 

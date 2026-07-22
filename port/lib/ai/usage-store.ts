@@ -186,6 +186,7 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "next-best-action":       summary.byFeature["next-best-action"]?.costUsd       ?? 0,
     "org-enrichment":         summary.byFeature["org-enrichment"]?.costUsd         ?? 0,
     "rfp-triage":             summary.byFeature["rfp-triage"]?.costUsd             ?? 0,
+    "rfp-one-pager":          summary.byFeature["rfp-one-pager"]?.costUsd          ?? 0,
     "proposal-generation":    summary.byFeature["proposal-generation"]?.costUsd    ?? 0,
     "rfp-document-extraction":summary.byFeature["rfp-document-extraction"]?.costUsd ?? 0,
     "rfp-question-parse":     summary.byFeature["rfp-question-parse"]?.costUsd     ?? 0,

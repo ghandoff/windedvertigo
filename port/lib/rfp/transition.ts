@@ -16,17 +16,10 @@ import type { RfpStatus } from "@/lib/notion/types";
 import {
   setRfpStatus,
   getRfpOpportunityByIdFromSupabase,
-  setProposalStatus,
 } from "@/lib/supabase/rfp-opportunities";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { publishJob } from "@windedvertigo/job-queue";
-import type { RfpProposalJob } from "@windedvertigo/job-queue/types";
-import type { PortCfEnv } from "@/lib/cf-env";
 import { createRfpDeadlineEvent } from "@/lib/gcal";
 import { postToChannel } from "@/lib/slack";
 import { syncWonRfpToDeal } from "@/lib/rfp/deal-sync";
-
-const PROPOSAL_ACTIVE = new Set(["ready-for-review", "generating", "queued"]);
 
 export interface TransitionOpts {
   /** who triggered it — a session email, or "biz" for the agent path */
@@ -38,8 +31,9 @@ export interface TransitionOpts {
 
 /**
  * Move an opportunity to `status` durably (Supabase + Notion) and run the
- * status's side-effects. Moving to `pursuing` kicks off proposal generation —
- * the same behaviour a drag to the pursuing column produces.
+ * status's side-effects. Moving to `pursuing` no longer auto-generates the full
+ * proposal (R2) — the one-pager brief is the review glance, and the full draft
+ * is triggered explicitly via the "generate full draft" button.
  */
 export async function transitionRfpStatus(
   id: string,
@@ -73,28 +67,16 @@ export async function transitionRfpStatus(
     }
   }
 
-  // 2. pursuing → generate the proposal draft (idempotent guard against re-fires)
+  // 2. pursuing → R2: do NOT auto-generate the full proposal draft. The one-pager
+  //    brief (generated at intake) is the "glance" a human reviews; the full
+  //    12k-token draft is triggered explicitly via the "generate full draft"
+  //    button (POST /api/rfp-radar/[id]/regenerate-proposal). Removing the
+  //    enqueue here stops unattended token spend on EVERY path that reaches
+  //    pursuing — manual drag, the go/no-go cron's "bid" auto-advance, and the
+  //    Biz agent — since they all funnel through this one function.
   if (status === "pursuing") {
+    // still surface the deadline on the calendar — fire-and-forget
     const fresh = await getRfpOpportunityByIdFromSupabase(id).catch(() => null);
-    const alreadyActive = !!fresh?.proposalStatus && PROPOSAL_ACTIVE.has(fresh.proposalStatus);
-    if (!alreadyActive) {
-      await Promise.all([
-        updateRfpOpportunity(id, { proposalStatus: "generating" }),
-        setProposalStatus(id, "generating"),
-      ]);
-      try {
-        const { env } = getCloudflareContext();
-        await publishJob((env as unknown as PortCfEnv).PROPOSAL_QUEUE, {
-          type: "rfp/generate-proposal",
-          rfpId: id,
-          triggeredBy: opts.triggeredBy ?? "system",
-          requestedAt: new Date().toISOString(),
-        } satisfies RfpProposalJob);
-      } catch (err) {
-        console.warn("[transitionRfpStatus] failed to enqueue proposal job:", err);
-      }
-      // auto-create the GCal deadline event — fire-and-forget
-      if (fresh) createRfpDeadlineEvent(fresh).catch(() => {});
-    }
+    if (fresh) createRfpDeadlineEvent(fresh).catch(() => {});
   }
 }

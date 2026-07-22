@@ -64,6 +64,9 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     source: getSelect(props[P.source]) as RfpOpportunity["source"],
     requirementsSnapshot: getText(props[P.requirementsSnapshot]),
     decisionNotes: getText(props[P.decisionNotes]),
+    // one_pager lives in Supabase only (generated at intake) — not a Notion property.
+    onePager: null,
+    onePagerGeneratedAt: null,
     url: getUrl(props[P.url]),
     proposalStatus: (getSelect(props[P.proposalStatus]) as RfpOpportunity["proposalStatus"]) ?? null,
     proposalDraftUrl: getUrl(props[P.proposalDraftUrl]) ?? null,
