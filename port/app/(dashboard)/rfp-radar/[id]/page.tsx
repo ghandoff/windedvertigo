@@ -32,6 +32,7 @@ import { RfpDocumentUpload } from "@/app/components/rfp-document-upload";
 import { RfpReEnrichButton } from "@/app/components/rfp-re-enrich-button";
 import { RfpRegenerateButton } from "@/app/components/rfp-regenerate-button";
 import { RfpBriefCard } from "@/app/components/rfp-brief-card";
+import { RfpTorTrust } from "@/app/components/rfp-tor-trust";
 import { ProposalProgressTracker } from "@/app/components/proposal-progress";
 import type { Organization } from "@/lib/notion/types";
 import type { RequirementKind } from "@/lib/supabase/rfp-requirements";
@@ -571,6 +572,14 @@ export default async function RfpDetailPage({ params }: Props) {
             </CardHeader>
             <CardContent className="space-y-3">
               <RfpDocumentUpload rfpId={id} currentUrl={rfp.rfpDocumentUrl} />
+              <RfpTorTrust
+                rfpId={id}
+                docUrl={rfp.rfpDocumentUrl}
+                sourceUrl={rfp.url || null}
+                thumbnailUrl={rfp.torThumbnailUrl}
+                torVerifiedAt={rfp.torVerifiedAt}
+                torVerifiedBy={rfp.torVerifiedBy}
+              />
               {!rfp.rfpDocumentUrl && rfp.url?.startsWith("http") && (
                 <RfpReEnrichButton rfpId={id} />
               )}

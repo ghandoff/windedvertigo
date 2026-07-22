@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase/client";
+import { scheduleBriefRegen } from "@/lib/rfp/regenerate-brief";
 
 export async function POST(
   _req: NextRequest,
@@ -36,6 +37,10 @@ export async function POST(
     console.error("[verify-tor] supabase update failed:", error);
     return NextResponse.json({ error: "verification write failed", detail: error.message }, { status: 500 });
   }
+
+  // Now that the TOR is human-verified, rebuild the brief FROM it (provenance
+  // flips to "verified-tor") and refresh the thumbnail — in the background.
+  await scheduleBriefRegen(id);
 
   console.warn(`[verify-tor] ${id} verified by ${session.user.email}`);
   return NextResponse.json({ ok: true, verifiedBy: session.user.email, verifiedAt: new Date().toISOString() });

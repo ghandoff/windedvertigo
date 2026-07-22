@@ -68,6 +68,8 @@ export async function POST(req: NextRequest) {
         source: (row.source as string) ?? undefined,
         geography: splitList(row.geography as string | null),
         serviceMatch: splitList(row.service_match as string | null),
+        // Backfill runs from requirements_snapshot only — no real TOR text.
+        sourceBasis: "description-only",
       });
       if (brief) {
         await setRfpOnePager(rfpId, brief.onePager);

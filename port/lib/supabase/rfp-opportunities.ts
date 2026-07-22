@@ -48,6 +48,10 @@ interface RfpOpportunityRow {
   deadline_timezone: string | null;
   url: string | null;
   rfp_document_url: string | null;
+  tor_verified_at: string | null;
+  tor_verified_by: string | null;
+  tor_thumbnail_url: string | null;
+  tor_thumbnail_generated_at: string | null;
   proposal_draft_url: string | null;
   question_bank_url: string | null;
   question_count: number | null;
@@ -95,6 +99,10 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     proposalStatus: (row.proposal_status as RfpOpportunity["proposalStatus"]) ?? null,
     proposalDraftUrl: row.proposal_draft_url ?? null,
     rfpDocumentUrl: row.rfp_document_url ?? null,
+    torVerifiedAt: row.tor_verified_at ?? null,
+    torVerifiedBy: row.tor_verified_by ?? null,
+    torThumbnailUrl: row.tor_thumbnail_url ?? null,
+    torThumbnailGeneratedAt: row.tor_thumbnail_generated_at ?? null,
     questionBankUrl: row.question_bank_url ?? null,
     questionCount: row.question_count ?? null,
     coverLetterUrl: row.cover_letter_url ?? null,
@@ -169,7 +177,8 @@ const SELECT_COLS =
   "organization_ids, related_project_ids, owner_ids, " +
   "estimated_value, due_date, wv_fit_score, service_match, category, geography, source, " +
   "proposal_status, requirements_snapshot, decision_notes, one_pager, one_pager_generated_at, deadline_timezone, " +
-  "url, rfp_document_url, proposal_draft_url, question_bank_url, question_count, " +
+  "url, rfp_document_url, tor_verified_at, tor_verified_by, tor_thumbnail_url, tor_thumbnail_generated_at, " +
+  "proposal_draft_url, question_bank_url, question_count, " +
   "cover_letter_url, team_cvs_url, expression_of_interest_url, financial_proposal_url, " +
   "what_worked, what_fell_flat, client_feedback, " +
   "lessons_for_next_time, proposal_notes, influenced_by_event_ids, " +
@@ -573,6 +582,26 @@ export async function setRfpOnePager(
     .eq("notion_page_id", notionPageId);
   if (error) {
     console.warn(`[supabase/rfp-opportunities] setRfpOnePager: ${error.message}`);
+  }
+}
+
+/**
+ * Persist the TOR thumbnail R2 URL for an RFP. Supabase-only. Fire-and-forget
+ * safe — logs a warning but never throws.
+ */
+export async function setRfpTorThumbnail(
+  notionPageId: string,
+  thumbnailUrl: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      tor_thumbnail_url: thumbnailUrl,
+      tor_thumbnail_generated_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpTorThumbnail: ${error.message}`);
   }
 }
 
