@@ -43,6 +43,7 @@ function PcsRequests() {
 
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
   const fetchRows = useCallback(() => {
@@ -54,9 +55,11 @@ function PcsRequests() {
     // member's Notion workspace user id is wired into the Assignee field, the
     // server-side contains-filter will match. Until then, "mine" often returns empty.
     if (filter === 'mine' && user?.reviewerId) params.set('assigneeId', user.reviewerId);
+    setError(null);
     return fetch(`/api/pcs/requests?${params.toString()}`)
-      .then(r => r.json())
+      .then(r => (r.ok ? r.json() : Promise.reject(new Error(`Server error (${r.status})`))))
       .then(data => setRows(Array.isArray(data) ? data : []))
+      .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [filter, pcsIdParam, user?.reviewerId]);
 
@@ -191,6 +194,13 @@ function PcsRequests() {
           </button>
         ))}
       </div>
+
+      {error && !loading ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Couldn&rsquo;t load requests — {error}. Refresh to try again; if it keeps
+          happening, use the feedback button to let us know.
+        </div>
+      ) : null}
 
       {loading ? (
         <div className="animate-pulse space-y-2">

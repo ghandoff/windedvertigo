@@ -20,7 +20,7 @@
  * remains for top-level wayfinding; the sidebar is the per-role left rail.
  *
  * Wave 7.4 live adoption (2026-05-03): this component is now mounted in the
- * `/pcs/*` workspace layout (`src/app/pcs/layout.js`) via `deriveSidebarRole`,
+ * `/research/pcs/*` workspace layout (`src/app/research/pcs/layout.js`) via `deriveSidebarRole`,
  * which picks the highest-precedence role from `user.roles[]`. The
  * `/admin/sidebar-preview` page remains as a dev tool for super-users to
  * preview each role's layout in isolation. The 7.2.0 WorkspaceShell refactor

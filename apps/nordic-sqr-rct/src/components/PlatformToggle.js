@@ -28,7 +28,8 @@ const PLATFORMS = {
   pcs: {
     key: 'pcs',
     label: 'PCS',
-    href: '/pcs',
+    // Canonical PCS home — the legacy /pcs tree now 308-redirects here.
+    href: '/research/pcs',
     activeClasses: 'bg-pacific-600 text-white shadow-sm',
     inactiveClasses: 'text-pacific-700 hover:bg-pacific-50',
   },

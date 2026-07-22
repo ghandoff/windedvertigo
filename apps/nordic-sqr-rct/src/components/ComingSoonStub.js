@@ -25,7 +25,7 @@ export default function ComingSoonStub({
   status = 'On the retainer roadmap.',
   whatExistsToday = [],
   expectedShip = null,
-  backHref = '/pcs',
+  backHref = '/research/pcs',
   backLabel = 'Back to Command Center',
 }) {
   return (
