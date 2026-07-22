@@ -71,7 +71,17 @@
     "SITE_ORIGIN": "https://windedvertigo.com",
     // listen-library TTS engine — must match wv-port-jobs so the dedupe content
     // hash (computed here at submit) lines up with what the consumer renders.
-    "LISTEN_TTS_PROVIDER": "cloudflare-aura"
+    "LISTEN_TTS_PROVIDER": "cloudflare-aura",
+    // Ambient-agent rollout stage (docs/agents/ambient-rollout-note.md):
+    // "sandbox" | "studio-comms" | "full". Read at runtime by
+    // lib/agent/ambient-rollout.ts. Kept HERE, not dashboard-only, ON PURPOSE:
+    // `wrangler deploy` replaces the Worker's vars with this block on every
+    // deploy, so a dashboard-only value would be silently wiped back to the
+    // "sandbox" default on the next unrelated deploy. To change stages,
+    // edit this line + redeploy. For an INSTANT emergency rollback, set it to
+    // "sandbox" in the Cloudflare dashboard (applies immediately; then also
+    // change it here, or the next deploy re-asserts this value).
+    "AMBIENT_ROLLOUT_STAGE": "studio-comms"
   },
 
   // ── Routes ───────────────────────────────────────────────────────────────
