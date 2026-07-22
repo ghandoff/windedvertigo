@@ -278,6 +278,12 @@ const CRON_TABLE: CronEntry[] = [
   // governance digest only when there's a signal. Monday 12:00 UTC — after
   // opsy-digest (07:00) so the week's data is settled.
   { path: "/api/cron/opsy-initiative-metrics", hours: [12], weekdays: [1] },
+
+  // Fin — weekly financial-obligations digest (charter: "invoice hygiene").
+  // Surfaces overdue + due-soon fin_items (the fin-email/box scans ingest them
+  // but nothing surfaced them). Monday 13:00 UTC — after the daily fin scans
+  // (07:00/08:00) refresh the data. Only DMs Garrett when there's something.
+  { path: "/api/cron/fin-obligations-digest", hours: [13], weekdays: [1] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE

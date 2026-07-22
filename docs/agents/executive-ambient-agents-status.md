@@ -28,7 +28,7 @@ so far. Everything proactive is gated to a private sandbox until explicitly prom
 | **Fin** | CFO — margin, invoices, runway | `/finn` | `fin_*` | 10 / 8 / 81 items |
 | **Biz** | BD — pipeline coverage, go/no-go, proposals | `/biz` | `biz_*` | 172 / 42 / 31 roadmap |
 
-- **Pilot proactive behaviors wired so far:** Mo (win-event reaction, content-runway watch, Friday scorecard, claim-boundary flags via the ambient sweep) and PaM (meeting→owner-confirmation DM, promise detection, Monday digest, absence-horizon). **Opsy** now has its first spine-integrated behavior — the weekly initiative-quality / governance review (graduation + threshold-tuning proposals to Garrett; see "Opsy governance layer" below). Biz/cARL/Fin remain **phase 3** per the charters — not yet ambient.
+- **Pilot proactive behaviors wired so far:** Mo (win-event reaction, content-runway watch, Friday scorecard, claim-boundary flags via the ambient sweep) and PaM (meeting→owner-confirmation DM, promise detection, Monday digest, absence-horizon). **Opsy** has its first spine-integrated behavior — the weekly initiative-quality / governance review (see "Opsy governance layer" below). **Fin** now has its first — a weekly obligations-hygiene digest (see "Fin obligations digest" below). **Biz + cARL remain phase 3** and are **blocked from ambient work by open PRs** (#296 cARL dashboard; #405/#406 RFP/Biz) — build once those merge to avoid file collisions.
 - Governance: `docs/agents/executive-charters.md` defines each agent's watch-list, permissions, and risk tiers. **Garrett edits it only.** Edits reach the code via `npm run sync:charters` → `port/lib/agent/charters.generated.ts` (build-time bundle; no runtime file reads on Workers).
 
 ---
@@ -90,12 +90,22 @@ Opsy's first spine-integrated behavior, per its charter ("initiative-quality met
 - **`/api/cron/opsy-initiative-metrics`** (weekly, Mon 12:00 UTC in `CRON_TABLE`) — classifies, and *only when there's a signal* DMs Garrett a digest + logs one LOW-tier Opsy row. Quiet week → silent (no row, no ping). Budget-exempt (scheduled standing report). It only **proposes** — granting a permission is Garrett editing the charter → `npm run sync:charters` → redeploy; no code path auto-grants.
 - Against today's data it would correctly emit **nothing** (the 102 PaM cards are unresolved, not "noisy"; nothing has ≥100 resolved instances yet).
 
+## Fin obligations digest — built, **pending deploy** (2026-07-21, branch `feat/fin-obligations-digest`)
+Fin's first spine-integrated behavior (charter: "invoice hygiene · Watches: invoices, milestone dates"). The `fin-email-scan`/`fin-box-scan` crons ingest bills/invoices/tax notices into `fin_items` but nothing surfaced the overdue ones (81 open, 11 overdue at build). No schema change → no migration.
+- **`/api/cron/fin-obligations-digest`** (weekly, Mon 13:00 UTC) — reads `fin-data.ts` (`getOpenFinItems` + `getUpcomingFinItems(14)`), DMs Garrett a single digest of **overdue + due-soon** items, only when non-empty; logs one `fin` `act_low` row. Budget-exempt standing report, same shape as Opsy's. A **digest, not per-item cards** — Fin can't execute anything (can't pay a bill), so approve/ignore has no action, and 11 items would be 11 cards over the 3/day cap.
+- **Recency window `OVERDUE_LOOKBACK_DAYS = 60`** — 3 of the 11 "overdue" rows are stale 2024 items (oldest 2024-04-15) that were ingested and never actioned; the window drops them so Fin doesn't nag about 2-year-old cruft. Against today's data it emits **8 overdue, 0 due-soon**.
+- Fin is deliberately **NOT** in Opsy's `ACTIVE_AMBIENT_AGENTS` quiet-list — a silent week (no overdue items) is correct for Fin, not a fault.
+
+### Fin — flagged (not done)
+- **Margin-per-engagement (40% floor) — data prerequisite.** The charter's headline Fin behavior needs per-engagement revenue/cost data; the `fin_*` schema is operational-finance only (bills/invoices/snapshots), no engagement margins. Needs a data model before it can be built.
+- **3 stale >90-day `fin_items`** (2024 dates) — one-time cleanup: mark actioned/dismissed in `/finn`. Not a code fix.
+
 ## NEXT STEPS (in order)
 1. ~~Deploy the Opsy governance layer~~ **DONE** — live 21:40Z. First governance run: Monday 12:00 UTC.
 2. Run the remaining phase-1 acceptance criteria (spec §4) as data arrives: Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test (trigger the sweep, confirm `dmed ≤ 3`); `/inbox` render + working buttons; metrics endpoint. (Deferred to the natural cycle.)
 3. **Promotion-readiness pack written** → `docs/agents/ambient-rollout-note.md` (team-facing card guide, the staged-promotion runbook, and the `time_off` seed SQL). Remaining human steps: seed `time_off`, post part 1 to the team, then flip `AMBIENT_ROLLOUT_STAGE`.
 4. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full` per the runbook. **`studio-comms` is the big step** (real DMs + `#studio-comms` watching turn on together).
-5. Phase 3 — extend spine-integrated ambient behaviors to Biz (RFP go/no-go cards), cARL (citation gate), Fin (margin-floor alerts). Grow `ACTIVE_AMBIENT_AGENTS` in `opsy-governance.ts` as each lands so quiet-detection covers them.
+5. Phase 3 — remaining spine-integrated ambient behaviors: **Fin obligations digest ✓ built** (above); **Biz** (RFP go/no-go cards) and **cARL** (citation gate) are **blocked by open PRs #296 / #405–#406** — build once they merge. Fin's margin-floor behavior waits on an engagement-cost data model. Grow `ACTIVE_AMBIENT_AGENTS` in `opsy-governance.ts` as each *continuously-firing* behavior lands (Fin's digest is intentionally excluded — a silent week is fine).
 
 ## how we work (constraints learned this session)
 - **Claude writes + commits + pushes; Garrett runs the deploy.** `npm run deploy:cf` gets blocked by this environment's permission classifier when Claude runs it. Same occasionally for Supabase DDL — apply blocked migrations by hand in the SQL editor.
