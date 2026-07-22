@@ -26,7 +26,7 @@ import { recordUsage } from "./usage-store";
 let _client: Anthropic | null = null;
 let _cachedKey: string | undefined;
 
-function getAnthropic(): Anthropic {
+export function getAnthropic(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
   if (!_client || apiKey !== _cachedKey) {
