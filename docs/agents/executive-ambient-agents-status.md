@@ -93,8 +93,8 @@ Opsy's first spine-integrated behavior, per its charter ("initiative-quality met
 ## NEXT STEPS (in order)
 1. ~~Deploy the Opsy governance layer~~ **DONE** — live 21:40Z. First governance run: Monday 12:00 UTC.
 2. Run the remaining phase-1 acceptance criteria (spec §4) as data arrives: Mo win-event card; HIGH-tier auto-expiry (default-deny); budget-suppression test (trigger the sweep, confirm `dmed ≤ 3`); `/inbox` render + working buttons; metrics endpoint. (Deferred to the natural cycle.)
-3. Seed `time_off` for the absence-horizon behavior.
-4. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full`, with a whirlpool rollout note before `full`.
+3. **Promotion-readiness pack written** → `docs/agents/ambient-rollout-note.md` (team-facing card guide, the staged-promotion runbook, and the `time_off` seed SQL). Remaining human steps: seed `time_off`, post part 1 to the team, then flip `AMBIENT_ROLLOUT_STAGE`.
+4. Human gate — promote `AMBIENT_ROLLOUT_STAGE`: `sandbox` → `studio-comms` → `full` per the runbook. **`studio-comms` is the big step** (real DMs + `#studio-comms` watching turn on together).
 5. Phase 3 — extend spine-integrated ambient behaviors to Biz (RFP go/no-go cards), cARL (citation gate), Fin (margin-floor alerts). Grow `ACTIVE_AMBIENT_AGENTS` in `opsy-governance.ts` as each lands so quiet-detection covers them.
 
 ## how we work (constraints learned this session)
