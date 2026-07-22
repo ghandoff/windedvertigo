@@ -69,6 +69,8 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     onePagerGeneratedAt: null,
     url: getUrl(props[P.url]),
     proposalStatus: (getSelect(props[P.proposalStatus]) as RfpOpportunity["proposalStatus"]) ?? null,
+    // proposal_stale is Supabase-only — not a Notion property.
+    proposalStale: false,
     proposalDraftUrl: getUrl(props[P.proposalDraftUrl]) ?? null,
     rfpDocumentUrl: getUrl(props[P.rfpDocumentUrl]) ?? null,
     // TOR verification + thumbnail are Supabase-only — not Notion properties.

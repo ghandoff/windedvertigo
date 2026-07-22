@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
   ArrowLeft, ExternalLink, CalendarDays, DollarSign,
-  FileText, Mail, Users, ListChecks, MapPin, Tag, Layers, Pencil,
+  FileText, Mail, Users, ListChecks, MapPin, Tag, Layers, Pencil, AlertTriangle,
 } from "lucide-react";
 import { deadlineAsPT } from "@/lib/format";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
@@ -464,6 +464,15 @@ export default async function RfpDetailPage({ params }: Props) {
                         : "review the brief, then generate when pursuing"}
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* Stale-draft warning — the TOR was replaced after this draft was generated */}
+              {rfp.proposalStale &&
+               (rfp.proposalStatus === "ready-for-review" || rfp.proposalStatus === "complete") && (
+                <div className="flex items-start gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />
+                  <span>this draft predates the current TOR — regenerate to rebuild it from the replaced document.</span>
                 </div>
               )}
 

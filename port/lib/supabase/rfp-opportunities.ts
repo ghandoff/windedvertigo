@@ -44,6 +44,7 @@ interface RfpOpportunityRow {
   decision_notes: string | null;
   one_pager: OnePager | null;
   one_pager_generated_at: string | null;
+  proposal_stale: boolean | null;
   source: string | null;
   deadline_timezone: string | null;
   url: string | null;
@@ -97,6 +98,7 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     onePagerGeneratedAt: row.one_pager_generated_at ?? null,
     url: row.url ?? "",
     proposalStatus: (row.proposal_status as RfpOpportunity["proposalStatus"]) ?? null,
+    proposalStale: row.proposal_stale ?? false,
     proposalDraftUrl: row.proposal_draft_url ?? null,
     rfpDocumentUrl: row.rfp_document_url ?? null,
     torVerifiedAt: row.tor_verified_at ?? null,
@@ -176,7 +178,7 @@ const SELECT_COLS =
   "notion_page_id, opportunity_name, status, opportunity_type, " +
   "organization_ids, related_project_ids, owner_ids, " +
   "estimated_value, due_date, wv_fit_score, service_match, category, geography, source, " +
-  "proposal_status, requirements_snapshot, decision_notes, one_pager, one_pager_generated_at, deadline_timezone, " +
+  "proposal_status, proposal_stale, requirements_snapshot, decision_notes, one_pager, one_pager_generated_at, deadline_timezone, " +
   "url, rfp_document_url, tor_verified_at, tor_verified_by, tor_thumbnail_url, tor_thumbnail_generated_at, " +
   "proposal_draft_url, question_bank_url, question_count, " +
   "cover_letter_url, team_cvs_url, expression_of_interest_url, financial_proposal_url, " +
@@ -602,6 +604,43 @@ export async function setRfpTorThumbnail(
     .eq("notion_page_id", notionPageId);
   if (error) {
     console.warn(`[supabase/rfp-opportunities] setRfpTorThumbnail: ${error.message}`);
+  }
+}
+
+/**
+ * Handle a TOR replacement: a new document invalidates the prior human
+ * verification, and (if a draft was already built) marks that draft stale so the
+ * UI can prompt a regenerate. Supabase-only. Throws on error so the caller can
+ * log — replacement side-effects should not silently no-op.
+ */
+export async function markTorReplaced(
+  notionPageId: string,
+  opts: { staleDraft: boolean },
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      tor_verified_at: null,
+      tor_verified_by: null,
+      ...(opts.staleDraft ? { proposal_stale: true } : {}),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    throw new Error(`[supabase/rfp-opportunities] markTorReplaced: ${error.message}`);
+  }
+}
+
+/** Set/clear the proposal-stale flag. Cleared when a fresh draft is (re)generated. */
+export async function setRfpProposalStale(
+  notionPageId: string,
+  stale: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ proposal_stale: stale })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpProposalStale: ${error.message}`);
   }
 }
 
