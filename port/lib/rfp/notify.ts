@@ -14,8 +14,9 @@
  * fail to record RFPs because Slack hiccupped.
  */
 
-import { postToChannel, buildMentionsFromEmails } from "@/lib/slack";
+import { postToChannel, postToChannelResilientDetailed, buildMentionsFromEmails } from "@/lib/slack";
 import type { TorStatus } from "@/lib/ai/rfp-ingest";
+import type { RfpOpportunity } from "@/lib/notion/types";
 
 // ── config ────────────────────────────────────────────────
 
@@ -251,5 +252,69 @@ export async function notifyHighFitRfpNow(alert: HighFitRfpAlert): Promise<void>
     }
   } catch (err) {
     console.error("[rfp/notify] notifyHighFitRfpNow unexpected error:", err);
+  }
+}
+
+// ── deferred → collective review notification ─────────────
+
+const PROVENANCE_LABEL: Record<string, string> = {
+  "verified-tor": "✅ from verified tor",
+  "unverified-tor-doc": "🟡 from unverified tor — confirm",
+  "description-only": "🔴 from listing only — no tor yet",
+};
+
+/**
+ * Post a Slack notification when an RFP is deferred, so the collective can
+ * review the one-pager brief async and reply in-thread with notes before the
+ * Wednesday whirlpool. Returns the posted message `ts` + resolved channel so
+ * the caller can store them on the RFP (for correlating inbound replies later).
+ * Fail-open — never throws.
+ */
+export async function notifyDeferredRfp(
+  input: { id: string; opp: RfpOpportunity },
+): Promise<{ ts: string | null; channel: string }> {
+  const { id, opp } = input;
+  try {
+    const base = portBaseUrl();
+    const portLink = `${base}/rfp-radar/${id}`;
+    const mentions = await buildMentionsFromEmails(MENTION_EMAILS);
+    const op = opp.onePager;
+
+    const summaryLine = op?.summary
+      ? `_${escapeMrkdwn(op.summary.slice(0, 240))}${op.summary.length > 240 ? "…" : ""}_`
+      : null;
+    const eligLine = op
+      ? `• eligibility: *${op.eligibility.verdict.replace(/-/g, " ")}*${op.eligibility.note ? ` — ${escapeMrkdwn(op.eligibility.note)}` : ""}`
+      : null;
+    const fitLine = `• fit: ${opp.wvFitScore ?? "TBD"}  ·  due: ${formatDueDate(opp.dueDate?.start)}`;
+    const provLine = op ? `• ${PROVENANCE_LABEL[op.sourceBasis] ?? op.sourceBasis}` : null;
+    const delivLine =
+      op && op.deliverables.length
+        ? `• deliverables: ${op.deliverables.slice(0, 3).map(escapeMrkdwn).join("; ")}${op.deliverables.length > 3 ? "…" : ""}`
+        : null;
+
+    const text = [
+      `🕵️ *deferred for review:* <${portLink}|${escapeMrkdwn(opp.opportunityName)}>`,
+      summaryLine,
+      "",
+      eligLine,
+      fitLine,
+      provLine,
+      delivLine,
+      "",
+      `👉 read the brief and *reply in this thread* with your notes before wednesday's whirlpool.`,
+      mentions || null,
+    ]
+      .filter((l) => l !== null && l !== undefined)
+      .join("\n");
+
+    const res = await postToChannelResilientDetailed(CHANNEL, text, MENTION_EMAILS);
+    if (!res.posted) {
+      console.warn(`[rfp/notify] deferred ping posted=false — check the bot is invited to ${CHANNEL}`);
+    }
+    return { ts: res.ts ?? null, channel: res.resolvedChannel ?? CHANNEL };
+  } catch (err) {
+    console.error("[rfp/notify] notifyDeferredRfp unexpected error:", err);
+    return { ts: null, channel: CHANNEL };
   }
 }

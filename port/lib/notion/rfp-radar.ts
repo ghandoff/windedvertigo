@@ -78,6 +78,9 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     torVerifiedBy: null,
     torThumbnailUrl: null,
     torThumbnailGeneratedAt: null,
+    // Slack thread anchor is Supabase-only (R4).
+    slackThreadTs: null,
+    slackChannelId: null,
     questionBankUrl: getUrl(props[P.questionBankUrl]) ?? null,
     questionCount: getNumber(props[P.questionCount]),
     coverLetterUrl: getUrl(props[P.coverLetterUrl]) ?? null,

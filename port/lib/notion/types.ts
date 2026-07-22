@@ -649,6 +649,10 @@ export interface RfpOpportunity {
    *  that a real TOR (not a website) is attached. Supabase-only. */
   torThumbnailUrl: string | null;
   torThumbnailGeneratedAt: string | null;
+  /** Slack thread anchor for the deferred-review notification (R4) — used for
+   *  idempotency and to correlate inbound thread replies. Supabase-only. */
+  slackThreadTs: string | null;
+  slackChannelId: string | null;
   questionBankUrl: string | null;
   questionCount: number | null;
   coverLetterUrl: string | null;
