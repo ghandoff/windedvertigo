@@ -5,6 +5,10 @@ This is the single source of truth for the state of the winded.vertigo executive
 platform as it moves from "reactive, summoned" to "ambient, proactive." Keep it current —
 it's what a fresh cloud/Cowork conversation reads to get oriented.
 
+**Explaining the agents to a human?** → `ambient-agents-showcase.md` is the plain-English
+companion (what each agent does, how they coordinate, verification criteria), written from a
+live 2026-07-23 smoke-test run. This file is the engineering state; that one is the story.
+
 ---
 
 ## the big picture
