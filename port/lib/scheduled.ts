@@ -291,6 +291,12 @@ const CRON_TABLE: CronEntry[] = [
   // via Claude → preview card → on approve, writes to Notion. Daily 15:00 UTC,
   // budget-paced so the ~39-item backfill drips out instead of flooding.
   { path: "/api/cron/biz-value-proposer", hours: [15] },
+
+  // cARL — citation gate (charter: "the citation gate · falsification duty").
+  // Reviews content queued to publish (compose_drafts) against cARL's findings
+  // evidence base for claim-boundary / citation problems; flags concerns to
+  // Garrett, logs clean drafts silently for dedup. Daily 16:00 UTC.
+  { path: "/api/cron/carl-citation-gate", hours: [16] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
