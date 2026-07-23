@@ -173,9 +173,33 @@ prompts, documents, HTML tools, configs — goes in the monorepo at
 
 - claude code prompts → `docs/prompts/`
 - agent posture/memory → `docs/{agent}/`
+- project/engagement docs → `docs/{project}/` (one folder per project, e.g. `docs/do-v2/`)
 - HTML tools/apps → `site/public/tools/{name}/index.html`
 - documentation → `docs/` or the relevant subdirectory
 - temporary working files → `/tmp` or the cowork scratchpad, NOT the mounted folder
 
 Applies to garrett, maria, payton, jamie, lamis — every conversation. Drive sync
 + claude = lost files and confusion.
+
+### md placement discipline (added 2026-07-23 — recurring problem)
+
+Stray markdown files have repeatedly made a mess of `~/Projects` and of other
+people's clones. The rules, for every conversation (Cowork, Claude Code, agents):
+
+1. **One canonical home per document.** Never write the same doc to two places
+   (repo + Drive, two repos, repo root + docs/). If a doc moves, delete the old
+   copy in the same commit.
+2. **No repo-root or `~/Projects`-root droppings.** Loose `*.md` files at either
+   root are wrong by default — they belong in `docs/{something}/`. (The
+   `_loose-archive-2026-06/` folder exists because of this failure mode.)
+3. **Placed ≠ on disk. Placed = tracked + pushed.** A file written to one
+   machine's disk is invisible to every other clone and to GitHub until
+   committed and pushed. Whoever writes a file either commits+pushes it, or
+   explicitly says "on disk at X, untracked — needs commit" in their handoff.
+   Cowork sandbox sessions CANNOT push: they must say so and hand the commit to
+   the user or to the next Claude Code session as its first step.
+4. **Verify before referencing.** Any prompt/doc/message that references a path
+   must be written AFTER confirming the file exists at that exact path (`ls` /
+   directory listing) and stating its git status. No aspirational paths.
+5. **Naming:** kebab-case; prompts as `docs/prompts/{topic}-prompt.md`; dated
+   one-off notes as `docs/decisions/YYYY-MM-DD-{topic}.md`.
