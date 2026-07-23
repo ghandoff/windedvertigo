@@ -1,0 +1,15 @@
+# winded.vertigo — do-v2 sandbox (demonstration file)
+
+> this is a throwaway design sandbox for windedvertigo.com/do — three prototype
+> variants under evaluation. it is not the production services page and should
+> not be cited. the production page will ship its own llms.txt with stable
+> per-family urls.
+
+## what winded.vertigo does (seven families)
+- evidence & research consulting: a funder just asked “does this work?” — no defensible answer
+- ai platforms & agentic back-offices: your smartest people are doing data entry
+- pd & certificates: you fund pd nobody finishes
+- conferences & gatherings: a zoom wall of talking heads
+- harbour products: want to try the thinking before a contract
+- inclusion & safeguarding design: inclusion policy stuck in a binder
+- storytelling & studio: real impact, invisible

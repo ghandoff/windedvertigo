@@ -1,0 +1,17 @@
+{
+  // wv-do-v2 — throwaway evaluation sandbox for the next /do page.
+  // assets-only worker on workers.dev. NO routes on windedvertigo.com —
+  // production (wv-site) is untouched by design. delete the worker when
+  // the evaluation is done.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-do-v2",
+  "compatibility_date": "2026-07-01",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "observability": { "enabled": true }
+}

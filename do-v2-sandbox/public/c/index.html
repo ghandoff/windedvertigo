@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>do — variant c · what brings you here?</title>
+<meta name="description" content="sandbox prototype c: a three-beat scripted entry that folds the page to your situation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/base.css">
+</head>
+<body>
+<a class="skip-link" href="#main">skip to content</a>
+
+<header class="site-head wrap">
+  <a class="brand" href="/">winded.vertigo <span aria-hidden="true">·</span> do — sandbox</a>
+  <span class="variant-tag">variant c — what brings you here?</span>
+</header>
+
+<div class="dialogue-layer" data-dialogue>
+  <div class="wrap dlg-wrap">
+    <div class="dlg-crease" aria-hidden="true"><span data-notch style="width:0%"></span></div>
+    <p class="dlg-step" data-step-label>1 of 3</p>
+
+    <section class="dlg-beat" data-beat="1">
+      <h1 class="dlg-q">what brings you here?</h1>
+      <div class="dlg-choices">
+        <button type="button" class="dlg-choice" data-choose-profile="p1">i owe a funder an answer</button>
+        <button type="button" class="dlg-choice" data-choose-profile="p2">my team is drowning in data</button>
+        <button type="button" class="dlg-choice" data-choose-profile="p3">i need training that actually reaches classrooms</button>
+        <button type="button" class="dlg-choice" data-choose-profile="p4">my convening deserves better than a zoom wall</button>
+        <button type="button" class="dlg-choice" data-choose-profile="p5">i just want to play with the thinking first</button>
+      </div>
+    </section>
+
+    <section class="dlg-beat" data-beat="2" hidden>
+      <h1 class="dlg-q">which of these sounds like your week?</h1>
+      <div class="dlg-choices" data-hook-choices></div>
+    </section>
+
+    <button type="button" class="dlg-skip" data-dialogue-skip>skip — just show me everything</button>
+  </div>
+</div>
+<style>
+.dialogue-layer {
+  position: fixed; inset: 0; z-index: 40; overflow-y: auto;
+  background: var(--field);
+  display: flex; align-items: flex-start;
+}
+.dlg-wrap { padding-top: 14vh; padding-bottom: 4rem; width: 100%; }
+.dlg-crease { height: 3px; background: var(--hairline); margin-bottom: 0.7rem; }
+.dlg-crease span { display: block; height: 3px; background: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .dlg-crease span { transition: width 320ms var(--ease-unfold); } }
+.dlg-step { font-size: var(--step--1); color: var(--ink-muted); margin: 0 0 1.6rem; }
+.dlg-q { font-size: var(--step-3); font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; margin: 0 0 1.4rem; max-width: 24ch; }
+.dlg-q:focus, .dlg-q:focus-visible { outline: none; } /* programmatic focus target — ring adds noise, focus stays for SR */
+.dlg-choices { display: flex; flex-direction: column; gap: 0.6rem; max-width: 30rem; }
+.dlg-choice {
+  font: inherit; font-size: var(--step-1); text-align: left; line-height: 1.3;
+  background: none; color: var(--ink); border: 1px solid var(--ink);
+  padding: 0.85rem 1rem; cursor: pointer; min-height: 44px;
+}
+.dlg-choice:hover { border-color: var(--accent); color: var(--accent); }
+.dlg-skip {
+  margin-top: 2.2rem; background: none; border: 0; font: inherit;
+  font-size: var(--step--1); color: var(--ink-muted); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 0.18em; padding: 0.5rem 0;
+}
+.dlg-skip:hover { color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .dlg-beat { animation: unfold 300ms var(--ease-unfold); }
+}
+</style>
+<main id="main">
+
+<section class="hero wrap" aria-labelledby="hooks-heading">
+  <h1 id="hooks-heading" class="visually-hidden" style="position:absolute;left:-9999px">start with your problem</h1>
+  <ul class="hooks">
+<li><button type="button" class="hook-btn" data-family="evidence">a funder just asked “does this work?” — no defensible answer</button></li>
+<li><button type="button" class="hook-btn" data-family="evidence">measurement that punishes your flexibility</button></li>
+<li><button type="button" class="hook-btn" data-family="evidence">evaluation takes two years; your funding cycle doesn’t</button></li>
+<li><button type="button" class="hook-btn" data-family="evidence">evidence scattered across reports nobody reads</button></li>
+<li><button type="button" class="hook-btn" data-family="evidence">data collected, never cleaned or coded</button></li>
+<li><button type="button" class="hook-btn" data-family="platforms">your smartest people are doing data entry</button></li>
+<li><button type="button" class="hook-btn" data-family="platforms">know ai matters, don’t know where to start</button></li>
+<li><button type="button" class="hook-btn" data-family="platforms">chatgpt isn’t safe or citable for your data</button></li>
+<li><button type="button" class="hook-btn" data-family="platforms">knowledge trapped in pdfs, inboxes, one person’s head</button></li>
+<li><button type="button" class="hook-btn" data-family="platforms">competitors are adopting agents now</button></li>
+<li><button type="button" class="hook-btn" data-family="pd">you fund pd nobody finishes</button></li>
+<li><button type="button" class="hook-btn" data-family="pd">certificates without credibility</button></li>
+<li><button type="button" class="hook-btn" data-family="pd">can’t show what the training changed</button></li>
+<li><button type="button" class="hook-btn" data-family="pd">english-only pd, multilingual community</button></li>
+<li><button type="button" class="hook-btn" data-family="pd">workshops that evaporate by monday</button></li>
+<li><button type="button" class="hook-btn" data-family="gatherings">a zoom wall of talking heads</button></li>
+<li><button type="button" class="hook-btn" data-family="gatherings">attendees leave with notes, not commitments</button></li>
+<li><button type="button" class="hook-btn" data-family="gatherings">big spend, nothing to show for it</button></li>
+<li><button type="button" class="hook-btn" data-family="gatherings">want play without gimmicks</button></li>
+<li><button type="button" class="hook-btn" data-family="harbour">want to try the thinking before a contract</button></li>
+<li><button type="button" class="hook-btn" data-family="harbour">screen time that gives nothing back</button></li>
+<li><button type="button" class="hook-btn" data-family="harbour">teachers need playful, low-prep activities</button></li>
+<li><button type="button" class="hook-btn" data-family="harbour">programs need lightweight documentation of learning</button></li>
+<li><button type="button" class="hook-btn" data-family="inclusion">inclusion policy stuck in a binder</button></li>
+<li><button type="button" class="hook-btn" data-family="inclusion">audit coming — goodwill but no evidence</button></li>
+<li><button type="button" class="hook-btn" data-family="inclusion">one-size-fits-all fails neurodivergent learners</button></li>
+<li><button type="button" class="hook-btn" data-family="inclusion">cpd staff endure rather than use</button></li>
+<li><button type="button" class="hook-btn" data-family="storytelling">real impact, invisible</button></li>
+<li><button type="button" class="hook-btn" data-family="storytelling">an annual report nobody read</button></li>
+<li><button type="button" class="hook-btn" data-family="storytelling">data without story, story without data</button></li>
+<li><button type="button" class="hook-btn" data-family="storytelling">a dashboard that persuades no one</button></li>
+  </ul>
+  <p class="hooks-note">tap the one that names you — it takes you straight there.</p>
+  <p class="hero-sub">seven things we do. five kinds of people who need them. start with your problem.</p>
+</section>
+<p class="wrap" data-mix-note hidden style="font-size:var(--step--1);color:var(--ink-muted)">this view is your mix — <a href="#">the url is shareable</a>.</p>
+
+<section class="wrap" aria-label="what we do — seven families">
+  <ol class="index">
+<li class="fam" data-slug="evidence" data-open="false">
+  <h2 style="margin:0;font-size:inherit;font-weight:inherit">
+    <button type="button" class="fam-head" id="fam-head-evidence" aria-expanded="false" aria-controls="fam-body-evidence">
+      <span class="fam-name">evidence &amp; research consulting</span>
+      <span class="fam-hookline" data-hookline>a funder just asked “does this work?” — no defensible answer</span>
+      <span class="fam-tease">19 publications</span>
+    </button>
+  </h2>
+  <div class="fam-body" id="fam-body-evidence" role="region" aria-labelledby="fam-head-evidence" hidden>
+    <div class="fam-body-inner">
+      <ul class="fam-problems">
+        <li>a funder just asked “does this work?” — no defensible answer</li>
+        <li>measurement that punishes your flexibility</li>
+        <li>evaluation takes two years; your funding cycle doesn’t</li>
+        <li>evidence scattered across reports nobody reads</li>
+        <li>data collected, never cleaned or coded</li>
+      </ul>
+      <p class="fam-offer">we build defensible evidence in weeks, not years. flexible measurement that fits how your programme actually runs, human-verified ai coding for the data nobody has touched, and evidence maps people actually read.</p>
+      <ul class="proof-strip">
+        <li class="pending">amna at 10 evidence map</li>
+        <li class="pending">human-verified ai coding console</li>
+        <li><span class="stat">19 publications</span> · peer-reviewed publications</li>
+      </ul>
+      <ol class="ladder">
+<li><span class="dead"><span class="rung-label">play</span>explore a public evidence map <em>(link pending)</em></span></li>
+<li><span class="dead"><span class="rung-label">take</span>take the evidence-in-weeks explainer <em>(link pending)</em></span></li>
+<li><a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck"><span class="rung-label">talk</span>thirty minutes, no deck</a></li>
+</ol>
+    </div>
+  </div>
+</li>
+<li class="fam" data-slug="platforms" data-open="false">
+  <h2 style="margin:0;font-size:inherit;font-weight:inherit">
+    <button type="button" class="fam-head" id="fam-head-platforms" aria-expanded="false" aria-controls="fam-body-platforms">
+      <span class="fam-name">ai platforms &amp; agentic back-offices</span>
+      <span class="fam-hookline" data-hookline>your smartest people are doing data entry</span>
+      
+    </button>
+  </h2>
+  <div class="fam-body" id="fam-body-platforms" role="region" aria-labelledby="fam-head-platforms" hidden>
+    <div class="fam-body-inner">
+      <ul class="fam-problems">
+        <li>your smartest people are doing data entry</li>
+        <li>know ai matters, don’t know where to start</li>
+        <li>chatgpt isn’t safe or citable for your data</li>
+        <li>knowledge trapped in pdfs, inboxes, one person’s head</li>
+        <li>competitors are adopting agents now</li>
+      </ul>
+      <p class="fam-offer">we build working ai systems you own — grounded in your data, safe to cite, run by agents that do the ops your humans shouldn’t. built by a studio that runs itself on one.</p>
+      <ul class="proof-strip">
+        <li class="pending">pam dashboard — shared live with a client</li>
+        <li class="pending">nordic research platform</li>
+        <li class="pending">the port — our own agentic back-office</li>
+      </ul>
+      <ol class="ladder">
+<li><span class="dead"><span class="rung-label">play</span>poke a working agent console <em>(link pending)</em></span></li>
+<li><span class="dead"><span class="rung-label">take</span>take the agentic back-office primer <em>(link pending)</em></span></li>
+<li><a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck"><span class="rung-label">talk</span>thirty minutes, no deck</a></li>
+</ol>
+    </div>
+  </div>
+</li>
+<li class="fam" data-slug="pd" data-open="false">
+  <h2 style="margin:0;font-size:inherit;font-weight:inherit">
+    <button type="button" class="fam-head" id="fam-head-pd" aria-expanded="false" aria-controls="fam-body-pd">
+      <span class="fam-name">pd &amp; certificates</span>
+      <span class="fam-hookline" data-hookline>you fund pd nobody finishes</span>
+      <span class="fam-tease">915 registrants · 68 countries · 710 certificates</span>
+    </button>
+  </h2>
+  <div class="fam-body" id="fam-body-pd" role="region" aria-labelledby="fam-head-pd" hidden>
+    <div class="fam-body-inner">
+      <ul class="fam-problems">
+        <li>you fund pd nobody finishes</li>
+        <li>certificates without credibility</li>
+        <li>can’t show what the training changed</li>
+        <li>english-only pd, multilingual community</li>
+        <li>workshops that evaporate by monday</li>
+      </ul>
+      <p class="fam-offer">professional development people finish — credentialed, multilingual, and measured all the way to the classroom. certificates that carry evidence, not just a logo.</p>
+      <ul class="proof-strip">
+        <li><span class="stat">915 registrants · 68 countries · 710 certificates</span> · <a href="https://windedvertigo.com/portfolio/ppcs-2026-impact">ppcs live impact dashboard</a></li>
+      </ul>
+      <ol class="ladder">
+<li><a href="https://windedvertigo.com/portfolio/ppcs-2026-impact"><span class="rung-label">play</span>open the live ppcs dashboard</a></li>
+<li><span class="dead"><span class="rung-label">take</span>take the ppcs impact report <em>(link pending)</em></span></li>
+<li><a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck"><span class="rung-label">talk</span>thirty minutes, no deck</a></li>
+</ol>
+    </div>
+  </div>
+</li>
+<li class="fam" data-slug="gatherings" data-open="false">
+  <h2 style="margin:0;font-size:inherit;font-weight:inherit">
+    <button type="button" class="fam-head" id="fam-head-gatherings" aria-expanded="false" aria-controls="fam-body-gatherings">
+      <span class="fam-name">conferences &amp; gatherings</span>
+      <span class="fam-hookline" data-hookline>a zoom wall of talking heads</span>
+      
+    </button>
+  </h2>
+  <div class="fam-body" id="fam-body-gatherings" role="region" aria-labelledby="fam-head-gatherings" hidden>
+    <div class="fam-body-inner">
+      <ul class="fam-problems">
+        <li>a zoom wall of talking heads</li>
+        <li>attendees leave with notes, not commitments</li>
+        <li>big spend, nothing to show for it</li>
+        <li>want play without gimmicks</li>
+      </ul>
+      <p class="fam-offer">convenings people participate in — designed interactions, live simulation, and documentation that shows what the room actually committed to.</p>
+      <ul class="proof-strip">
+        <li class="pending">ground truth 2026 live simulator</li>
+        <li>press.play &amp; neowise partnerships</li>
+      </ul>
+      <ol class="ladder">
+<li><span class="dead"><span class="rung-label">play</span>try the conference experience demo <em>(link pending)</em></span></li>
+<li><span class="dead"><span class="rung-label">take</span>take the gathering design one-pager <em>(link pending)</em></span></li>
+<li><a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck"><span class="rung-label">talk</span>thirty minutes, no deck</a></li>
+</ol>
+    </div>
+  </div>
+</li>
+<li class="fam" data-slug="harbour" data-open="false">
+  <h2 style="margin:0;font-size:inherit;font-weight:inherit">
+    <button type="button" class="fam-head" id="fam-head-harbour" aria-expanded="false" aria-controls="fam-body-harbour">
+      <span class="fam-name">harbour products</span>
+      <span class="fam-hookline" data-hookline>want to try the thinking before a contract</span>
+      
+    </button>
+  </h2>
+  <div class="fam-body" id="fam-body-harbour" role="region" aria-labelledby="fam-head-harbour" hidden>
+    <div class="fam-body-inner">
+      <ul class="fam-problems">
+        <li>want to try the thinking before a contract</li>
+        <li>screen time that gives nothing back</li>
+        <li>teachers need playful, low-prep activities</li>
+        <li>programs need lightweight documentation of learning</li>
+      </ul>
+      <p class="fam-offer">playable tools you can use today — games and activities that leave something behind: a perception shifted, a thing made, learning documented lightly.</p>
+      <ul class="proof-strip">
+        <li><a href="https://values.auction">values.auction</a></li>
+        <li><a href="https://crease.works">crease.works</a></li>
+      </ul>
+      <ol class="ladder">
+<li><a href="https://values.auction"><span class="rung-label">play</span>play values.auction</a></li>
+<li><span class="dead"><span class="rung-label">take</span>take a low-prep classroom activity <em>(link pending)</em></span></li>
+<li><a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck"><span class="rung-label">talk</span>thirty minutes, no deck</a></li>
+</ol>
+    </div>
+  </div>
+</li>
+<li class="fam" data-slug="inclusion" data-open="false">
+  <h2 style="margin:0;font-size:inherit;font-weight:inherit">
+    <button type="button" class="fam-head" id="fam-head-inclusion" aria-expanded="false" aria-controls="fam-body-inclusion">
+      <span class="fam-name">inclusion &amp; safeguarding design</span>
+      <span class="fam-hookline" data-hookline>inclusion policy stuck in a binder</span>
+      <span class="fam-tease">45k professionals</span>
+    </button>
+  </h2>
+  <div class="fam-body" id="fam-body-inclusion" role="region" aria-labelledby="fam-head-inclusion" hidden>
+    <div class="fam-body-inner">
+      <ul class="fam-problems">
+        <li>inclusion policy stuck in a binder</li>
+        <li>audit coming — goodwill but no evidence</li>
+        <li>one-size-fits-all fails neurodivergent learners</li>
+        <li>cpd staff endure rather than use</li>
+      </ul>
+      <p class="fam-offer">inclusion that reaches the classroom — udl-grounded design, audit-ready evidence, and cpd your staff choose to use.</p>
+      <ul class="proof-strip">
+        <li class="pending">udl audit framework</li>
+        <li><span class="stat">45k professionals</span> · professionals reached</li>
+        <li>national cpd track record</li>
+      </ul>
+      <ol class="ladder">
+<li><span class="dead"><span class="rung-label">play</span>sample the udl audit lens <em>(link pending)</em></span></li>
+<li><span class="dead"><span class="rung-label">take</span>take the inclusion evidence checklist <em>(link pending)</em></span></li>
+<li><a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck"><span class="rung-label">talk</span>thirty minutes, no deck</a></li>
+</ol>
+    </div>
+  </div>
+</li>
+<li class="fam" data-slug="storytelling" data-open="false">
+  <h2 style="margin:0;font-size:inherit;font-weight:inherit">
+    <button type="button" class="fam-head" id="fam-head-storytelling" aria-expanded="false" aria-controls="fam-body-storytelling">
+      <span class="fam-name">storytelling &amp; studio</span>
+      <span class="fam-hookline" data-hookline>real impact, invisible</span>
+      
+    </button>
+  </h2>
+  <div class="fam-body" id="fam-body-storytelling" role="region" aria-labelledby="fam-head-storytelling" hidden>
+    <div class="fam-body-inner">
+      <ul class="fam-problems">
+        <li>real impact, invisible</li>
+        <li>an annual report nobody read</li>
+        <li>data without story, story without data</li>
+        <li>a dashboard that persuades no one</li>
+      </ul>
+      <p class="fam-offer">we turn real work into things people actually look at — impact reports, dashboards, and public evidence maps where the proof is the headline, not the appendix.</p>
+      <ul class="proof-strip">
+        <li><a href="https://windedvertigo.com/portfolio/ppcs-2026-impact">ppcs impact dashboard</a></li>
+        <li class="pending">pam dashboard</li>
+        <li class="pending">public evidence maps</li>
+      </ul>
+      <ol class="ladder">
+<li><a href="https://windedvertigo.com/portfolio/ppcs-2026-impact"><span class="rung-label">play</span>open a live impact dashboard</a></li>
+<li><span class="dead"><span class="rung-label">take</span>take the storytelling sampler <em>(link pending)</em></span></li>
+<li><a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck"><span class="rung-label">talk</span>thirty minutes, no deck</a></li>
+</ol>
+    </div>
+  </div>
+</li>
+  </ol>
+</section>
+
+<section class="quiet-exit wrap">
+  <p>not sure which of these is you? bring us the problem — thirty minutes, no deck.</p>
+  <a href="mailto:garrett@windedvertigo.com?subject=thirty%20minutes%2C%20no%20deck">start that conversation</a>
+</section>
+
+<footer class="proof-floor wrap">
+  <ul>
+    <li>LEGO Foundation</li>
+    <li>UN Global Compact · PRME</li>
+    <li>Amna</li>
+    <li>Nordic Naturals</li>
+  </ul>
+  <p>we’ve been doing this since before it was a website.</p>
+</footer>
+
+<nav class="util-row wrap" aria-label="page options">
+  <button type="button" data-plain-toggle aria-pressed="false">plain version</button>
+  <a href="/">all three variants</a>
+</nav>
+</main>
+<script src="/shared/data.js"></script>
+<script src="/shared/spine.js"></script>
+<script>
+(function () {
+  "use strict";
+  var layer = document.querySelector("[data-dialogue]");
+  var notch = document.querySelector("[data-notch]");
+  var stepLabel = document.querySelector("[data-step-label]");
+  var beats = { 1: document.querySelector('[data-beat="1"]'), 2: document.querySelector('[data-beat="2"]') };
+  var chosenProfile = null;
+
+  function showBeat(n) {
+    Object.keys(beats).forEach(function (k) { beats[k].hidden = Number(k) !== n; });
+    notch.style.width = (n - 1) * 33 + 34 + "%";
+    stepLabel.textContent = n + " of 3";
+    var h = beats[n].querySelector(".dlg-q");
+    h.setAttribute("tabindex", "-1");
+    h.focus();
+  }
+
+  function reveal(profileId, viaSkip) {
+    notch.style.width = "100%";
+    layer.remove();
+    document.body.style.overflow = "";
+    if (viaSkip || !profileId) {
+      document.getElementById("main").querySelector(".fam .fam-head").focus();
+      return;
+    }
+    var ranked = WV_SCORE.scoreFamilies(profileId, null).map(function (r) { return r.slug; });
+    WV_REORDER(ranked);
+    document.querySelectorAll(".fam").forEach(function (fam) {
+      var line = fam.querySelector("[data-hookline]");
+      if (line) line.textContent = WV_SCORE.bestHook(fam.dataset.slug, profileId);
+    });
+    var top = document.querySelector('.fam[data-slug="' + ranked[0] + '"]');
+    WV_SPINE.openFam(top, false);
+    history.replaceState(null, "", "?p=" + profileId);
+    var mixNote = document.querySelector("[data-mix-note]");
+    if (mixNote) {
+      mixNote.hidden = false;
+      mixNote.querySelector("a").href = location.pathname + "?p=" + profileId;
+    }
+    top.scrollIntoView({ block: "start" });
+    top.querySelector(".fam-head").focus({ preventScroll: true });
+  }
+
+  document.querySelectorAll("[data-choose-profile]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      chosenProfile = b.dataset.chooseProfile;
+      var hooks = [];
+      WV_DATA.families.forEach(function (f) {
+        f.hooks.forEach(function (h) {
+          if (h.profiles.indexOf(chosenProfile) !== -1) hooks.push({ text: h.text, family: f.slug });
+        });
+      });
+      var box = document.querySelector("[data-hook-choices]");
+      box.innerHTML = "";
+      hooks.slice(0, 4).forEach(function (h) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "dlg-choice";
+        btn.textContent = h.text;
+        btn.addEventListener("click", function () { reveal(chosenProfile, false); });
+        box.appendChild(btn);
+      });
+      showBeat(2);
+    });
+  });
+
+  document.querySelector("[data-dialogue-skip]").addEventListener("click", function () {
+    reveal(null, true);
+  });
+
+  // deep link / plain: arrive with ?p= → skip the dialogue, land folded;
+  // ?plain=1 or reduced data cases → straight to the spine.
+  var q = new URLSearchParams(location.search);
+  if (q.get("plain") === "1") { layer.remove(); }
+  else if (q.get("p")) { layer.remove(); reveal(q.get("p"), false); }
+  else { document.body.style.overflow = "hidden"; showBeat(1); }
+  document.addEventListener("wv:plain", function (e) {
+    if (e.detail.on && document.body.contains(layer)) layer.remove();
+  });
+})();
+</script>
+</body>
+</html>
