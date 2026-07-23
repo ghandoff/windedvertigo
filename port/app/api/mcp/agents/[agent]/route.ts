@@ -98,7 +98,7 @@ const PAM_TOOLS: ToolDef[] = [
   { name: "pam_briefing", description: "Load PaM's full working state — active commitments, overdue items, blocked dependencies, working state, and 14 days of conversation history. Call silently at session start.", inputSchema: { type: "object", properties: {}, required: [] } },
   { name: "pam_log_decision", description: "Log a project-level decision or context shift to PaM's persistent memory. Call when commitments are made, status changes, or blockers surface.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Name of the person in the conversation" }, summary: { ...STR, description: "Summary of what was discussed" }, decisions: { ...STR_ARR, description: "List of specific decisions or action items" }, tags: { ...STR_ARR, description: "Relevant tags e.g. ['commitments', 'blockers', 'whirlpool']" }, session_type: { ...STR, description: "Session type, default 'cowork'" } }, required: ["who", "summary"] } },
   { name: "pam_update_memory", description: "Update a key in PaM's working state memory. Use when team state changes — someone's focus shifts, overdue items resolve, next whirlpool is scheduled.", inputSchema: { type: "object", properties: { key: { ...STR, description: "Memory key (e.g. 'garrett-commitments')" }, value: { ...STR, description: "New value" }, updated_by: { ...STR, description: "Who made the update" } }, required: ["key", "value", "updated_by"] } },
-  { name: "pam_create_commitment", description: "Create a new commitment in PaM's tracker. Use when a team member commits to doing something in a conversation.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Person making the commitment (e.g. 'garrett')" }, what: { ...STR, description: "What they committed to" }, start_date: { ...STR, description: "Start date YYYY-MM-DD (optional — enables a Gantt bar span)" }, due_date: { ...STR, description: "Due date YYYY-MM-DD (optional)" }, source: { ...STR, description: "Where it was committed (e.g. 'whirlpool', 'cowork', 'slack')" }, depends_on: { ...STR_ARR, description: "IDs of commitments this depends on (optional)" } }, required: ["who", "what"] } },
+  { name: "pam_create_commitment", description: "Create a new commitment in PaM's tracker. Use when a team member commits to doing something in a conversation. For whirlpool commitments, always pass cycle, commitment_type, and if_then_plan.", inputSchema: { type: "object", properties: { who: { ...STR, description: "Person making the commitment (e.g. 'garrett')" }, what: { ...STR, description: "What they committed to" }, start_date: { ...STR, description: "Start date YYYY-MM-DD (optional — enables a Gantt bar span)" }, due_date: { ...STR, description: "Due date YYYY-MM-DD (optional)" }, source: { ...STR, description: "Where it was committed (e.g. 'whirlpool', 'cowork', 'slack')" }, depends_on: { ...STR_ARR, description: "IDs of commitments this depends on (optional)" }, cycle: { ...STR, description: "ISO Monday date of the whirlpool week this belongs to (YYYY-MM-DD). Compute as: today minus today's weekday offset + 1. Required for whirlpool commitments." }, if_then_plan: { ...STR, description: "Implementation intention: 'if <when/where cue>, then I will <specific action>'. Dramatically increases follow-through. Required for whirlpool commitments." }, commitment_type: { type: "string", enum: ["action", "learning", "connection", "ritual"], description: "action = deliver something; learning = explore/study; connection = a conversation to have; ritual = a regular practice." }, visibility: { type: "string", enum: ["public", "private"], description: "public = visible on the whirlpool board (default); private = PaM memory only (for sensitive commitments)." } }, required: ["who", "what"] } },
   { name: "pam_update_commitment", description: "Update the status of an existing commitment. Use when something is done, blocked, or changes.", inputSchema: { type: "object", properties: { id: { ...STR, description: "UUID of the commitment to update" }, status: { type: "string", enum: ["not-started", "in-progress", "blocked", "done", "parked"], description: "New status" }, blocker: { ...STR, description: "What's blocking it (if status is 'blocked')" }, completed_at: { ...STR, description: "Completion timestamp ISO (if marking done)" }, start_date: { ...STR, description: "Start date YYYY-MM-DD (optional)" }, due_date: { ...STR, description: "Due date YYYY-MM-DD (optional)" } }, required: ["id"] } },
 ];
 
@@ -116,8 +116,10 @@ async function callPam(name: string, a: Record<string, unknown>, token: string):
     return { text: `memory updated: ${d.key}` };
   }
   if (name === "pam_create_commitment") {
-    const d = (await apiFetch("/api/pam/commitments", token, { method: "POST", body: JSON.stringify({ who: a.who, what: a.what, start_date: a.start_date || undefined, due_date: a.due_date || undefined, source: a.source || undefined, depends_on: a.depends_on || undefined }) })) as { id: string };
-    return { text: `commitment created (id: ${d.id}) — ${a.who}: ${a.what}` };
+    const d = (await apiFetch("/api/pam/commitments", token, { method: "POST", body: JSON.stringify({ who: a.who, what: a.what, start_date: a.start_date || undefined, due_date: a.due_date || undefined, source: a.source || undefined, depends_on: a.depends_on || undefined, cycle: a.cycle || undefined, if_then_plan: a.if_then_plan || undefined, commitment_type: a.commitment_type || undefined, visibility: a.visibility || undefined }) })) as { id: string };
+    const cycleNote = a.cycle ? ` [cycle ${a.cycle}]` : "";
+    const typeNote = a.commitment_type ? ` · ${a.commitment_type}` : "";
+    return { text: `commitment created (id: ${d.id}) — ${a.who}: ${a.what}${typeNote}${cycleNote}` };
   }
   if (name === "pam_update_commitment") {
     if (!a.id) return { text: "id is required", isError: true };
@@ -566,7 +568,8 @@ const QC_RECIPE = [
   "3. **consistency / conflict** — pull the drafted bundle locally and run the `align-narrative-across-deliverables` skill. also cross-check the deal-page facts (name, value, geography, due date) against the bundle and the TOR snapshot. flag contradictions (e.g. '60 countries' vs 'Asia-Pacific', '8 weeks' vs '7 months').",
   "4. **submission logistics** — confirm the due date + funder timezone, translate it to Pacific so the real cutoff is explicit, confirm the submission channel (portal vs email) from the opportunity/TOR links, and confirm the materials checklist is complete. portal-registration status is a manual confirm for now.",
   "5. **quality** — check each section against w.v's minimums + specificity; use `inject-evidence-from-port` to strengthen thin or generic sections.",
-  "6. **go/no-go** — synthesise a verdict (go · fix-then-go · no-go) with a short rationale. log it with `biz_log_decision` (category 'qc' or 'go-no-go').",
+  "6. **citation traceability** — check `citation_traceability` above. a null score means no proposal has been generated with tracing yet (regenerate to get one); a low score on a real generation means claims in the evidence sections (understanding of requirements, proposed approach, relevant experience, risk mitigation) aren't backed by a traced citation — read the breakdown, and either point to the missing citation or soften the claim. this is the hallucination-risk gate: an untraced factual claim on an institutional bid is a real risk, not a style note.",
+  "7. **go/no-go** — synthesise a verdict (go · fix-then-go · no-go) with a short rationale. log it with `biz_log_decision` (category 'qc' or 'go-no-go').",
   "",
   "then: produce a concise QC report (gate-by-gate, with concrete fixes). if fixes are substantive, regenerate a **v2 bundle locally** (use `rfp-proposal-from-tor` / targeted edits) — do NOT write to Notion. when it's review-ready, call `biz_request_review` to DM Garrett + Maria with the deadline translated across timezones.",
 ].join("\n");
@@ -641,6 +644,7 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
       requirements: { total: number; by_kind: Record<string, number>; unapproved_required_deliverables: number };
       readiness: { ready: boolean; reason: string | null };
       cvs: Array<{ name: string; current: boolean; last_verified_at: string | null }>;
+      citation_traceability: { score: number | null; breakdown: string[]; citation_count: number; generated_at: string } | null;
     };
     const o = q.opportunity;
     const lines: string[] = [];
@@ -665,6 +669,16 @@ async function callBiz(name: string, a: Record<string, unknown>, token: string):
     for (const c of q.cvs) lines.push(`- ${c.current ? "🟢 current" : "🔴 stale"} — ${c.name}${c.last_verified_at ? ` (verified ${c.last_verified_at.slice(0, 10)})` : " (never verified)"}`);
     lines.push("");
     lines.push(`## readiness: ${q.readiness.ready ? "✅ ready" : `⚠️ ${q.readiness.reason}`}`);
+    lines.push("");
+    const t = q.citation_traceability;
+    if (!t) {
+      lines.push("## citation traceability: no traced generation on file — regenerate to get a score");
+    } else if (t.score === null) {
+      lines.push(`## citation traceability: n/a — no citations were available to trace for this topic (generated ${t.generated_at.slice(0, 10)})`);
+    } else {
+      lines.push(`## citation traceability: ${t.score}/100 (generated ${t.generated_at.slice(0, 10)}, ${t.citation_count} citation(s) available)`);
+      for (const b of t.breakdown) lines.push(`- ${b}`);
+    }
     lines.push(QC_RECIPE);
     return { text: lines.join("\n") };
   }

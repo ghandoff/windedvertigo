@@ -17,7 +17,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
 import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { AwsClient } from "aws4fetch";
 import { fetchPackageBuilderData } from "@/lib/notion/package-builder";
 import { PackagePDF } from "@/lib/pdf/package-template";
 
@@ -36,7 +36,15 @@ const PDF_PUBLIC_URL =
   process.env.R2_PUBLIC_URL?.replace(/\/$/, "") ??
   "https://pub-c685a810f5794314a106e0f249c740c9.r2.dev";
 
-function getPdfR2Client(): S3Client {
+// aws4fetch, not @aws-sdk/client-s3 — @aws-sdk/client-s3's default runtime
+// config resolves ~10 settings (credential chain, retry mode, checksum
+// config, dualstack/FIPS flags, ...) via loadConfig(), which falls back to
+// fs.readFile against ~/.aws/config whenever no explicit value/env var is
+// set. fs.readFile is unimplemented in the Workers nodejs_compat polyfill,
+// so any S3Client request throws inside wv-port (same bug as lib/r2/client.ts;
+// see site/lib/r2.ts PRs #382/#384). aws4fetch is a ~10KB SigV4 signer built
+// on fetch + Web Crypto with no Node dependencies, so none of this applies.
+function getPdfR2Client(): { client: AwsClient; endpoint: string } {
   // Support both CF_ACCOUNT_ID (port convention) and R2_ACCOUNT_ID (site convention)
   const accountId = process.env.R2_ACCOUNT_ID ?? process.env.CF_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -48,26 +56,29 @@ function getPdfR2Client(): S3Client {
     );
   }
 
-  return new S3Client({
-    region: "auto",
+  return {
+    client: new AwsClient({ accessKeyId, secretAccessKey, service: "s3", region: "auto" }),
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: { accessKeyId, secretAccessKey },
-  });
+  };
 }
 
 async function uploadPdfBuffer(
-  r2: S3Client,
+  r2: { client: AwsClient; endpoint: string },
   key: string,
   body: Uint8Array,
 ): Promise<void> {
-  await r2.send(
-    new PutObjectCommand({
-      Bucket: PDF_BUCKET,
-      Key: key,
-      Body: body,
-      ContentType: "application/pdf",
-    }),
-  );
+  const encodedKey = key.split("/").map(encodeURIComponent).join("/");
+  const res = await r2.client.fetch(`${r2.endpoint}/${PDF_BUCKET}/${encodedKey}`, {
+    method: "PUT",
+    // TS's DOM lib types Uint8Array as generic over ArrayBufferLike, which
+    // isn't structurally assignable to BodyInit — but it's a valid fetch body.
+    body: body as BodyInit,
+    headers: { "content-type": "application/pdf" },
+  });
+
+  if (!res.ok) {
+    throw new Error(`R2 upload failed for ${key}: HTTP ${res.status}`);
+  }
 }
 
 // ── Handler ───────────────────────────────────────────────

@@ -24,17 +24,33 @@ if (!VAPI_KEY || !SECRET) {
 const SONNET = "claude-sonnet-4-6";
 const HAIKU = "claude-haiku-4-5-20251001";
 
-// slug, display name, Cartesia voiceId + human label, model, greeting.
-// Voices use Vapi's Cartesia provider (key added to the Vapi org). Mo and Opsy
-// are intentionally swapped per Garrett: Mo = steady/decisive, Opsy = upbeat.
+// slug, display name, Vapi-native voiceId, model, greeting.
+// Switched off Cartesia 2026-07-13: a BYOK Cartesia subscription is a fixed
+// monthly credit ceiling (100K-1.25M chars) that silently blocks ALL calls
+// once exhausted — which is what actually broke voice that day, not a code
+// bug. Vapi's own native voices (provider "vapi") are metered pay-as-you-go
+// at $0.0025/min with no ceiling to exceed, ~20x cheaper than Cartesia even
+// at real phone-pilot volume.
+// version:2 is opt-in per assistant and cheaper/higher-quality than v1;
+// Rohan has no v2 so it's excluded from the picks below.
+// No voice.fallbackPlan here: Vapi's own voices carry managed auto-fallback
+// server-side and reject an explicit fallbackPlan (confirmed via 400 on the
+// live API — "managed auto-fallback is always on").
 const ASSISTANTS = [
-  { slug: "pam",   name: "Pam",  voice: "ec1e269e-9ca0-402f-8a18-58e0e022355a", voiceLabel: "Ariana – Kind Friend",    model: SONNET, greet: "hey, it's Pam. what are we moving today?" },
-  { slug: "cmo",   name: "Mo",   voice: "faa75703-00e3-4a57-9955-0703001e3231", voiceLabel: "Amélie – Decisive Agent", model: SONNET, greet: "hi, Mo here. what's on your mind?" },
-  { slug: "carl",  name: "Carl", voice: "e2d48e7b-cd73-4c4c-bc1e-f232580e8709", voiceLabel: "Adrian – Explorer",      model: SONNET, greet: "hi, it's Carl. what are we looking into?" },
-  { slug: "fin",   name: "Finn", voice: "3d808d23-cb09-4c39-8afd-528e209cba4f", voiceLabel: "Brent – Steady",         model: SONNET, greet: "hey, Finn here. want the numbers?" },
-  { slug: "opsy",  name: "Opsy", voice: "a053f6bc-7df4-40de-96d4-de026bc47ce8", voiceLabel: "Andi – Dynamic Presenter",  model: SONNET, greet: "hi, it's Opsy. want a status check?" },
-  { slug: "biz",   name: "Biz",  voice: "86e30c1d-714b-4074-a1f2-1cb6b552fb49", voiceLabel: "Carson – Curious Conversationalist", model: SONNET, greet: "hey, it's Biz. what are we pursuing?" },
-  { slug: "claude",name: "Claude",voice: "df872fcd-da17-4b01-a49f-a80d7aaee95e",voiceLabel: "Cameron – Chill Companion", model: HAIKU, greet: "hi Garrett, it's Claude. what can I help you think through?" },
+  { slug: "pam",   name: "Pam",  voice: "Savannah", model: SONNET, greet: "hey, it's Pam. what are we moving today?",
+    idle: ["hey, you still with me? no rush — take the time you need."] },
+  { slug: "cmo",   name: "Mo",   voice: "Emma",     model: SONNET, greet: "hi, Mo here. what's on your mind?",
+    idle: ["still there? happy to wait, no pressure."] },
+  { slug: "carl",  name: "Carl", voice: "Neil",     model: SONNET, greet: "hi, it's Carl. what are we looking into?",
+    idle: ["take your time — i'm here when you're ready to continue."] },
+  { slug: "fin",   name: "Finn", voice: "Godfrey",  model: SONNET, greet: "hey, Finn here. want the numbers?",
+    idle: ["still with me? happy to wait while you check something."] },
+  { slug: "opsy",  name: "Opsy", voice: "Kai",      model: SONNET, greet: "hi, it's Opsy. want a status check?",
+    idle: ["just checking you're still there — no rush."] },
+  { slug: "biz",   name: "Biz",  voice: "Sagar",    model: SONNET, greet: "hey, it's Biz. what are we pursuing?",
+    idle: ["still there? take a beat, i'll wait."] },
+  { slug: "claude",name: "Claude",voice: "Elliot",  model: HAIKU, greet: "hi Garrett, it's Claude. what can I help you think through?",
+    idle: ["still there? take your time, no pressure."] },
 ];
 
 const PREFIX = "WV Voice — "; // assistant display-name prefix in Vapi
@@ -50,14 +66,26 @@ function bodyFor(a) {
       model: a.model,
       headers: { "x-voice-secret": SECRET },
     },
-    // Explicitly pin sonic-3.5: older voice IDs default to the deprecated sonic-english
-    // model and Cartesia now rejects those calls. sonic-3.5 works for all voice IDs.
-    voice: { provider: "cartesia", voiceId: a.voice, model: "sonic-3.5" },
+    voice: { provider: "vapi", voiceId: a.voice, version: 2 },
     transcriber: { provider: "deepgram", model: "nova-3", language: "en" },
     // 1:1 call turn-taking: respond promptly, allow barge-in interruptions.
     startSpeakingPlan: { waitSeconds: 0.4 },
-    silenceTimeoutSeconds: 30,
+    // 30s -> 60s 2026-07-12, then -> 120s 2026-07-14: even 60s cut off a
+    // genuine 24-min conversation mid-thought (Vapi's own silence-timeout,
+    // not a code bug). 120s gives real thinking pauses more room.
+    silenceTimeoutSeconds: 120,
     maxDurationSeconds: 1800,
+    // Idle check-in: speaks a per-agent nudge at 45s of silence (well above
+    // Vapi's reported ~40s floor for the hook to actually fire) instead of
+    // just letting the call go quiet until the 120s hard cutoff. Resets on
+    // any speech from Garrett; fires at most twice per call.
+    hooks: [
+      {
+        on: "customer.speech.timeout",
+        options: { timeoutSeconds: 45, triggerMaxCount: 2, triggerResetMode: "onUserSpeech" },
+        do: [{ type: "say", exact: a.idle }],
+      },
+    ],
     // Stage 4: end-of-call webhook saves transcript summary to agent memory.
     serverUrl: `${BASE}/api/voice/${a.slug}/end-of-call`,
     serverUrlSecret: SECRET,
@@ -93,8 +121,8 @@ for (const a of ASSISTANTS) {
     const saved = id
       ? await vapi(`/assistant/${id}`, "PATCH", body)
       : await vapi("/assistant", "POST", body);
-    results.push({ name: a.name, slug: a.slug, voice: a.voiceLabel, id: saved.id, action: id ? "updated" : "created" });
-    console.log(`✅ ${a.name.padEnd(7)} ${id ? "updated" : "created"}  id=${saved.id}  voice=${a.voiceLabel}  → ${body.model.url}`);
+    results.push({ name: a.name, slug: a.slug, voice: a.voice, id: saved.id, action: id ? "updated" : "created" });
+    console.log(`✅ ${a.name.padEnd(7)} ${id ? "updated" : "created"}  id=${saved.id}  voice=${a.voice}  → ${body.model.url}`);
   } catch (err) {
     console.log(`❌ ${a.name.padEnd(7)} ${err.message}`);
     results.push({ name: a.name, slug: a.slug, error: String(err.message) });

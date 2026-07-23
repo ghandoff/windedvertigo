@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>evidence verification console</title>
+  <style>
+    :root {
+      --wv-cadet: #273248;
+      --wv-redwood: #b15043;
+      --wv-sienna: #cb7858;
+      --wv-champagne: #ffebd2;
+      --ink: #1d2533;
+      --muted: #6b7686;
+      --line: #e4dccf;
+      --bg: #faf6ef;
+      --agree: #2f7a4f;
+      --disagree: #b15043;
+      --partial: #b8862f;
+      --psychometric: #3a6ea5;
+      --practitioner: #cb7858;
+      --collective: #6b4e8f;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      letter-spacing: 0.01em;
+    }
+    a { color: var(--wv-redwood); }
+    header {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 14px 22px; background: var(--wv-cadet); color: var(--wv-champagne);
+    }
+    header h1 { font-size: 16px; font-weight: 600; margin: 0; letter-spacing: 0.02em; }
+    header .spacer { flex: 1; }
+    header .who { font-size: 13px; opacity: 0.85; }
+    header .who b { font-weight: 600; opacity: 1; }
+    .tabbtn, .btn {
+      font: inherit; font-size: 14px; cursor: pointer; border-radius: 8px;
+      border: 1px solid transparent; padding: 7px 13px; background: transparent; color: inherit;
+    }
+    header .tabbtn { color: var(--wv-champagne); border-color: rgba(255,235,210,0.3); }
+    header .tabbtn.active { background: var(--wv-sienna); border-color: var(--wv-sienna); color: #fff; }
+    main { max-width: 1080px; margin: 0 auto; padding: 24px 22px 80px; }
+    .btn-primary { background: var(--wv-redwood); color: #fff; border-color: var(--wv-redwood); }
+    .btn-ghost { border-color: var(--line); background: #fff; }
+    .btn-sm { font-size: 13px; padding: 5px 10px; }
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+
+    /* login */
+    .login-card {
+      max-width: 400px; margin: 8vh auto; background: #fff; border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 28px; text-align: center;
+    }
+    .login-card h2 { margin: 0 0 6px; font-size: 18px; }
+    .login-card p { font-size: 14px; }
+    .google-btn {
+      display: inline-flex; align-items: center; gap: 10px; margin-top: 18px;
+      background: #fff; color: #1f1f1f; border: 1px solid #dadce0; border-radius: 8px;
+      padding: 11px 18px; font: inherit; font-size: 15px; font-weight: 500; text-decoration: none; cursor: pointer;
+    }
+    .google-btn:hover { background: #f7f8f8; }
+    .google-btn svg { width: 18px; height: 18px; }
+
+    /* method note (for Hejer + the team) */
+    .method {
+      background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--wv-sienna);
+      border-radius: 0 var(--radius) var(--radius) 0; padding: 16px 18px; margin-bottom: 20px;
+    }
+    .method h2 { margin: 0 0 4px; font-size: 15px; }
+    .method p { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+    .roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+    .role { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg); font-size: 13.5px; }
+    .role .r-name { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+    .role.psychometric { border-top: 3px solid var(--psychometric); }
+    .role.practitioner { border-top: 3px solid var(--practitioner); }
+    .role.collective { border-top: 3px solid var(--collective); }
+    .role.a { border-top: 3px solid var(--wv-cadet); }
+    .role.b { border-top: 3px solid var(--wv-sienna); }
+    .role.carl { border-top: 3px solid var(--wv-redwood); }
+
+    /* filters */
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+    select { font: inherit; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; margin-top: 6px; }
+    textarea { width: 100%; font: inherit; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: #fff; margin-top: 6px; }
+    label { font-size: 13px; color: var(--muted); display: block; margin-top: 14px; }
+    .err { color: var(--wv-redwood); font-size: 13px; min-height: 18px; margin-top: 8px; }
+
+    /* claim card */
+    .claim { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 16px; }
+    .claim-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .claim-head h3 { margin: 0; font-size: 17px; }
+    .tag { font-size: 12px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+    .badge { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; color: #fff; }
+    .badge.agree { background: var(--agree); }
+    .badge.disagree { background: var(--disagree); }
+    .badge.partial { background: var(--partial); }
+    .status { text-transform: lowercase; }
+    .status.pending { color: var(--muted); }
+    .status.verified { color: var(--agree); font-weight: 600; }
+    .status.flagged { color: var(--disagree); font-weight: 600; }
+    .status.adjudicated { color: var(--wv-cadet); font-weight: 600; }
+    .source { font-size: 13px; color: var(--muted); margin: 8px 0 14px; }
+    .source b { color: var(--ink); font-weight: 600; }
+
+    .excerpts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    @media (max-width: 760px) { .excerpts { grid-template-columns: 1fr; } .lenses { grid-template-columns: 1fr !important; } }
+    .ex { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg); font-size: 14px; }
+    .ex .who { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 5px; }
+    .ex.empty { color: var(--muted); font-style: italic; }
+    .ex.match { border-color: var(--agree); }
+    .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .ruling-note { margin-top: 12px; font-size: 14px; padding: 10px 12px; border-left: 3px solid var(--wv-sienna); background: var(--wv-champagne); border-radius: 0 8px 8px 0; }
+    .ruling-note b { font-weight: 600; }
+
+    /* layer 2 lenses */
+    .evidence { font-size: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 8px 0 14px; }
+    .evidence .who { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 5px; }
+    .lenses { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .lens { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+    .lens.psychometric { border-top: 3px solid var(--psychometric); }
+    .lens.practitioner { border-top: 3px solid var(--practitioner); }
+    .lens.collective { border-top: 3px solid var(--collective); }
+    .lens .l-name { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+    .interp { font-size: 13.5px; border-top: 1px dashed var(--line); padding: 7px 0; }
+    .interp:first-of-type { border-top: none; }
+    .interp .meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .wtag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 999px; border: 1px solid var(--line); margin-left: 5px; }
+    .lens .none { font-size: 12.5px; color: var(--muted); font-style: italic; }
+
+    /* dashboard */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+    .stat { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+    .stat .n { font-size: 30px; font-weight: 700; color: var(--wv-cadet); }
+    .stat .k { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .bars { margin-top: 8px; }
+    .bar { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; border-bottom: 1px dashed var(--line); }
+    .bar b { font-weight: 600; }
+    .layer-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: 22px 0 10px; font-weight: 600; }
+
+    /* modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(29,37,51,0.55); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+    .modal { background: #fff; border-radius: var(--radius); padding: 24px; max-width: 520px; width: 100%; }
+    .modal h3 { margin: 0 0 4px; }
+    .footnote { font-size: 12px; color: var(--muted); margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; }
+  </style>
+</head>
+<body>
+  <header class="hidden" id="hdr">
+    <h1>evidence verification console</h1>
+    <button class="tabbtn active" data-tab="layer1">layer 1 · extraction</button>
+    <button class="tabbtn" data-tab="layer2">layer 2 · interpretation</button>
+    <button class="tabbtn" data-tab="dashboard">dashboard</button>
+    <span class="spacer"></span>
+    <span class="who">signed in as <b id="whoami"></b></span>
+    <a href="api/logout" class="who">log out</a>
+  </header>
+
+  <main>
+    <!-- login -->
+    <section id="login">
+      <div class="login-card">
+        <h2>evidence verification console</h2>
+        <p class="muted" style="margin:0">amna at 10 desk review · internal, not public.</p>
+        <a class="google-btn" href="api/auth/login">
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#ea4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285f4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#fbbc05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34a853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          sign in with google
+        </a>
+        <p class="muted" style="font-size:13px;margin-top:18px">use your <b>@windedvertigo.com</b> google account.</p>
+      </div>
+    </section>
+
+    <!-- layer 1 · extraction -->
+    <section id="layer1" class="hidden">
+      <div class="method">
+        <h2>layer 1 · extraction — is the evidence reproducibly there?</h2>
+        <p>every claim's evidence is extracted <b>twice, independently and blind</b>, against the same codebook (the programme-theory conjectures); a named human then confirms it against the source. agreement shows the evidence is reproducibly present in the sources — not one reader's impression. disagreements are routed to a human to adjudicate.</p>
+        <div class="roles">
+          <div class="role a"><div class="r-name">coder a</div>first independent extraction — pulls verbatim quotes + source locations against the codebook.</div>
+          <div class="role b"><div class="r-name">coder b</div>a second, independent, <b>blind</b> re-extraction of the same sources, without seeing coder a. blindness is what makes agreement meaningful.</div>
+          <div class="role carl"><div class="r-name">cARL</div>a third independent read on the highest-stakes claims, plus winded.vertigo's expert eye on the evidence base.</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label style="margin:0">status
+          <select id="fStatus">
+            <option value="pending">pending</option>
+            <option value="flagged">flagged</option>
+            <option value="verified">verified</option>
+            <option value="adjudicated">adjudicated</option>
+            <option value="all">all</option>
+          </select>
+        </label>
+        <label style="margin:0">engagement
+          <select id="fEngagement"><option value="amna-at-10">amna-at-10</option></select>
+        </label>
+        <span class="spacer" style="flex:1"></span>
+        <span class="muted" id="queueCount"></span>
+      </div>
+      <div id="queueList"></div>
+    </section>
+
+    <!-- layer 2 · interpretation -->
+    <section id="layer2" class="hidden">
+      <div class="method">
+        <h2>layer 2 · interpretation — how do we read the verified evidence?</h2>
+        <p>only claims whose evidence <b>passed layer 1</b> (verified or adjudicated) appear here. the same verified evidence is read through three complementary lenses, so the reading is both reproducible (layer 1) and richly contextual (layer 2). divergence between lenses is a <b>feature</b> — it surfaces perspective-dependent nuance rather than error.</p>
+        <div class="roles">
+          <div class="role psychometric"><div class="r-name">psychometric</div>measurement rigour — how strong is the empirical basis (construct, sample, quantification, generalisability)?</div>
+          <div class="role practitioner"><div class="r-name">practitioner</div>practice plausibility — does this hold up in delivery and the field; is it feasible and contextually true?</div>
+          <div class="role collective"><div class="r-name">collective</div>winded.vertigo's expertise — how does it fit the broader evidence base, threshold concepts, and theory of change?</div>
+        </div>
+      </div>
+      <div id="layer2List"></div>
+    </section>
+
+    <!-- dashboard -->
+    <section id="dashboard" class="hidden">
+      <div class="layer-label">layer 1 · extraction (reliability)</div>
+      <div class="cards" id="statCards"></div>
+      <div class="cards" style="margin-top:14px">
+        <div class="stat"><div class="k">by status</div><div class="bars" id="barStatus"></div></div>
+        <div class="stat"><div class="k">coder agreement</div><div class="bars" id="barAgreement"></div></div>
+        <div class="stat"><div class="k">adjudications by reviewer</div><div class="bars" id="barReviewer"></div></div>
+      </div>
+      <div class="layer-label">layer 2 · interpretation (triangulation)</div>
+      <div class="cards" id="statCards2"></div>
+      <div class="cards" style="margin-top:14px">
+        <div class="stat"><div class="k">interpretations by lens</div><div class="bars" id="barLens"></div></div>
+      </div>
+      <div class="actions" style="margin-top:18px">
+        <a class="btn btn-ghost" href="api/export?format=csv">export csv</a>
+        <a class="btn btn-ghost" href="api/export?format=json">export json</a>
+      </div>
+    </section>
+
+    <p class="footnote">
+      holds aggregate evaluation excerpts only — no participant-level or special-category data.
+      every action is recorded in an append-only audit trail with the signed-in reviewer + timestamp.
+      open the named source file at the page/section to confirm each quote verbatim.
+    </p>
+  </main>
+
+  <div id="modalRoot"></div>
+
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const LENSES = ["psychometric", "practitioner", "collective"];
+
+    function el(tag, props, ...kids) {
+      const n = document.createElement(tag);
+      for (const [k, v] of Object.entries(props || {})) {
+        if (v == null) continue;
+        if (k === "class") n.className = v;
+        else if (k === "text") n.textContent = v;
+        else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), v);
+        else n.setAttribute(k, v);
+      }
+      for (const kid of kids.flat()) {
+        if (kid == null || kid === false) continue;
+        n.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+      }
+      return n;
+    }
+    function safeUrl(u) {
+      try { const p = new URL(u, location.href); return (p.protocol === "http:" || p.protocol === "https:") ? p.href : null; }
+      catch { return null; }
+    }
+    const localPart = (email) => (email ? String(email).split("@")[0] : "");
+
+    // fetch wrapper: bounce to login on 401 instead of silently blanking
+    async function api(path, opts) {
+      const res = await fetch(path, opts);
+      if (res.status === 401) { showLogin(); return null; }
+      return res;
+    }
+
+    async function boot() {
+      const r = await fetch("api/session").then((x) => x.json()).catch(() => ({ ok: false }));
+      if (r.ok) showApp(r.email); else showLogin();
+    }
+    function showLogin() {
+      $("#login").classList.remove("hidden");
+      for (const id of ["hdr", "layer1", "layer2", "dashboard"]) $("#" + id).classList.add("hidden");
+    }
+    function showApp(email) {
+      $("#login").classList.add("hidden");
+      $("#hdr").classList.remove("hidden");
+      $("#whoami").textContent = email || "";
+      tab("layer1");
+    }
+
+    document.querySelectorAll(".tabbtn").forEach((b) => (b.onclick = () => tab(b.dataset.tab)));
+    function tab(name) {
+      document.querySelectorAll(".tabbtn").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+      for (const id of ["layer1", "layer2", "dashboard"]) $("#" + id).classList.toggle("hidden", id !== name);
+      if (name === "layer1") loadQueue();
+      if (name === "layer2") loadLayer2();
+      if (name === "dashboard") loadStats();
+    }
+
+    // ── layer 1 · queue ───────────────────────────────────────────────────────
+    $("#fStatus").onchange = loadQueue;
+    $("#fEngagement").onchange = loadQueue;
+    async function loadQueue() {
+      const status = $("#fStatus").value, engagement = $("#fEngagement").value;
+      const res = await api(`api/claims?status=${encodeURIComponent(status)}&engagement=${encodeURIComponent(engagement)}`);
+      if (!res) return;
+      const list = (await res.json()).claims || [];
+      $("#queueCount").textContent = `${list.length} claim${list.length === 1 ? "" : "s"}`;
+      const root = $("#queueList");
+      if (!list.length) { root.replaceChildren(el("p", { class: "muted", text: "nothing in this view." })); return; }
+      root.replaceChildren(...list.map(card));
+      wireCards();
+    }
+
+    function exCell(label, text, matched) {
+      if (!text) return el("div", { class: "ex empty" }, el("div", { class: "who", text: label }), "— not extracted —");
+      return el("div", { class: "ex" + (matched ? " match" : "") }, el("div", { class: "who", text: label }), text);
+    }
+
+    function card(c) {
+      const matched = c.coder_a_excerpt && c.coder_b_excerpt && c.coder_a_excerpt === c.coder_b_excerpt;
+      const drive = c.drive_link ? safeUrl(c.drive_link) : null;
+      const head = el("div", { class: "claim-head" },
+        el("h3", { text: c.claim_text }),
+        c.conjecture_ref ? el("span", { class: "tag", text: c.conjecture_ref }) : null,
+        c.agreement ? el("span", { class: "badge " + c.agreement, text: c.agreement }) : null,
+        el("span", { class: "spacer", style: "flex:1" }),
+        el("span", { class: "status " + c.status, text: c.status + (c.reviewer ? " · " + localPart(c.reviewer) : "") })
+      );
+      const source = el("div", { class: "source" },
+        el("b", { text: c.source_file }), " · " + (c.location || "—"),
+        drive ? el("a", { href: drive, target: "_blank", rel: "noopener" }, " drive ↗") : null
+      );
+      const excerpts = el("div", { class: "excerpts" },
+        exCell("coder a", c.coder_a_excerpt, matched),
+        exCell("coder b", c.coder_b_excerpt, matched),
+        exCell("carl", c.carl_excerpt, false)
+      );
+      const extra = [];
+      if (c.ruling) extra.push(el("div", { class: "ruling-note" }, el("b", { text: "ruling: " }), c.ruling));
+      if (c.notes && c.status !== "adjudicated") extra.push(el("div", { class: "ruling-note" }, el("b", { text: "note: " }), c.notes));
+      const actions = el("div", { class: "actions" },
+        el("button", { class: "btn btn-ghost act", "data-act": "verify", text: "✓ verify" }),
+        el("button", { class: "btn btn-ghost act", "data-act": "flag", text: "✗ flag mismatch" }),
+        el("button", { class: "btn btn-ghost act", "data-act": "adjudicate", text: "⚖ adjudicate" })
+      );
+      return el("div", { class: "claim", "data-id": c.id }, head, source, excerpts, ...extra, actions);
+    }
+
+    function wireCards() {
+      document.querySelectorAll(".claim .act").forEach((btn) => {
+        btn.onclick = () => {
+          const id = btn.closest(".claim").dataset.id, act = btn.dataset.act;
+          if (act === "verify") doAction(id, "verify", {});
+          if (act === "flag") openNote(id);
+          if (act === "adjudicate") openAdjudicate(id);
+        };
+      });
+    }
+
+    async function doAction(id, action, body) {
+      const res = await api(`api/claims/${id}/${action}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!res) return;
+      if (!res.ok) { const e = await res.json().catch(() => ({})); alert("could not save: " + (e.error || res.status)); return; }
+      closeModal(); loadQueue();
+    }
+
+    // ── layer 2 · interpretation ───────────────────────────────────────────────
+    async function loadLayer2() {
+      const res = await api("api/layer2");
+      if (!res) return;
+      const list = (await res.json()).claims || [];
+      const root = $("#layer2List");
+      if (!list.length) {
+        root.replaceChildren(el("p", { class: "muted", text: "no claims have passed layer 1 yet — verify or adjudicate evidence in layer 1 and it will appear here for interpretation." }));
+        return;
+      }
+      root.replaceChildren(...list.map(l2card));
+    }
+
+    function bestEvidence(c) {
+      return c.carl_excerpt || c.coder_a_excerpt || c.coder_b_excerpt || "(no excerpt recorded)";
+    }
+
+    function l2card(c) {
+      const head = el("div", { class: "claim-head" },
+        el("h3", { text: c.claim_text }),
+        c.conjecture_ref ? el("span", { class: "tag", text: c.conjecture_ref }) : null,
+        el("span", { class: "spacer", style: "flex:1" }),
+        el("span", { class: "status " + c.status, text: c.status })
+      );
+      const source = el("div", { class: "source" }, el("b", { text: c.source_file }), " · " + (c.location || "—"));
+      const evidence = el("div", { class: "evidence" }, el("div", { class: "who", text: "verified evidence" }), bestEvidence(c));
+      const ruling = c.ruling ? el("div", { class: "ruling-note" }, el("b", { text: "adjudication: " }), c.ruling) : null;
+      const byLens = {};
+      for (const i of c.interpretations || []) (byLens[i.lens] = byLens[i.lens] || []).push(i);
+      const lenses = el("div", { class: "lenses" }, ...LENSES.map((L) => lensCol(c.id, L, byLens[L] || [])));
+      return el("div", { class: "claim", "data-id": c.id }, head, source, evidence, ruling, lenses);
+    }
+
+    function lensCol(claimId, lens, items) {
+      const rows = items.length
+        ? items.map((i) => el("div", { class: "interp" },
+            i.note,
+            el("div", { class: "meta" }, localPart(i.reviewer), i.weight ? el("span", { class: "wtag", text: i.weight }) : null)
+          ))
+        : [el("div", { class: "none", text: "no reading yet" })];
+      const add = el("button", { class: "btn btn-ghost btn-sm", style: "margin-top:8px", text: "+ add reading",
+        onclick: () => openInterpret(claimId, lens) });
+      return el("div", { class: "lens " + lens }, el("div", { class: "l-name", text: lens }), ...rows, add);
+    }
+
+    // ── modals ─────────────────────────────────────────────────────────────────
+    function closeModal() { $("#modalRoot").replaceChildren(); }
+    function modalShell(titleText, helpText, bodyNodes, onSave, saveLabel) {
+      const err = el("div", { class: "err" });
+      const cancel = el("button", { class: "btn btn-ghost", text: "cancel", onclick: closeModal });
+      const save = el("button", { class: "btn btn-primary", text: saveLabel, onclick: () => onSave(err) });
+      const modal = el("div", { class: "modal" },
+        el("h3", { text: titleText }),
+        el("p", { class: "muted", style: "font-size:14px", text: helpText }),
+        ...bodyNodes, err,
+        el("div", { class: "actions", style: "justify-content:flex-end" }, cancel, save)
+      );
+      $("#modalRoot").replaceChildren(el("div", { class: "modal-bg" }, modal));
+    }
+
+    function openNote(id) {
+      const ta = el("textarea", { rows: "4", placeholder: "e.g. quote not found on the cited page…" });
+      modalShell("flag mismatch", "a note is required — say what didn't match the source.", [ta], (err) => {
+        const note = ta.value.trim();
+        if (!note) { err.textContent = "note required."; return; }
+        doAction(id, "flag", { note });
+      }, "flag");
+    }
+
+    function openAdjudicate(id) {
+      const sel = el("select", {},
+        el("option", { value: "", text: "— none / not applicable —" }),
+        el("option", { value: "a", text: "coder a" }),
+        el("option", { value: "b", text: "coder b" }),
+        el("option", { value: "carl", text: "carl" })
+      );
+      const ta = el("textarea", { rows: "4", placeholder: "your reasoning, confronted against the source…" });
+      const body = [el("label", { text: "correct excerpt" }, sel), el("label", { text: "ruling" }, ta)];
+      modalShell("adjudicate", "for disagreements: pick the correct excerpt and/or write a ruling.", body, (err) => {
+        const chosen = sel.value, ruling = ta.value.trim();
+        if (!chosen && !ruling) { err.textContent = "choose an excerpt or write a ruling."; return; }
+        doAction(id, "adjudicate", { chosen: chosen || undefined, ruling });
+      }, "record ruling");
+    }
+
+    const LENS_HELP = {
+      psychometric: "measurement rigour — construct, sample, quantification, generalisability.",
+      practitioner: "practice plausibility — feasibility and truth in delivery and the field.",
+      collective: "winded.vertigo's expertise — fit with the broader evidence base + theory of change.",
+    };
+    function openInterpret(id, lens) {
+      const ta = el("textarea", { rows: "4", placeholder: "your reading through the " + lens + " lens…" });
+      const wsel = el("select", {},
+        el("option", { value: "", text: "— confidence (optional) —" }),
+        el("option", { value: "strong", text: "strong" }),
+        el("option", { value: "moderate", text: "moderate" }),
+        el("option", { value: "tentative", text: "tentative" })
+      );
+      const body = [el("label", { text: "reading" }, ta), el("label", { text: "confidence" }, wsel)];
+      modalShell(`${lens} reading`, LENS_HELP[lens], body, async (err) => {
+        const note = ta.value.trim();
+        if (!note) { err.textContent = "a reading is required."; return; }
+        const res = await api(`api/claims/${id}/interpret`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lens, note, weight: wsel.value || undefined }),
+        });
+        if (!res) return;
+        if (!res.ok) { const e = await res.json().catch(() => ({})); err.textContent = "could not save: " + (e.error || res.status); return; }
+        closeModal(); loadLayer2();
+      }, "record reading");
+    }
+
+    // ── dashboard ─────────────────────────────────────────────────────────────
+    async function loadStats() {
+      const res = await api("api/stats");
+      if (!res) return;
+      const s = await res.json();
+      const l2 = s.layer2 || { by_lens: {}, interpretations_total: 0, claims_interpreted: 0, claims_eligible: 0, interpretation_coverage_pct: 0 };
+      $("#statCards").replaceChildren(...[
+        ["total claims", s.total],
+        ["% source-confronted", s.source_confronted_pct + "%"],
+        ["coder-agreement rate", s.coder_agreement_pct + "%"],
+        ["pending", s.by_status.pending || 0],
+      ].map(([k, n]) => el("div", { class: "stat" }, el("div", { class: "n", text: String(n) }), el("div", { class: "k", text: k }))));
+      $("#barStatus").replaceChildren(...bars(s.by_status));
+      $("#barAgreement").replaceChildren(...bars(s.by_agreement));
+      const rev = bars(s.adjudications_by_reviewer, localPart);
+      $("#barReviewer").replaceChildren(...(rev.length ? rev : [el("div", { class: "bar muted", text: "none yet" })]));
+      $("#statCards2").replaceChildren(...[
+        ["interpretations recorded", l2.interpretations_total],
+        ["claims interpreted", l2.claims_interpreted],
+        ["eligible (passed layer 1)", l2.claims_eligible],
+        ["interpretation coverage", l2.interpretation_coverage_pct + "%"],
+      ].map(([k, n]) => el("div", { class: "stat" }, el("div", { class: "n", text: String(n) }), el("div", { class: "k", text: k }))));
+      const lens = bars(l2.by_lens);
+      $("#barLens").replaceChildren(...(lens.length ? lens : [el("div", { class: "bar muted", text: "none yet" })]));
+    }
+    function bars(obj, fmt) {
+      return Object.keys(obj || {}).map((k) => el("div", { class: "bar" }, el("span", { text: fmt ? fmt(k) : k }), el("b", { text: String(obj[k]) })));
+    }
+
+    boot();
+  </script>
+</body>
+</html>

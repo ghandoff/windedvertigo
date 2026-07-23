@@ -30,6 +30,8 @@ import {
   DollarSign,
   Briefcase,
   BarChart2,
+  Waypoints,
+  ClipboardList,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -63,6 +65,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "carl", href: "/carl", icon: BookOpen, badge: "agent" },
       { label: "council", href: "/council", icon: MessagesSquare },
       { label: "bibliography", href: "/bibliography", icon: Library },
+      { label: "brain", href: "/brain", icon: Waypoints },
     ],
   },
   {
@@ -96,6 +99,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "campaigns", href: "/campaigns", icon: Megaphone },
       { label: "events", href: "/events", icon: CalendarDays },
       { label: "bookings", href: "/bookings", icon: CalendarClock },
+      { label: "polls", href: "/bookings/polls", icon: ClipboardList },
     ],
   },
   {

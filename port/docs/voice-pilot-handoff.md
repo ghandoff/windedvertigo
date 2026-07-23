@@ -1,6 +1,71 @@
 # Voice pilot — handoff (resume here)
 
-_Last updated: 2026-06-18. Branch: `main` (all merged)._
+_Last updated: 2026-07-13. Branch: `main` (all merged)._
+
+## TTS provider: Vapi-native, not Cartesia (as of 2026-07-13)
+
+All 7 assistants now use `voice: {provider: "vapi", version: 2, ...}` (see
+`scripts/vapi-setup.mjs`) instead of Cartesia. Cause: a BYOK Cartesia
+subscription is a fixed monthly credit ceiling that silently kills every call
+once exhausted — that's what actually broke voice on 2026-07-12, alongside a
+separate `silenceTimeoutSeconds` issue (see below). Vapi's own voices are
+metered pay-as-you-go with no ceiling to exceed, and ~20x cheaper even at
+phone-pilot volume. **No `voice.fallbackPlan` is configured** — Vapi rejects
+one for its own voices with a 400 (`"managed auto-fallback is always on"`),
+so redundancy is already handled server-side. The Cartesia-specific failure
+mode in the section below is now historical — kept for context, not because
+it can still happen.
+
+## Known failure modes — read this first when a call dies
+
+The greeting always plays (it's static TTS, no LLM). If the call then dies or
+gets ejected the instant you speak, the first real LLM turn (a POST to
+`/api/voice/{slug}/chat/completions`) got a non-200. There are exactly two
+causes on record — tell them apart with a direct curl:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  https://port.windedvertigo.com/api/voice/cmo/chat/completions \
+  -H "Content-Type: application/json" -H "x-voice-secret: $VOICE_LLM_SECRET" \
+  -H "User-Agent: OpenAI/JS 4.20.0" \
+  -d '{"model":"gpt-4","stream":false,"messages":[{"role":"user","content":"hi"}]}'
+```
+
+- **403** → WAF block. The `/api/voice/` skip rule (see root `CLAUDE.md` §
+  "Cloudflare WAF carve-out") got removed or narrowed. Fix: restore
+  `starts_with(http.request.uri.path, "/api/voice/")` in the "allow anthropic
+  mcp + oauth on api paths" skip rule. Full post-mortem:
+  `docs/decisions/2026-06-22-voice-agents-waf-block-and-stacked-bugs.md`.
+- **401** → secret drift. The `x-voice-secret` Vapi's assistants send no longer
+  matches the worker's `VOICE_LLM_SECRET` (e.g. the worker secret was rotated
+  without re-running `vapi-setup.mjs`, or vice versa). Fix — rotate + re-sync
+  both sides together so they can't drift apart mid-fix:
+  ```bash
+  cd port
+  NEW=$(openssl rand -hex 32)
+  printf '%s' "$NEW" | npx wrangler secret put VOICE_LLM_SECRET
+  export VAPI_API_KEY=<current key from Vapi dashboard>
+  VOICE_LLM_SECRET="$NEW" VOICE_PUBLIC_BASE=https://port.windedvertigo.com \
+    node scripts/vapi-setup.mjs
+  BASE=https://port.windedvertigo.com VOICE_LLM_SECRET="$NEW" node scripts/voice-smoke-test.mjs
+  ```
+- **200 but empty/garbled reply** → worker reached Anthropic fine but
+  something in the assistant/tool logic broke; check `wrangler tail` for the
+  `[voice/{slug}]` error logs the route emits before it speaks a fallback
+  apology line.
+
+**Automated coverage (added 2026-07-12):** a tier-1 Opsy health check
+(`voice` in `lib/opsy/services.ts` → `checkVoiceEndpoint` in
+`lib/opsy/checks.ts`) runs this exact curl every 5 minutes via the existing
+`*/5` cron and opens a `critical` incident on the worker's own health-check
+table if it 403s/401s/times out — so drift surfaces in Opsy before the next
+live call hits it. Needs the code change deployed (`npm run build:cf &&
+npx wrangler deploy`) to take effect.
+
+**This laptop's `.env.local` VAPI_API_KEY / VOICE_LLM_SECRET may be stale** —
+both were found returning 401 (to Vapi's own API and to the worker,
+respectively) on 2026-07-12. Refresh from the Mac Mini or password manager
+before running any of the above from here.
 
 Self-contained Vapi phone/voice channel for the 6 agents, built in `port/`
 (Next.js → Cloudflare Worker `wv-port` → Supabase). No pocket-prompts dependency.
@@ -106,7 +171,7 @@ port.windedvertigo.com (or query `pam_decisions` where `session_type='voice'`).
 ## Key facts / IDs
 
 - **Endpoint:** `POST https://wv-port.windedvertigo.workers.dev/api/voice/{slug}/chat/completions` (and the custom-domain equivalent). Auth: `x-voice-secret` header OR `Authorization: Bearer` = `VOICE_LLM_SECRET`.
-- **Slugs → voice (Cartesia, provider=cartesia):** pam=Ariana, cmo(Mo)=Amélie, carl=Adrian, fin(Finn)=Brent, opsy=Andi, claude=Cameron. Mo↔Opsy were intentionally swapped.
+- **Slugs → voice (Vapi-native, provider=vapi, version=2, as of 2026-07-13):** pam=Savannah, cmo(Mo)=Emma, carl=Neil, fin(Finn)=Godfrey, opsy=Kai, biz=Sagar, claude=Elliot. See `scripts/vapi-setup.mjs`.
 - **Vapi assistant IDs:** Pam `ba635645-717d-4415-8bd6-640aa7a62a5c`, Mo `50aee5b0-e4e5-4b4f-8b19-d3ad05adae97`, Carl `9e3d60f5-47bd-4ca1-ad18-a0cc407c51f5`, Finn `083e9950-420e-459f-ae58-90f9ccb96ed9`, Opsy `d7d2a1e8-da87-42ad-997c-f0aa354f3549`, Claude `eadd9571-8cf7-44bc-a4b9-a2d0c4aaed69`. Named "WV Voice — {name}".
 - **Vapi public key (client, publishable):** `9248eb66-2766-42e5-8022-b749368dc750` (hardcoded in `app/voice/page.tsx`).
 - **Models:** agents `claude-sonnet-4-6`, claude line `claude-haiku-4-5-20251001`.

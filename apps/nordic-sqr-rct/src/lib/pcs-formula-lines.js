@@ -5,10 +5,9 @@
  * supplement facts table, linked to a PCS version.
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides. The `AI`
 // uppercase-abbreviation in `elementalAI` would otherwise produce
@@ -44,35 +43,6 @@ function parsePostgresRow(row) {
     confidence: row.confidence ?? null,
     createdTime: row.notion_created_at,
     lastEditedTime: row.notion_last_edited_at,
-  };
-}
-
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    ingredientForm: p[P.ingredientForm]?.title?.[0]?.plain_text || '',
-    pcsVersionId: (p[P.pcsVersion]?.relation || [])[0]?.id || null,
-    ingredientSource: (p[P.ingredientSource]?.rich_text || []).map(t => t.plain_text).join(''),
-    elementalAI: p[P.elementalAI]?.select?.name || null,
-    elementalAmountMg: p[P.elementalAmountMg]?.number ?? null,
-    ratioNote: (p[P.ratioNote]?.rich_text || []).map(t => t.plain_text).join(''),
-    servingBasisNote: (p[P.servingBasisNote]?.rich_text || []).map(t => t.plain_text).join(''),
-    formulaNotes: (p[P.formulaNotes]?.rich_text || []).map(t => t.plain_text).join(''),
-    // Lauren's template Table 2 decomposition — added 2026-04-18
-    ai: (p[P.ai]?.rich_text || []).map(t => t.plain_text).join(''),
-    aiForm: (p[P.aiForm]?.rich_text || []).map(t => t.plain_text).join(''),
-    fmPlm: (p[P.fmPlm]?.rich_text || []).map(t => t.plain_text).join(''),
-    amountPerServing: p[P.amountPerServing]?.number ?? null,
-    amountUnit: p[P.amountUnit]?.select?.name || null,
-    percentDailyValue: p[P.percentDailyValue]?.number ?? null,
-    // Canonical ingredient relations (Phase 1) — added 2026-04-19
-    activeIngredientCanonicalId: (p[P.activeIngredientCanonical]?.relation || [])[0]?.id || null,
-    activeIngredientFormCanonicalId: (p[P.activeIngredientFormCanonical]?.relation || [])[0]?.id || null,
-    // Wave 4.5.5 — per-item extractor confidence (0-1; Notion stores percent as fraction)
-    confidence: p[P.confidence]?.number ?? null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
   };
 }
 
@@ -120,73 +90,30 @@ function laurenTemplateProps(fields) {
 }
 
 export async function getFormulaLinesForIngredient(ingredientId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_formula_lines')
-        .select('*')
-        .eq('active_ingredient_canonical_id', ingredientId)
-        .order('notion_last_edited_at', { ascending: false })
-        .limit(5000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-formula-lines] Postgres forIngredient failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.formulaLines,
-    filter: { property: P.activeIngredientCanonical, relation: { contains: ingredientId } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_formula_lines')
+    .select('*')
+    .eq('active_ingredient_canonical_id', ingredientId)
+    .order('notion_last_edited_at', { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getFormulaLinesForVersion(versionId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_formula_lines')
-        .select('*')
-        .eq('pcs_version_id', versionId)
-        .limit(5000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-formula-lines] Postgres forVersion failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.formulaLines,
-    filter: { property: P.pcsVersion, relation: { contains: versionId } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_formula_lines')
+    .select('*')
+    .eq('pcs_version_id', versionId)
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getAllFormulaLines() {
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllFormulaLinesFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-formula-lines] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllFormulaLinesFromNotion();
-}
-
-async function _fetchAllFormulaLinesFromNotion() {
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.formulaLines,
-      start_cursor: cursor,
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
+  return await _fetchAllFormulaLinesFromPostgres();
 }
 
 async function _fetchAllFormulaLinesFromPostgres() {
@@ -201,58 +128,15 @@ async function _fetchAllFormulaLinesFromPostgres() {
 }
 
 export async function getFormulaLine(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_formula_lines')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-formula-lines] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
-}
-
-/**
- * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentFormulaLinesToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.formulaLines,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_formula_lines', parsed, FORMULA_LINES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleFormulaLinePageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_formula_lines', parsed, FORMULA_LINES_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_formula_lines')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  if (data) return parsePostgresRow(data);
+  return null;
 }
 
 export async function createFormulaLine(fields) {
@@ -268,38 +152,29 @@ export async function createFormulaLine(fields) {
   if (fields.formulaNotes) properties[P.formulaNotes] = { rich_text: [{ text: { content: fields.formulaNotes } }] };
   Object.assign(properties, laurenTemplateProps(fields));
 
-  if (shouldWriteToPostgresFirst()) {
-    const preId = crypto.randomUUID();
-    const stubRow = {
-      id: preId,
-      ingredientForm: fields.ingredientForm || '',
-      pcsVersionId: fields.pcsVersionId || null,
-      ingredientSource: fields.ingredientSource || '',
-      elementalAI: fields.elementalAI || null,
-      elementalAmountMg: fields.elementalAmountMg ?? null,
-      ratioNote: fields.ratioNote || '',
-      servingBasisNote: fields.servingBasisNote || '',
-      formulaNotes: fields.formulaNotes || '',
-      ai: fields.ai || '',
-      aiForm: fields.aiForm || '',
-      fmPlm: fields.fmPlm || '',
-      amountPerServing: fields.amountPerServing ?? null,
-      amountUnit: fields.amountUnit || null,
-      percentDailyValue: fields.percentDailyValue ?? null,
-      activeIngredientCanonicalId: fields.activeIngredientCanonicalId || null,
-      activeIngredientFormCanonicalId: fields.activeIngredientFormCanonicalId || null,
-      confidence: fields.confidence ?? null,
-    };
-    await writePostgresFirst('pcs_formula_lines', stubRow, FORMULA_LINES_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.formulaLines }, properties }));
-    return stubRow;
-  }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.formulaLines },
-    properties,
-  });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_formula_lines', parsed, FORMULA_LINES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  const preId = crypto.randomUUID();
+  const stubRow = {
+    id: preId,
+    ingredientForm: fields.ingredientForm || '',
+    pcsVersionId: fields.pcsVersionId || null,
+    ingredientSource: fields.ingredientSource || '',
+    elementalAI: fields.elementalAI || null,
+    elementalAmountMg: fields.elementalAmountMg ?? null,
+    ratioNote: fields.ratioNote || '',
+    servingBasisNote: fields.servingBasisNote || '',
+    formulaNotes: fields.formulaNotes || '',
+    ai: fields.ai || '',
+    aiForm: fields.aiForm || '',
+    fmPlm: fields.fmPlm || '',
+    amountPerServing: fields.amountPerServing ?? null,
+    amountUnit: fields.amountUnit || null,
+    percentDailyValue: fields.percentDailyValue ?? null,
+    activeIngredientCanonicalId: fields.activeIngredientCanonicalId || null,
+    activeIngredientFormCanonicalId: fields.activeIngredientFormCanonicalId || null,
+    confidence: fields.confidence ?? null,
+  };
+  await writePostgresFirst('pcs_formula_lines', stubRow, FORMULA_LINES_PG_COLUMN_MAP);
+  return stubRow;
 }
 
 /**
@@ -360,13 +235,7 @@ export async function updateFormulaLine(id, fields) {
     properties[P.formulaNotes] = { rich_text: [{ text: { content: fields.formulaNotes } }] };
   }
   Object.assign(properties, laurenTemplateProps(fields));
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_formula_lines', stubRow, FORMULA_LINES_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
-    return stubRow;
-  }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_formula_lines', parsed, FORMULA_LINES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  const stubRow = { id, ...fields };
+  await writePostgresFirst('pcs_formula_lines', stubRow, FORMULA_LINES_PG_COLUMN_MAP);
+  return stubRow;
 }

@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "stripe": {
+      "type": "http",
+      "url": "https://mcp.stripe.com"
+    },
+    "slack": {
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp",
+      "oauth": {
+        "clientId": "1601185624273.8899143856786",
+        "callbackPort": 3118
+      }
+    },
+    "notion": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer ${NOTION_TOKEN}\", \"Notion-Version\": \"2022-06-28\"}"
+      }
+    },
+    "pocket-prompts": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["apps/pocket.prompts/mcp/index.js"],
+      "env": {
+        "POCKET_PROMPTS_API_URL": "https://pocket-prompts-five.vercel.app",
+        "SLACK_DM_SECRET": "${SLACK_DM_SECRET}"
+      }
+    }
+  }
+}

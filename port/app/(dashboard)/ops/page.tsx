@@ -18,9 +18,16 @@ import {
   getRecentCronFailures,
 } from "@/lib/supabase/opsy";
 import { getUsageSummary } from "@/lib/ai/usage-store";
+import { UrlTabs, type TabDef } from "@/app/components/url-tabs";
 import { Sparkline } from "./components/sparkline";
+import { ArchitectureMap } from "./components/architecture-map";
 
 export const dynamic = "force-dynamic";
+
+const OPS_TABS: readonly TabDef[] = [
+  { key: "overview", label: "overview" },
+  { key: "architecture", label: "architecture" },
+];
 
 const LIGHT_DOT: Record<Light, string> = {
   green: "bg-emerald-500",
@@ -90,7 +97,15 @@ function platformSeries(
   return [...byBucket.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
 }
 
-export default async function OpsPage() {
+export default async function OpsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const tabParam = typeof sp.tab === "string" ? sp.tab : undefined;
+  const activeTab = OPS_TABS.find((t) => t.key === tabParam)?.key ?? "overview";
+
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
@@ -117,6 +132,12 @@ export default async function OpsPage() {
     (usage?.byFeature["opsy-email-triage"]?.costUsd ?? 0) +
     (usage?.byFeature["opsy-digest"]?.costUsd ?? 0);
 
+  // live design-token drift status → feeds the architecture map's token-flow panel
+  const tokenSvc = rollup?.services["design-token-sync"];
+  const tokenSync = tokenSvc
+    ? { status: tokenSvc.status, detail: tokenSvc.last_check ? `checked ${relTime(tokenSvc.last_check)}` : null, lastCheck: tokenSvc.last_check }
+    : undefined;
+
   return (
     <>
       <PageHeader
@@ -124,6 +145,11 @@ export default async function OpsPage() {
         description={`Opsy · operations + systems intelligence · last check ${relTime(rollup?.last_check ?? null)}`}
       />
 
+      <UrlTabs tabs={OPS_TABS} activeTab={activeTab} />
+
+      {activeTab === "architecture" && <ArchitectureMap tokenSync={tokenSync} />}
+
+      {activeTab === "overview" && (
       <div className="space-y-6">
         {/* ── zoom out: platform cards ─────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
@@ -331,6 +357,7 @@ export default async function OpsPage() {
           </div>
         </div>
       </div>
+      )}
     </>
   );
 }

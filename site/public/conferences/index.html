@@ -1,11 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>winded.vertigo × press play · when conferences come alive</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+/* Inter — self-hosted (latin variable subset, OFL). Replaces the Google Fonts CDN
+   link for privacy/perf and to match the self-hosted fonts on the CoAct demo. */
+@font-face{
+  font-family:'Inter';
+  font-style:normal;
+  font-weight:300 900;
+  font-display:swap;
+  src:url('./fonts/inter-latin-var.woff2') format('woff2');
+}
 html{scroll-behavior:smooth;}
 :root{
   --cadet:#273248;
@@ -160,8 +168,12 @@ nav{padding:28px 48px;display:flex;justify-content:space-between;align-items:cen
 .stat-shape-label.dark{color:var(--cadet);}
 /* the "we" close — lands beneath the number as the resolution to the stat above it */
 .stat-shape-action{font-size:19px;font-weight:700;line-height:1.2;padding:14px 12px 0;margin-top:14px;letter-spacing:-0.3px;border-top:1px solid rgba(255,255,255,0.3);}
-.stat-sources{display:none;}
-.stat-sources span{padding:0 8px;}
+/* sources surfaced as a subtle footnote (was display:none — hidden sources add no
+   credibility). NB: reconcile these with the primary-research citations in the
+   stat-number title tooltips before print/press use. */
+.stat-sources{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:2px 0;margin:-40px auto 64px;max-width:660px;font-size:11px;line-height:1.5;color:var(--cadet);opacity:0.48;text-align:center;}
+.stat-sources span{padding:0 12px;}
+.stat-sources span+span{border-left:1px solid rgba(39,50,72,0.28);}
 .rambøll-flow{max-width:920px;margin:0 auto;}
 .rambøll-intro{font-size:22px;font-weight:600;line-height:1.4;color:var(--cadet);text-align:center;margin-bottom:36px;}
 .rambøll-intro .lift{color:var(--pp-orange);font-weight:300;}
@@ -370,6 +382,7 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
   .stat-shape-num{font-size:clamp(48px,13vw,72px);letter-spacing:-2.5px;}
   .stat-shape-action{font-size:16px;}
   .stat-shape-label{font-size:12px;}
+  .stat-sources{margin:16px auto 36px;}
 }
 @media(max-width:680px){
   .section,.section-narrow,.evidence,.anti-content,.who,.what-we-do,.half-life,.ai-moment,.proof,.team-section,.final-cta{padding:80px 24px;}
@@ -830,7 +843,7 @@ footer{background:var(--cadet);color:var(--pp-cream);padding:64px 48px 40px;bord
     </div>
     <div class="footer-col">
       <h4>press play</h4>
-      <a href="https://pressplaylearning.com">pressplaylearning.com</a>
+      <a href="https://press-play.dk/" target="_blank" rel="noopener">press-play.dk</a>
     </div>
   </div>
   <div class="footer-bottom">

@@ -7,10 +7,12 @@
  */
 
 import { supabase } from "./client";
+import type { TriageSuggestion } from "@/lib/ai/pam-triage";
 
 export type ActionPriority = "low" | "medium" | "high";
 export type ActionType = "plan" | "implement" | "coordinate" | "review" | "admin";
 export type ActionStatus = "open" | "done" | "cancelled";
+export type TriageState = "pending" | "accepted" | "dismissed" | "merged";
 
 export interface MeetingActionItem {
   id: string;
@@ -26,6 +28,10 @@ export interface MeetingActionItem {
   context: string | null;
   status: ActionStatus;
   workItemId: string | null;
+  // Council → PaM bridge
+  pamCommitmentId: string | null;
+  triageState: TriageState | null;
+  triageSuggestion: TriageSuggestion | null;
 }
 
 interface ActionRow {
@@ -42,23 +48,29 @@ interface ActionRow {
   context: string | null;
   status: ActionStatus;
   work_item_id: string | null;
+  pam_commitment_id: string | null;
+  triage_state: TriageState | null;
+  triage_suggestion: TriageSuggestion | null;
 }
 
 function mapRow(row: ActionRow): MeetingActionItem {
   return {
-    id:          row.id,
-    meetingId:   row.meeting_id,
-    createdAt:   row.created_at,
-    updatedAt:   row.updated_at,
-    title:       row.title,
-    ownerEmail:  row.owner_email,
-    ownerName:   row.owner_name,
-    deadline:    row.deadline,
-    priority:    row.priority,
-    type:        row.type,
-    context:     row.context,
-    status:      row.status,
-    workItemId:  row.work_item_id,
+    id:               row.id,
+    meetingId:        row.meeting_id,
+    createdAt:        row.created_at,
+    updatedAt:        row.updated_at,
+    title:            row.title,
+    ownerEmail:       row.owner_email,
+    ownerName:        row.owner_name,
+    deadline:         row.deadline,
+    priority:         row.priority,
+    type:             row.type,
+    context:          row.context,
+    status:           row.status,
+    workItemId:       row.work_item_id,
+    pamCommitmentId:  row.pam_commitment_id,
+    triageState:      row.triage_state,
+    triageSuggestion: row.triage_suggestion,
   };
 }
 
@@ -242,6 +254,128 @@ export async function updateActionStatus(
     return true;
   } catch (err) {
     console.warn("[supabase/meeting-action-items] update threw:", err instanceof Error ? err.message : err);
+    return false;
+  }
+}
+
+// ── Council → PaM bridge ────────────────────────────────────────────────────
+
+/**
+ * Actions that have never been triaged for the PaM board (triage_state IS NULL)
+ * and aren't already linked to a commitment. Feeds the cron triage pass.
+ *
+ * Scoped to a recency window (`createdSince`, ISO) and ordered NEWEST first so
+ * the live inflow is triaged ahead of any historical backlog — there are 1000+
+ * pre-bridge open action items, and an inbox full of months-old stale items is
+ * worse than useless. Open status only.
+ */
+export async function listUntriagedActions(
+  createdSince?: string,
+  limit = 200,
+): Promise<MeetingActionItem[]> {
+  try {
+    let query = supabase
+      .from("meeting_action_items")
+      .select("*")
+      .is("triage_state", null)
+      .is("pam_commitment_id", null)
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (createdSince) query = query.gte("created_at", createdSince);
+    const { data, error } = await query;
+    if (error) {
+      console.warn("[supabase/meeting-action-items] list-untriaged failed:", error.message);
+      return [];
+    }
+    return (data ?? []).map((r) => mapRow(r as ActionRow));
+  } catch (err) {
+    console.warn("[supabase/meeting-action-items] list-untriaged threw:", err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+/**
+ * Actions awaiting human review in the PaM inbox (triage_state = 'pending').
+ * Optionally scoped to one owner. Most-recent first.
+ *
+ * `createdSince` (ISO) bounds the window to recent items — same pattern as
+ * `listUntriagedActions`. The owner-confirmation sweep passes it so meeting
+ * commitments older than its window aren't harvested (a months-old commitment
+ * is stale; DMing an owner to confirm it is worse than useless — the same
+ * "live inflow over historical backlog" posture the triage pipeline already
+ * takes). Without it, the bare `limit` silently strands everything ranked
+ * past the newest N by created_at.
+ */
+export async function listPendingTriageActions(
+  ownerEmail?: string | null,
+  limit = 100,
+  createdSince?: string,
+): Promise<MeetingActionItem[]> {
+  try {
+    let query = supabase
+      .from("meeting_action_items")
+      .select("*")
+      .eq("triage_state", "pending")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (ownerEmail) query = query.eq("owner_email", ownerEmail.toLowerCase());
+    if (createdSince) query = query.gte("created_at", createdSince);
+    const { data, error } = await query;
+    if (error) {
+      console.warn("[supabase/meeting-action-items] list-pending-triage failed:", error.message);
+      return [];
+    }
+    return (data ?? []).map((r) => mapRow(r as ActionRow));
+  } catch (err) {
+    console.warn("[supabase/meeting-action-items] list-pending-triage threw:", err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+/** Write a triage outcome (state + suggestion blob) onto an action. */
+export async function setActionTriage(
+  id: string,
+  state: TriageState,
+  suggestion: TriageSuggestion | null,
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("meeting_action_items")
+      .update({ triage_state: state, triage_suggestion: suggestion, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) {
+      console.warn("[supabase/meeting-action-items] setTriage failed:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[supabase/meeting-action-items] setTriage threw:", err instanceof Error ? err.message : err);
+    return false;
+  }
+}
+
+/**
+ * Link an action to the PaM commitment it produced (or was merged into) and
+ * stamp the triage_state. Idempotency anchor for promote-to-commitment.
+ */
+export async function setActionPamCommitmentId(
+  id: string,
+  commitmentId: string,
+  state: TriageState = "accepted",
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("meeting_action_items")
+      .update({ pam_commitment_id: commitmentId, triage_state: state, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) {
+      console.warn("[supabase/meeting-action-items] setPamCommitmentId failed:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[supabase/meeting-action-items] setPamCommitmentId threw:", err instanceof Error ? err.message : err);
     return false;
   }
 }

@@ -26,6 +26,10 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   "org-enrichment": "claude-haiku-4-5-20251001",
   // Haiku: high-volume (every email + RSS item), cost-sensitive
   "rfp-triage": "claude-haiku-4-5-20251001",
+  // Haiku: cheap one-pager brief generated for every ingested grant — the
+  // collective-review preprocessing step (replaces spending on full drafts
+  // before a human has looked). ~1k tokens vs the 12k proposal bundle.
+  "rfp-one-pager": "claude-haiku-4-5-20251001",
   // Sonnet: complex multi-source synthesis, infrequent (5-20 RFPs/month)
   "proposal-generation": "claude-sonnet-4-6",
   // Haiku: document extraction — fast, cost-effective for structured extraction
@@ -53,6 +57,30 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   "opsy-email-triage": "claude-haiku-4-5-20251001",
   // Haiku: Opsy's weekly ops digest — one short summary per week.
   "opsy-digest": "claude-haiku-4-5-20251001",
+  // Haiku: triage meeting action items into PaM commitments — meaningfulness,
+  // cycle/type/priority suggestion, dedup vs existing commitments. Cheap, runs
+  // over a batch of new action items per cron.
+  "pam-action-triage": "claude-haiku-4-5-20251001",
+  // Haiku: extract referenced concepts/skills from agent freeform logs
+  // (findings, decisions, incidents) for the /brain knowledge graph. Batched.
+  "knowledge-extract": "claude-haiku-4-5-20251001",
+  // Haiku: adjudicate whether a human CV capability and an agent-observed concept
+  // name the same thing (fuzzy /brain reconciliation). Batched, cached per pair.
+  "knowledge-reconcile": "claude-haiku-4-5-20251001",
+  // Haiku: extract commitment candidates from #whirlpool Slack chatter — short,
+  // infrequent (weekly-ish), cost-sensitive.
+  "whirlpool-sweep": "claude-haiku-4-5-20251001",
+  // Haiku: one short daily digest compiled from all six agents' overnight
+  // logs — low-cost, high-volume text, runs once a day.
+  "collective-digest": "claude-haiku-4-5-20251001",
+  // Haiku: router-side "is this event batch charter-relevant at all" check
+  // before spending a full agent run — high volume (every ambient-sweep
+  // tick), cost-sensitive by design (spec §3 cost guard).
+  "ambient-prefilter": "claude-haiku-4-5-20251001",
+  // Sonnet: the actual ambient-agent judgment call (silent/act/notify/preview
+  // + drafted artifact) — only reached after the prefilter says relevant, so
+  // infrequent relative to the prefilter.
+  "ambient-agent-run": "claude-sonnet-4-6",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -64,6 +92,7 @@ export type AiFeature =
   | "next-best-action"
   | "org-enrichment"
   | "rfp-triage"
+  | "rfp-one-pager"
   | "proposal-generation"
   | "rfp-document-extraction"
   | "rfp-question-parse"
@@ -76,7 +105,14 @@ export type AiFeature =
   | "carl-research"
   | "bibliography-import"
   | "opsy-email-triage"
-  | "opsy-digest";
+  | "opsy-digest"
+  | "pam-action-triage"
+  | "knowledge-extract"
+  | "knowledge-reconcile"
+  | "whirlpool-sweep"
+  | "collective-digest"
+  | "ambient-prefilter"
+  | "ambient-agent-run";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -85,6 +121,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "next-best-action": "Next Best Action",
   "org-enrichment": "Org Enrichment",
   "rfp-triage": "RFP Triage",
+  "rfp-one-pager": "RFP One-Pager",
   "proposal-generation": "Proposal Generation",
   "rfp-document-extraction": "RFP Document Extraction",
   "rfp-question-parse": "RFP Question Parser",
@@ -98,6 +135,13 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "bibliography-import": "Bibliography Import",
   "opsy-email-triage": "Opsy Email Triage",
   "opsy-digest": "Opsy Weekly Digest",
+  "pam-action-triage": "PaM Action Triage",
+  "knowledge-extract": "Knowledge Graph Extract",
+  "knowledge-reconcile": "Knowledge Graph Reconcile",
+  "whirlpool-sweep": "Whirlpool Commitment Sweep",
+  "collective-digest": "Daily Collective Digest",
+  "ambient-prefilter": "Ambient Agent Pre-filter",
+  "ambient-agent-run": "Ambient Agent Run",
 };
 
 // ── token usage tracking ─────────────────────────────────

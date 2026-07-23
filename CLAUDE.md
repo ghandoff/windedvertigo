@@ -13,9 +13,12 @@
 
 - **site/** — the main `windedvertigo.com` Next.js app (deployed to CF as the
   `wv-site` Worker). Marketing site, harbour landing, contribution forms.
-- **apps/harbour/** — parallel checkout of harbour sub-apps mirrored from
-  `harbour-apps/`. **Don't assume parity** — check both before claiming a file
-  is the source of truth.
+- **apps/harbour/** — **NOT a mirror any more.** The old ~May-18 full snapshot
+  was retired 2026-07-07 (PRs #332 + #334) once git-activity confirmed
+  `harbour-apps/` is the authoritative source for the whole harbour suite. Only
+  4 wired-in pieces remain: `packages/security`, `values-auction`,
+  `read-the-room` (npm workspace members) + `images` (site-referenced). For any
+  harbour app, **`harbour-apps/` is the source of truth** — don't reach here.
 - **port/** — internal AI proposal tooling, kanban, harbour ops.
 - **apps/ppcs-impact/** — PPCS 2026 engagement dashboard. D1-backed, no PII.
   Deploy: `cd apps/ppcs-impact && npm run deploy`. Data refresh (no redeploy):
@@ -62,6 +65,10 @@ For parallel work on the same repo, use `git worktree add`.
   collapses. Requires `CLOUDFLARE_API_TOKEN` in env or `site/.env`.
 - Routes claimed by wv-site: `windedvertigo.com/*` and `www.windedvertigo.com/*`.
   Other workers override specific subpaths.
+- **Static demos/pages live in `site/public/…` — that's the ONLY served path.**
+  e.g. the conference-experience demo is `site/public/portfolio/assets/conference-experience/`.
+  A top-level `site/portfolio/` mirror used to exist and caused wrong-path deploys
+  twice (PR #295, PR #353); it was deleted. Don't recreate it — edit `public/` directly.
 - **ISR cache backend is KV** (`open-next.config.ts` → `kvIncrementalCache`).
   Don't revert to `staticAssetsIncrementalCache` (read-only).
 - **Keep `/harbour/*` content pages free of server-side per-request inputs.**
@@ -76,6 +83,26 @@ For parallel work on the same repo, use `git worktree add`.
 via wv-site's `/*` route (since 2026-05-28). To update: rebuild in `harbour-apps`
 (`npm run rebuild-nav`), copy both artifacts to `site/public/`, redeploy wv-site.
 (Why it's served here rather than a dedicated CDN worker: `docs/decisions/`.)
+
+## design tokens (`@windedvertigo/tokens`)
+
+**Canonical source of truth is `harbour-apps/packages/tokens`** (the product repo —
+always ahead: it carries the kid palette + harbour nav CSS). windedvertigo holds
+synced copies, NOT hand-edited ones: `packages/tokens` (workspace pkg, used by
+ops), `port/lib/shared/tokens`, `site/styles/tokens.css`. Each has an
+`AUTO-SYNCED … DO NOT EDIT` header.
+
+- **To change brand/palette/spacing/type:** edit the canonical file in
+  harbour-apps, then here run `npm run sync:tokens`, then redeploy the affected
+  apps (`site` + `port` are manual-deploy; `ops` too if its look must update).
+- **Per-app overrides are preserved** by the sync (in a marked tail block):
+  `--font-body` binds each app's own `next/font` (port = Geist, site = Inter),
+  and site keeps its extended-footer component CSS. Don't move those into
+  canonical — they're intentionally app-local.
+- **Drift guard:** `npm run audit:tokens` (exit 1 on drift). A daily GitHub
+  Action + the `/ops` "design tokens" health signal report it live.
+- Same file-sync pattern + direction as the harbour-nav widget above; assumes
+  both repos are checked out as siblings under `~/Projects/`.
 
 ## Cloudflare WAF carve-out — do NOT delete
 
@@ -126,6 +153,17 @@ memory layer on port.windedvertigo.com.
 All four share a memory API (`/api/{cmo,pam,carl,opsy}/`); decisions are
 transparent on the strategy page's mo-log tab. Per-agent "how to talk to" notes
 + OAuth/MCP implementation detail: `docs/decisions/CLAUDE-full-snapshot-2026-06-19.md`.
+
+### executive agent charters (`docs/agents/executive-charters.md`)
+
+Governance-gated: **Garrett edits this file only.** It defines each agent's
+watch-list, standing permissions, and risk tiers for the ambient-agent spine
+(proactive interventions, preview cards). It is NOT hand-copied into code —
+`npm run sync:charters` (`scripts/sync-charters.mjs`) parses it into
+`port/lib/agent/charters.generated.ts` (same pattern + direction as
+`sync:tokens`). After editing the charters file: run `npm run sync:charters`,
+commit the regenerated file, then redeploy port. `npm run audit:charters`
+checks for drift without writing (useful in CI).
 
 ## file output rules (ALL conversations)
 

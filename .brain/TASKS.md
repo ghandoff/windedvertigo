@@ -120,6 +120,22 @@ Branch cut from `feat/budget-c-and-gates-preview`. Inherits all governance persi
 - [ ] **Optional**: add Sharon to `PREVIEW_ALLOW_LIST` (single constant in `pcs-explorer.js`) when ready to let her demo herself vs. Garrett driving the demo.
 - [ ] **Budget C payment** → widen role access beyond super-user.
 
+## Whirlpool actions — 2026-07-06
+
+From the july 6 whirlpool ([notion AI meeting](https://www.notion.so/395e4ee74ba4817bbca7dd5da5a52b1d)) — reviewed Creaseworks vibe materials (comic/video/audio), demoed Creaseworks Mini, ran a live "Character from a Crease" playthrough (Bella/Lamis/Jamie), walked the three-role evaluation tool, and debated Creaseworks philosophy/IP framing. No separate agenda page was found in the whirlpool hub for this session — flagging for garrett to check whether the sunday-night auto-agenda ran.
+
+- [ ] **lamis** — complete the full collective "reviewing it" evaluation form; send a screenshot if there are access issues
+- [ ] **team** — consider adding "crumple" as an explicit option alongside "fold" in the *Character from a Crease* instructions
+- [ ] **team** — consider reformatting game instructions as bullet points/numbered steps for mobile readability (bella missed a step reading paragraph-style instructions)
+- [ ] **garrett** — send an email summarizing Omna docs ahead of wednesday's onboarding session
+- [ ] **team** — consider adding a start-of-game prompt to disrupt the adult-child hierarchy and encourage kids to take the lead
+- [ ] **team** — revise AI-generated character sheet imagery to address default bias toward white, able-bodied representations
+- [ ] **team** — explore commissioning an early-career illustrator (Shaun Tan-inspired style) for the comic strip
+- [ ] **peyton** — finalize new brand color palette and refresh brand guidelines
+- [ ] **garrett** — schedule a session to clone winded vertigo github repos onto jamie's machine and connect personal AI ports
+- [ ] **team** — consider piloting Creaseworks with bella's family (sibling range covers multiple ages; parent is ex-SENCO, works in science education)
+- [ ] **garrett** — continue building the animation studio for animating character cards using LLMs
+
 ## Whirlpool actions — 2026-06-15
 
 From the june 15 whirlpool — the "breather edition" ([notion AI meeting](https://www.notion.so/380e4ee74ba480699a04dae68e4b81fb) · [agenda](https://www.notion.so/380e4ee74ba481f28ba8d79cf5b6cf78)). A relaxed celebrate-and-look-ahead session: creaseworks mini playtest, amna contract win, and a pivot toward foundational TToC / Games Manifesto alignment. Next wednesday (june 24) becomes a workshop; garrett takes family time tue–thu.

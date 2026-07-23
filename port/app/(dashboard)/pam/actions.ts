@@ -9,11 +9,33 @@ import {
   getPamCommitments,
 } from "@/lib/supabase/pam";
 import { wouldCreateCycle } from "@/app/components/timeline/graph";
+import { getWorkItemsFromSupabase } from "@/lib/supabase/work-items";
 
 async function requireSession() {
   const session = await auth();
   if (!session?.user) throw new Error("unauthenticated");
   return session;
+}
+
+/**
+ * Search non-archived Notion work_items by title — for linking a commitment to
+ * its "shipped work" counterpart in the edit dialog. Returns up to 20 matches.
+ */
+export async function searchWorkItemsAction(
+  query: string,
+): Promise<Array<{ id: string; task: string }>> {
+  await requireSession();
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return [];
+  try {
+    const items = await getWorkItemsFromSupabase(undefined, undefined, undefined, false);
+    return items
+      .filter((w) => w.task?.toLowerCase().includes(q))
+      .slice(0, 20)
+      .map((w) => ({ id: w.id, task: w.task }));
+  } catch {
+    return [];
+  }
 }
 
 export async function updateCommitmentStatusAction(
@@ -37,6 +59,7 @@ export async function addCommitmentAction(input: {
   start_date?: string;
   due_date?: string;
   source?: string;
+  programme?: string;
 }): Promise<{ ok?: true; error?: string }> {
   await requireSession();
   try {
@@ -46,6 +69,7 @@ export async function addCommitmentAction(input: {
       start_date: input.start_date || undefined,
       due_date: input.due_date || undefined,
       source: input.source || "port",
+      programme: input.programme || undefined,
     });
     revalidatePath("/pam");
     return { ok: true };
@@ -79,6 +103,8 @@ export async function updateCommitmentAction(
     status?: string;
     start_date?: string;
     due_date?: string;
+    work_item_id?: string | null;
+    programme?: string | null;
   },
 ): Promise<{ ok?: true; error?: string }> {
   await requireSession();

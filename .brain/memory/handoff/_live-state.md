@@ -5,67 +5,52 @@
 >
 > history and per-session notes live in sibling files in this directory. the archive of everything pre-split is `_archive-pre-split-2026-05-19.md`.
 
-**last synced:** 2026-06-15 21:10 pt (context-sync autonomous run)
+**last synced:** 2026-07-20 21:15 pt (context-sync autonomous run)
 
-**where we are right now:** day 18 post-launch, and a transition day — garrett is moving from the desktop to the laptop and taking family time at the cabin tue–thu, so meetings are meant to be cancelled wed (and the calendar should be cleared tomorrow too). two wins to bank: the **amna contract is fully signed** (adobe sign marked it "completed" this morning, 15 jun) and **nordic is signing this week** (payment expected with it). the june 15 whirlpool was a deliberate "breather edition" — the collective is now anchoring on foundational alignment: everyone reads the games manifesto + the ttoc one-pager and leaves feedback in canon by end of friday, and the 24 jun whirlpool becomes a ttoc/manifesto workshop (maria + jamie designing, jamie picking an external game to play and evaluate). pam now owns the weekly agenda + a weekly team game. on the engineering side it was another heavy two days: aics broadcasting + backfill + provenance badges, the living-view ai-form picker, budget-c compliance matrix + ai research chat, password-first login + 30-day sessions, a sidebar nav durability fix, dkim set up for windedvertigo.com, and rls enabled on every table (17 on wv-port-pilot, 51 on wv-nordic). the caipb audit-fixes branch is committed locally but not pushed (38/38 tests green, awaiting garrett's review + push from the laptop). cash is still stale at $34k (last hard number 20 apr), less the $7,385.63 may payroll that debited 2 jun — no fresh figure pulled this run (_source unavailable_). a google cloud tls-cert change was flagged due **today (15 jun)** and the gusto july-1 health-benefits confirmation still never landed (deadline passed 6 jun); adp's 2025 form 5500 verification is due 14 jul.
+**where we are right now:** the nordic payment for invoice #31 is in flight — ramp confirms nordic naturals sent it 17 jul with estimated arrival **tomorrow, tue 21 jul** (yesterday's "expected monday" was the send-side view; ramp's own estimate is the 21st). today was a four-meeting day (ops stewardship, whirlpool, payton, mo) and produced real forward motion: the whirlpool sharpened the conference-experience angle ("we help conferences create movements and connections that last beyond a single day"), edgardo (education for sharing) replied enthusiastically to the LTP consortium reconvening and the availability poll hit 4 responses, and an intro sync with august kinloch landed for fri 24 jul. engineering shipped the ambient-agent spine phase 1 (#393) plus a slack bot-token fix (#394), conference-demo mobile polish (#395), and booking poll form updates — and the macbook → mac mini machine handoff completed (windedvertigo checkout now clean and even with origin, no index.lock). the drag: **sixth consecutive zero-sent-mail day**, form 5500 is now 6 days overdue, taxdome is still locked out (2 nudges today), and the gusto sept-1 carrier window closed sunday with no visible decision. cash figure still stale at $34,026 (20 apr) — refresh queued for when the nordic deposit lands.
 
 ### open threads
 
 | project | last action | next action | link |
 |---|---|---|---|
-| nordic naturals — contract | budget B + retainer reframe worked through; whirlpool notes nordic is "signing this week" with payment expected | sign the nordic contract + confirm first invoice once it lands | [v2 agreement draft](https://docs.google.com/document/d/1QpeZA9q8sxrnBCIjDG70lPRpJfHUDVG097seEIa03H0) · [gmail thread 19e990652858b3d1](https://mail.google.com/mail/u/0/#inbox/19e990652858b3d1) |
-| foundational alignment — games manifesto + ttoc | new top priority set at the 15 jun whirlpool; 24 jun whirlpool becomes a ttoc/manifesto workshop (maria + jamie designing) | read the manifesto + ttoc one-pager and leave feedback (comments + voice) in canon by **end of friday** | [whirlpool 15 jun](https://www.notion.so/380e4ee74ba480699a04dae68e4b81fb) |
-| caipb audit-fixes — nordic | `feat/caipb-audit-fixes` committed locally (audit vs §4.5/§4.6, 4 findings fixed, 38/38 tests); not pushed | from the laptop: clear the stale `.git/index.lock`, commit `apps/nordic-sqr-rct/`, push the branch, garrett reviews (do **not** push to main) | `.brain/memory/handoff/2026-06-15-nordic-caipb-audit-fixes.md` |
-| amna — inception phase | contract fully signed/completed (adobe sign, 15 jun) | prepare amna's inception materials; awaiting amna's response on the next inception phase | [adobe sign thread 19eca3a823515ba2](https://mail.google.com/mail/u/0/#inbox/19eca3a823515ba2) |
-| ppcs impact report + dashboard | garrett's final pass; payton on the ~36-page high-visual treatment | finalise + send the report and dashboard (overdue against the earlier mon/tue target — ship once payton's graphics land) | [drive /figures](https://drive.google.com/drive/folders/1flF0hvueKCcHl3sf1otcz-sb_0KqwV4d) |
-| creaseworks-mini pilot | garrett building it live (collect & connect; kids co-design FIND first); jamie play-tested it well | garrett keeps editing + testing (do not edit in code); cARL runs the lit review aligning the mini to the transformative theory of change | [creaseworks-mini](https://windedvertigo.com/harbour/creaseworks-mini) |
-| cARL — bibliography + creaseworks lit review | keys still not wired (no commit landed); whirlpool tasked cARL with the creaseworks/classroom-games lit review | wire `CORE_API_KEY` + `SEMANTIC_SCHOLAR_API_KEY` as wv-port secrets (federated coverage 5/7 → 7/7), then run the lit review | [bibliography](https://port.windedvertigo.com/bibliography) |
-| opsy — infra-monitoring agent | phases 1–3 all shipped (#230/#231/#234 + the #232/#233/#235 fixes); `/ops` dashboard, pattern detection, weekly digest, slack alerting, cron auto-retry, email capture, and the cowork plugin are live | watch for false-positive noise before fully trusting critical-tier dm alerts; sanity-check the dashboard, digest, + pattern detection against real data | [ops dashboard](https://port.windedvertigo.com/ops) · `docs/opsy/posture.md` |
+| nordic naturals — invoice #31 | ramp: payment sent 17 jul, est arrival **21 jul** | confirm the deposit lands tomorrow; refresh cash position; then send invoices 32–34 | [ramp email](https://mail.google.com/mail/u/0/#inbox/19f704f95b0c4267) |
+| LTP consortium / idb el salvador | edgardo (education for sharing) replied enthusiastic 20 jul; poll at 4 responses; MINEDUCYT technical proposal v8 in drive | follow up with edgardo; reach out to dina re US charity status (william t. grant foundation); convert poll into a consortium call | [edgardo reply](https://mail.google.com/mail/u/0/#inbox/19f8073b150b7b37) |
+| adp 401k — form 5500 | verification was due **14 jul**; now 6 days overdue | complete the 5500 verification first thing | _adp / american century_ |
+| gusto — sept-1 401k carrier window | window closed sun 19 jul with no decision visible in sent mail or inbox | check in-app whether the decision was made; if missed, ask gusto about the next window | _gusto app_ |
+| straight talk cpas — taxdome + q2 cfo review | session expired again (self-dm nudges 08:03 + 17:09); q2 review still unbooked | re-auth via chrome at straighttalkcpas.taxdome.com, sign 2025 return forms, clear secure messages, book q2 review | [taxdome](https://straighttalkcpas.taxdome.com) |
+| winchester — book chapter proofs | hard deadline **22 jul (2 days)**; no reply visible in sent mail, so presumed still open (_partial source_) | resolve ellen spencer's outstanding publisher queries before the 22nd | see 07-08 note |
+| august kinloch intro | intro sync scheduled + accepted — fri 24 jul, 11:00–11:30 pt | prep context before friday | [cal.com email](https://mail.google.com/mail/u/0/#inbox/19f814d62bc1162c) |
+| engineering — ambient-agent spine | phase 1 merged (#393) with mo/pam pilots; resume note + 2 open bugs in `docs/prompts/cowork-handoff-2026-07-20.md`; #394/#395 + booking poll also merged | resume from the handoff note; verify port deploy (merged ≠ live) | main @ `2e3b5957` |
 
 ### waiting on external
 
-- **nordic (sharon matheny + legal team)** — signing this week per the whirlpool; first invoice + payment gated on garrett's signature landing.
-- **amna (walaa zaiter, hejer, natalia)** — contract done; now awaiting amna's response on the next inception phase before inception materials are finalised.
-- **straight talk cpas (straight talk / taxdome)** — secure messages still piling up unanswered: abhishek sachdeva + sabir ghoghari both 15 jun, on top of the earlier aakib qureshi + abhishek messages (8–9 jun). need a reply.
-- **adp / american century — 401k plan #156733** — 2025 form 5500 verification due **14 jul** to avoid late-filing penalties; also coordinate final 5500 + year-end testing with adp + cpa, and the plan-termination paperwork.
-- **google cloud (CloudPlatform-noreply@google.com)** — tls-cert change flagged due **today, 15 jun**: review the email + ensure all google trust services root CAs are trusted (likely overdue now).
-- **lightbulb learning lab + press play (sarah wolman, casper, jan)** — sarah enthusiastic about the "launching a fleet & rising tides" collaboration; awaiting next-step planning. note: the kickoff email bounced to `lisa@lightbulblearninglab.com` — resend to the right address.
-- **dw akademie — ims evaluation** — decision email arrived 2 jun, still unconfirmed; no new mail since.
-- **prme / ungc pedagogy** — check records on a 2025 certification-series participant's async completion (garrett + maria).
-- **concern (amy dignam)** — icsp gce proposal submitted 25 may; review window open.
-- **idb salvador / nadia nochez** — 50+ days silence since 24 apr; spanish follow-up draft (maria's voice) still unsent in gmail.
-- **august kinloch — technical audit** — kickoff held 3 jun; confirm audit scope + go/no-go, write the overdue kickoff note.
-- **lego foundation fellowship lead** — gina's 9 jun forward + the ssrc application link garrett self-bookmarked 10 jun; decide whether it's live.
-- **attio crm trial** — 60-day inactivity / workspace-deletion window ticking; keep-or-cancel decision pending (export contacts first if cancelling).
+- **nordic naturals** — invoice #31 payment in transit via ramp since 17 jul; est arrival 21 jul.
+- **adp / american century — 401k plan #156733** — form 5500 verification overdue since 14 jul; 30 jun indirect-compensation notice still unread.
+- **straight talk cpas (sabir, aakib, abhishek)** — secure messages unread behind the taxdome lockout; abhi still waiting on the q2 cfo review booking.
+- **amna (hejer)** — £6k wire was still unconfirmed at the 08 jul snapshot; no fresh signal since (_partial source this run_).
+- **edgardo (education for sharing)** — replied 20 jul; ball is now with garrett to follow up.
 
 ### environment handoffs
 
 **cowork → claude code (engineering queued up):**
 
-- **push the caipb audit-fixes branch from the laptop** — on the laptop run garrett's transition checklist: `git checkout feat/caipb-audit-fixes`, `git add apps/nordic-sqr-rct/`, commit, `git push -u origin feat/caipb-audit-fixes`. there's a stale `.git/index.lock` (0 bytes) — `rm -f .git/index.lock` first if git complains. **do not push to main** (auto-deploys nordic).
-- **leave creaseworks-mini alone for now** — garrett is still hand-editing + testing `windedvertigo.com/harbour/creaseworks-mini` and asked eng to stay out of the code. queue any structural work behind his pass.
-- **opsy phases 1–3 are live** — watch the tier-1 through tier-4 monitors for false-positive noise before fully trusting critical-tier dm alerts; sanity-check the `/ops` dashboard, the weekly digest, and the failure-pattern detection against real data. (note: a stale daily-brief line said "build opsy phase 1" — disregard; commits #230–#235 confirm 1–3 shipped.)
-- **qa the harbour ppcs companion gates** (lines-become-loops, values-companion, cuts-catalogue) against the ppcs flow.
-- wire `CORE_API_KEY` + `SEMANTIC_SCHOLAR_API_KEY` as wv-port worker secrets (`cd port && npx wrangler secret put …`) — lifts bibliography federated search 5/7 → 7/7. still no commit showing the keys landed.
-- apply the 15 jun dependency review: `next` → 16.2.9 (patches 2 HIGH CVEs across all 3 repos — highest-ROI, safe same-major bump), **critical** vitest → 4.1.9 in harbour `packages/security` + `launch-smoke` + `values-auction`, `wrangler` → 4.100.0 across all workspaces, `@anthropic-ai/sdk` ≥0.91.1 in nordic-sqr-rct. harbour-apps changes need a local session (sandbox install blocked).
-- commit-or-ignore untracked sprawl, incl. the new `site/public/tools/whirlpool-wheel/index.html`, plus the older `site/.env`, prompts, and tool dirs flagged before.
-- branch cleanup sweep — the local branch list is well past claude.md's 3-day rule; audit against main, delete merged ones, get unfinished work shippable then merge.
+- **resume ambient-spine phase 1** — resume point + 2 open bugs documented in `docs/prompts/cowork-handoff-2026-07-20.md` (untracked — commit it).
+- **weekly dependency review (self-dm 06:27)** — nordic-sqr-rct: 1 critical + 14 high (bump workflow → 4.6.0, next → 16.2.10); windedvertigo: `npm update hono` (14 CVEs incl. CORS credentials leak). safe-tier bumps ready to apply.
+- **commit the 5 untracked agent docs** — `docs/pam/handoff-2026-07-20.md`, `docs/prompts/cowork-handoff-2026-07-20.md`, plus older carl/cmo/opsy handoffs sitting untracked.
+- **mac mini first sit-down** — run the push-first-then-pull ritual from the 00:47 self-dm; verify wv-brain `82bd6b7` got pushed (windedvertigo side is confirmed synced).
 
 **claude code → cowork (ops queued up):**
 
-- **sign the nordic contract** (signing this week; payment expected with it) and confirm the first invoice once it lands.
-- **prepare amna's inception materials** for the next inception phase (contract now fully signed; awaiting amna's reply).
-- **clear tomorrow's calendar** — despite the tue–thu family-time cancellation, 3 internal meetings still sit on 16 jun (bi-weekly strategy playdates 8am pt, lamis x garrett 9am pt, garrett x maria 11am pt). decline/cancel them.
-- **review the google cloud tls-cert email (due today, 15 jun)** and trust the google trust services root CAs.
-- **finalise + send the ppcs impact report + dashboard** once payton's ~36-page graphics land (overdue against the earlier target).
-- read jamie's transformative-theory-of-change doc + games manifesto and leave feedback in canon by end of friday (whole-team action).
-- verify the gusto july-1 health-benefits enrolment landed (deadline passed 6 jun) — or chase the lapse / next window.
-- complete the adp 2025 form 5500 verification by 14 jul.
-- reply to the straight talk cpas taxdome secure messages (now four-plus: 8, 9, and two on 15 jun).
-- refresh cash position (last hard number $34k as of 20 apr; payroll $7,385.63 debited 2 jun; no fresh figure this run).
-- lower-priority follow-ups still open: dw akademie decision, prme certification-series records, august kinloch audit kickoff note, lightbulb + press play next steps (resend to lisa's correct address), lego foundation fellowship decision, idb salvador spanish follow-up, attio keep-or-cancel.
+- **confirm the nordic deposit lands 21 jul** + refresh the cash position (stale since 20 apr); then invoices 32–34.
+- **form 5500** — 6 days overdue, do first.
+- **taxdome re-auth + book the q2 cfo review** with abhi.
+- **gusto carrier-window check** — confirm whether the sept-1 decision was made before sunday's cutoff.
+- **follow up edgardo + reach out to dina** (US charity status for the william t. grant foundation angle).
+- **winchester proofs** — 22 jul hard deadline.
+- **synthesize today's meeting notes into TASKS.md** — gemini notes landed for both the whirlpool and the payton weekly (conference-experience angle, edgardo/dina follow-ups).
 
 ### mobile bookmarks
 
-- **screenshot self-bookmark, 15 jun 12:01 pt** — garrett dropped an uncaptioned `Screenshot 2026-06-15 at 12.00.45.png` into his self-dm; content not inspected, treat as an unresolved bookmark to action. [link](https://windedvertigogo.slack.com/archives/D06QGJ34H53/p1781550062484219)
-- **laptop transition checklist, 15 jun 12:08 pt** — the device-handoff steps (caipb push commands, clone/setup on the laptop, what carries over) — keep handy until the laptop is fully set up. it also re-flags the google cloud tls-cert deadline (today) still pending. [link](https://windedvertigogo.slack.com/archives/D06QGJ34H53/p1781554128673399)
+- **00:47 — macbook → mac mini finish-up instructions** — windedvertigo push confirmed done (checkout even with origin); wv-brain push + mini ritual still to verify.
+- **06:27 — weekly dependency review** — safe-tier bumps pending (see engineering queue).
+- **08:03 + 17:09 — taxdome session-expired nudges** — standing re-auth ask, see open threads.

@@ -15,8 +15,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllRfpOpportunities } from "@/lib/notion/rfp-radar";
 import { supabase } from "@/lib/supabase/client";
+import { createBizDecision } from "@/lib/biz-data";
+import { escalate } from "@/lib/escalation";
 
 export const maxDuration = 60;
+
+const TERMINAL = new Set(["won", "lost", "no-go", "missed deadline"]);
+const DELTA_CHANNEL = process.env.SLACK_RFP_CHANNEL ?? "#funding-opportunities";
 
 function verifyCronAuth(req: NextRequest): boolean {
   const authHeader = req.headers.get("authorization");
@@ -94,12 +99,34 @@ export async function GET(req: NextRequest) {
   const notionIds = rawRows.map((r) => r.notion_page_id);
   const { data: existingRows } = await supabase
     .from("rfp_opportunities")
-    .select("notion_page_id, status")
+    .select("notion_page_id, status, due_date, opportunity_name")
     .in("notion_page_id", notionIds);
 
   const existingStatusMap = new Map<string, string | null>(
     (existingRows ?? []).map((r) => [r.notion_page_id as string, r.status as string | null]),
   );
+
+  // ── BIZ-G4: due-date delta detection ────────────────────────────────────
+  // "Silent slippage" — a tracked deadline moves in Notion and nobody notices
+  // until it's too late. Status changes are already covered by
+  // transitionRfpStatus()'s own alerting (won celebration) and
+  // biz-go-no-go-sweep's digest, so re-alerting status here would just
+  // duplicate that — this only watches due_date, which nothing else tracks.
+  const existingDueDateMap = new Map<string, { due_date: string | null; name: string }>(
+    (existingRows ?? []).map((r) => [
+      r.notion_page_id as string,
+      { due_date: r.due_date as string | null, name: r.opportunity_name as string },
+    ]),
+  );
+  const dueDateDeltas: Array<{ notionPageId: string; name: string; from: string | null; to: string | null }> = [];
+  for (const row of rawRows) {
+    const prior = existingDueDateMap.get(row.notion_page_id);
+    if (!prior) continue; // new row this sync — not a "change"
+    if (TERMINAL.has(row.status ?? "")) continue; // slippage only matters while still active
+    if (prior.due_date !== row.due_date) {
+      dueDateDeltas.push({ notionPageId: row.notion_page_id, name: row.opportunity_name || prior.name, from: prior.due_date, to: row.due_date });
+    }
+  }
 
   const rows = rawRows.map((r) => {
     const incomingIsRadar = !r.status || r.status === "radar";
@@ -113,18 +140,87 @@ export async function GET(req: NextRequest) {
   });
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── name-based dedup: one canonical row per opportunity name ─────────────
+  // Same grant can arrive in Notion via two ingest paths (email + RSS), each
+  // with a different notion_page_id.  Keep the highest-status copy; delete any
+  // existing Supabase rows for the losing notion_page_ids so they don't persist.
+  const STATUS_PRIORITY: Record<string, number> = {
+    pursuing: 1, interviewing: 2, submitted: 3, won: 4,
+    "no-go": 5, lost: 6, "missed deadline": 7, reviewing: 8, radar: 9,
+  };
+  const nameMap = new Map<string, (typeof rows)[0]>();
+  for (const row of rows) {
+    const key = (row.opportunity_name ?? "").trim().toLowerCase();
+    const incumbent = nameMap.get(key);
+    const rowPri = STATUS_PRIORITY[row.status ?? ""] ?? 10;
+    const incPri = incumbent ? (STATUS_PRIORITY[incumbent.status ?? ""] ?? 10) : Infinity;
+    if (!incumbent || rowPri < incPri) nameMap.set(key, row);
+  }
+  const dedupedRows = [...nameMap.values()];
+  const winnerIds = new Set(dedupedRows.map((r) => r.notion_page_id));
+  const loserIds = rows.map((r) => r.notion_page_id).filter((id) => !winnerIds.has(id));
+
+  // A due-date delta on a row that turned out to be a dedup loser isn't a
+  // real change worth alerting on — it's about to be evicted.
+  const survivingDeltas = dueDateDeltas.filter((d) => winnerIds.has(d.notionPageId));
+
+  if (loserIds.length > 0) {
+    const { error: delErr } = await supabase
+      .from("rfp_opportunities")
+      .delete()
+      .in("notion_page_id", loserIds);
+    if (delErr) {
+      console.warn("[sync-rfp-pilot] dedup delete error:", delErr.message);
+    } else {
+      console.log(`[sync-rfp-pilot] dedup: evicted ${loserIds.length} duplicate notion page(s)`);
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const { error, count } = await supabase
     .from("rfp_opportunities")
-    .upsert(rows, { onConflict: "notion_page_id", count: "exact" });
+    .upsert(dedupedRows, { onConflict: "notion_page_id", count: "exact" });
 
   if (error) {
     console.error("[sync-rfp-pilot] upsert error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // BIZ-G4: log + alert on this sync's due-date deltas, now that the write succeeded.
+  if (survivingDeltas.length > 0) {
+    await Promise.all(
+      survivingDeltas.map((d) =>
+        createBizDecision({
+          decision: "due date changed",
+          context: `${d.from ?? "(none)"} → ${d.to ?? "(none)"}`,
+          category: "delta-alert",
+          rfp_id: d.notionPageId,
+          logged_by: "sync-rfp-pilot",
+        }).catch(() => {}),
+      ),
+    );
+
+    const lines = [
+      `*deadline change${survivingDeltas.length !== 1 ? "s" : ""} detected (${survivingDeltas.length})*`,
+      ...survivingDeltas.map((d) => `• ${d.name} — ${d.from ?? "no date"} → ${d.to ?? "no date"}`),
+    ];
+    // Level 3 of the escalation ladder: topical, threaded channel post —
+    // silent deadline slippage is exactly the "genuine gate" this level is for.
+    await escalate({
+      agent: "biz",
+      level: 3,
+      channel: DELTA_CHANNEL,
+      message: lines.join("\n"),
+      context: { rfpIds: survivingDeltas.map((d) => d.notionPageId) },
+    }).catch((err) => {
+      console.warn("[sync-rfp-pilot] escalate() failed (non-fatal):", err);
+    });
+  }
+
   return NextResponse.json({
     message: `synced ${count ?? rows.length} rfp opportunities to Supabase`,
     upserted: count ?? rows.length,
     total: rows.length,
+    dueDateDeltas: survivingDeltas.length,
   });
 }

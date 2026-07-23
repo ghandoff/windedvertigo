@@ -140,7 +140,7 @@ export default function PcsClaimFormFields({ onSubmit, initialValues, busy = fal
     ? 'AI forms populate after AICS docs land.'
     : null;
   const prefixHelper = bundle.claimPrefixes.length === 0
-    ? 'Claim prefixes pending — placeholder until Lauren provides the list.'
+    ? 'Prefix list coming soon — free-text wording is fine for now.'
     : null;
 
   return (

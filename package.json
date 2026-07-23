@@ -5,7 +5,6 @@
     "site",
     "port",
     "ops",
-    "ancestry",
     "port-jobs",
     "packages/*",
     "apps/harbour/packages/security",
@@ -15,13 +14,15 @@
   ],
   "scripts": {
     "sync:footer": "node scripts/sync-footer.mjs",
+    "sync:tokens": "node scripts/sync-tokens.mjs",
+    "audit:tokens": "node scripts/sync-tokens.mjs --check",
+    "sync:charters": "node scripts/sync-charters.mjs",
+    "audit:charters": "node scripts/sync-charters.mjs --check",
     "dev:values-auction": "npm run dev -w apps/harbour/values-auction",
     "build:values-auction": "npm run build -w apps/harbour/values-auction",
     "deploy:values-auction": "npm run deploy:spa -w apps/harbour/values-auction",
     "dev:read-the-room": "npm run dev -w @windedvertigo/read-the-room",
     "deploy:read-the-room": "bash scripts/deploy-read-the-room.sh",
-    "dev:harbour": "npm run dev -w harbour",
-    "build:harbour": "npm run build -w harbour",
     "dev:port": "npm run dev -w port",
     "build:port": "npm run build -w port",
     "deploy:port": "bash scripts/deploy-port.sh",
@@ -48,7 +49,9 @@
   "overrides": {
     "fast-uri": "3.1.2",
     "ws": "8.20.1",
-    "postcss": "8.5.14"
+    "postcss": "8.5.14",
+    "next": "^16.2.9",
+    "lucide-react": "1.8.0"
   },
   "devDependencies": {
     "marked": "^18.0.2",

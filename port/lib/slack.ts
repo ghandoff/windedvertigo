@@ -43,9 +43,17 @@ interface SlackApiOptions {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function slackApi({ method, body }: SlackApiOptions): Promise<any> {
-  const token = process.env.SLACK_BOT_TOKEN;
+  // SLACK_AGENT_BOT_TOKEN (wv-claw) preferred: confirmed live as of 2026-07-20.
+  // SLACK_BOT_TOKEN (the older, separately-maintained "digest bot") started
+  // returning account_inactive on every call the same night — dead, not just
+  // uninvited to a channel. Falls back to it only so this doesn't go fully
+  // silent if SLACK_AGENT_BOT_TOKEN is ever unset in some other environment.
+  // If the digest-bot identity needs restoring later (separate Slack posting
+  // name/avatar for whirlpool-checkin/weekly-digest etc.), that's a follow-up
+  // — get SLACK_BOT_TOKEN a live credential again and flip the preference.
+  const token = process.env.SLACK_AGENT_BOT_TOKEN ?? process.env.SLACK_BOT_TOKEN;
   if (!token) {
-    console.warn("[slack] SLACK_BOT_TOKEN not set — skipping");
+    console.warn("[slack] SLACK_AGENT_BOT_TOKEN / SLACK_BOT_TOKEN not set — skipping");
     return null;
   }
 
@@ -75,6 +83,23 @@ export async function getSlackUserByEmail(email: string): Promise<string | null>
     body: { email },
   });
   return data?.user?.id ?? null;
+}
+
+/** Resolve a Slack user ID to a display name (falls back to real name, then the ID itself). */
+export async function getSlackUserName(userId: string): Promise<string> {
+  const data = await slackApi({ method: "users.info", body: { user: userId } });
+  return data?.user?.profile?.display_name || data?.user?.real_name || userId;
+}
+
+/**
+ * Resolve a Slack user ID to their email — the reverse of getSlackUserByEmail.
+ * Requires the users:read.email bot scope; returns null (not throw) if the
+ * scope is missing or the user has no email on file, same fail-open posture
+ * as the rest of this file.
+ */
+export async function getSlackUserEmail(userId: string): Promise<string | null> {
+  const data = await slackApi({ method: "users.info", body: { user: userId } });
+  return data?.user?.profile?.email ?? null;
 }
 
 /**
@@ -146,6 +171,27 @@ export async function postToChannel(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   blocks?: any[],
 ): Promise<boolean> {
+  return (await postToChannelDetailed(channel, text, blocks)).ok;
+}
+
+export interface PostToChannelDetail {
+  ok: boolean;
+  /** message timestamp — the id you thread a resolve-note reply against (postThreadReply). */
+  ts?: string;
+}
+
+/**
+ * Same as postToChannel(), but also returns the posted message's `ts` so a
+ * caller can later thread a reply against it (see postThreadReply()). Kept
+ * separate from postToChannel() so the many existing boolean-returning call
+ * sites don't need to change.
+ */
+export async function postToChannelDetailed(
+  channel: string,
+  text: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
+): Promise<PostToChannelDetail> {
   const data = await slackApi({
     method: "chat.postMessage",
     body: {
@@ -153,6 +199,77 @@ export async function postToChannel(
       text, // required fallback for notifications / screen readers
       ...(blocks ? { blocks } : {}),
     },
+  });
+  return { ok: data?.ok === true, ts: data?.ts };
+}
+
+/**
+ * Post to a channel, self-healing on first use — mirrors lib/opsy/alerts.ts's
+ * postOps(): try a direct post, and if that fails (channel missing or bot not
+ * a member) create/join the channel + invite the given emails, then retry
+ * once. Returns whether the message actually landed, and always warns on
+ * final failure rather than swallowing it — callers should surface this
+ * (log it, reflect it in a response body) instead of a bare `.catch(() => {})`,
+ * which hides every Slack failure with no trace.
+ */
+export async function postToChannelResilient(
+  channel: string,
+  text: string,
+  inviteEmails: string[] = [],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
+): Promise<boolean> {
+  return (await postToChannelResilientDetailed(channel, text, inviteEmails, blocks)).posted;
+}
+
+export interface PostToChannelResilientDetail {
+  posted: boolean;
+  ts?: string;
+  /** the channel the message actually landed in — may differ from the input if ensureChannel() resolved it (e.g. name → id). */
+  resolvedChannel?: string;
+}
+
+/**
+ * Same self-healing behaviour as postToChannelResilient(), but also returns
+ * the message `ts` + the channel it actually landed in — needed by callers
+ * (lib/escalation.ts's level-3 escalate()) that later thread a resolve-note
+ * reply via postThreadReply().
+ */
+export async function postToChannelResilientDetailed(
+  channel: string,
+  text: string,
+  inviteEmails: string[] = [],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
+): Promise<PostToChannelResilientDetail> {
+  const first = await postToChannelDetailed(channel, text, blocks);
+  if (first.ok) return { posted: true, ts: first.ts, resolvedChannel: channel };
+  const id = await ensureChannel(channel, inviteEmails);
+  if (id) {
+    const retry = await postToChannelDetailed(id, text, blocks);
+    if (retry.ok) return { posted: true, ts: retry.ts, resolvedChannel: id };
+  }
+  console.warn(`[slack] could not post to ${channel} — create it and /invite the bot`);
+  return { posted: false };
+}
+
+/**
+ * Post a threaded reply to an existing message — used for resolve-notes
+ * (Opsy's `:large_green_circle: *resolved* — …` pattern, generalized in
+ * lib/escalation.ts's resolveEscalation()). `replyBroadcast` also surfaces
+ * the reply in the channel's main timeline, not just inside the thread, so a
+ * closed alert is visible without opening the thread. Fail-open: returns
+ * false rather than throwing.
+ */
+export async function postThreadReply(
+  channel: string,
+  threadTs: string,
+  text: string,
+  replyBroadcast = true,
+): Promise<boolean> {
+  const data = await slackApi({
+    method: "chat.postMessage",
+    body: { channel, thread_ts: threadTs, text, reply_broadcast: replyBroadcast },
   });
   return data?.ok === true;
 }
@@ -211,6 +328,62 @@ export async function ensureChannel(
     }
   }
   return channelId;
+}
+
+/**
+ * Resolve a #channel-name to its Slack channel ID via conversations.list.
+ * Returns null if not found or the bot lacks channels:read.
+ */
+export async function getChannelIdByName(name: string): Promise<string | null> {
+  const plain = name.replace(/^#/, "");
+  if (/^[CG][A-Z0-9]{8,}$/.test(plain)) return plain; // already an ID
+  const list = await slackApi({
+    method: "conversations.list",
+    body: { types: "public_channel,private_channel", limit: 1000, exclude_archived: true },
+  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return list?.channels?.find((c: any) => c.name === plain)?.id ?? null;
+}
+
+export interface SlackMessage {
+  ts: string;
+  user?: string;
+  text: string;
+}
+
+/**
+ * Read a channel's message history since a given Slack timestamp (exclusive).
+ * Requires the channels:history (or groups:history for private channels)
+ * bot scope — returns an empty array (with a console.warn) if the scope is
+ * missing or the channel can't be resolved, rather than throwing, so a sweep
+ * cron degrades to "found nothing new" instead of crashing.
+ */
+export async function readChannelHistory(channel: string, oldest?: string): Promise<SlackMessage[]> {
+  const channelId = await getChannelIdByName(channel);
+  if (!channelId) {
+    console.warn(`[slack] readChannelHistory: could not resolve channel ${channel}`);
+    return [];
+  }
+  const messages: SlackMessage[] = [];
+  let cursor: string | undefined;
+  do {
+    const data = await slackApi({
+      method: "conversations.history",
+      body: { channel: channelId, oldest, limit: 200, cursor },
+    });
+    if (!data?.ok) {
+      if (data?.error) console.warn(`[slack] conversations.history failed for ${channel}:`, data.error);
+      break;
+    }
+    for (const m of data.messages ?? []) {
+      // Skip bot/system messages (joins, other agents' own posts) — the sweep
+      // only wants human commitment talk.
+      if (m.bot_id || m.subtype) continue;
+      messages.push({ ts: m.ts, user: m.user, text: m.text ?? "" });
+    }
+    cursor = data.response_metadata?.next_cursor || undefined;
+  } while (cursor);
+  return messages;
 }
 
 /**

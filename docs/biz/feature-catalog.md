@@ -48,8 +48,8 @@ only a handful are true ⬜ gaps (conflict detection, portal tracker, partner db
 
 | id | feature | status | surface | fixes | source |
 |----|---------|--------|---------|-------|--------|
-| BIZ-C1 | inline per-claim source citations | 🟡 `relevantCitations`/`references` exist, not traced | ⚙️ | hallucination risk | arphie, responsive trace |
-| BIZ-C2 | traceability/confidence score on AI sections | ⬜ | 🤖📊 | trust on institutional bids | responsive trace score |
+| BIZ-C1 | inline per-claim source citations | ✅ shipped — `citationTrace` on `ProposalDraft`, appended to the Notion draft + surfaced in `biz_qc_review` | ⚙️ | hallucination risk | arphie, responsive trace |
+| BIZ-C2 | traceability/confidence score on AI sections | ✅ shipped — `computeTraceabilityScore()`, persisted in `rfp_proposal_traceability`, gate 6 in the QC recipe | 🤖📊 | trust on institutional bids | responsive trace score |
 | BIZ-C3 | draft-strictly-from-source guardrail | 🟡 prompt-level | ⚙️ | fabricated facts | grantassistant, deeprfp |
 
 ## D. AI review / QC — **flagship**
@@ -84,7 +84,7 @@ only a handful are true ⬜ gaps (conflict detection, portal tracker, partner db
 | BIZ-G1 | typed deadlines (EOI/full/report) + multi-touch reminders + calendar sync | 🟡 `rfp_milestones`/`rfp_assignments` exist | 📊→PaM | deadlines slip | instrumentl |
 | BIZ-G2 | **funder-portal registration tracker that GATES a bid** | ⬜ novel | 📊 | ungm/unicef dead-ends | market whitespace |
 | BIZ-G3 | real-time slack alert on new high-fit RFP | 🟡 `notifyNewRfps()` batched | ⚙️ | missed early window | devex/instrumentl |
-| BIZ-G4 | delta alerts when a tracked opp's date/status changes | ⬜ | ⚙️ | silent slippage | govwin |
+| BIZ-G4 | delta alerts when a tracked opp's date/status changes | ✅ shipped — due-date deltas only (status changes already alerted elsewhere); `sync-rfp-pilot` | ⚙️ | silent slippage | govwin |
 
 ## H. funder & relationship intel
 

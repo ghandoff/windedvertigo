@@ -5,12 +5,10 @@
  * including all fields needed by the PCS portal.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS } from './pcs-config.js';
 import { memoize, invalidate as invalidateCache } from './in-memory-cache.js';
 import {
-  getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres,
-  shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst,
+  getPcsSupabase, writePostgresFirst,
 } from './supabase-pcs.js';
 
 // 2026-05-06 — column-name overrides for evidence's Notion → Postgres
@@ -63,13 +61,6 @@ const EVIDENCE_CACHE_TTL_MS = 60_000; // 60s — evidence list is read-mostly; w
 
 export function invalidateEvidenceCache() {
   invalidateCache(EVIDENCE_CACHE_KEY);
-}
-
-/** Extract the first file URL from a Notion file property. */
-function extractFileUrl(prop) {
-  const file = prop?.files?.[0];
-  if (!file) return null;
-  return file.external?.url || file.file?.url || null;
 }
 
 /**
@@ -126,46 +117,6 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    name: p[P.name]?.title?.[0]?.plain_text || '',
-    citation: (p[P.citation]?.rich_text || []).map(t => t.plain_text).join(''),
-    doi: (p[P.doi]?.rich_text || []).map(t => t.plain_text).join(''),
-    pmid: (p[P.pmid]?.rich_text || []).map(t => t.plain_text).join(''),
-    url: p[P.url]?.url || null,
-    evidenceType: p[P.evidenceType]?.select?.name || null,
-    ingredient: (p[P.ingredient]?.multi_select || []).map(s => s.name),
-    publicationYear: p[P.publicationYear]?.number ?? null,
-    canonicalSummary: (p[P.canonicalSummary]?.rich_text || []).map(t => t.plain_text).join(''),
-    endnoteGroup: (p[P.endnoteGroup]?.rich_text || []).map(t => t.plain_text).join(''),
-    endnoteRecordId: (p[P.endnoteRecordId]?.rich_text || []).map(t => t.plain_text).join(''),
-    sqrScore: p[P.sqrScore]?.number ?? null,
-    sqrRiskOfBias: p[P.sqrRiskOfBias]?.select?.name || null,
-    sqrReviewed: p[P.sqrReviewed]?.checkbox || false,
-    sqrReviewDate: p[P.sqrReviewDate]?.date?.start || null,
-    sqrReviewUrl: p[P.sqrReviewUrl]?.url || null,
-    pdf: extractFileUrl(p[P.pdf]),
-    usedInPacketIds: (p[P.usedInPackets]?.relation || []).map(r => r.id),
-    pcsReferenceIds: (p[P.pcsReferences]?.relation || []).map(r => r.id),
-    // Canonical ingredient multi-relation (Phase 1) — added 2026-04-19
-    activeIngredientCanonicalIds: (p[P.activeIngredientCanonical]?.relation || []).map(r => r.id),
-    // Wave 5.4 — Ingredient safety cross-check fields (added 2026-04-21).
-    // A Research member flags a row by checking `Safety signal` and filling in
-    // the structured alert fields; the evidence-updated webhook picks this up
-    // and starts the ingredientSafetySweep workflow. See docs/plans/wave-5-product-labels.md §5.
-    safetySignal: p[P.safetySignal]?.checkbox || false,
-    safetyIngredientIds: (p[P.safetyIngredient]?.relation || []).map(r => r.id),
-    safetyDoseThreshold: p[P.safetyDoseThreshold]?.number ?? null,
-    safetyDoseUnit: (p[P.safetyDoseUnit]?.rich_text || []).map(t => t.plain_text).join(''),
-    safetyDemographicFilterRaw: (p[P.safetyDemographicFilter]?.rich_text || []).map(t => t.plain_text).join(''),
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-    visibility: 'shared', // Notion has no visibility field; default shared for all Notion-sourced rows
-  };
-}
-
 export async function getAllEvidence(maxPages = 50, opts = {}) {
   // Hot-path cache: only the default-args call is memoized. Custom
   // maxPages or skipCache callers always see fresh data. Mirrors
@@ -179,85 +130,7 @@ export async function getAllEvidence(maxPages = 50, opts = {}) {
 }
 
 async function _fetchAllEvidence(maxPages) {
-  // 2026-05-06 — Path-2 read-path swap. Try Postgres first when the
-  // PCS_READ_FROM_POSTGRES flag is on AND the Supabase client is
-  // configured. Falls back to the Notion implementation on any error
-  // so a Supabase outage degrades to "slow but working" rather than
-  // "broken." Same fallback strategy as Phase 3's edge-cache: failure
-  // mode is the previous-known-good behavior.
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllEvidenceFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllEvidenceFromNotion(maxPages);
-}
-
-async function _fetchAllEvidenceFromNotion(maxPages) {
-  let all = [];
-  let cursor = undefined;
-  let pages = 0;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.evidenceLibrary,
-      page_size: 100,
-      start_cursor: cursor,
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-    pages++;
-  } while (cursor && pages < maxPages);
-  return all.map(parsePage);
-}
-
-/**
- * 2026-05-06 — Path-2 drift catcher. Called every few minutes by
- * /api/cron/drift-sync to pull any direct-Notion edits into Postgres
- * (i.e. Sharon edits a row in Notion's web UI, bypassing our platform).
- *
- * Filters Notion for rows where last_edited_time >= sinceIso, then
- * mirrors each to Postgres. Idempotent: re-running with the same
- * sinceIso just re-mirrors the same rows. Returns { count, maxSeen }.
- *
- * The cron uses the previous run's maxSeen as the next run's sinceIso
- * (with a small overlap window to avoid clock-skew gaps).
- */
-export async function syncRecentEvidenceToPostgres(sinceIso) {
-  const filter = {
-    timestamp: 'last_edited_time',
-    last_edited_time: { on_or_after: sinceIso },
-  };
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidenceLibrary,
-    filter,
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleEvidencePageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
+  return await _fetchAllEvidenceFromPostgres();
 }
 
 async function _fetchAllEvidenceFromPostgres() {
@@ -276,155 +149,77 @@ async function _fetchAllEvidenceFromPostgres() {
 }
 
 export async function getEvidence(id) {
-  // 2026-05-06 — Path-2 read-path swap for single-row fetch. Same
-  // fallback pattern as the list path.
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-      // Row missing in Postgres — could be a row created in Notion
-      // since the last sync. Fall through to Notion to fetch fresh.
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 // 2026-05-06 — Path-2 swap on by-filter helpers. Postgres has GIN
 // index on `ingredient` (text[]) so `.contains()` is fast; the rest
-// use B-tree on the relevant column. Each helper falls back to Notion
-// on any error.
+// use B-tree on the relevant column.
 
 export async function getEvidenceByIngredient(ingredient) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence')
-        .select('*')
-        .contains('ingredient', [ingredient])
-        .order('name', { ascending: true })
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres byIngredient failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidenceLibrary,
-    filter: { property: P.ingredient, multi_select: { contains: ingredient } },
-    sorts: [{ property: P.name, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .contains('ingredient', [ingredient])
+    .order('name', { ascending: true })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getEvidenceByType(evidenceType) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence')
-        .select('*')
-        .eq('evidence_type', evidenceType)
-        .order('name', { ascending: true })
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres byType failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidenceLibrary,
-    filter: { property: P.evidenceType, select: { equals: evidenceType } },
-    sorts: [{ property: P.name, direction: 'ascending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .eq('evidence_type', evidenceType)
+    .order('name', { ascending: true })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getSqrReviewedEvidence() {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence')
-        .select('*')
-        .eq('sqr_reviewed', true)
-        .order('sqr_score', { ascending: false, nullsFirst: false })
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres sqrReviewed failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidenceLibrary,
-    filter: { property: P.sqrReviewed, checkbox: { equals: true } },
-    sorts: [{ property: P.sqrScore, direction: 'descending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .eq('sqr_reviewed', true)
+    .order('sqr_score', { ascending: false, nullsFirst: false })
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getUntaggedEvidence() {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      // PostgREST: filter where ingredient array length is 0
-      const { data, error } = await sb
-        .from('pcs_evidence')
-        .select('*')
-        .eq('ingredient', '{}')
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres untagged failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.evidenceLibrary,
-      filter: { property: P.ingredient, multi_select: { is_empty: true } },
-      start_cursor: cursor,
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
+  const sb = getPcsSupabase();
+  // PostgREST: filter where ingredient array length is 0
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .eq('ingredient', '{}')
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getUnreviewedEvidence() {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_evidence')
-        .select('*')
-        .eq('sqr_reviewed', false)
-        .limit(2000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres unreviewed failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.evidenceLibrary,
-    filter: { property: P.sqrReviewed, checkbox: { equals: false } },
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .eq('sqr_reviewed', false)
+    .limit(2000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 /**
@@ -470,55 +265,26 @@ export async function findEvidenceByIdentifier({ doi, pmid }) {
   // High-impact swap: this runs INSIDE every createEvidence call as
   // the dedup gate, so it's on the hot path for save-from-search and
   // every EndNote import.
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      // Use ilike for case-insensitive match; the indexes still apply.
-      // Build OR filter via PostgREST `.or()` syntax.
-      const orParts = [];
-      if (normDoi) orParts.push(`doi.ilike.${normDoi}`);
-      if (normPmid) orParts.push(`pmid.eq.${normPmid}`);
-      const { data, error } = await sb
-        .from('pcs_evidence')
-        .select('*')
-        .or(orParts.join(','))
-        .limit(5);
-      if (error) throw error;
-      // Re-confirm the normalized match (PostgREST `ilike` is case-
-      // insensitive but doesn't normalize doi.org prefix, etc.).
-      for (const row of data || []) {
-        const parsed = parsePostgresRow(row);
-        if (normDoi && _normalizeDoi(parsed.doi) === normDoi) return parsed;
-        if (normPmid && _normalizePmid(parsed.pmid) === normPmid) return parsed;
-      }
-      return null;
-    } catch (err) {
-      console.warn(`[pcs-evidence] Postgres findByIdentifier failed, falling back to Notion: ${err.message}`);
-    }
+  const sb = getPcsSupabase();
+  // Use ilike for case-insensitive match; the indexes still apply.
+  // Build OR filter via PostgREST `.or()` syntax.
+  const orParts = [];
+  if (normDoi) orParts.push(`doi.ilike.${normDoi}`);
+  if (normPmid) orParts.push(`pmid.eq.${normPmid}`);
+  const { data, error } = await sb
+    .from('pcs_evidence')
+    .select('*')
+    .or(orParts.join(','))
+    .limit(5);
+  if (error) throw error;
+  // Re-confirm the normalized match (PostgREST `ilike` is case-
+  // insensitive but doesn't normalize doi.org prefix, etc.).
+  for (const row of data || []) {
+    const parsed = parsePostgresRow(row);
+    if (normDoi && _normalizeDoi(parsed.doi) === normDoi) return parsed;
+    if (normPmid && _normalizePmid(parsed.pmid) === normPmid) return parsed;
   }
-
-  const orFilters = [];
-  if (normDoi) orFilters.push({ property: P.doi, rich_text: { contains: normDoi } });
-  if (normPmid) orFilters.push({ property: P.pmid, rich_text: { contains: normPmid } });
-  try {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.evidenceLibrary,
-      filter: orFilters.length === 1 ? orFilters[0] : { or: orFilters },
-      page_size: 5,
-    });
-    if (!res.results.length) return null;
-    // Confirm the normalized match (Notion `contains` is loose on rich_text).
-    for (const page of res.results) {
-      const parsed = parsePage(page);
-      if (normDoi && _normalizeDoi(parsed.doi) === normDoi) return parsed;
-      if (normPmid && _normalizePmid(parsed.pmid) === normPmid) return parsed;
-    }
-    return null;
-  } catch (err) {
-    // Advisory check — never block creation on lookup failure.
-    console.warn(`[evidence] duplicate-lookup failed (non-fatal): ${err.message}`);
-    return null;
-  }
+  return null;
 }
 
 export async function createEvidence(fields) {
@@ -602,53 +368,31 @@ export async function createEvidence(fields) {
   // PCS_WRITE_TO_POSTGRES=1. The hard-merge path above stays on Phase A
   // semantics even when Phase B is on (updateEvidence already handles its
   // own flag, so _wasMerged propagates correctly).
-  if (shouldWriteToPostgresFirst()) {
-    const preId = crypto.randomUUID();
-    const stubRow = {
-      id: preId,
-      name: fields.name || '',
-      citation: fields.citation || '',
-      doi: fields.doi || '',
-      pmid: fields.pmid || '',
-      url: fields.url || null,
-      evidenceType: fields.evidenceType || null,
-      ingredient: fields.ingredient || [],
-      publicationYear: fields.publicationYear ?? null,
-      canonicalSummary: fields.canonicalSummary || '',
-      endnoteGroup: fields.endnoteGroup || '',
-      endnoteRecordId: fields.endnoteRecordId || '',
-      pdf: fields.pdf || null, // notionShapeToPgRow maps 'pdf' → 'pdf_url' via EVIDENCE_PG_COLUMN_MAP
-      // 2026-05-16 — analytics fields (Postgres-only)
-      pdfSource: fields.pdfSource || null,
-      pdfRetrievedAt: fields.pdfRetrievedAt || null,
-      pdfPlatformRetrieved: fields.pdfPlatformRetrieved || false,
-      publisherCostUsd: fields.publisherCostUsd ?? estimatePublisherCost(fields.doi),
-      visibility: fields.visibility || 'shared',
-    };
-    await writePostgresFirst(
-      'pcs_evidence',
-      stubRow,
-      EVIDENCE_PG_COLUMN_MAP,
-      () => notion.pages.create({ parent: { database_id: PCS_DB.evidenceLibrary }, properties }),
-    );
-    invalidateEvidenceCache();
-    return stubRow;
-  }
-  // Phase A fallback: Notion-first + best-effort mirror.
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.evidenceLibrary },
-    properties,
-  });
+  const preId = crypto.randomUUID();
+  const stubRow = {
+    id: preId,
+    name: fields.name || '',
+    citation: fields.citation || '',
+    doi: fields.doi || '',
+    pmid: fields.pmid || '',
+    url: fields.url || null,
+    evidenceType: fields.evidenceType || null,
+    ingredient: fields.ingredient || [],
+    publicationYear: fields.publicationYear ?? null,
+    canonicalSummary: fields.canonicalSummary || '',
+    endnoteGroup: fields.endnoteGroup || '',
+    endnoteRecordId: fields.endnoteRecordId || '',
+    pdf: fields.pdf || null, // notionShapeToPgRow maps 'pdf' → 'pdf_url' via EVIDENCE_PG_COLUMN_MAP
+    // 2026-05-16 — analytics fields (Postgres-only)
+    pdfSource: fields.pdfSource || null,
+    pdfRetrievedAt: fields.pdfRetrievedAt || null,
+    pdfPlatformRetrieved: fields.pdfPlatformRetrieved || false,
+    publisherCostUsd: fields.publisherCostUsd ?? estimatePublisherCost(fields.doi),
+    visibility: fields.visibility || 'shared',
+  };
+  await writePostgresFirst('pcs_evidence', stubRow, EVIDENCE_PG_COLUMN_MAP);
   invalidateEvidenceCache();
-  const parsed = parsePage(page);
-  // 2026-05-16 — analytics fields are Postgres-only; stamp them on parsed
-  // so mirrorToPostgres picks them up via EVIDENCE_PG_COLUMN_MAP.
-  if (fields.pdfSource) parsed.pdfSource = fields.pdfSource;
-  if (fields.pdfRetrievedAt) parsed.pdfRetrievedAt = fields.pdfRetrievedAt;
-  if (fields.pdfPlatformRetrieved) parsed.pdfPlatformRetrieved = fields.pdfPlatformRetrieved;
-  parsed.publisherCostUsd = fields.publisherCostUsd ?? estimatePublisherCost(fields.doi);
-  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  return stubRow;
 }
 
 export async function updateEvidence(id, fields) {
@@ -708,21 +452,8 @@ export async function updateEvidence(id, fields) {
     };
   }
   // 2026-05-07 — Phase B: stub carries only the fields being updated.
-  if (shouldWriteToPostgresFirst()) {
-    const stubRow = { id, ...fields };
-    await writePostgresFirst(
-      'pcs_evidence',
-      stubRow,
-      EVIDENCE_PG_COLUMN_MAP,
-      () => notion.pages.update({ page_id: id, properties }),
-    );
-    invalidateEvidenceCache();
-    return stubRow; // optimistic; _wasMerged propagates from createEvidence caller if needed
-  }
-  // Phase A fallback: Notion-first + best-effort mirror.
-  const page = await notion.pages.update({ page_id: id, properties });
+  const stubRow = { id, ...fields };
+  await writePostgresFirst('pcs_evidence', stubRow, EVIDENCE_PG_COLUMN_MAP);
   invalidateEvidenceCache();
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_evidence', parsed, EVIDENCE_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
+  return stubRow; // optimistic; _wasMerged propagates from createEvidence caller if needed
 }

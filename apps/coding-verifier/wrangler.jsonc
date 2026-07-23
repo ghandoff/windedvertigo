@@ -1,0 +1,44 @@
+{
+  // wv-coding-verifier — evidence verification console.
+  // adjudicate double-coded research claims for desk reviews (amna at 10 + future engagements).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wv-coding-verifier",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-01",
+  "account_id": "097c92553b268f8360b74f625f6d980a",
+
+  // static front-end (./assets). binding (not auto-serve) so the worker controls routing
+  // and can gate every page behind the session check.
+  "assets": {
+    "directory": "./assets",
+    "binding": "ASSETS"
+  },
+
+  // d1 — holds `claims` + `audit_log`. created 2026-06-26 in region WEUR (western europe).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wv-coding-verifier",
+      "database_id": "5c2b7dd3-75c0-46b5-abee-78f811ea0c63"
+    }
+  ],
+
+  // ⚠ confirm in the cloudflare dashboard (wv-coding-verifier → settings → domains & routes)
+  // BEFORE the first deploy. wv-site owns windedvertigo.com/* — this worker wins only on the
+  // more-specific path below. keep these patterns in sync with whatever is live.
+  "routes": [
+    { "pattern": "windedvertigo.com/tools/coding-verifier", "zone_name": "windedvertigo.com" },
+    { "pattern": "windedvertigo.com/tools/coding-verifier/*", "zone_name": "windedvertigo.com" }
+  ],
+
+  // google oauth client id — not sensitive (it travels in the auth redirect url).
+  // fill in after creating the oauth client in google cloud console.
+  "vars": {
+    "GOOGLE_CLIENT_ID": "908615417485-k7pmikr5o0q8sr38v3sddg7cesostbdg.apps.googleusercontent.com"
+  },
+
+  // secrets (set via `wrangler secret put --name wv-coding-verifier`, never committed):
+  //   SESSION_SECRET        — signs the session + oauth-state cookies (already set)
+  //   GOOGLE_CLIENT_SECRET  — the oauth client secret from google cloud console
+  "observability": { "enabled": true }
+}

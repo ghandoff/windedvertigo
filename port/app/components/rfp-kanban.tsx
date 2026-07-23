@@ -142,7 +142,7 @@ function RfpCard({
 
   return (
     <Card
-      className={`hover:shadow-md transition-shadow cursor-pointer ${deadlineUrgent ? "border-destructive/50" : ""}`}
+      className={`hover:shadow-md transition-shadow cursor-pointer ${deadlineUrgent ? "border-destructive/50" : ""} ${overdue ? "opacity-60" : ""}`}
       onMouseEnter={() => router.prefetch(href)}
       onClick={() => router.push(href)}
     >
@@ -262,6 +262,31 @@ function RfpCard({
           <p className="text-[10px] italic text-muted-foreground/80 leading-snug line-clamp-2">
             {rfp.requirementsSnapshot}
           </p>
+        )}
+        {rfp.onePager && (
+          // Brief-ready indicator — signals the card has a review one-pager, with
+          // the eligibility read as the most triage-useful at-a-glance signal.
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground/80">
+            {(() => {
+              const b = rfp.onePager.sourceBasis ?? "description-only";
+              const dot = b === "verified-tor" ? "bg-green-500" : b === "unverified-tor-doc" ? "bg-amber-500" : "bg-red-500";
+              return <span className={`h-1.5 w-1.5 rounded-full ${dot}`} title={`brief source: ${b}`} />;
+            })()}
+            <FileText className="h-3 w-3" />
+            <span>brief</span>
+            <span className="opacity-50">·</span>
+            <span
+              className={
+                rfp.onePager.eligibility.verdict === "likely-ineligible"
+                  ? "text-red-600"
+                  : rfp.onePager.eligibility.verdict === "likely-eligible"
+                    ? "text-green-700"
+                    : ""
+              }
+            >
+              {rfp.onePager.eligibility.verdict.replace(/-/g, " ")}
+            </span>
+          </div>
         )}
         {rfp.proposalStatus && (
           <div className="flex items-center gap-1.5 pt-0.5 border-t border-border/40">
@@ -464,10 +489,21 @@ export function RfpKanban({ opportunities }: RfpKanbanProps) {
     return () => clearInterval(timer);
   }, [hasGenerating, router]);
 
-  // Only active-pipeline items appear on the board; outcomes go to the completed table
+  // Only active-pipeline items appear on the board; outcomes go to the completed table.
+  //
+  // F2: demote past-due cards to the bottom of their column. The board otherwise
+  // sorts by due-date ascending, so an overdue grant sits at the TOP looking like
+  // the freshest item until the daily missed-deadline sweep archives it. Sinking
+  // them (stable sort keeps the due-date order within each group) means a
+  // between-sweeps lapse can't mislead triage. The card also dims when overdue.
+  const todayMidnight = new Date();
+  todayMidnight.setHours(0, 0, 0, 0);
+  const isPastDue = (r: RfpOpportunity) =>
+    !!r.dueDate?.start && parseDateOnly(r.dueDate.start) < todayMidnight;
   const items: RfpKanbanItem[] = opportunities
     .filter((r) => ACTIVE_STATUSES.includes(r.status as RfpStatus))
-    .map((r) => ({ ...r, kanbanStatus: r.status }));
+    .map((r) => ({ ...r, kanbanStatus: r.status }))
+    .sort((a, b) => Number(isPastDue(a)) - Number(isPastDue(b)));
 
   const handleStatusChange = useCallback(
     async (itemId: string, newStatus: string) => {

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, Link2, AlertTriangle, Pencil } from "lucide-react";
 import type { PamCommitment } from "@/lib/supabase/pam";
+import { programmeStyle } from "@/lib/pam/programmes";
 import { formatDate } from "@/lib/format";
 import { updateCommitmentStatusAction } from "../actions";
 import { EditCommitmentDialog } from "./edit-commitment-dialog";
@@ -43,8 +44,17 @@ function CommitmentCard({ item, onEdit }: { item: BoardItem; onEdit: () => void 
       }`}
     >
       <CardContent className="p-3 space-y-1.5">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px] capitalize">{item.who}</Badge>
+          {item.programme && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded-md lowercase font-medium"
+              style={{ background: programmeStyle(item.programme).bg, color: programmeStyle(item.programme).fg }}
+              title={`programme: ${item.programme}`}
+            >
+              {item.programme}
+            </span>
+          )}
           {item.source && (
             <span className="text-[10px] text-muted-foreground">via {item.source}</span>
           )}
@@ -100,8 +110,18 @@ export function CommitmentsBoard({ commitments }: { commitments: PamCommitment[]
   const router = useRouter();
   const [editing, setEditing] = useState<PamCommitment | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [programmeFilter, setProgrammeFilter] = useState<string>("all");
 
-  const items: BoardItem[] = commitments.map((c) => ({ ...c, kanbanStatus: c.status }));
+  const programmes = Array.from(
+    new Set(commitments.map((c) => c.programme).filter((p): p is string => !!p)),
+  ).sort();
+
+  const filtered =
+    programmeFilter === "all"
+      ? commitments
+      : commitments.filter((c) => c.programme === programmeFilter);
+
+  const items: BoardItem[] = filtered.map((c) => ({ ...c, kanbanStatus: c.status }));
 
   const handleStatusChange = useCallback(
     async (itemId: string, newStatus: string) => {
@@ -125,7 +145,7 @@ export function CommitmentsBoard({ commitments }: { commitments: PamCommitment[]
     [],
   );
 
-  if (items.length === 0) {
+  if (commitments.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground">
         <p className="text-sm">no commitments yet</p>
@@ -137,14 +157,55 @@ export function CommitmentsBoard({ commitments }: { commitments: PamCommitment[]
   }
 
   return (
-    <>
-      <DraggableKanban
-        columns={STATUS_COLUMNS}
-        items={items}
-        renderCard={renderCard}
-        onStatusChange={handleStatusChange}
+    <div className="space-y-3">
+      {programmes.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setProgrammeFilter("all")}
+            className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+              programmeFilter === "all"
+                ? "border-foreground/30 bg-muted font-medium"
+                : "border-border text-muted-foreground hover:bg-muted/50"
+            }`}
+          >
+            all programmes
+          </button>
+          {programmes.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setProgrammeFilter(p)}
+              className={`rounded-full border px-2.5 py-0.5 text-xs lowercase transition-colors ${
+                programmeFilter === p
+                  ? "border-foreground/30 bg-muted font-medium"
+                  : "border-border text-muted-foreground hover:bg-muted/50"
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {items.length === 0 ? (
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          no commitments in this programme
+        </p>
+      ) : (
+        <DraggableKanban
+          columns={STATUS_COLUMNS}
+          items={items}
+          renderCard={renderCard}
+          onStatusChange={handleStatusChange}
+        />
+      )}
+      <EditCommitmentDialog
+        commitment={editing}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        programmes={programmes}
       />
-      <EditCommitmentDialog commitment={editing} open={editOpen} onOpenChange={setEditOpen} />
-    </>
+    </div>
   );
 }

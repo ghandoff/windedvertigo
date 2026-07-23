@@ -100,7 +100,7 @@ function PreviewContent() {
               <p className="font-semibold">Live — graduated 2026-05-03.</p>
               <p className="mt-1">
                 The role-aware sidebar is now mounted in the live PCS workspace
-                layout (<code className="text-xs bg-green-100 px-1 py-0.5 rounded">src/app/pcs/layout.js</code>),
+                layout (<code className="text-xs bg-green-100 px-1 py-0.5 rounded">src/app/research/pcs/layout.js</code>),
                 rendering for every authenticated PCS user based on their
                 effective role. This page remains as a super-user dev tool to
                 preview every role&apos;s layout side-by-side without logging

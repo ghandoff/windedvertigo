@@ -15,7 +15,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import mammoth from "mammoth";
 import { uploadAsset } from "@/lib/r2/upload";
 import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
-import { setRfpDocumentUrl } from "@/lib/supabase/rfp-opportunities";
+import { setRfpDocumentUrl, markTorReplaced, setRfpProposalStale } from "@/lib/supabase/rfp-opportunities";
+import { scheduleBriefRegen } from "@/lib/rfp/regenerate-brief";
 import { clearExtractedRequirements, insertRequirements } from "@/lib/supabase/rfp-requirements";
 import { extractRequirements, extractRequirementsFromPdf } from "@/lib/ai/rfp-requirements-extractor";
 import { recordUsage } from "@/lib/ai/usage-store";
@@ -310,20 +311,24 @@ export async function POST(
 
   await Promise.all([pass1, pass2]);
 
-  // Only overwrite requirementsSnapshot if the current one is sparse (< 60 chars)
+  // Replacement = a TOR was already attached. On replace, force-re-derive the
+  // TOR-tied fields from the NEW doc (the sparse/empty guards below are correct
+  // for a first attach but would leave stale values from the wrong TOR).
+  const isReplacement = !!rfp.rfpDocumentUrl;
+
   const shouldUpdateSnapshot =
     extraction.requirementsSnapshot &&
-    (!rfp.requirementsSnapshot || rfp.requirementsSnapshot.length < 60);
+    (isReplacement || !rfp.requirementsSnapshot || rfp.requirementsSnapshot.length < 60);
 
   const updates: Parameters<typeof updateRfpOpportunity>[1] = {
     rfpDocumentUrl: publicUrl,
     ...(shouldUpdateSnapshot && {
       requirementsSnapshot: extraction.requirementsSnapshot!,
     }),
-    ...(!rfp.dueDate?.start && extraction.dueDate && {
+    ...((isReplacement || !rfp.dueDate?.start) && extraction.dueDate && {
       dueDate: { start: extraction.dueDate, end: null },
     }),
-    ...(!rfp.estimatedValue && extraction.estimatedValue && {
+    ...((isReplacement || !rfp.estimatedValue) && extraction.estimatedValue && {
       estimatedValue: extraction.estimatedValue,
     }),
   };
@@ -342,11 +347,24 @@ export async function POST(
 
   // Sync document URL to Supabase immediately — the detail page reads from
   // Supabase so without this write the widget shows "no document" until the
-  // next 15-min sync cron. Fire-and-forget: the Notion write is the critical
-  // path; a Supabase failure here is non-fatal (sync cron will catch up).
-  setRfpDocumentUrl(id, publicUrl).catch((err) => {
+  // next 15-min sync cron. Await so the brief regen below sees the new TOR.
+  await setRfpDocumentUrl(id, publicUrl).catch((err) => {
     console.warn("[rfp/document] supabase url sync failed (non-fatal):", err);
   });
+
+  // A real TOR just arrived → rebuild the one-pager brief from it (provenance
+  // → unverified-tor-doc until a human verifies) and refresh the TOR thumbnail.
+  // Background (waitUntil) so the upload response stays fast.
+  await scheduleBriefRegen(id);
+
+  // On replacement, the new document invalidates any prior verification, and a
+  // draft built on the old TOR is now stale.
+  if (isReplacement) {
+    const staleDraft = rfp.proposalStatus === "ready-for-review" || rfp.proposalStatus === "complete";
+    await markTorReplaced(id, { staleDraft }).catch((err) => {
+      console.warn("[rfp/document] markTorReplaced failed (non-fatal):", err);
+    });
+  }
 
   // Fire question parsing job (fire-and-forget — never blocks the response)
   const docPayload: RfpDocumentUploadedJob = {
@@ -370,6 +388,8 @@ export async function POST(
     const triggeredBy = userId;
     // Advance proposalStatus so the UI shows feedback immediately
     updateRfpOpportunity(id, { proposalStatus: "generating" }).catch(() => {});
+    // A fresh draft is being generated from the new TOR — no longer stale.
+    setRfpProposalStale(id, false).catch(() => {});
     const proposalPayload: RfpProposalJob = {
       type: "rfp/generate-proposal",
       rfpId: id,

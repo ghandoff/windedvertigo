@@ -19,6 +19,17 @@
  * committing. A Slack digest is posted to SLACK_RFP_CHANNEL summarising every
  * decision so the team can override anything surprising.
  *
+ * PLUS two aging passes so the queue never silently rots (a "deferred" verdict
+ * sets bid_decision, which drops the card out of the query above forever —
+ * nothing previously re-examined or timed it out; that's how items sat
+ * unreviewed for months):
+ *   1. auto-archive: any non-terminal opportunity whose due_date has passed
+ *      moves to "missed deadline", regardless of bid_decision.
+ *   2. stale-deferred re-surface: any card sitting at bid_decision='deferred'
+ *      for >14 days gets logged + surfaced again in the digest — NOT
+ *      auto-rejected, since BD opportunities are too valuable to auto-no-go
+ *      without a human look.
+ *
  * Auth: Bearer CRON_SECRET (standard CF-worker cron pattern).
  * Runs daily at 08:00 UTC, weekdays (registered in lib/scheduled.ts).
  */
@@ -29,12 +40,14 @@ import { getGoNoGoInputs, winProbability } from "@/lib/biz-go-no-go";
 import { setBidDecision } from "@/lib/supabase/rfp-opportunities";
 import { transitionRfpStatus } from "@/lib/rfp/transition";
 import { createBizDecision } from "@/lib/biz-data";
-import { postToChannel } from "@/lib/slack";
+import { escalate } from "@/lib/escalation";
 
 export const maxDuration = 60;
 
 const CHANNEL = process.env.SLACK_RFP_CHANNEL ?? "#funding-opportunities";
 const HOLD_HOURS = 24; // only process cards older than this
+const STALE_DEFERRED_DAYS = 14;
+const TERMINAL = new Set(["won", "lost", "no-go", "missed deadline"]);
 
 function verifyCronAuth(req: NextRequest): boolean {
   const auth = req.headers.get("authorization");
@@ -69,10 +82,126 @@ function score(fit: string, winProb: number): VerdictResult {
   return { verdict: "deferred", score: 40, reason: "fit score not yet determined — needs triage before go/no-go" };
 }
 
+interface AgedResult {
+  id: string;
+  name: string;
+  reason: string;
+}
+
+/** Pass 1: any non-terminal opportunity whose due_date has passed auto-archives. */
+async function sweepPastDeadline(): Promise<AgedResult[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  // Filter TERMINAL client-side rather than a hand-built PostgREST "not.in"
+  // list — "missed deadline" contains a space, and this table's rows are few
+  // enough (well under the 200-row limit here) that a JS filter is simpler
+  // and safer than getting quoting right in a raw filter string.
+  const { data: candidates, error: queryErr } = await supabase
+    .from("rfp_opportunities")
+    .select("notion_page_id, opportunity_name, status, due_date")
+    .not("due_date", "is", null)
+    .lt("due_date", today)
+    .limit(200);
+
+  if (queryErr) {
+    console.error("[biz-go-no-go-sweep] past-deadline query failed:", queryErr);
+    return [];
+  }
+  const active = (candidates ?? []).filter((c) => !TERMINAL.has(c.status as string)).slice(0, 50);
+  if (active.length === 0) return [];
+
+  const results: AgedResult[] = [];
+  for (const card of active) {
+    const id = card.notion_page_id as string;
+    const name = (card.opportunity_name as string) ?? id;
+    const dueDate = card.due_date as string;
+    const reason = `past due date (${dueDate}), auto-archived by aging sweep`;
+    try {
+      await transitionRfpStatus(id, "missed deadline", { triggeredBy: "biz-aging-sweep" });
+      await createBizDecision({
+        decision: "auto-archived (missed deadline)",
+        context: reason,
+        category: "auto-archive",
+        rfp_id: id,
+        logged_by: "biz-cron",
+      }).catch(() => {});
+      results.push({ id, name, reason });
+    } catch (err) {
+      console.error(`[biz-go-no-go-sweep] auto-archive failed for ${id}:`, err instanceof Error ? err.message : err);
+    }
+  }
+  return results;
+}
+
+const RESURFACE_COOLDOWN_DAYS = 7;
+
+/**
+ * Pass 2: cards that scored "deferred" >14 days ago and were never revisited
+ * (bid_decision='deferred' drops them out of the main sweep query forever).
+ * Logged + re-surfaced in the digest, NOT auto-rejected — a human still has
+ * to decide.
+ *
+ * Re-surfaced at most once every RESURFACE_COOLDOWN_DAYS per card — without
+ * this a stale card would get logged and posted to the digest every single
+ * day forever, recreating exactly the "daily posts into silence" fatigue
+ * this whole aging sweep exists to fix.
+ */
+async function sweepStaleDeferred(): Promise<AgedResult[]> {
+  const cutoff = new Date(Date.now() - STALE_DEFERRED_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const { data: candidates, error: queryErr } = await supabase
+    .from("rfp_opportunities")
+    .select("notion_page_id, opportunity_name, status, bid_decision_at")
+    .eq("bid_decision", "deferred")
+    .lt("bid_decision_at", cutoff)
+    .limit(200);
+
+  if (queryErr) {
+    console.error("[biz-go-no-go-sweep] stale-deferred query failed:", queryErr);
+    return [];
+  }
+  const active = (candidates ?? []).filter((c) => !TERMINAL.has(c.status as string)).slice(0, 50);
+  if (active.length === 0) return [];
+
+  const cooldownCutoff = new Date(Date.now() - RESURFACE_COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const results: AgedResult[] = [];
+  for (const card of active) {
+    const id = card.notion_page_id as string;
+    const name = (card.opportunity_name as string) ?? id;
+
+    const { data: recentlyResurfaced } = await supabase
+      .from("biz_decisions")
+      .select("id")
+      .eq("rfp_id", id)
+      .eq("category", "auto-defer-aging")
+      .gte("created_at", cooldownCutoff)
+      .limit(1);
+    if (recentlyResurfaced && recentlyResurfaced.length > 0) continue; // already surfaced this week
+
+    const deferredAt = (card.bid_decision_at as string)?.slice(0, 10);
+    const reason = `unreviewed >${STALE_DEFERRED_DAYS} days since deferred on ${deferredAt} — resurfaced for human review`;
+    await createBizDecision({
+      decision: "resurfaced (stale deferred)",
+      context: reason,
+      category: "auto-defer-aging",
+      rfp_id: id,
+      logged_by: "biz-cron",
+    }).catch(() => {});
+    results.push({ id, name, reason });
+  }
+  return results;
+}
+
 export async function GET(req: NextRequest) {
   if (!verifyCronAuth(req)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+
+  // Aging passes run every time, independent of whether there are new radar
+  // cards to score below — otherwise the early-return on an empty radar
+  // candidate list would skip them entirely.
+  const [archived, staleDeferred] = await Promise.all([
+    sweepPastDeadline(),
+    sweepStaleDeferred(),
+  ]);
 
   const cutoff = new Date(Date.now() - HOLD_HOURS * 60 * 60 * 1000).toISOString();
 
@@ -96,7 +225,13 @@ export async function GET(req: NextRequest) {
   }
 
   if (!candidates || candidates.length === 0) {
-    return NextResponse.json({ swept: 0, message: "no unreviewed radar cards" });
+    await postAgingDigest(archived, staleDeferred, []);
+    return NextResponse.json({
+      swept: 0,
+      message: "no unreviewed radar cards",
+      archived: archived.length,
+      staleDeferred: staleDeferred.length,
+    });
   }
 
   const results: Array<{
@@ -151,6 +286,21 @@ export async function GET(req: NextRequest) {
         logged_by: "biz-cron",
       }).catch(() => {});
 
+      // Level-2 escalation ladder marker: "deferred" means a human still
+      // has to decide — log it as a decision-needed row (no Slack post; see
+      // lib/escalation.ts) so collective-digest can fold it into its
+      // "decisions needed" line. Fires once per card here (when it first
+      // defers) — sweepStaleDeferred() re-surfaces the biz_decisions row
+      // in the channel digest, but doesn't re-escalate.
+      if (verdict === "deferred") {
+        await escalate({
+          agent: "biz",
+          level: 2,
+          message: `${name} — ${reason}`,
+          context: { rfp_id: id },
+        }).catch(() => {});
+      }
+
       results.push({ id, name, verdict, score: s, reason, movedTo: target });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -159,12 +309,41 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Post Slack digest — one line per card so the team can override.
   const bids     = results.filter((r) => r.verdict === "bid");
   const noBids   = results.filter((r) => r.verdict === "no-bid");
   const deferred = results.filter((r) => r.verdict === "deferred");
 
-  const lines: string[] = [`*biz sweep — ${results.length} radar card${results.length !== 1 ? "s" : ""} reviewed*`];
+  await postAgingDigest(archived, staleDeferred, results);
+
+  console.log(`[biz-go-no-go-sweep] swept ${results.length} cards:`, {
+    bid: bids.length, deferred: deferred.length, noBid: noBids.length,
+    archived: archived.length, staleDeferred: staleDeferred.length,
+  });
+
+  return NextResponse.json({
+    swept: results.length,
+    bid: bids.length,
+    deferred: deferred.length,
+    no_bid: noBids.length,
+    archived: archived.length,
+    staleDeferred: staleDeferred.length,
+    results,
+  });
+}
+
+/** Post the combined digest — one line per card across all three passes so the team can override anything. */
+async function postAgingDigest(
+  archived: AgedResult[],
+  staleDeferred: AgedResult[],
+  scored: Array<{ id: string; name: string; verdict: Verdict; score: number; reason: string; movedTo: string | null }>,
+): Promise<void> {
+  const bids     = scored.filter((r) => r.verdict === "bid");
+  const noBids   = scored.filter((r) => r.verdict === "no-bid");
+  const deferred = scored.filter((r) => r.verdict === "deferred");
+
+  if (scored.length === 0 && archived.length === 0 && staleDeferred.length === 0) return;
+
+  const lines: string[] = [`*biz sweep*${scored.length ? ` — ${scored.length} radar card${scored.length !== 1 ? "s" : ""} reviewed` : ""}`];
   if (bids.length) {
     lines.push(`\n✅ *pursuing (${bids.length})*`);
     bids.forEach((r) => lines.push(`  • ${r.name} — ${r.reason}`));
@@ -177,21 +356,26 @@ export async function GET(req: NextRequest) {
     lines.push(`\n❌ *no-go (${noBids.length})*`);
     noBids.forEach((r) => lines.push(`  • ${r.name} — ${r.reason}`));
   }
+  if (archived.length) {
+    lines.push(`\n🗄 *auto-archived — past deadline (${archived.length})*`);
+    archived.forEach((r) => lines.push(`  • ${r.name} — ${r.reason}`));
+  }
+  if (staleDeferred.length) {
+    lines.push(`\n👀 *needs a human look — unreviewed >${STALE_DEFERRED_DAYS} days (${staleDeferred.length})*`);
+    staleDeferred.forEach((r) => lines.push(`  • ${r.name} — ${r.reason}`));
+  }
   lines.push(`\n_override any decision by opening the card in port_`);
 
-  await postToChannel(CHANNEL, lines.join("\n")).catch((err) => {
-    console.warn("[biz-go-no-go-sweep] Slack post failed (non-fatal):", err);
-  });
-
-  console.log(`[biz-go-no-go-sweep] swept ${results.length} cards:`, {
-    bid: bids.length, deferred: deferred.length, noBid: noBids.length,
-  });
-
-  return NextResponse.json({
-    swept: results.length,
-    bid: bids.length,
-    deferred: deferred.length,
-    no_bid: noBids.length,
-    results,
+  // Level 3 of the escalation ladder: threaded channel post (already
+  // topical — #funding-opportunities). Not auto-resolved here — this is a
+  // running digest, not a single closeable incident; resolveEscalation()
+  // is there for whoever picks up the thread.
+  await escalate({
+    agent: "biz",
+    level: 3,
+    channel: CHANNEL,
+    message: lines.join("\n"),
+  }).catch((err) => {
+    console.warn("[biz-go-no-go-sweep] escalate() failed (non-fatal):", err);
   });
 }

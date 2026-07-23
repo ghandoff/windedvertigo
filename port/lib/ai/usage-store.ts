@@ -186,6 +186,7 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "next-best-action":       summary.byFeature["next-best-action"]?.costUsd       ?? 0,
     "org-enrichment":         summary.byFeature["org-enrichment"]?.costUsd         ?? 0,
     "rfp-triage":             summary.byFeature["rfp-triage"]?.costUsd             ?? 0,
+    "rfp-one-pager":          summary.byFeature["rfp-one-pager"]?.costUsd          ?? 0,
     "proposal-generation":    summary.byFeature["proposal-generation"]?.costUsd    ?? 0,
     "rfp-document-extraction":summary.byFeature["rfp-document-extraction"]?.costUsd ?? 0,
     "rfp-question-parse":     summary.byFeature["rfp-question-parse"]?.costUsd     ?? 0,
@@ -199,6 +200,13 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "bibliography-import":    summary.byFeature["bibliography-import"]?.costUsd     ?? 0,
     "opsy-email-triage":      summary.byFeature["opsy-email-triage"]?.costUsd       ?? 0,
     "opsy-digest":            summary.byFeature["opsy-digest"]?.costUsd             ?? 0,
+    "pam-action-triage":      summary.byFeature["pam-action-triage"]?.costUsd       ?? 0,
+    "knowledge-extract":      summary.byFeature["knowledge-extract"]?.costUsd       ?? 0,
+    "knowledge-reconcile":    summary.byFeature["knowledge-reconcile"]?.costUsd     ?? 0,
+    "whirlpool-sweep":        summary.byFeature["whirlpool-sweep"]?.costUsd         ?? 0,
+    "collective-digest":      summary.byFeature["collective-digest"]?.costUsd       ?? 0,
+    "ambient-prefilter":      summary.byFeature["ambient-prefilter"]?.costUsd       ?? 0,
+    "ambient-agent-run":      summary.byFeature["ambient-agent-run"]?.costUsd       ?? 0,
   };
 
   // Estimate Notion API calls: ~3 per AI request (fetch context)

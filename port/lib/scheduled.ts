@@ -90,6 +90,9 @@ const CRON_TABLE: CronEntry[] = [
   // ── Weekday-only ────────────────────────────────────────────────────────────
   { path: "/api/cron/meeting-briefings",   hours: [11], originalMinute: 30, weekdays: [1,2,3,4,5] },
   { path: "/api/cron/morning-digest",      hours: [9],  weekdays: [1,2,3,4,5] },
+  // owner: pam — the one daily touch: compiled from all six agents' overnight
+  // logs, posted to #daily-brief. 15:00 UTC = 8am PT (adjust across DST).
+  { path: "/api/cron/collective-digest",   hours: [15], weekdays: [1,2,3,4,5] },
   { path: "/api/cron/sync-calendar-time",  hours: [14], weekdays: [1,2,3,4,5] },
   { path: "/api/cron/deadline-risk",       hours: [13], originalMinute: 30, weekdays: [1,2,3,4,5] },
   // owner: biz — go/no-go scoring for new radar cards (autonomous, 24h hold window)
@@ -100,6 +103,18 @@ const CRON_TABLE: CronEntry[] = [
   { path: "/api/cron/rfp-deal-reconcile",       hours: [6] },
   // owner: biz — scan reply emails for RFP outcomes → review_queue → /inbox approval
   { path: "/api/cron/rfp-outcome-scan",         hours: [10] },
+
+  // ── Friday-only ─────────────────────────────────────────────────────────────
+  // owner: pam — sweep #whirlpool for commitments BEFORE the midpoint check-in
+  // digest below, so same-day (or earlier-in-week) commitments are captured
+  // in time to appear in it. Also runs Mon/Wed (whirlpool cadence per
+  // CLAUDE.md) at 20:00 UTC (1pm PT) to catch same-day commitments without
+  // waiting for Friday — adjust the hour if the actual whirlpool end time
+  // differs.
+  { path: "/api/cron/whirlpool-sweep",   hours: [16], weekdays: [5] },
+  { path: "/api/cron/whirlpool-sweep",   hours: [20], weekdays: [1, 3] },
+  // owner: pam — midpoint check-in for the current whirlpool cycle; posts digest to #whirlpool
+  { path: "/api/cron/whirlpool-checkin", hours: [17], weekdays: [5] },
 
   // ── Monday-only ─────────────────────────────────────────────────────────────
   { path: "/api/cron/weekly-digest",    hours: [14], weekdays: [1] },
@@ -211,26 +226,96 @@ const CRON_TABLE: CronEntry[] = [
   // supabase RLS audit). Tiers 1-3 + email scan run on the */5 trigger below.
   { path: "/api/cron/opsy-health-check-t4", hours: [6] },
 
+  // Daily 08:00 UTC — Opsy data-quality sweep: duplicate detection, page-limit
+  // traps, blank statuses, stale knowledge nodes, overdue PaM commitments,
+  // zero-duration poll options. Logs incidents + patterns; auto-resolves on clear.
+  { path: "/api/cron/opsy-data-quality", hours: [8] },
+
   // Monday 07:00 UTC — Opsy weekly ops digest + pattern-detection learning
   // pass. Posts to #ops-alerts.
   { path: "/api/cron/opsy-digest", hours: [7], weekdays: [1] },
+
+  // Daily 10:00 UTC — owner: pam — triage newly-ingested meeting action items
+  // into the PaM review inbox (meaningful? cycle? type? dup?). Inbox-only; a
+  // human accepts/merges/dismisses from /pam.
+  { path: "/api/cron/pam-action-triage", hours: [10] },
+
+  // ── knowledge graph ──────────────────────────────────────────────────────
+  // Daily re-ingest of the unified knowledge graph: Notion CV (human) + live
+  // agent logs (agent) + curated seed → knowledge_nodes/edges, then reconcile
+  // the human↔agent merge bridges. Powers /brain. Idempotent.
+  { path: "/api/cron/knowledge-sync", hours: [11], originalMinute: 20 },
+
+  // ── ambient-agent spine (docs/prompts/executive-agents-phase1-build.md) ────
+  // Hourly default-deny sweep — flips any HIGH-tier agent_interventions row
+  // still `proposed` past its expires_at to `expired`. The debounce/judgment
+  // sweep itself (agent-ambient-sweep) rides the */5 trigger below, not this
+  // table — event_log needs 5-minute granularity to debounce meaningfully.
+  { path: "/api/cron/agent-interventions-expire" },
+
+  // Mo — Friday pipeline scorecard (charter: "reported Fridays"). Same slot
+  // pattern as whirlpool-checkin (Fri 17:00 UTC), offset an hour earlier so
+  // Mo's scorecard lands before PaM's midpoint check-in.
+  { path: "/api/cron/mo-friday-scorecard", hours: [16], weekdays: [5] },
+
+  // Mo — content-queue runway watch (charter: "<2 weeks runway → fills it").
+  { path: "/api/cron/mo-content-runway-check", hours: [8] },
+
+  // PaM — Monday per-person commitment DM + exceptions note (charter:
+  // "reported Mondays"). Deliberately distinct from whirlpool-checkin's
+  // Friday PUBLIC #whirlpool digest — this is private per-person DMs at
+  // cycle start, not a mid-cycle channel post.
+  { path: "/api/cron/pam-monday-digest", hours: [14], weekdays: [1] },
+
+  // PaM — absence-horizon check (charter: "an absence approaching →
+  // redistribution proposal two weeks out").
+  { path: "/api/cron/pam-absence-horizon", hours: [9] },
+
+  // Opsy — weekly initiative-quality review (charter: "initiative-quality
+  // metrics for all agents · noisy/quiet/wrong → threshold-tuning proposal ·
+  // graduation candidates after ~100 clean instances → proposal to Garrett").
+  // Reads the per-action-type agent_interventions metrics and DMs Garrett a
+  // governance digest only when there's a signal. Monday 12:00 UTC — after
+  // opsy-digest (07:00) so the week's data is settled.
+  { path: "/api/cron/opsy-initiative-metrics", hours: [12], weekdays: [1] },
+
+  // Fin — weekly financial-obligations digest (charter: "invoice hygiene").
+  // Surfaces overdue + due-soon fin_items (the fin-email/box scans ingest them
+  // but nothing surfaced them). Monday 13:00 UTC — after the daily fin scans
+  // (07:00/08:00) refresh the data. Only DMs Garrett when there's something.
+  { path: "/api/cron/fin-obligations-digest", hours: [13], weekdays: [1] },
+
+  // Biz — estimated-value proposer (charter: "weighted pipeline coverage").
+  // Active RFPs have no estimated_value (a manual Notion field the ingest never
+  // fills), so the pipeline number can't be computed. Proposes a value per RFP
+  // via Claude → preview card → on approve, writes to Notion. Daily 15:00 UTC,
+  // budget-paced so the ~39-item backfill drips out instead of flooding.
+  { path: "/api/cron/biz-value-proposer", hours: [15] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE
 // (the hourly router would under-fire them to once per hour).
 //   sweep-stuck-proposals  — proposal pipeline watchdog
 //   opsy-health-check-t1   — Opsy tier-1 platform probes (posture.md tier 1)
+//   agent-ambient-sweep    — ambient-spine event_log debounce/judgment sweep;
+//     needs 5-min granularity to detect the "10 min quiet" debounce window —
+//     the hourly router would under-fire it and blow the spec's latency bar.
 const FIVE_MINUTE_PATHS = [
   "/api/cron/sweep-stuck-proposals",
   "/api/cron/opsy-health-check-t1",
+  "/api/cron/agent-ambient-sweep",
 ];
 
 // Sub-hourly Opsy jobs ride the same */5 trigger, slotted by the scheduled
 // minute (controller.scheduledTime, so a delayed invocation can't miss its
 // slot): :00/:15/:30/:45 → tier 2 + email scan; :00/:30 → tier 3.
+// PaM's owner-confirmation sweep rides the :00/:15/:30/:45 slot too — meeting
+// action items don't need tighter than 15-min latency to hit the charter's
+// "within the hour" target.
 const FIFTEEN_MINUTE_PATHS = [
   "/api/cron/opsy-health-check-t2",
   "/api/cron/opsy-email-scan",
+  "/api/cron/pam-owner-confirmation-sweep",
 ];
 const THIRTY_MINUTE_PATHS = ["/api/cron/opsy-health-check-t3"];
 

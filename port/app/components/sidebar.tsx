@@ -17,8 +17,7 @@ import { useUser } from "./user-provider";
 
 const OWNER_EMAIL = "garrett@windedvertigo.com";
 
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
-  const isActive = isNavItemActive(item.href, pathname);
+function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
   const isAgent = item.badge === "agent";
   return (
     <Link
@@ -45,11 +44,9 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
-function CollapsibleSection({ section, pathname, ownerEmail }: { section: NavSection; pathname: string; ownerEmail: string | undefined }) {
+function CollapsibleSection({ section, activeHref, ownerEmail }: { section: NavSection; activeHref: string | null; ownerEmail: string | undefined }) {
   const visibleItems = section.items.filter((item) => !item.ownerOnly || ownerEmail === OWNER_EMAIL);
-  const hasActiveChild = visibleItems.some((item) =>
-    isNavItemActive(item.href, pathname),
-  );
+  const hasActiveChild = visibleItems.some((item) => item.href === activeHref);
   const [open, setOpen] = useState(section.defaultOpen || hasActiveChild);
 
   if (visibleItems.length === 0) return null;
@@ -71,7 +68,7 @@ function CollapsibleSection({ section, pathname, ownerEmail }: { section: NavSec
       {open && (
         <div className="space-y-0.5">
           {visibleItems.map((item) => (
-            <NavLink key={item.href} item={item} pathname={pathname} />
+            <NavLink key={item.href} item={item} isActive={item.href === activeHref} />
           ))}
         </div>
       )}
@@ -82,6 +79,11 @@ function CollapsibleSection({ section, pathname, ownerEmail }: { section: NavSec
 export function Sidebar() {
   const pathname = usePathname();
   const user = useUser();
+
+  const allHrefs = NAV_SECTIONS.flatMap(s => s.items.map(i => i.href));
+  const activeHref = allHrefs
+    .filter(h => h === "/" ? pathname === "/" : pathname === h || pathname.startsWith(h + "/"))
+    .sort((a, b) => b.length - a.length)[0] ?? null;
 
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-sidebar text-white">
@@ -104,14 +106,14 @@ export function Sidebar() {
           <CollapsibleSection
             key={section.title}
             section={section}
-            pathname={pathname}
+            activeHref={activeHref}
             ownerEmail={user?.email}
           />
         ))}
         {BOTTOM_ITEMS.length > 0 && (
           <div className="border-t border-sidebar-border pt-2 mt-2 space-y-0.5">
             {BOTTOM_ITEMS.map((item) => (
-              <NavLink key={item.href} item={item} pathname={pathname} />
+              <NavLink key={item.href} item={item} isActive={isNavItemActive(item.href, pathname)} />
             ))}
           </div>
         )}

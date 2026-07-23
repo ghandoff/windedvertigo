@@ -3,5 +3,18 @@
    imports the existing design tokens and site-specific styles.
    ═══════════════════════════════════════════════════════════════════ */
 
-@import url("../styles/tokens.css");
-@import url("../styles/main.css");
+/* Tailwind v4 — theme (variables) + utilities ONLY. No preflight/base reset and
+   NO @layer, on purpose:
+   - No preflight → the marketing site's element styling is untouched.
+   - Unlayered utilities → a utility class like `.mb-8` (0,1,0) naturally beats
+     main.css's universal `*{margin:0;padding:0}` reset (0,0,0) by specificity,
+     so spacing works on the booking pages. main.css's own semantic classes
+     (`.container`, …) tie with utilities but win by source order (imported
+     last), and marketing uses no Tailwind classes — so it renders unchanged.
+   Bare @import (not url()) so Tailwind's postcss inlines main.css into the
+   page CSS bundle instead of leaving it a runtime import. */
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";
+
+@import "../styles/tokens.css";
+@import "../styles/main.css";

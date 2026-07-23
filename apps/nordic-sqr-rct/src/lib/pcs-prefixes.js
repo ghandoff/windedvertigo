@@ -8,10 +8,9 @@
  * Multi-profile architecture (Week 1) — added 2026-04-19.
  */
 
-import { PCS_DB, PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
-import { notion } from './notion.js';
+import { PROPS, REVISION_ENTITY_TYPES } from './pcs-config.js';
 import { mutate } from './pcs-mutate.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { getPcsSupabase, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 
 const P = PROPS.prefixes;
@@ -42,71 +41,26 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    prefix: p[P.prefix]?.title?.[0]?.plain_text || '',
-    regulatoryTier: p[P.regulatoryTier]?.select?.name || null,
-    displayOrder: p[P.displayOrder]?.number ?? null,
-    notes: (p[P.notes]?.rich_text || []).map(t => t.plain_text).join(''),
-    // CAIPB cleanup + Gina's refinements — added 2026-04-19
-    evidenceType: p[P.evidenceType]?.select?.name || null,
-    qualificationLevel: p[P.qualificationLevel]?.select?.name || null,
-    // Wave 7.0.5 T1/T2 — drives canonical-claim identity hashing (added 2026-04-21).
-    doseSensitivity: p[P.doseSensitivity]?.select?.name || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-  };
-}
-
 export async function getAllPrefixes() {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_prefixes')
-        .select('*')
-        .order('display_order', { ascending: true, nullsFirst: false })
-        .limit(1000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-prefixes] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.prefixes,
-      page_size: 100,
-      start_cursor: cursor,
-      sorts: [{ property: P.displayOrder, direction: 'ascending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_prefixes')
+    .select('*')
+    .order('display_order', { ascending: true, nullsFirst: false })
+    .limit(1000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getPrefix(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_prefixes')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-prefixes] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_prefixes')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function createPrefix(fields) {
@@ -143,18 +97,9 @@ export async function createPrefix(fields) {
       qualificationLevel: fields.qualificationLevel || null,
       doseSensitivity: fields.doseSensitivity || null,
     };
-    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP, () =>
-      notion.pages.create({ parent: { database_id: PCS_DB.prefixes }, properties })
-    );
+    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.prefixes },
-    properties,
-  });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 /** Wave 8.2 — fields revertable by the revisions panel. */
@@ -218,53 +163,17 @@ export async function updatePrefix(id, fields) {
   }
   if (shouldWriteToPostgresFirst()) {
     const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP, () =>
-      notion.pages.update({ page_id: id, properties })
-    );
+    await writePostgresFirst('pcs_prefixes', stubRow, PREFIXES_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 export async function deletePrefix(id) {
   if (shouldWriteToPostgresFirst()) {
     const sb = getPcsSupabase();
     await sb.from('pcs_prefixes').delete().eq('notion_page_id', id);
-    notion.pages.update({ page_id: id, archived: true }).catch(err =>
-      console.warn('[pcs-prefixes] async Notion archive failed:', err?.message)
-    );
     return;
   }
-  await notion.pages.update({ page_id: id, archived: true });
-}
-
-// ── Drift-sync helpers (used by cron until Phase F retire) ────────────────────
-export async function syncRecentPrefixesToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.prefixes,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-export async function syncSinglePrefixPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_prefixes', parsed, PREFIXES_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
 }
 
 /**

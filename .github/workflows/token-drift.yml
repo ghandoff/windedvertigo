@@ -1,0 +1,78 @@
+name: token drift → opsy
+
+# Reports design-token drift (windedvertigo copies vs harbour-apps canonical)
+# into Opsy, so it lights up on port.windedvertigo.com/ops. The CF Worker can't
+# diff the sibling repo at runtime, so this CI job — which can check out BOTH
+# repos — computes drift and POSTs the fact to opsy_memory.
+#
+# Required repo secrets (set once by Garrett):
+#   OPSY_TOKEN            = the port CMO_API_TOKEN value
+#   HARBOUR_APPS_RO_TOKEN = a PAT with read access to ghandoff/harbour-apps
+#
+# Until those exist the job no-ops gracefully (see the guard step).
+
+on:
+  schedule:
+    - cron: "30 6 * * *" # daily 06:30 UTC
+  push:
+    branches: [main]
+    paths:
+      - "packages/tokens/**"
+      - "site/styles/tokens.css"
+      - "port/lib/shared/tokens/**"
+      - "scripts/sync-tokens.mjs"
+      - "scripts/audit-token-drift.mjs"
+      - ".github/workflows/token-drift.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: token-drift
+  cancel-in-progress: true
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: guard — required secrets present?
+        id: guard
+        env:
+          OPSY_TOKEN: ${{ secrets.OPSY_TOKEN }}
+          HARBOUR_TOKEN: ${{ secrets.HARBOUR_APPS_RO_TOKEN }}
+        run: |
+          if [ -z "$OPSY_TOKEN" ] || [ -z "$HARBOUR_TOKEN" ]; then
+            echo "OPSY_TOKEN / HARBOUR_APPS_RO_TOKEN not set — skipping (see workflow header)."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: checkout windedvertigo
+        if: steps.guard.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          path: windedvertigo
+
+      - name: checkout harbour-apps (canonical tokens)
+        if: steps.guard.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ghandoff/harbour-apps
+          token: ${{ secrets.HARBOUR_APPS_RO_TOKEN }}
+          path: harbour-apps
+          sparse-checkout: packages/tokens
+
+      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.ready == 'true'
+        with:
+          node-version: "22"
+
+      - name: audit + report drift
+        if: steps.guard.outputs.ready == 'true'
+        working-directory: windedvertigo
+        env:
+          OPSY_URL: https://port.windedvertigo.com
+          OPSY_TOKEN: ${{ secrets.OPSY_TOKEN }}
+        # audit script exits 1 on drift; that's a real signal, so keep the run green
+        # (Opsy carries the red) — we only care that the report POST succeeded.
+        run: node scripts/audit-token-drift.mjs --report || true

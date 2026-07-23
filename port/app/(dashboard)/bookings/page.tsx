@@ -17,11 +17,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Users } from "lucide-react";
 import {
   listBookings,
   listEventTypes,
   listHosts,
+  listPolls,
   type BookingFilters,
 } from "@/lib/booking/queries";
 import { parseTstzrange } from "@/lib/booking/types";
@@ -82,10 +83,11 @@ export default async function BookingsPage({ searchParams }: Props) {
     filters.untilIso = now.toISOString();
   }
 
-  const [bookings, hosts, eventTypes] = await Promise.all([
+  const [bookings, hosts, eventTypes, polls] = await Promise.all([
     listBookings(filters, { limit: 200 }),
     listHosts(),
     listEventTypes({ activeOnly: false }),
+    listPolls(),
   ]);
 
   const hostById = new Map(hosts.map((h) => [h.id, h]));
@@ -115,6 +117,12 @@ export default async function BookingsPage({ searchParams }: Props) {
           className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
         >
           calendar connections
+        </Link>
+        <Link
+          href="/bookings/polls"
+          className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
+        >
+          group polls
         </Link>
       </PageHeader>
 
@@ -218,6 +226,74 @@ export default async function BookingsPage({ searchParams }: Props) {
           </Table>
         </div>
       )}
+      {/* ── group polls ─────────────────────────────────────── */}
+      <div className="mt-10">
+        <div className="flex items-center gap-2 mb-3">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium">group playdates</h2>
+          <span className="text-xs text-muted-foreground">— polls to find a time that works for everyone</span>
+        </div>
+
+        {polls.length === 0 ? (
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+            no polls yet.{" "}
+            <Link href="/bookings/polls/new" className="underline underline-offset-4 hover:text-foreground">
+              create a group poll
+            </Link>{" "}
+            to find a time that works for everyone.
+          </div>
+        ) : (
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>poll</TableHead>
+                  <TableHead className="w-[100px]">slots</TableHead>
+                  <TableHead className="w-[80px]">status</TableHead>
+                  <TableHead className="w-[120px]">share link</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {polls.map((p) => (
+                  <TableRow key={p.id} className="cursor-pointer hover:bg-muted/40">
+                    <TableCell>
+                      <Link href={`/bookings/polls/${p.id}`} className="block font-medium">
+                        {p.title}
+                      </Link>
+                      {p.description && (
+                        <div className="text-xs text-muted-foreground truncate max-w-xs">{p.description}</div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      <Link href={`/bookings/polls/${p.id}`} className="block">
+                        —
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {p.locked_option_id ? (
+                          <><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-green-500" />locked</>
+                        ) : (
+                          <><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-amber-400" />open</>
+                        )}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/book/poll/${p.slug}`}
+                        target="_blank"
+                        className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+                      >
+                        /book/poll/{p.slug}
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

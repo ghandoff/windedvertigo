@@ -93,6 +93,64 @@ async function checkR2EvidencePublic(): Promise<CustomCheckResult> {
   return { status: "green", response_time_ms: r.ms, details: { status_code: r.value } };
 }
 
+// ── tier 1: voice pilot (custom-llm auth handshake) ───────────────────────────
+
+/**
+ * Voice custom-LLM endpoint: exercises the exact path Vapi uses (OpenAI/JS UA,
+ * x-voice-secret auth) end-to-end — WAF carve-out + secret handshake + Anthropic
+ * call — via a tiny non-streaming completion against the Mo (cmo) assistant.
+ * Catches both failure modes seen in prod: WAF block (403, docs/decisions/
+ * 2026-06-22-voice-agents-waf-block-and-stacked-bugs.md) and secret drift (401,
+ * VOICE_LLM_SECRET on the worker vs. the x-voice-secret Vapi's assistants send).
+ * Either one is invisible to the human until a live call ejects mid-conversation
+ * — this check exists so it's caught within 5 minutes instead.
+ */
+async function checkVoiceEndpoint(): Promise<CustomCheckResult> {
+  const secret = process.env.VOICE_LLM_SECRET;
+  if (!secret) return skipped("awaiting credential: VOICE_LLM_SECRET");
+
+  const r = await timed(async () => {
+    const res = await fetch("https://port.windedvertigo.com/api/voice/cmo/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-voice-secret": secret,
+        // Mirrors Vapi's actual client so a WAF regression on this path is
+        // caught too, not just the secret handshake.
+        "User-Agent": "OpenAI/JS 4.20.0",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        stream: false,
+        messages: [{ role: "user", content: "reply with the single word: ok" }],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    const status = res.status;
+    let text = "";
+    try {
+      const body = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      text = body.choices?.[0]?.message?.content ?? "";
+    } catch {
+      // non-JSON body — status check below still fires
+    }
+    if (status !== 200) {
+      const hint = status === 403 ? " (WAF block?)" : status === 401 ? " (secret drift — worker VOICE_LLM_SECRET vs Vapi x-voice-secret mismatch)" : "";
+      throw new Error(`HTTP ${status}${hint}`);
+    }
+    if (!text.trim()) throw new Error("HTTP 200 but empty completion (Anthropic call may be failing)");
+    return text;
+  });
+
+  if (r.error) {
+    return { status: "red", response_time_ms: r.ms, symptoms: `voice custom-llm endpoint failed: ${r.error}`, details: { error: r.error } };
+  }
+  if (r.ms > 6000) {
+    return { status: "amber", response_time_ms: r.ms, symptoms: `voice custom-llm endpoint slow: ${r.ms}ms (threshold 6000ms)`, details: {} };
+  }
+  return { status: "green", response_time_ms: r.ms, details: {} };
+}
+
 // ── tier 3: external services ─────────────────────────────────────────────────
 
 /** Notion API: timed users/me. Rate-limit proximity isn't exposed in headers, so latency + status only. */
@@ -204,6 +262,64 @@ async function checkSupabaseRls(): Promise<CustomCheckResult> {
   return { status: "green", response_time_ms: r.ms, details: { tables_audited: (r.value ?? []).length } };
 }
 
+/**
+ * Design-token drift (windedvertigo copies vs harbour-apps canonical).
+ *
+ * The worker can't diff the sibling repo at runtime, so a CI job / local run of
+ * `scripts/audit-token-drift.mjs --report` computes drift and stores the fact in
+ * opsy_memory (key `design-token-sync`). This checker re-emits that fact each
+ * cycle so /ops stays fresh (getLatestHealthChecks only scans the last 2h), and
+ * ages it out to amber if the reporter goes silent.
+ */
+async function checkDesignTokenSync(): Promise<CustomCheckResult> {
+  const STALE_MS = 48 * 60 * 60 * 1000;
+  const r = await timed(async () => {
+    const { data, error } = await supabase
+      .from("opsy_memory")
+      .select("value, updated_at")
+      .eq("key", "design-token-sync")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data as { value: string; updated_at: string } | null;
+  });
+  if (r.error) {
+    return { status: "red", response_time_ms: r.ms, symptoms: `token-drift lookup failed: ${r.error}`, details: { error: r.error } };
+  }
+  if (!r.value) {
+    return skipped("awaiting first token-drift report (scripts/audit-token-drift.mjs --report)");
+  }
+
+  let payload: { status?: string; drift_count?: number; files?: string[]; reported_at?: string };
+  try {
+    payload = JSON.parse(r.value.value);
+  } catch {
+    return { status: "amber", response_time_ms: r.ms, symptoms: "token-drift report unparseable", details: { raw: r.value.value } };
+  }
+
+  const reportedAt = payload.reported_at ?? r.value.updated_at;
+  const ageMs = Date.now() - new Date(reportedAt).getTime();
+  if (ageMs > STALE_MS) {
+    const hours = Math.round(ageMs / 3_600_000);
+    return {
+      status: "amber",
+      response_time_ms: r.ms,
+      symptoms: `token-drift report stale (${hours}h old) — the drift CI/report may have stopped running`,
+      details: { ...payload, reported_at: reportedAt, age_hours: hours },
+    };
+  }
+
+  if (payload.status === "red" || (payload.drift_count ?? 0) > 0) {
+    const files = (payload.files ?? []).join(", ");
+    return {
+      status: "red",
+      response_time_ms: r.ms,
+      symptoms: `design tokens drifted from harbour-apps canonical (${payload.drift_count ?? "?"} file(s)): ${files}. Fix: npm run sync:tokens`,
+      details: payload as Record<string, unknown>,
+    };
+  }
+  return { status: "green", response_time_ms: r.ms, details: payload as Record<string, unknown> };
+}
+
 // ── presence-gated stubs (implementations land when credentials exist) ────────
 
 function stub(envVars: string[]): Checker {
@@ -218,10 +334,12 @@ export const CHECKERS: Record<string, Checker> = {
   "supabase-pilot": checkSupabasePilot,
   "r2-port-assets": checkR2PortAssets,
   "r2-evidence-public": checkR2EvidencePublic,
+  voice: checkVoiceEndpoint,
   "notion-api": checkNotionApi,
   resend: checkResend,
   "dns-records": checkDnsRecords,
   "supabase-rls": checkSupabaseRls,
+  "design-token-sync": checkDesignTokenSync,
   // unlock list — add the secret to the worker and the check activates a slot
   "supabase-nordic": stub(["SUPABASE_NORDIC_URL", "SUPABASE_NORDIC_SECRET_KEY"]),
   "neon-pools": stub(["NEON_API_KEY"]),

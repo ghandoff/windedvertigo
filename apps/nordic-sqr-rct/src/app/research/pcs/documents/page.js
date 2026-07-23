@@ -37,11 +37,13 @@ function PcsDocuments() {
 
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch('/api/pcs/documents')
-      .then(res => res.json())
+      .then(res => (res.ok ? res.json() : Promise.reject(new Error(`Server error (${res.status})`))))
       .then((data) => setDocuments(Array.isArray(data) ? data : []))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -245,6 +247,18 @@ function PcsDocuments() {
         }]
       : []),
   ];
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold text-gray-900">PCS Documents</h1>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Couldn&rsquo;t load documents — {error}. Refresh to try again; if it keeps
+          happening, use the feedback button to let us know.
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -9,7 +9,7 @@
  * so this file compiles cleanly in both Next.js and CF Workers contexts.
  */
 
-import type { RfpProposalJob, TimesheetStatusJob, RfpDocumentUploadedJob } from "@windedvertigo/job-queue/types";
+import type { RfpProposalJob, TimesheetStatusJob, RfpDocumentUploadedJob, DocumentAudioJob } from "@windedvertigo/job-queue/types";
 
 /** Minimal queue sender interface compatible with CF Queue<T> at runtime. */
 interface QueueSender<T> {
@@ -25,13 +25,16 @@ declare global {
     PROPOSAL_QUEUE: QueueSender<RfpProposalJob>;
     TIMESHEET_QUEUE: QueueSender<TimesheetStatusJob>;
     RFP_DOCUMENT_QUEUE: QueueSender<RfpDocumentUploadedJob>;
+    LISTEN_QUEUE: QueueSender<DocumentAudioJob>;
     PORT_ASSETS: {
       put(key: string, body: unknown, options?: unknown): Promise<void>;
       get(key: string): Promise<{
         body: ReadableStream;
+        text(): Promise<string>;
         httpMetadata?: { contentType?: string };
         size?: number;
       } | null>;
+      delete(key: string): Promise<void>;
     };
     /**
      * CF Browser Rendering binding.

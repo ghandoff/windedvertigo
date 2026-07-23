@@ -49,6 +49,11 @@ export default async function PortfolioPage() {
 
           <div className="do-case-studies">
             <a href="/projects/impactful-five/" className="do-case-study-card">
+              <img
+                src="/collaborators/prme_logo_short_white.png"
+                alt=""
+                className="do-case-study-logo"
+              />
               <span className="do-case-study-label">case study</span>
               <h3>impactful five</h3>
               <p>
@@ -61,6 +66,11 @@ export default async function PortfolioPage() {
               href="/projects/play-for-all-accelerator/"
               className="do-case-study-card"
             >
+              <img
+                src="/collaborators/LEGO-Fonden.png"
+                alt=""
+                className="do-case-study-logo"
+              />
               <span className="do-case-study-label">case study</span>
               <h3>play for all accelerator</h3>
               <p>

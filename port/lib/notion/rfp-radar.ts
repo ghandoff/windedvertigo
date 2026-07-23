@@ -64,10 +64,23 @@ function mapPageToRfp(page: PageObjectResponse): RfpOpportunity {
     source: getSelect(props[P.source]) as RfpOpportunity["source"],
     requirementsSnapshot: getText(props[P.requirementsSnapshot]),
     decisionNotes: getText(props[P.decisionNotes]),
+    // one_pager lives in Supabase only (generated at intake) — not a Notion property.
+    onePager: null,
+    onePagerGeneratedAt: null,
     url: getUrl(props[P.url]),
     proposalStatus: (getSelect(props[P.proposalStatus]) as RfpOpportunity["proposalStatus"]) ?? null,
+    // proposal_stale is Supabase-only — not a Notion property.
+    proposalStale: false,
     proposalDraftUrl: getUrl(props[P.proposalDraftUrl]) ?? null,
     rfpDocumentUrl: getUrl(props[P.rfpDocumentUrl]) ?? null,
+    // TOR verification + thumbnail are Supabase-only — not Notion properties.
+    torVerifiedAt: null,
+    torVerifiedBy: null,
+    torThumbnailUrl: null,
+    torThumbnailGeneratedAt: null,
+    // Slack thread anchor is Supabase-only (R4).
+    slackThreadTs: null,
+    slackChannelId: null,
     questionBankUrl: getUrl(props[P.questionBankUrl]) ?? null,
     questionCount: getNumber(props[P.questionCount]),
     coverLetterUrl: getUrl(props[P.coverLetterUrl]) ?? null,

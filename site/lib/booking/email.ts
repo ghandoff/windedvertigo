@@ -282,6 +282,36 @@ export function buildHostRescheduleHtml(
   );
 }
 
+/* ── poll response notification ────────────────────────────────── */
+
+export async function sendPollResponseNotification(opts: {
+  pollTitle: string;
+  respondentName: string;
+  portPollUrl: string;
+  hostEmail: string;
+  responseCount: number;
+}): Promise<ResendResult> {
+  const html = wvShell(
+    `new response: ${opts.pollTitle}`,
+    `
+      ${wvPara(`${escapeHtml(opts.respondentName)} just responded to your group poll.`)}
+      ${wvCallout(`
+        <div style="font-size: 15px; font-weight: 600; color: #273248; margin-bottom: 4px;">${escapeHtml(opts.pollTitle)}</div>
+        <div style="font-size: 13px; color: #273248; opacity: 0.7;">${opts.responseCount} response${opts.responseCount !== 1 ? "s" : ""} so far</div>
+      `)}
+      ${wvPara("view all responses and see who can make each slot:", "20px")}
+      ${ctaButton(opts.portPollUrl, "view responses")}
+    `,
+    "winded.vertigo · group poll notification",
+  );
+
+  return sendEmail({
+    to: opts.hostEmail,
+    subject: `poll response: ${opts.pollTitle}`,
+    html,
+  });
+}
+
 export async function sendRescheduleNotifications(
   c: RescheduleEmailContext,
 ): Promise<{ visitor: ResendResult; hosts: ResendResult[] }> {

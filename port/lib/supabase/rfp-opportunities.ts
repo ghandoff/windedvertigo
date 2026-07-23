@@ -21,7 +21,7 @@
  */
 
 import { supabase } from "./client";
-import type { RfpOpportunity } from "@/lib/notion/types";
+import type { RfpOpportunity, OnePager } from "@/lib/notion/types";
 
 // ─── Row type ────────────────────────────────────────────────────────────────
 
@@ -42,10 +42,19 @@ interface RfpOpportunityRow {
   proposal_status: string | null;
   requirements_snapshot: string | null;
   decision_notes: string | null;
+  one_pager: OnePager | null;
+  one_pager_generated_at: string | null;
+  proposal_stale: boolean | null;
   source: string | null;
   deadline_timezone: string | null;
   url: string | null;
   rfp_document_url: string | null;
+  tor_verified_at: string | null;
+  tor_verified_by: string | null;
+  tor_thumbnail_url: string | null;
+  tor_thumbnail_generated_at: string | null;
+  slack_thread_ts: string | null;
+  slack_channel_id: string | null;
   proposal_draft_url: string | null;
   question_bank_url: string | null;
   question_count: number | null;
@@ -87,10 +96,19 @@ function mapRowToRfpOpportunity(row: RfpOpportunityRow): RfpOpportunity {
     source: (row.source as RfpOpportunity["source"]) ?? "Manual Entry",
     requirementsSnapshot: row.requirements_snapshot ?? "",
     decisionNotes: row.decision_notes ?? "",
+    onePager: row.one_pager ?? null,
+    onePagerGeneratedAt: row.one_pager_generated_at ?? null,
     url: row.url ?? "",
     proposalStatus: (row.proposal_status as RfpOpportunity["proposalStatus"]) ?? null,
+    proposalStale: row.proposal_stale ?? false,
     proposalDraftUrl: row.proposal_draft_url ?? null,
     rfpDocumentUrl: row.rfp_document_url ?? null,
+    torVerifiedAt: row.tor_verified_at ?? null,
+    torVerifiedBy: row.tor_verified_by ?? null,
+    torThumbnailUrl: row.tor_thumbnail_url ?? null,
+    torThumbnailGeneratedAt: row.tor_thumbnail_generated_at ?? null,
+    slackThreadTs: row.slack_thread_ts ?? null,
+    slackChannelId: row.slack_channel_id ?? null,
     questionBankUrl: row.question_bank_url ?? null,
     questionCount: row.question_count ?? null,
     coverLetterUrl: row.cover_letter_url ?? null,
@@ -164,8 +182,10 @@ const SELECT_COLS =
   "notion_page_id, opportunity_name, status, opportunity_type, " +
   "organization_ids, related_project_ids, owner_ids, " +
   "estimated_value, due_date, wv_fit_score, service_match, category, geography, source, " +
-  "proposal_status, requirements_snapshot, decision_notes, deadline_timezone, " +
-  "url, rfp_document_url, proposal_draft_url, question_bank_url, question_count, " +
+  "proposal_status, proposal_stale, requirements_snapshot, decision_notes, one_pager, one_pager_generated_at, deadline_timezone, " +
+  "url, rfp_document_url, tor_verified_at, tor_verified_by, tor_thumbnail_url, tor_thumbnail_generated_at, " +
+  "slack_thread_ts, slack_channel_id, " +
+  "proposal_draft_url, question_bank_url, question_count, " +
   "cover_letter_url, team_cvs_url, expression_of_interest_url, financial_proposal_url, " +
   "what_worked, what_fell_flat, client_feedback, " +
   "lessons_for_next_time, proposal_notes, influenced_by_event_ids, " +
@@ -270,6 +290,68 @@ export async function getRfpsByOrg(
     throw new Error(`[supabase/rfp-opportunities] getRfpsByOrg: ${error.message}`);
 
   return (data as unknown as RfpOpportunityRow[]).map(mapRowToRfpOpportunity);
+}
+
+// ─── Dedup ───────────────────────────────────────────────────────────────────
+
+/**
+ * Pipeline statuses that drop a card off the active radar/board. A grant with
+ * one of these is "closed" — a re-issued or re-considered opportunity may
+ * legitimately re-enter the radar, so dedup deliberately ignores closed rows.
+ */
+const TERMINAL_PIPELINE_STATUSES: string[] = ["won", "lost", "no-go", "missed deadline"];
+
+/**
+ * Normalise an opportunity name to the same key the DB `dedup_key` generated
+ * column produces: lowercased, alphanumeric-only. This collapses the
+ * punctuation/spacing variance ("… – Turkmenistan" vs "… (Turkmenistan)") that
+ * defeated the old exact-match dedup and spawned duplicate radar cards.
+ *
+ * MUST stay in lockstep with the SQL expression in
+ * supabase/migrations/20260721_rfp_dedup_key_col.sql.
+ */
+export function normaliseRfpDedupKey(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+/**
+ * Find an existing ACTIVE opportunity that duplicates `name` (same normalised
+ * dedup key). Returns its canonical RfpOpportunity (id = notion page id) or null.
+ *
+ * Queries Supabase — the board's read layer, kept current by the immediate
+ * upsert in ingest plus the hourly sync — via the indexed `dedup_key` column, so
+ * it's a fast point lookup rather than pulling 500 rows into memory. Closed rows
+ * are ignored. Fail-open: returns null on any DB error (e.g. if deployed before
+ * the dedup_key migration is applied) so a hiccup never blocks ingest.
+ */
+export async function findActiveRfpDuplicateByName(
+  name: string,
+  excludeNotionPageId?: string,
+): Promise<RfpOpportunity | null> {
+  const key = normaliseRfpDedupKey(name);
+  if (!key) return null;
+
+  const { data, error } = await supabase
+    .from("rfp_opportunities")
+    .select(SELECT_COLS)
+    .eq("dedup_key", key);
+
+  if (error) {
+    console.warn(
+      `[supabase/rfp-opportunities] findActiveRfpDuplicateByName: ${error.message}`,
+    );
+    return null;
+  }
+
+  const match = (data as unknown as RfpOpportunityRow[])
+    .map(mapRowToRfpOpportunity)
+    .find(
+      (o) =>
+        o.id !== excludeNotionPageId &&
+        !TERMINAL_PIPELINE_STATUSES.includes(o.status),
+    );
+
+  return match ?? null;
 }
 
 // ─── Atomic proposal-status writes ───────────────────────────────────────────
@@ -486,6 +568,107 @@ export async function upsertRfpOpportunityToSupabase(
 
   if (error) {
     console.warn(`[supabase/rfp-opportunities] upsertRfpOpportunityToSupabase: ${error.message}`);
+  }
+}
+
+/**
+ * Persist the auto-generated one-pager brief for an RFP. Supabase-only (Notion
+ * has no equivalent), so this never round-trips through the sync. Fire-and-forget
+ * safe — logs a warning but never throws so it can't block ingest.
+ */
+export async function setRfpOnePager(
+  notionPageId: string,
+  onePager: OnePager,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      one_pager: onePager,
+      one_pager_generated_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpOnePager: ${error.message}`);
+  }
+}
+
+/**
+ * Persist the TOR thumbnail R2 URL for an RFP. Supabase-only. Fire-and-forget
+ * safe — logs a warning but never throws.
+ */
+export async function setRfpTorThumbnail(
+  notionPageId: string,
+  thumbnailUrl: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      tor_thumbnail_url: thumbnailUrl,
+      tor_thumbnail_generated_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpTorThumbnail: ${error.message}`);
+  }
+}
+
+/**
+ * Store the Slack thread anchor for an RFP's deferred-review notification (R4),
+ * so re-defers don't double-post and inbound replies can be correlated later.
+ * Supabase-only. Fire-and-forget safe.
+ */
+export async function setRfpSlackThread(
+  notionPageId: string,
+  threadTs: string,
+  channelId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      slack_thread_ts: threadTs,
+      slack_channel_id: channelId,
+      slack_notified_at: new Date().toISOString(),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpSlackThread: ${error.message}`);
+  }
+}
+
+/**
+ * Handle a TOR replacement: a new document invalidates the prior human
+ * verification, and (if a draft was already built) marks that draft stale so the
+ * UI can prompt a regenerate. Supabase-only. Throws on error so the caller can
+ * log — replacement side-effects should not silently no-op.
+ */
+export async function markTorReplaced(
+  notionPageId: string,
+  opts: { staleDraft: boolean },
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({
+      tor_verified_at: null,
+      tor_verified_by: null,
+      ...(opts.staleDraft ? { proposal_stale: true } : {}),
+    })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    throw new Error(`[supabase/rfp-opportunities] markTorReplaced: ${error.message}`);
+  }
+}
+
+/** Set/clear the proposal-stale flag. Cleared when a fresh draft is (re)generated. */
+export async function setRfpProposalStale(
+  notionPageId: string,
+  stale: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from("rfp_opportunities")
+    .update({ proposal_stale: stale })
+    .eq("notion_page_id", notionPageId);
+  if (error) {
+    console.warn(`[supabase/rfp-opportunities] setRfpProposalStale: ${error.message}`);
   }
 }
 

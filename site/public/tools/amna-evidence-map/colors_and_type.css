@@ -1,0 +1,255 @@
+/* ============================================================
+   winded.vertigo — colors_and_type.css
+   Foundation tokens: palette, type, spacing, radii, shadows.
+   All lowercase, to match the brand's writing rules.
+   ============================================================ */
+
+/* ---- webfont: inter ---------------------------------------- */
+/* inter is the sole typeface called out in the brand guidelines.
+   shipped locally as the full variable font (weight 100–900)
+   so every weight used by the system renders from one file.   */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/InterVariable.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/InterVariable-Italic.ttf') format('truetype');
+}
+
+:root {
+  /* ---- brand palette (external, primary) ------------------- */
+  --wv-cadet-blue:    #273248;  /* primary. most frequent.     */
+  --wv-redwood:       #b15043;  /* warm, grounding accent      */
+  --wv-burnt-sienna:  #cb7858;  /* bright warm accent          */
+  --wv-champagne:     #ffebd2;  /* soft cream background       */
+  --wv-white:         #ffffff;
+
+  /* ---- complementary palette (internal use only) ---------- */
+  /* sparingly, strictly as accents. do not overshadow primary.*/
+  --wv-dark-olive:    #434824;
+  --wv-royal:         #436db1;
+  --wv-periwinkle:    #5872cb;
+  --wv-lavender:      #d5d2ff;
+  --wv-bark:          #482d27;
+  --wv-emerald:       #43b187;
+  --wv-mint:          #58cbb2;
+  --wv-ice:           #d2fdff;
+
+  /* ---- semantic surfaces ---------------------------------- */
+  --wv-bg:            var(--wv-champagne);   /* default canvas */
+  --wv-bg-alt:        var(--wv-white);
+  --wv-bg-invert:     var(--wv-cadet-blue);
+  --wv-surface:       var(--wv-white);
+  --wv-surface-warm:  var(--wv-champagne);
+
+  /* ---- semantic foreground -------------------------------- */
+  /* per guidelines: documents in #000; space cadet ok for
+     decks, marketing, and where design allows.               */
+  --wv-fg:            #000000;                /* body          */
+  --wv-fg-1:          var(--wv-cadet-blue);   /* display/hero  */
+  --wv-fg-2:          #273248cc;              /* subdued       */
+  --wv-fg-3:          #27324899;              /* muted         */
+  --wv-fg-on-dark:    var(--wv-champagne);
+  --wv-fg-on-dark-2:  #ffebd2b3;
+
+  /* ---- borders & lines ------------------------------------ */
+  --wv-line:          #27324826;              /* hairline      */
+  --wv-line-strong:   #27324866;
+
+  /* ---- typefaces ------------------------------------------ */
+  --wv-font-sans:     'Inter', -apple-system, blinkmacsystemfont,
+                      'segoe ui', roboto, sans-serif;
+  /* fallback stack for code — inter does not ship monospace;
+     using the system mono until a paired face is chosen.     */
+  --wv-font-mono:     ui-monospace, 'sf mono', menlo, consolas,
+                      monospace;
+
+  /* ---- type weights (per guidelines) ---------------------- */
+  --wv-w-light:       300;   /* @kind font */
+  --wv-w-regular:     400;   /* @kind font */
+  --wv-w-medium:      500;   /* @kind font */
+  --wv-w-bold:        700;   /* @kind font */
+
+  /* ---- type scale ----------------------------------------- */
+  /* the rule: subheads ≤ 50% of headline ascender, body ≤ 50%
+     of subhead cap height. scale below respects that ratio.  */
+  --wv-size-display:   96px;   /* editorial hero                */
+  --wv-size-h1:        64px;
+  --wv-size-h2:        44px;
+  --wv-size-h3:        28px;
+  --wv-size-h4:        20px;
+  --wv-size-body:      16px;
+  --wv-size-body-sm:   14px;
+  --wv-size-caption:   12px;
+  --wv-size-micro:     11px;
+
+  --wv-lh-display:     0.95;  /* @kind font */
+  --wv-lh-tight:       1.08;  /* @kind font */
+  --wv-lh-snug:        1.2;   /* @kind font */
+  --wv-lh-body:        1.5;   /* @kind font */
+  --wv-lh-loose:       1.7;   /* @kind font */
+
+  --wv-tr-display:     -0.03em;  /* @kind font */
+  --wv-tr-tight:       -0.01em;  /* @kind font */
+  --wv-tr-normal:      0;        /* @kind font */
+  --wv-tr-wide:        0.02em;   /* @kind font */
+
+  /* ---- spacing scale -------------------------------------- */
+  --wv-space-0:   0;
+  --wv-space-1:   4px;
+  --wv-space-2:   8px;
+  --wv-space-3:   12px;
+  --wv-space-4:   16px;
+  --wv-space-5:   24px;
+  --wv-space-6:   32px;
+  --wv-space-7:   48px;
+  --wv-space-8:   64px;
+  --wv-space-9:   96px;
+  --wv-space-10: 128px;
+
+  /* ---- radii ---------------------------------------------- */
+  /* the brand leans editorial + wordmark-forward; corners are
+     modest. avoid overly rounded or chipped tokens.          */
+  --wv-radius-0:   0;
+  --wv-radius-1:   2px;
+  --wv-radius-2:   4px;
+  --wv-radius-3:   8px;
+  --wv-radius-4:   12px;
+  --wv-radius-pill: 999px;
+
+  /* ---- shadows -------------------------------------------- */
+  /* soft, warm shadows on champagne; deeper shadow on blue.  */
+  --wv-shadow-1: 0 1px 2px rgba(39, 50, 72, 0.06);
+  --wv-shadow-2: 0 2px 8px rgba(39, 50, 72, 0.08),
+                 0 1px 2px rgba(39, 50, 72, 0.06);
+  --wv-shadow-3: 0 12px 32px rgba(39, 50, 72, 0.12),
+                 0 2px 6px rgba(39, 50, 72, 0.06);
+  --wv-shadow-inset: inset 0 0 0 1px var(--wv-line);
+
+  /* ---- motion --------------------------------------------- */
+  /* gentle, human. avoid bounces; fade + shift.              */
+  --wv-ease-out:     cubic-bezier(0.2, 0.7, 0.2, 1);  /* @kind other */
+  --wv-ease-in-out:  cubic-bezier(0.6, 0, 0.2, 1);  /* @kind other */
+  --wv-dur-fast:     140ms;  /* @kind other */
+  --wv-dur-med:      240ms;  /* @kind other */
+  --wv-dur-slow:     420ms;  /* @kind other */
+}
+
+/* ============================================================
+   semantic element defaults
+   ============================================================ */
+
+body {
+  font-family: var(--wv-font-sans);
+  font-weight: var(--wv-w-regular);
+  font-size: var(--wv-size-body);
+  line-height: var(--wv-lh-body);
+  color: var(--wv-fg);
+  background: var(--wv-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
+  font-feature-settings: 'ss01', 'cv11';  /* inter tabular & alt */
+}
+
+.wv-display,
+.wv-h1,
+.wv-h2,
+.wv-h3,
+h1, h2, h3 {
+  color: var(--wv-fg-1);
+  font-family: var(--wv-font-sans);
+  font-weight: var(--wv-w-bold);
+  letter-spacing: var(--wv-tr-tight);
+  line-height: var(--wv-lh-tight);
+  text-wrap: balance;
+  margin: 0;
+}
+
+.wv-display {
+  font-size: var(--wv-size-display);
+  font-weight: var(--wv-w-light);   /* editorial hero is light */
+  line-height: var(--wv-lh-display);
+  letter-spacing: var(--wv-tr-display);
+}
+
+.wv-h1, h1 { font-size: var(--wv-size-h1); }
+.wv-h2, h2 { font-size: var(--wv-size-h2); }
+.wv-h3, h3 { font-size: var(--wv-size-h3); line-height: var(--wv-lh-snug); }
+.wv-h4, h4 {
+  font-size: var(--wv-size-h4);
+  font-weight: var(--wv-w-medium);
+  line-height: var(--wv-lh-snug);
+  letter-spacing: var(--wv-tr-normal);
+  margin: 0;
+  color: var(--wv-fg-1);
+}
+
+.wv-body, p {
+  font-size: var(--wv-size-body);
+  line-height: var(--wv-lh-body);
+  color: var(--wv-fg);
+  text-wrap: pretty;
+  margin: 0;
+}
+
+.wv-lede {
+  font-size: var(--wv-size-h4);
+  font-weight: var(--wv-w-light);
+  line-height: var(--wv-lh-body);
+  color: var(--wv-fg-1);
+  letter-spacing: var(--wv-tr-tight);
+}
+
+.wv-caption {
+  font-size: var(--wv-size-caption);
+  font-weight: var(--wv-w-medium);
+  letter-spacing: var(--wv-tr-wide);
+  text-transform: none;         /* lowercase-only brand         */
+  color: var(--wv-fg-2);
+}
+
+.wv-eyebrow {
+  /* tiny label above a headline — always lowercase             */
+  font-size: var(--wv-size-caption);
+  font-weight: var(--wv-w-medium);
+  letter-spacing: 0.08em;
+  color: var(--wv-fg-3);
+}
+
+code, .wv-code {
+  font-family: var(--wv-font-mono);
+  font-size: 0.92em;
+  background: #2732480d;
+  padding: 0.1em 0.35em;
+  border-radius: var(--wv-radius-2);
+}
+
+a, .wv-link {
+  color: var(--wv-fg-1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: #27324866;
+  transition: text-decoration-color var(--wv-dur-fast) var(--wv-ease-out);
+}
+a:hover, .wv-link:hover {
+  text-decoration-color: var(--wv-redwood);
+}
+
+hr, .wv-rule {
+  border: 0;
+  border-top: 1px solid var(--wv-line);
+  margin: var(--wv-space-5) 0;
+}
+
+::selection {
+  background: var(--wv-burnt-sienna);
+  color: var(--wv-white);
+}

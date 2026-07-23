@@ -7,8 +7,12 @@
  *
  * Part of RFP Lighthouse.
  *
- * Dedup strategy: if a dedupKey (or url) is provided, scan the 100 most-recent
- * opportunities for an exact match before running AI triage.
+ * Dedup strategy (two phases):
+ *   Phase 1 (pre-triage, cheap): skip if the url / dedupKey already exists.
+ *   Phase 2 (post-triage): skip if an ACTIVE opportunity shares the same
+ *     normalised name key (alphanumeric-only) — resilient to punctuation and
+ *     spacing variance. Backed by a partial unique index on dedup_key so a
+ *     duplicate active row is impossible even under a concurrent-ingest race.
  *
  * URL enrichment: after creating the opportunity, if the stored url is a real
  * HTTP(S) link and triage left dueDate or requirementsSnapshot thin, we fetch
@@ -20,7 +24,9 @@ import { triageRfpOpportunity } from "./rfp-triage";
 import { queryRfpOpportunities, createRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
 import { callClaude, parseJsonResponse } from "./client";
 import { uploadAsset } from "@/lib/r2/upload";
-import { upsertRfpOpportunityToSupabase } from "@/lib/supabase/rfp-opportunities";
+import { upsertRfpOpportunityToSupabase, findActiveRfpDuplicateByName, setRfpOnePager } from "@/lib/supabase/rfp-opportunities";
+import { generateOnePager } from "./rfp-one-pager";
+import { scheduleTorThumbnail } from "@/lib/rfp/tor-thumbnail";
 import type { RfpSource } from "@/lib/notion/types";
 import type { RfpTriageResult } from "./rfp-triage";
 
@@ -690,11 +696,11 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
   // anything else — Feedly/RSS feeds often carry these verbatim from Google News.
   const url = sanitiseIngestUrl(input.url);
 
-  // ── Deduplication ─────────────────────────────────────
+  // ── Phase-1 dedup: URL / dedupKey (fast, pre-triage) ──
   // Use dedupKey when provided (e.g. gmail:message:{id}), otherwise fall back to url.
   const deduplicateBy = dedupKey ?? url;
   if (deduplicateBy) {
-    const { data: recent } = await queryRfpOpportunities(undefined, { pageSize: 100 });
+    const { data: recent } = await queryRfpOpportunities(undefined, { pageSize: 500 });
     // Check against stored URL (canonical) and also dedupKey stored in URL field for
     // legacy records that still have gmail:message: pseudo-URLs.
     const duplicate = recent.find(
@@ -710,6 +716,21 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
 
   if (!triage.isOpportunity) {
     return { created: false, skipped: triage.skipReason ?? "not an opportunity", triage };
+  }
+
+  // ── Phase-2 dedup: normalised name (post-triage, catches cross-source dupes) ──
+  // The same opportunity can arrive via email and RSS with different URLs but the
+  // same canonical name after LLM triage. Match on the normalised (alphanumeric-
+  // only, lowercased) key against Supabase — the board's read layer — so
+  // punctuation/spacing variance ("… – X" vs "… (X)") no longer slips through as
+  // a new card. Closed opps are ignored so a re-issued grant can re-enter. DB
+  // backstop: a partial unique index on dedup_key makes a duplicate ACTIVE row
+  // impossible even under a concurrent-ingest race.
+  if (triage.opportunityName) {
+    const nameDupe = await findActiveRfpDuplicateByName(triage.opportunityName);
+    if (nameDupe) {
+      return { created: false, skipped: "duplicate", existingId: nameDupe.id };
+    }
   }
 
   // ── Create in Notion ──────────────────────────────────
@@ -798,6 +819,35 @@ export async function ingestOpportunity(input: IngestInput): Promise<IngestOutco
     recordedTorUrl = opp.rfpDocumentUrl;
     torStatus = "pdf";
   }
+
+  // ── One-pager brief (R1) ──────────────────────────────
+  // Generate the cheap review brief for every ingested grant, from the
+  // already-extracted triage + raw body (no re-fetch), so the collective can
+  // scan it and "pursuing" can surface it as a glance instead of spending 12k
+  // tokens on a full draft up front. Fail-open — never blocks creation.
+  try {
+    const brief = await generateOnePager({
+      opportunityName: triage.opportunityName,
+      requirementsSnapshot: triage.requirementsSnapshot,
+      decisionNotes: triage.decisionNotes,
+      torText: body,
+      torUrl: recordedTorUrl ?? (url || undefined),
+      source,
+      geography: triage.geography,
+      serviceMatch: triage.serviceMatch,
+      // Honest provenance: a TOR doc/text was found (inline/pdf) but not yet
+      // human-verified → "unverified-tor-doc"; otherwise only the listing → description-only.
+      sourceBasis: torStatus === "missing" ? "description-only" : "unverified-tor-doc",
+    });
+    if (brief) await setRfpOnePager(opp.id, brief.onePager);
+  } catch (err) {
+    console.warn("[rfp-ingest/one-pager] failed:", err);
+  }
+
+  // ── TOR thumbnail (R1.5) ──────────────────────────────
+  // When enrichment found a TOR link, screenshot it (background/fail-open) so
+  // triage can see at a glance whether it's a real TOR document or a website.
+  if (recordedTorUrl) await scheduleTorThumbnail(opp.id, recordedTorUrl);
 
   return {
     created: true,

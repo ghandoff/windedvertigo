@@ -269,6 +269,7 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 104px; display: flex; f
 }
 
 .do-case-study-card {
+  position: relative;
   display: block;
   padding: var(--space-xl);
   background: var(--color-surface-raised);
@@ -282,6 +283,25 @@ main { flex: 1; padding: var(--space-lg) 0; padding-top: 104px; display: flex; f
 .do-case-study-card:hover {
   transform: translateY(-3px);
   border-color: rgba(255, 235, 210, 0.25);
+}
+
+/* Collaborator logo mark, not a cover photo — these cards have no
+   dedicated photography, so this is a small corner accent tying the
+   case study to the partner org rather than a placeholder image. */
+.do-case-study-logo {
+  position: absolute;
+  top: var(--space-xl);
+  right: var(--space-xl);
+  height: 28px;
+  width: auto;
+  max-width: 96px;
+  object-fit: contain;
+  opacity: 0.85;
+  /* Source logos aren't all pre-colored for a dark background (unlike
+     prme_logo_short_white.png, LEGO-Fonden.png is its normal brand color)
+     — force white like .collab-logo does for the same collaborator marks
+     elsewhere on the site. */
+  filter: brightness(0) invert(1);
 }
 
 .do-case-study-label {

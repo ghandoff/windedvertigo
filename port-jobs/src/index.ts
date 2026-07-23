@@ -26,7 +26,18 @@ import type {
   RfpProposalJob,
   TimesheetStatusJob,
   RfpDocumentUploadedJob,
+  DocumentAudioJob,
 } from "@windedvertigo/job-queue/types";
+// Listen library (Carl reads docs aloud) — pure port/lib modules + TTS provider.
+import { cleanForListening } from "@/lib/listen/clean";
+import { normaliseForSpeech, chunkText, estimateMinutes, buildIntro } from "@/lib/listen/chunk";
+import { getTtsProvider, DEFAULT_LISTEN_PROVIDER } from "@/lib/tts";
+import {
+  getListenItem,
+  updateListenItem,
+  insertListenChunks,
+  deleteListenChunks,
+} from "@/lib/supabase/listen";
 
 // Business logic from port/lib — resolved via tsconfig @/* path alias.
 // These modules use process.env.* which is seeded per-invocation below.
@@ -54,8 +65,9 @@ import { queryBdAssets, incrementBdAssetUsage } from "@/lib/notion/bd-assets";
 import { queryBibliography } from "@/lib/notion/bibliography";
 import { queryRateReference } from "@/lib/notion/rate-reference";
 import { createDeal } from "@/lib/notion/deals";
-import { generateProposal, TEAM_BIOS } from "@/lib/ai/proposal-generator";
+import { generateProposal, TEAM_BIOS, computeTraceabilityScore } from "@/lib/ai/proposal-generator";
 import { matchCitations } from "@/lib/ai/citation-matcher";
+import { upsertProposalTraceability } from "@/lib/supabase/rfp-proposal-traceability";
 import { postToSlack } from "@/lib/slack";
 import { notion } from "@/lib/notion/client";
 import {
@@ -83,9 +95,15 @@ export interface Env {
   NOTION_TOKEN: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
+  CARTESIA_API_KEY: string; // listen library TTS fallback. sk_car_...
 
   // Plain-text vars (set in wrangler.jsonc [vars])
   R2_PUBLIC_URL: string; // public domain for port-assets bucket
+  LISTEN_TTS_PROVIDER?: string; // cloudflare-aura | cloudflare-melotts | cartesia
+  LISTEN_AURA_SPEAKER?: string; // Aura voice for Carl (e.g. arcas, orion, angus)
+
+  // Workers AI binding — listen-library TTS (MeloTTS / Deepgram Aura).
+  AI: { run(model: string, inputs: Record<string, unknown>, options?: Record<string, unknown>): Promise<unknown> };
 
   // Native R2 binding (used directly — not via S3 SDK)
   PORT_ASSETS: R2Bucket;
@@ -97,6 +115,7 @@ const QUEUE_PROPOSAL     = "wv-port-proposal-queue";
 const QUEUE_TIMESHEET    = "wv-port-timesheet-queue";
 const QUEUE_RFP_DOCUMENT = "wv-port-rfp-document-queue";
 const QUEUE_PROPOSAL_DLQ = "wv-port-proposal-queue-dlq";
+const QUEUE_LISTEN       = "wv-port-listen-queue";
 
 // R2 public URL is read from env.R2_PUBLIC_URL (wrangler.jsonc [vars]).
 // The constant below is a fallback for type safety only — the env value always wins.
@@ -379,6 +398,18 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       return { success: false, error: "generation_failed" };
     }
 
+    // BIZ-C1/C2: compute + persist the citation traceability score so
+    // biz_qc_review can surface it without re-reading the Notion doc.
+    // Regenerating the same rfp upserts and replaces the prior trace.
+    const citationCount = relevantCitations?.length ?? 0;
+    const traceabilityScore = computeTraceabilityScore(draft, citationCount);
+    upsertProposalTraceability({
+      rfpId,
+      citationTrace: draft.citationTrace,
+      traceabilityScore,
+      citationCount,
+    }).catch((e) => console.warn("[proposal] traceability persist failed (non-fatal):", e));
+
     // 6. Create Deal in Notion
     setProposalStep(rfpId, "building_documents").catch((e) =>
       console.warn("[proposal] step tracking:", e),
@@ -442,6 +473,23 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
     }
     if (draft.references.length > 0) {
       blocks.push(divider(), heading2("References"), ...draft.references.map((r) => para(r)));
+    }
+    if (draft.citationTrace.length > 0) {
+      // citationIndex refers into `relevantCitations` (the pre-matched bibliography
+      // entries sent in the prompt) — NOT draft.references (the model's own free-text
+      // reference list, different order/content entirely).
+      blocks.push(
+        divider(),
+        heading2("Citation Traceability (internal QC)"),
+        para(
+          traceabilityScore.score !== null
+            ? `traceability score: ${traceabilityScore.score}/100 — ${traceabilityScore.breakdown.join("; ")}`
+            : traceabilityScore.breakdown.join("; "),
+        ),
+        ...draft.citationTrace.map((t) =>
+          bulletItem(`${t.section}: "${t.claimSummary}" ← ${relevantCitations?.[t.citationIndex]?.fullCitation ?? `citation ${t.citationIndex}`}`),
+        ),
+      );
     }
 
     try {
@@ -835,6 +883,95 @@ const rfpDocumentConsumer = createQueueConsumer<RfpDocumentUploadedJob>(
 
 // ── Worker export ─────────────────────────────────────────────────────────────
 
+// ── Listen library: render a document to audio chunks (Carl's voice) ──────────
+// Pipeline: fetch extracted text from R2 → clean (strip citations) → chunk →
+// Cartesia TTS per chunk → store mp3 chunks in R2 → record chunk rows + mark
+// ready. Clears prior chunks at the start so retries are idempotent. On error,
+// records the message and acks (no DLQ loop) — resubmit covers transient fails.
+/** "Condensed listen": trim a cleaned document to its gist before synthesis —
+ *  fewer characters = shorter listen + lower TTS cost. Haiku; fails open. */
+async function condenseForListening(text: string): Promise<string> {
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const resp = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 8192,
+    system:
+      "Condense this document into a tighter version for audio narration. Keep all substantive points, arguments, and concrete details in the author's original order; cut boilerplate, repetition, hedging, and asides. Output ONLY the condensed prose — no preamble, no markdown, no headings.",
+    messages: [{ role: "user", content: text.slice(0, 120_000) }],
+  });
+  const out = resp.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+  return out.length > 200 ? out : text; // fail open if the model returned little
+}
+
+const listenConsumer = createQueueConsumer<DocumentAudioJob>(
+  async (payload, env) => {
+    seedProcessEnv(env as unknown as Env);
+    const typedEnv = env as unknown as Env;
+    const r2 = typedEnv.PORT_ASSETS;
+    const { itemId, textKey, cleanLevel } = payload;
+
+    try {
+      await updateListenItem(itemId, { status: "rendering" });
+      await deleteListenChunks(itemId); // idempotent: clear any prior attempt
+
+      const obj = await r2.get(textKey);
+      if (!obj) {
+        await updateListenItem(itemId, { status: "failed", error: "source text not found in storage" });
+        return { success: true, message: "no source text" };
+      }
+      const rawText = await obj.text();
+
+      const item = await getListenItem(itemId);
+      const title = item?.title ?? "your document";
+      let cleaned = cleanForListening(normaliseForSpeech(rawText), cleanLevel);
+      if (!cleaned.trim()) {
+        await updateListenItem(itemId, { status: "failed", error: "no readable text after cleaning" });
+        return { success: true, message: "empty after clean" };
+      }
+
+      // optional "condensed listen" — trim to the gist before synthesis
+      if (item?.condense) {
+        cleaned = await condenseForListening(cleaned).catch(() => cleaned);
+      }
+
+      // intro + body chunks
+      const segments = [buildIntro(title, cleaned.length), ...chunkText(cleaned)];
+
+      // TTS engine — Cloudflare Workers AI by default (cheap, no credit cap);
+      // cartesia stays available as a fallback. Switch via LISTEN_TTS_PROVIDER.
+      const tts = getTtsProvider({
+        provider: typedEnv.LISTEN_TTS_PROVIDER || DEFAULT_LISTEN_PROVIDER,
+        ai: typedEnv.AI,
+        // per-item voice (the submitter's pref); global var as fallback.
+        speaker: item?.speaker || typedEnv.LISTEN_AURA_SPEAKER,
+        cartesiaApiKey: typedEnv.CARTESIA_API_KEY,
+      });
+
+      const stored: { idx: number; r2_key: string; char_count: number }[] = [];
+      for (let idx = 0; idx < segments.length; idx++) {
+        const result = await tts.synthesize(segments[idx]);
+        const key = `listen-audio/${itemId}/${idx}.${result.ext}`;
+        await r2.put(key, result.audio, { httpMetadata: { contentType: result.contentType } });
+        stored.push({ idx, r2_key: key, char_count: result.charCount });
+      }
+
+      await insertListenChunks(itemId, stored);
+      await updateListenItem(itemId, {
+        status: "ready",
+        char_count: cleaned.length,
+        est_minutes: estimateMinutes(cleaned.length),
+        chunk_count: stored.length,
+      });
+      return { success: true, message: `rendered ${stored.length} chunks` };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "render failed";
+      await updateListenItem(itemId, { status: "failed", error: msg }).catch(() => {});
+      console.error(`[listen] render failed for ${itemId}:`, msg);
+      return { success: true, message: `failed: ${msg}` }; // ack — resubmit to retry
+    }
+  },
+);
+
 export default {
   async queue(
     batch: MessageBatch,
@@ -856,6 +993,10 @@ export default {
 
       case QUEUE_RFP_DOCUMENT:
         await rfpDocumentConsumer(batch as MessageBatch<RfpDocumentUploadedJob>, env as unknown as Record<string, unknown>);
+        break;
+
+      case QUEUE_LISTEN:
+        await listenConsumer(batch as MessageBatch<DocumentAudioJob>, env as unknown as Record<string, unknown>);
         break;
 
       default:

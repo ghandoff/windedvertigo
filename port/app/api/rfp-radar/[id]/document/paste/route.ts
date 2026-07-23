@@ -17,6 +17,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { uploadAsset } from "@/lib/r2/upload";
 import { getRfpOpportunity, updateRfpOpportunity } from "@/lib/notion/rfp-radar";
+import { setRfpDocumentUrl, markTorReplaced } from "@/lib/supabase/rfp-opportunities";
+import { scheduleBriefRegen } from "@/lib/rfp/regenerate-brief";
 import { clearExtractedRequirements, insertRequirements } from "@/lib/supabase/rfp-requirements";
 import { extractRequirements } from "@/lib/ai/rfp-requirements-extractor";
 import { recordUsage } from "@/lib/ai/usage-store";
@@ -203,20 +205,23 @@ export async function POST(
 
   await Promise.all([pass1, pass2]);
 
-  // Only overwrite requirementsSnapshot if the current one is sparse (< 60 chars)
+  // Replacement = a TOR was already attached. Force-re-derive the TOR-tied fields
+  // from the new doc (the sparse/empty guards are correct only for first attach).
+  const isReplacement = !!rfp.rfpDocumentUrl;
+
   const shouldUpdateSnapshot =
     extraction.requirementsSnapshot &&
-    (!rfp.requirementsSnapshot || rfp.requirementsSnapshot.length < 60);
+    (isReplacement || !rfp.requirementsSnapshot || rfp.requirementsSnapshot.length < 60);
 
   const updates: Parameters<typeof updateRfpOpportunity>[1] = {
     rfpDocumentUrl: publicUrl,
     ...(shouldUpdateSnapshot && {
       requirementsSnapshot: extraction.requirementsSnapshot!,
     }),
-    ...(!rfp.dueDate?.start && extraction.dueDate && {
+    ...((isReplacement || !rfp.dueDate?.start) && extraction.dueDate && {
       dueDate: { start: extraction.dueDate, end: null },
     }),
-    ...(!rfp.estimatedValue && extraction.estimatedValue && {
+    ...((isReplacement || !rfp.estimatedValue) && extraction.estimatedValue && {
       estimatedValue: extraction.estimatedValue,
     }),
   };
@@ -242,6 +247,22 @@ export async function POST(
   };
   const { env } = getCloudflareContext();
   publishJob(env.RFP_DOCUMENT_QUEUE, docPayload).catch(() => {});
+
+  // The paste route previously wrote only Notion — sync the TOR URL to Supabase
+  // (the read layer) too, then rebuild the brief from the pasted TOR + refresh
+  // the thumbnail (background).
+  await setRfpDocumentUrl(id, publicUrl).catch((err) => {
+    console.warn("[rfp/document/paste] supabase url sync failed (non-fatal):", err);
+  });
+  await scheduleBriefRegen(id);
+
+  // On replacement, invalidate prior verification + flag any existing draft stale.
+  if (isReplacement) {
+    const staleDraft = rfp.proposalStatus === "ready-for-review" || rfp.proposalStatus === "complete";
+    await markTorReplaced(id, { staleDraft }).catch((err) => {
+      console.warn("[rfp/document/paste] markTorReplaced failed (non-fatal):", err);
+    });
+  }
 
   return NextResponse.json({ ok: true, url: publicUrl, notionUpdated: true, extraction, requirementsTruncated });
 }

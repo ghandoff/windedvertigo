@@ -80,51 +80,9 @@ async function resolveAccounts(): Promise<{ accounts: ScanAccount[]; unavailable
     );
   }
 
-  // Personal gmail via OAuth refresh token. The worker has GMAIL_REFRESH_TOKEN
-  // but not GMAIL_CLIENT_ID/SECRET — refresh tokens only redeem against the
-  // client that issued them, so try each candidate client pair on the worker
-  // until one exchanges (a mismatch is a 4xx, harmless).
-  const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-  const clientCandidates: Array<[string, string | undefined, string | undefined]> = [
-    ["GMAIL_CLIENT_*", process.env.GMAIL_CLIENT_ID, process.env.GMAIL_CLIENT_SECRET],
-    ["GOOGLE_CLIENT_*", process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET],
-    ["GOOGLE_CALENDAR_CLIENT_*", process.env.GOOGLE_CALENDAR_CLIENT_ID, process.env.GOOGLE_CALENDAR_CLIENT_SECRET],
-  ];
-  if (refreshToken) {
-    const failures: string[] = [];
-    let resolved = false;
-    for (const [label, clientId, clientSecret] of clientCandidates) {
-      if (!clientId || !clientSecret) continue;
-      try {
-        const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            refresh_token: refreshToken,
-            grant_type: "refresh_token",
-          }),
-        });
-        if (!tokenRes.ok) throw new Error(`HTTP ${tokenRes.status}`);
-        const { access_token: token } = (await tokenRes.json()) as { access_token: string };
-        const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const profile = res.ok ? ((await res.json()) as { emailAddress?: string }) : {};
-        accounts.push({ userId: "me", address: profile.emailAddress ?? "personal-gmail", token });
-        resolved = true;
-        break;
-      } catch (err) {
-        failures.push(`${label}: ${err instanceof Error ? err.message : "token error"}`);
-      }
-    }
-    if (!resolved) {
-      unavailable.push(`personal gmail: no client pair redeems the refresh token (${failures.join("; ") || "no client pairs configured"})`);
-    }
-  } else {
-    unavailable.push("personal gmail: awaiting credential GMAIL_REFRESH_TOKEN");
-  }
+  // (Personal-gmail-via-refresh-token path removed 06 jul 2026: GMAIL_REFRESH_TOKEN
+  // was retired after leaking, and the SA path above already scans garrett@'s inbox
+  // via domain-wide delegation — the refresh-token account was redundant with it.)
 
   return { accounts, unavailable };
 }

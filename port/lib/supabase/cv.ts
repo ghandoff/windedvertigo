@@ -81,6 +81,30 @@ export async function isCvCurrent(email: string): Promise<boolean> {
   return ageMs < expiryMs;
 }
 
+/**
+ * Three-tier confidence for BIZ-Q1 CV claim verification.
+ *
+ *   verified     — last_verified_at exists and is within expires_after_days
+ *   needs-review — last_verified_at exists but has expired
+ *   draft        — last_verified_at has never been set
+ *
+ * Returns null when the member is not found in collective_cv.
+ */
+export type CvConfidence = "verified" | "needs-review" | "draft";
+
+export function cvConfidence(cv: CollectiveCv): CvConfidence {
+  if (!cv.lastVerifiedAt) return "draft";
+  const ageMs = Date.now() - new Date(cv.lastVerifiedAt).getTime();
+  const expiryMs = cv.expiresAfterDays * 24 * 3600 * 1000;
+  return ageMs < expiryMs ? "verified" : "needs-review";
+}
+
+export async function getCvConfidence(email: string): Promise<CvConfidence | null> {
+  const cv = await getCvByEmail(email);
+  if (!cv) return null;
+  return cvConfidence(cv);
+}
+
 // ── Write ────────────────────────────────────────────────────────────────────
 
 export interface UpsertCv {

@@ -8,6 +8,7 @@
 import { getRfpOpportunityByIdFromSupabase } from "./supabase/rfp-opportunities";
 import { getRequirementsByRfp, isRfpReadyForGeneration, type RequirementKind } from "./supabase/rfp-requirements";
 import { getAllCvs } from "./supabase/cv";
+import { getProposalTraceability } from "./supabase/rfp-proposal-traceability";
 import { TEAM_BIOS } from "./ai/proposal-generator";
 
 // ── CV de-duplication ─────────────────────────────────────────────────────────
@@ -112,6 +113,8 @@ export interface QcInputs {
   readiness: { ready: boolean; reason: string | null };
   cvs: Array<{ name: string; email: string; current: boolean; last_verified_at: string | null }>;
   cv_dedup: CvDedupResult;
+  /** BIZ-C1/C2: null if no proposal has been generated yet, or generated before this landed. */
+  citation_traceability: { score: number | null; breakdown: string[]; citation_count: number; generated_at: string } | null;
 }
 
 const EOI_TYPES = new Set(["EOI", "Grant"]);
@@ -120,10 +123,11 @@ export async function getQcInputs(rfpId: string): Promise<QcInputs | null> {
   const opp = await getRfpOpportunityByIdFromSupabase(rfpId);
   if (!opp) return null;
 
-  const [requirements, readiness, cvs] = await Promise.all([
+  const [requirements, readiness, cvs, traceability] = await Promise.all([
     getRequirementsByRfp(rfpId).catch(() => []),
     isRfpReadyForGeneration(rfpId).catch(() => ({ ready: false, reason: "readiness check failed", unapprovedCount: 0 })),
     getAllCvs().catch(() => []),
+    getProposalTraceability(rfpId).catch(() => null),
   ]);
 
   // ── materials checklist — the w.v baseline set + funder-specific submission reqs
@@ -197,5 +201,13 @@ export async function getQcInputs(rfpId: string): Promise<QcInputs | null> {
     readiness: { ready: readiness.ready, reason: readiness.reason },
     cvs: cvRoster,
     cv_dedup: cvDedup,
+    citation_traceability: traceability
+      ? {
+          score: traceability.score,
+          breakdown: traceability.score_breakdown,
+          citation_count: traceability.citation_count,
+          generated_at: traceability.generated_at,
+        }
+      : null,
   };
 }

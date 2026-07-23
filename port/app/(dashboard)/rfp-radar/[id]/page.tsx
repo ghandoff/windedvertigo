@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
   ArrowLeft, ExternalLink, CalendarDays, DollarSign,
-  FileText, Mail, Users, ListChecks, MapPin, Tag, Layers, Pencil,
+  FileText, Mail, Users, ListChecks, MapPin, Tag, Layers, Pencil, AlertTriangle,
 } from "lucide-react";
 import { deadlineAsPT } from "@/lib/format";
 import { getRfpOpportunityByIdFromSupabase } from "@/lib/supabase/rfp-opportunities";
@@ -31,6 +31,8 @@ import { WinProbabilityBadge, computeWinProbability } from "@/app/components/ai-
 import { RfpDocumentUpload } from "@/app/components/rfp-document-upload";
 import { RfpReEnrichButton } from "@/app/components/rfp-re-enrich-button";
 import { RfpRegenerateButton } from "@/app/components/rfp-regenerate-button";
+import { RfpBriefCard } from "@/app/components/rfp-brief-card";
+import { RfpTorTrust } from "@/app/components/rfp-tor-trust";
 import { ProposalProgressTracker } from "@/app/components/proposal-progress";
 import type { Organization } from "@/lib/notion/types";
 import type { RequirementKind } from "@/lib/supabase/rfp-requirements";
@@ -328,6 +330,9 @@ export default async function RfpDetailPage({ params }: Props) {
             </CardContent>
           </Card>
 
+          {/* one-pager brief (R1) — the review glance surfaced on pursuing (R2) */}
+          {rfp.onePager && <RfpBriefCard onePager={rfp.onePager} />}
+
           {/* requirements snapshot */}
           {rfp.requirementsSnapshot && (
             <Card>
@@ -455,10 +460,19 @@ export default async function RfpDetailPage({ params }: Props) {
                   ) : (
                     <span className="text-xs text-muted-foreground">
                       {rfp.status === "pursuing" || rfp.status === "submitted"
-                        ? "not yet generated"
-                        : "move to pursuing to generate"}
+                        ? "not yet generated — use the button below"
+                        : "review the brief, then generate when pursuing"}
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* Stale-draft warning — the TOR was replaced after this draft was generated */}
+              {rfp.proposalStale &&
+               (rfp.proposalStatus === "ready-for-review" || rfp.proposalStatus === "complete") && (
+                <div className="flex items-start gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-px" />
+                  <span>this draft predates the current TOR — regenerate to rebuild it from the replaced document.</span>
                 </div>
               )}
 
@@ -544,7 +558,7 @@ export default async function RfpDetailPage({ params }: Props) {
 
               {!hasProposalOutput && !rfp.proposalStatus && (
                 <p className="text-xs text-muted-foreground">
-                  proposal documents will appear here once generated. move the opportunity to pursuing to trigger generation.
+                  full proposal drafting no longer runs automatically — review the brief, then generate the full draft when the opportunity is pursued.
                 </p>
               )}
             </CardContent>
@@ -567,6 +581,14 @@ export default async function RfpDetailPage({ params }: Props) {
             </CardHeader>
             <CardContent className="space-y-3">
               <RfpDocumentUpload rfpId={id} currentUrl={rfp.rfpDocumentUrl} />
+              <RfpTorTrust
+                rfpId={id}
+                docUrl={rfp.rfpDocumentUrl}
+                sourceUrl={rfp.url || null}
+                thumbnailUrl={rfp.torThumbnailUrl}
+                torVerifiedAt={rfp.torVerifiedAt}
+                torVerifiedBy={rfp.torVerifiedBy}
+              />
               {!rfp.rfpDocumentUrl && rfp.url?.startsWith("http") && (
                 <RfpReEnrichButton rfpId={id} />
               )}

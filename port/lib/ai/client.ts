@@ -26,15 +26,21 @@ import { recordUsage } from "./usage-store";
 let _client: Anthropic | null = null;
 let _cachedKey: string | undefined;
 
-function getAnthropic(): Anthropic {
+export function getAnthropic(): Anthropic {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
   if (!_client || apiKey !== _cachedKey) {
     _client = new Anthropic({
       apiKey,
-      // Explicit baseURL needed on CF Workers because the SDK's default sometimes
-      // resolves to a relative path; same fix wv-claw uses.
-      baseURL: process.env.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com",
+      // Pin the direct Anthropic endpoint. Do NOT honor ANTHROPIC_BASE_URL: a
+      // stale Vercel AI Gateway value (leftover in .env.local from the pre-CF
+      // era) is baked into the build-time env and leaks into Next `after()`
+      // background contexts (e.g. the reactive Slack agent runAgentTurn), where
+      // it routed calls to the dead gateway → 401 AI_GATEWAY_API_KEY. Request
+      // handlers (crons) read the CF *runtime* env where it's unset, which is
+      // why only the after() path broke. Passing an explicit baseURL overrides
+      // the env entirely, so all contexts talk to Anthropic directly.
+      baseURL: "https://api.anthropic.com",
     });
     _cachedKey = apiKey;
   }

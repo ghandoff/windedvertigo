@@ -5,9 +5,8 @@
  * substantiation evaluation events across PCS versions.
  */
 
-import { PCS_DB, PROPS } from './pcs-config.js';
-import { notion } from './notion.js';
-import { getPcsSupabase, shouldReadFromPostgres, mirrorToPostgres, shouldUseStrongConsistency, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
+import { PROPS } from './pcs-config.js';
+import { getPcsSupabase, shouldWriteToPostgresFirst, writePostgresFirst } from './supabase-pcs.js';
 
 // 2026-05-06 — Path-2 Day 2.7 column-name overrides for revision events.
 // All camelCase keys map mechanically to snake_case; no exceptions.
@@ -56,54 +55,8 @@ function parsePostgresRow(row) {
   };
 }
 
-function parsePage(page) {
-  const p = page.properties;
-  return {
-    id: page.id,
-    event: p[P.event]?.title?.[0]?.plain_text || '',
-    activityType: p[P.activityType]?.select?.name || null,
-    responsibleDept: p[P.responsibleDept]?.select?.name || null,
-    responsibleIndividual: (p[P.responsibleIndividual]?.rich_text || []).map(t => t.plain_text).join('') || null,
-    startDate: p[P.startDate]?.date?.start || null,
-    endDate: p[P.endDate]?.date?.start || null,
-    fromVersion: (p[P.fromVersion]?.rich_text || []).map(t => t.plain_text).join(''),
-    toVersion: (p[P.toVersion]?.rich_text || []).map(t => t.plain_text).join(''),
-    fromVersionLinkedId: (p[P.fromVersionLinked]?.relation || [])[0]?.id || null,
-    toVersionLinkedId: (p[P.toVersionLinked]?.relation || [])[0]?.id || null,
-    pcsVersionId: (p[P.pcsVersion]?.relation || [])[0]?.id || null,
-    eventNotes: (p[P.eventNotes]?.rich_text || []).map(t => t.plain_text).join(''),
-    // Lauren's template Table A dual-approval — added 2026-04-18
-    approverAlias: (p[P.approverAlias]?.rich_text || []).map(t => t.plain_text).join(''),
-    approverDepartment: p[P.approverDepartment]?.select?.name || null,
-    createdTime: page.created_time,
-    lastEditedTime: page.last_edited_time,
-  };
-}
-
 export async function getAllRevisionEvents() {
-  if (shouldReadFromPostgres()) {
-    try {
-      return await _fetchAllRevisionEventsFromPostgres();
-    } catch (err) {
-      console.warn(`[pcs-revision-events] Postgres read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  return _fetchAllRevisionEventsFromNotion();
-}
-
-async function _fetchAllRevisionEventsFromNotion() {
-  let all = [];
-  let cursor = undefined;
-  do {
-    const res = await notion.databases.query({
-      database_id: PCS_DB.revisionEvents,
-      start_cursor: cursor,
-      sorts: [{ property: P.startDate, direction: 'descending' }],
-    });
-    all = all.concat(res.results);
-    cursor = res.has_more ? res.next_cursor : undefined;
-  } while (cursor);
-  return all.map(parsePage);
+  return await _fetchAllRevisionEventsFromPostgres();
 }
 
 async function _fetchAllRevisionEventsFromPostgres() {
@@ -118,130 +71,50 @@ async function _fetchAllRevisionEventsFromPostgres() {
 }
 
 export async function getRevisionEvent(id) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_revision_events')
-        .select('*')
-        .eq('notion_page_id', id)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) return parsePostgresRow(data);
-    } catch (err) {
-      console.warn(`[pcs-revision-events] Postgres single-row read failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const page = await notion.pages.retrieve({ page_id: id });
-  return parsePage(page);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_revision_events')
+    .select('*')
+    .eq('notion_page_id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? parsePostgresRow(data) : null;
 }
 
 export async function getEventsForVersion(versionId) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_revision_events')
-        .select('*')
-        .eq('pcs_version_id', versionId)
-        .order('start_date', { ascending: false, nullsFirst: false })
-        .limit(5000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-revision-events] Postgres forVersion failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.revisionEvents,
-    filter: { property: P.pcsVersion, relation: { contains: versionId } },
-    sorts: [{ property: P.startDate, direction: 'descending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_revision_events')
+    .select('*')
+    .eq('pcs_version_id', versionId)
+    .order('start_date', { ascending: false, nullsFirst: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getEventsByActivityType(activityType) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_revision_events')
-        .select('*')
-        .eq('activity_type', activityType)
-        .order('start_date', { ascending: false, nullsFirst: false })
-        .limit(5000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-revision-events] Postgres byActivityType failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.revisionEvents,
-    filter: { property: P.activityType, select: { equals: activityType } },
-    sorts: [{ property: P.startDate, direction: 'descending' }],
-  });
-  return res.results.map(parsePage);
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_revision_events')
+    .select('*')
+    .eq('activity_type', activityType)
+    .order('start_date', { ascending: false, nullsFirst: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function getEventsByDepartment(dept) {
-  if (shouldReadFromPostgres()) {
-    try {
-      const sb = getPcsSupabase();
-      const { data, error } = await sb
-        .from('pcs_revision_events')
-        .select('*')
-        .eq('responsible_dept', dept)
-        .order('start_date', { ascending: false, nullsFirst: false })
-        .limit(5000);
-      if (error) throw error;
-      return (data || []).map(parsePostgresRow);
-    } catch (err) {
-      console.warn(`[pcs-revision-events] Postgres byDept failed, falling back to Notion: ${err.message}`);
-    }
-  }
-  const res = await notion.databases.query({
-    database_id: PCS_DB.revisionEvents,
-    filter: { property: P.responsibleDept, select: { equals: dept } },
-    sorts: [{ property: P.startDate, direction: 'descending' }],
-  });
-  return res.results.map(parsePage);
-}
-
-/**
- * 2026-05-06 — Path-2 Day 2.7 drift catcher. See pcs-evidence.js
- * syncRecentEvidenceToPostgres for the full pattern.
- */
-export async function syncRecentRevisionEventsToPostgres(sinceIso) {
-  const res = await notion.databases.query({
-    database_id: PCS_DB.revisionEvents,
-    filter: { timestamp: 'last_edited_time', last_edited_time: { on_or_after: sinceIso } },
-    page_size: 100,
-  });
-  let maxSeen = sinceIso;
-  let mirrored = 0;
-  for (const page of res.results) {
-    const parsed = parsePage(page);
-    const result = await mirrorToPostgres('pcs_revision_events', parsed, REVISION_EVENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-    if (result.mirrored) mirrored++;
-    if (parsed.lastEditedTime > maxSeen) maxSeen = parsed.lastEditedTime;
-  }
-  return { count: mirrored, maxSeen, fetched: res.results.length };
-}
-
-/**
- * Sync a single Notion page into Postgres by page ID.
- * Used by the general page-updated webhook to mirror a specific
- * edited row immediately rather than waiting for the drift-sync cron.
- *
- * @param {string} pageId — Notion page ID
- */
-export async function syncSingleRevisionEventPageToPostgres(pageId) {
-  const page = await notion.pages.retrieve({ page_id: pageId });
-  const parsed = parsePage(page);
-  return mirrorToPostgres('pcs_revision_events', parsed, REVISION_EVENTS_PG_COLUMN_MAP, {
-    enqueueOnFailure: shouldUseStrongConsistency(),
-  });
+  const sb = getPcsSupabase();
+  const { data, error } = await sb
+    .from('pcs_revision_events')
+    .select('*')
+    .eq('responsible_dept', dept)
+    .order('start_date', { ascending: false, nullsFirst: false })
+    .limit(5000);
+  if (error) throw error;
+  return (data || []).map(parsePostgresRow);
 }
 
 export async function createRevisionEvent(fields) {
@@ -281,16 +154,9 @@ export async function createRevisionEvent(fields) {
       approverAlias: fields.approverAlias || '',
       approverDepartment: fields.approverDepartment || null,
     };
-    await writePostgresFirst('pcs_revision_events', stubRow, REVISION_EVENTS_PG_COLUMN_MAP, () => notion.pages.create({ parent: { database_id: PCS_DB.revisionEvents }, properties }));
+    await writePostgresFirst('pcs_revision_events', stubRow, REVISION_EVENTS_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.create({
-    parent: { database_id: PCS_DB.revisionEvents },
-    properties,
-  });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_revision_events', parsed, REVISION_EVENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }
 
 export async function updateRevisionEvent(id, fields) {
@@ -328,11 +194,7 @@ export async function updateRevisionEvent(id, fields) {
   }
   if (shouldWriteToPostgresFirst()) {
     const stubRow = { id, ...fields };
-    await writePostgresFirst('pcs_revision_events', stubRow, REVISION_EVENTS_PG_COLUMN_MAP, () => notion.pages.update({ page_id: id, properties }));
+    await writePostgresFirst('pcs_revision_events', stubRow, REVISION_EVENTS_PG_COLUMN_MAP);
     return stubRow;
   }
-  const page = await notion.pages.update({ page_id: id, properties });
-  const parsed = parsePage(page);
-  await mirrorToPostgres('pcs_revision_events', parsed, REVISION_EVENTS_PG_COLUMN_MAP, { enqueueOnFailure: shouldUseStrongConsistency() });
-  return parsed;
 }

@@ -1,0 +1,173 @@
+# creaseworks animation sprint — claude code working plan
+
+> companion to `research/creaseworks-animation-pipeline-options-2026-07.md`
+> (read that first for the why; this file is the how).
+> owner: garrett · window: setup week of 2026-07-06, prototype sprint 2026-07-10 → 07-19
+> status: active sprint plan. update checkboxes + add session handoff notes to
+> `.brain/memory/handoff/` as sessions complete.
+
+## purpose
+
+get three animation prototypes working during the holiday sprint so the collective
+can judge viability at the next fruitstand:
+
+- **prototype 1 — motion kit**: brand-tokened code animation library, shipped in-app (free)
+- **prototype 2 — remotion walkthrough**: one playdate tutorial video rendered from code/data
+- **prototype 3 — rive mascot**: interactive guide character on a creaseworks page
+
+plus two human-led workstreams that feed them: the **character bible** (AI image
+tools) and **pilot cartoon short** (higgsfield workflow — happens outside claude
+code; payton + garrett).
+
+## ground rules for every session
+
+1. follow repo conventions: `CLAUDE.md`, `TEAM.md`, `CONTRIBUTING.md`. lowercase UI
+   copy, british spelling, kebab-case files, brand name `winded.vertigo`.
+2. session protocol: `git pull --rebase origin main` at start; commit + push at end;
+   branch names `feat/anim-*`. merged ≠ deployed — never call anything "live" until
+   `npm run deploy:cf` has run with garrett's approval.
+3. **locate before you build.** creaseworks code may live in this repo's
+   `apps/harbour/` mirror or in the sibling `harbour-apps` repo — check both, don't
+   assume parity. confirm the real source of truth for the target app before editing.
+4. brand tokens everywhere: cadet blue `#273248`, redwood `#b15043`, Inter
+   (+ atkinson hyperlegible option), lowercase type treatment.
+5. accessibility is a feature: every animated thing must respect
+   `prefers-reduced-motion` AND creaseworks' own calm-theme/motion preference, and
+   anything auto-moving >5s needs a pause/stop control (WCAG 2.2.2). static poster +
+   play control is the default reduced-motion fallback.
+6. media hosting: R2 (`creaseworks-evidence` bucket conventions) or cloudflare
+   stream. **no youtube embeds on child-directed pages** (COPPA — see research doc §5).
+7. keep durable assets in the repo: character bibles, scripts, remotion source,
+   motion-kit code. AI video models are swappable commodities; our characters and
+   code are the moat.
+
+## pre-work (setup week, human tasks — garrett)
+
+- [ ] google AI pro account (~$20/mo) — nano banana pro for character design
+- [ ] higgsfield starter ($15–39/mo) — seedance 2.0 access; credits expire monthly,
+      so don't subscribe until ~july 9
+- [ ] elevenlabs starter or creator ($6/$22 per mo) — commercial licence starts at paid
+- [ ] suno pro ($10/mo) or artlist (~$10–17/mo) for music
+- [ ] rive account (free to start; $9/mo cadet only when we ship to production)
+- [ ] lottielab free account (optional, for lottie experiments)
+- [ ] share credentials with payton + maria the usual way
+- [ ] **licence check**: remotion is free for companies ≤3 people. w.v LLC +
+      collective structure needs a read of remotion.dev/docs/license — if in doubt,
+      creators licence is $25/seat/mo, budget-trivial. resolve before prototype 2
+      ships anywhere public.
+- [ ] watch the jack vs. AI video with payton + maria: youtube.com/watch?v=NnvRMs_0UQ8
+
+## workstream A — motion kit (prototype 1)
+
+**goal:** a small, reusable, brand-tokened animation library claude can extend
+forever, demonstrated on real creaseworks/site surfaces.
+
+sessions:
+1. **scaffold** — create `packages/motion-kit/` (or the location that best fits the
+   npm-workspaces layout — investigate first): design tokens (durations, easings,
+   brand colours), a `useReducedMotion`-style gate that also reads creaseworks'
+   calm-theme preference, and 5–8 primitives (fade-up, fold-reveal, stagger-in,
+   gentle-bounce, underline-draw). GSAP (now fully free) and/or Motion — pick per
+   component, document the choice.
+2. **apply** — wire 2–3 primitives into low-risk real surfaces (e.g. sampler grid
+   card entrances, matcher wizard step transitions). demo page or storybook-style
+   HTML tool at `site/public/tools/motion-kit/index.html` showing every primitive
+   with a reduced-motion toggle.
+3. **document** — short usage README in the package; add decision note to
+   `docs/cmo/decisions-log.md` if we adopt it.
+
+**done when:** primitives render in-app behind the motion preference, demo page
+exists, zero new paid dependencies.
+
+## workstream B — character bible (feeds everything)
+
+**goal:** 1–2 guide characters, fully specified, versioned in the repo.
+
+structure to create: `docs/creaseworks-animation/characters/{name}/` containing
+`bible.md` (personality, voice, dos/don'ts, colour refs), turnaround images
+(front/side/back), expression sheet, and 3–5 style-reference scenes. images are
+generated by garrett/payton in nano banana pro (up to 14 reference images,
+holds ~5 characters consistent); claude code's job is organising, naming,
+documenting, and writing the reusable generation prompts into each `bible.md`
+so any future session (or any teammate) can produce on-model images.
+
+**done when:** a stranger could generate an on-model image of the character in a
+new scene using only what's in the folder.
+
+## workstream C — remotion walkthrough (prototype 2)
+
+**goal:** one 60–90s playdate walkthrough video rendered entirely from code +
+data, compared honestly against the vault plan's contracted-editing estimate.
+
+sessions:
+1. **scaffold** — `npx create-video@latest` into `apps/creaseworks-videos/`
+   (confirm best location first). install remotion's claude/agent skills + MCP
+   per remotion.dev/docs/ai. build the brand shell: intro sting, lowercase title
+   treatment, step-card component, outro with wordmark.
+2. **first render** — hardcode one real playdate's steps (maria's script when
+   ready; otherwise pull a real playdate from the notion-synced data and draft the
+   narration). render locally to MP4. iterate on motion quality — this is where
+   the taste work happens.
+3. **voice + polish** — narration via elevenlabs (API or manual export), timed to
+   scenes. target: 1080p, h.264 + a VP9 or AV1 encode to compare sizes
+   (expect roughly 15–30 / 7–12 / 4–8 MB per minute respectively — verify with a
+   real test encode).
+4. **delivery** — upload to R2, embed with a poster + play control (no autoplay)
+   on a draft creaseworks page or demo route. document the per-video marginal cost
+   (rendering is pennies; the question is hours).
+5. **stretch, only if time** — parameterise: render the same template from any
+   playdate row (title, steps, materials) to prove the "video per playdate" thesis.
+
+**done when:** one watchable walkthrough exists on R2 with an embed pattern that
+passes the reduced-motion/COPPA rules, and we can state its real cost per video.
+
+## workstream D — rive mascot (prototype 3)
+
+**goal:** the guide character as a small interactive presence on one creaseworks page.
+
+reality check: `.riv` assets are authored in the rive GUI editor — that part is
+garrett-in-the-editor work (rive.app has good tutorials; start from the character
+bible art). claude code handles everything around it:
+
+1. **runtime scaffold** — add `@rive-app/react-canvas` (runtimes are MIT, free) to
+   the creaseworks app; build a `<GuideCharacter>` component with lazy loading,
+   poster fallback, and the motion-preference gate. use a placeholder `.riv`
+   (rive's community files) until ours exists.
+2. **states** — wire a simple state machine: idle / wave-on-load / react-on-hover /
+   calm (static) when reduced motion. keep the asset under ~100 KB.
+3. **place** — sampler page corner or empty-state slot; behind a feature flag or
+   draft route until the fruitstand review.
+
+**done when:** placeholder-driven component works end-to-end, ready to swap in the
+real character asset the moment it's exported.
+
+## workstream E — pilot cartoon short (outside claude code)
+
+payton + garrett, in-browser tools: claude (script, 30–45s, character bible voice) →
+nano banana pro scene stills → seedance 2.0 on higgsfield (4–8s shots, locked refs) →
+elevenlabs voice → suno/artlist music → capcut edit. claude code's only jobs: store
+the script + shot list in `docs/creaseworks-animation/shorts/{slug}.md`, and archive
+the final MP4 to R2.
+
+## suggested sprint calendar (jul 10–19)
+
+| days | focus |
+|---|---|
+| 10–11 | workstream A sessions 1–2 (motion kit) + character generation play (B) |
+| 12–13 | workstream C sessions 1–2 (remotion scaffold + first render); finalise character bible |
+| 14–15 | workstream E (cartoon short production days) + C session 3 (voice) |
+| 16–17 | workstream D (rive mascot); C session 4 (delivery) |
+| 18–19 | polish, demo page for everything, write fruitstand review notes, C stretch if time |
+
+light-touch is fine — anything not reached rolls forward; the ordering front-loads
+the cheapest/highest-certainty wins.
+
+## definitions of done for the sprint
+
+- [ ] motion kit primitives live behind motion preference on ≥1 real surface
+- [ ] character bible folder complete for ≥1 character
+- [ ] one remotion walkthrough on R2 with cost-per-video notes
+- [ ] rive component scaffolded (real asset optional)
+- [ ] one cartoon short drafted or finished
+- [ ] fruitstand review note drafted: does it look like us / what did it cost /
+      which surface first — feeding a decision logged to `docs/cmo/decisions-log.md`

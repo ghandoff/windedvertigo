@@ -234,73 +234,23 @@ export function shouldUseStrongConsistency() {
  * @param {Function} notionWriteFn — async () => notionPage (the existing Notion create/update)
  * @returns {Promise<{ ok: boolean, id: string, notionQueued: boolean }>}
  */
-export async function writePostgresFirst(table, row, columnMap, notionWriteFn) {
-  // 1. Canonical Postgres write. enqueueOnFailure=true here because we
-  //    cannot fall back to Notion-first in Phase B — the Postgres write
-  //    IS the source of truth. If it fails after retries the caller sees
-  //    the thrown error and the operation is surfaced as a hard failure.
+export async function writePostgresFirst(table, row, columnMap, _notionWriteFn) {
+  // Postgres is the single source of truth (Notion retired 2026-07). The
+  // former fire-and-forget Notion mirror + notion_page_id back-patch have
+  // been removed. `_notionWriteFn` is still accepted for backwards-compat
+  // with existing callers and is intentionally ignored — the per-caller
+  // Notion write construction is removed in later Stage-2 batches.
+  //
+  // For rows created after the cutover, `notion_page_id` keeps its
+  // pre-assigned UUID (there is no Notion page id to back-patch to). That
+  // UUID is the row's stable id — Notion-ID-keyed lookups and /[id] routes
+  // treat it as an opaque key, so they keep working.
   const result = await mirrorToPostgres(table, row, columnMap, { enqueueOnFailure: true });
   if (!result.mirrored) {
     throw new Error(`[writePostgresFirst] Postgres write failed for ${table}/${row?.id}: ${result.reason}`);
   }
 
-  // 2. Fire-and-forget Notion mirror. We intentionally do NOT await this
-  //    so the API handler can return before Notion responds. Notion is
-  //    treated as an eventually-consistent replica in Phase B.
-  let notionQueued = false;
-  try {
-    notionWriteFn()
-      .then(async (notionPage) => {
-        // Back-patch: replace the pre-assigned UUID placeholder with the
-        // real Notion page id so Notion-ID-keyed lookups (relation IDs,
-        // /pcs/evidence/[id] routes) keep working. We match on the
-        // placeholder id in `notion_page_id` — before this point the
-        // Postgres row has `notion_page_id = row.id` (our UUID). After
-        // this update it has `notion_page_id = notionPage.id` (the real
-        // Notion-format UUID like "abc123de-f012-...").
-        if (notionPage?.id && notionPage.id !== row.id) {
-          const sb = getPcsSupabase();
-          if (sb) {
-            const { error: patchErr } = await sb
-              .from(table)
-              .update({ notion_page_id: notionPage.id })
-              .eq('notion_page_id', row.id);
-            if (patchErr) {
-              console.warn(
-                `[writePostgresFirst] notion_page_id back-patch failed for ${table}/${row.id} → ${notionPage.id}: ${patchErr.message}`,
-              );
-            }
-          }
-        }
-      })
-      .catch(async (err) => {
-        console.error(
-          `[writePostgresFirst] Notion mirror failed for ${table}/${row?.id}: ${err?.message}`,
-        );
-        // Enqueue for retry by the drift-sync cron. The pending-write
-        // payload carries the full row so the retry worker can re-run
-        // notionWriteFn semantics. In Phase B the cron uses
-        // `notion_page_id IS NULL` OR `pcs_pending_writes` to find
-        // rows that still need a Notion sync.
-        await enqueuePendingWrite({
-          table,
-          parsedNotionRow: row,
-          columnMap,
-          error: err?.message,
-        }).catch((qErr) => {
-          console.warn(
-            `[writePostgresFirst] enqueuePendingWrite also failed for ${table}/${row?.id}: ${qErr?.message}`,
-          );
-        });
-      });
-    notionQueued = true;
-  } catch (err) {
-    // This branch only fires if notionWriteFn() itself throws synchronously
-    // (extremely unlikely for an async fn, but be defensive).
-    console.warn(`[writePostgresFirst] Notion enqueue failed synchronously:`, err?.message);
-  }
-
-  return { ok: true, id: row.id, notionQueued };
+  return { ok: true, id: row.id, notionQueued: false };
 }
 
 /**

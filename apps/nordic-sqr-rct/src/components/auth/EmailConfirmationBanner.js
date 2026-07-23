@@ -76,8 +76,8 @@ export default function EmailConfirmationBanner() {
               Please confirm your email
             </p>
             <p className="text-xs text-gold-800 mt-0.5">
-              Your account doesn&rsquo;t have an email on file. Adding one now unlocks
-              magic-link login (coming soon) and lets us send you platform notifications.
+              Your account doesn&rsquo;t have an email on file. Adding one unlocks
+              magic-link sign-in and lets us send you platform notifications.
             </p>
           </div>
           <form
