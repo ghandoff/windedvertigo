@@ -22,6 +22,7 @@ import { createRfpDeadlineEvent } from "@/lib/gcal";
 import { postToChannel } from "@/lib/slack";
 import { notifyDeferredRfp } from "@/lib/rfp/notify";
 import { syncWonRfpToDeal } from "@/lib/rfp/deal-sync";
+import { createSoundingForRfp } from "@/lib/soundings/create";
 
 export interface TransitionOpts {
   /** who triggered it — a session email, or "biz" for the agent path */
@@ -95,9 +96,23 @@ export async function transitionRfpStatus(
       // change on Slack.
       try {
         const { ts, channel } = await notifyDeferredRfp({ id, opp });
-        if (ts) await setRfpSlackThread(id, ts, channel);
+        if (ts) {
+          await setRfpSlackThread(id, ts, channel);
+          // Sounding board: open the voice-note feedback request on the same
+          // thread (deadline = next wednesday 9am PT; 🤖 questions derived
+          // from the one-pager). Idempotent + fail-open like everything here.
+          await createSoundingForRfp(id, opp, channel, ts);
+        }
       } catch {
         /* Slack hiccup must not block the transition */
+      }
+    } else if (opp?.slackThreadTs && opp.slackChannelId) {
+      // Re-defer with an existing thread: make sure a sounding exists for it
+      // (covers threads created before the sounding-board feature shipped).
+      try {
+        await createSoundingForRfp(id, opp, opp.slackChannelId, opp.slackThreadTs);
+      } catch {
+        /* fail-open */
       }
     }
   }

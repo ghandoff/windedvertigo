@@ -266,12 +266,36 @@ export async function postThreadReply(
   threadTs: string,
   text: string,
   replyBroadcast = true,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
 ): Promise<boolean> {
+  return (await postThreadReplyDetailed(channel, threadTs, text, replyBroadcast, blocks)).ok;
+}
+
+/**
+ * Same as postThreadReply(), but returns the posted reply's `ts` — needed by
+ * callers that persist the reply for audit/idempotency (soundings stores the
+ * kickoff + digest reply ts). Kept separate so boolean call sites don't change.
+ */
+export async function postThreadReplyDetailed(
+  channel: string,
+  threadTs: string,
+  text: string,
+  replyBroadcast = true,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  blocks?: any[],
+): Promise<PostToChannelDetail> {
   const data = await slackApi({
     method: "chat.postMessage",
-    body: { channel, thread_ts: threadTs, text, reply_broadcast: replyBroadcast },
+    body: {
+      channel,
+      thread_ts: threadTs,
+      text,
+      reply_broadcast: replyBroadcast,
+      ...(blocks ? { blocks } : {}),
+    },
   });
-  return data?.ok === true;
+  return { ok: data?.ok === true, ts: data?.ts };
 }
 
 /**
@@ -384,6 +408,114 @@ export async function readChannelHistory(channel: string, oldest?: string): Prom
     cursor = data.response_metadata?.next_cursor || undefined;
   } while (cursor);
   return messages;
+}
+
+export interface SlackThreadMessage extends SlackMessage {
+  thread_ts?: string;
+  subtype?: string;
+  bot_id?: string;
+  files?: Array<{
+    id: string;
+    mimetype?: string;
+    subtype?: string;
+    url_private_download?: string;
+    name?: string;
+  }>;
+}
+
+/**
+ * Read a thread's replies (conversations.replies), excluding the root
+ * message. Unlike readChannelHistory() this KEEPS subtype/file messages —
+ * slack voice notes arrive as `file_share` messages and are exactly what the
+ * soundings capture sweep is after; classification happens in the caller.
+ * `oldest` (exclusive) lets a sweep resume from its last captured reply.
+ * Fail-open: returns [] with a console.warn rather than throwing.
+ */
+export async function getThreadReplies(
+  channel: string,
+  threadTs: string,
+  oldest?: string,
+): Promise<SlackThreadMessage[]> {
+  const channelId = await getChannelIdByName(channel);
+  if (!channelId) {
+    console.warn(`[slack] getThreadReplies: could not resolve channel ${channel}`);
+    return [];
+  }
+  const messages: SlackThreadMessage[] = [];
+  let cursor: string | undefined;
+  do {
+    const data = await slackApi({
+      method: "conversations.replies",
+      body: { channel: channelId, ts: threadTs, oldest, limit: 200, cursor },
+    });
+    if (!data?.ok) {
+      if (data?.error) console.warn(`[slack] conversations.replies failed for ${channel}:`, data.error);
+      break;
+    }
+    for (const m of data.messages ?? []) {
+      if (m.ts === threadTs) continue; // the root message is not a reply
+      if (oldest && Number(m.ts) <= Number(oldest)) continue; // exclusive cursor
+      messages.push({
+        ts: m.ts,
+        user: m.user,
+        text: m.text ?? "",
+        thread_ts: m.thread_ts,
+        subtype: m.subtype,
+        bot_id: m.bot_id,
+        files: m.files,
+      });
+    }
+    cursor = data.response_metadata?.next_cursor || undefined;
+  } while (cursor);
+  return messages;
+}
+
+/**
+ * Download a Slack-hosted file (url_private_download) using the bot token —
+ * Slack files require `Authorization: Bearer <token>` + the files:read scope.
+ * When auth fails Slack serves an HTML login page with HTTP 200, so an HTML
+ * body is treated as failure. Fail-open: returns null rather than throwing.
+ */
+export async function downloadSlackFile(
+  urlPrivateDownload: string,
+): Promise<{ buffer: Buffer; contentType: string } | null> {
+  const token = process.env.SLACK_AGENT_BOT_TOKEN ?? process.env.SLACK_BOT_TOKEN;
+  if (!token) {
+    console.warn("[slack] downloadSlackFile: no bot token set — skipping");
+    return null;
+  }
+  try {
+    const res = await fetch(urlPrivateDownload, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      console.warn(`[slack] downloadSlackFile: HTTP ${res.status}`);
+      return null;
+    }
+    const contentType = res.headers.get("content-type") ?? "application/octet-stream";
+    if (contentType.includes("text/html")) {
+      console.warn("[slack] downloadSlackFile: got HTML (auth failure / missing files:read scope)");
+      return null;
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    return { buffer, contentType };
+  } catch (err) {
+    console.warn("[slack] downloadSlackFile failed:", err);
+    return null;
+  }
+}
+
+/**
+ * Add an emoji reaction to a message (reactions.add) — the soundings capture
+ * ack (✅ on a processed voice note). Requires reactions:write; fail-open, and
+ * `already_reacted` counts as success (idempotent re-processing).
+ */
+export async function addReaction(channel: string, ts: string, name: string): Promise<boolean> {
+  const data = await slackApi({
+    method: "reactions.add",
+    body: { channel, timestamp: ts, name },
+  });
+  return data?.ok === true || data?.error === "already_reacted";
 }
 
 /**

@@ -81,6 +81,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // + drafted artifact) — only reached after the prefilter says relevant, so
   // infrequent relative to the prefilter.
   "ambient-agent-run": "claude-sonnet-4-6",
+  // Sonnet: cross-reviewer synthesis of sounding-board feedback (themes,
+  // conflicts, actions) — a few per week, quality over cost.
+  "soundings-digest": "claude-sonnet-4-6",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -112,7 +115,8 @@ export type AiFeature =
   | "whirlpool-sweep"
   | "collective-digest"
   | "ambient-prefilter"
-  | "ambient-agent-run";
+  | "ambient-agent-run"
+  | "soundings-digest";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -142,6 +146,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "collective-digest": "Daily Collective Digest",
   "ambient-prefilter": "Ambient Agent Pre-filter",
   "ambient-agent-run": "Ambient Agent Run",
+  "soundings-digest": "Sounding Board Digest",
 };
 
 // ── token usage tracking ─────────────────────────────────

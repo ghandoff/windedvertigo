@@ -14,6 +14,10 @@
  *     (docs/prompts/executive-agents-phase1-build.md §2.1). Requires the
  *     `message.channels` event subscription + channels:history/channels:read
  *     scopes on the wv-claw Slack app — not auto-granted, a human gate.
+ *   - soundings capture: threaded replies on sounding threads (incl.
+ *     `file_share` voice notes → whisper) and 🙅 `reaction_added` passes →
+ *     lib/soundings/capture. Requires the `reaction_added` event subscription
+ *     + files:read/reactions:read scopes on wv-claw — also a human gate.
  */
 
 import { NextRequest, NextResponse, after } from "next/server";
@@ -21,6 +25,8 @@ import { runAgentTurn } from "@/lib/agent";
 import { verifySlackSignature } from "@/lib/slack-verify";
 import { insertEventLogRow } from "@/lib/supabase/event-log";
 import { ambientWatchedChannelIds } from "@/lib/agent/ambient-rollout";
+import { handleSoundingsEvent } from "@/lib/soundings/capture";
+import { isPassReaction } from "@/lib/soundings/logic";
 
 interface SlackEvent {
   type?: string;
@@ -31,6 +37,17 @@ interface SlackEvent {
   bot_id?: string;
   subtype?: string;
   ts?: string;
+  // soundings: threaded replies (incl. file_share voice notes) + 🙅 passes
+  thread_ts?: string;
+  files?: Array<{
+    id: string;
+    mimetype?: string;
+    subtype?: string;
+    url_private_download?: string;
+    name?: string;
+  }>;
+  reaction?: string;
+  item?: { channel?: string; ts?: string };
 }
 
 interface SlackEventPayload {
@@ -116,6 +133,23 @@ export async function POST(req: NextRequest) {
       console.log(
         `[slack/events] skip ${ev?.type ?? "?"} channel_type=${ev?.channel_type ?? "?"} bot_id=${ev?.bot_id ?? "none"} subtype=${ev?.subtype ?? "none"} event_id=${eventId}`,
       );
+    }
+
+    // Soundings capture — an INDEPENDENT consumer, deliberately outside the
+    // if/else chain above (a threaded text reply can be both ambient-ingested
+    // and a sounding note). Note the explicit `file_share` admission: voice
+    // notes arrive as message events WITH a subtype, which every branch above
+    // filters out. handleSoundingsEvent no-ops after one indexed lookup when
+    // the thread isn't a sounding; passes ride reaction_added (🙅 only).
+    const isSoundingsCandidate =
+      (ev?.type === "message" &&
+        ev?.channel_type !== "im" &&
+        !!ev?.thread_ts &&
+        (!ev?.subtype || ev?.subtype === "file_share") &&
+        !isBotMessage) ||
+      (ev?.type === "reaction_added" && isPassReaction(ev?.reaction ?? ""));
+    if (isSoundingsCandidate && ev) {
+      after(handleSoundingsEvent(ev));
     }
 
     return NextResponse.json({ ok: true });
