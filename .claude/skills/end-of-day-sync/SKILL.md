@@ -50,9 +50,14 @@ The user should be able to close their laptop and have:
    ```
    Use the user's voice: lowercase, terse. If the user already keeps tasks in a specific format (check the existing file), match it.
 
-5. **Optional: draft a Slack summary.** Ask: "Want me to draft a Slack message for #studio-comms summarizing today?" If yes, produce a short, friendly note in the voice convention from `CLAUDE.md` (lowercase, no jargon-as-drama, oxford comma).
+5. **Snapshot to vinay (garrett only).** If the `vinay_log_journal` tool is available in this session (vinay's MCP connector — garrett-only, may be absent), append the same 3-line snapshot to vinay's journal so it carries into the next session's `vinay_context`:
+   - `did` = today's shipped work · `open` = what's in flight · `next` = the top item queued for tomorrow.
 
-6. **Report.** Final lines:
+   Skip silently if the tool isn't present — vinay is garrett's personal assistant, not a shared step. Never route personal specifics to any other agent or channel.
+
+6. **Optional: draft a Slack summary.** Ask: "Want me to draft a Slack message for #studio-comms summarizing today?" If yes, produce a short, friendly note in the voice convention from `CLAUDE.md` (lowercase, no jargon-as-drama, oxford comma).
+
+7. **Report.** Final lines:
    - Repos pushed: list
    - PRs awaiting your action: count + links
    - TASKS.md updated: path

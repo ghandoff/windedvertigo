@@ -113,6 +113,11 @@
   //   SITE_ORIGIN (optional — defaults to https://windedvertigo.com)
   // CMO memory API (Mo's persistent state — see docs/cmo/CLAUDE.md):
   //   CMO_API_TOKEN (set via `wrangler secret put CMO_API_TOKEN`)
+  // vinay — garrett's personal-assistant agent (own wv-vinay Supabase project,
+  // garrett-only connector at /api/mcp/vinay — see docs/agents/vinay-status.md):
+  //   VINAY_SUPABASE_URL, VINAY_SUPABASE_SERVICE_ROLE_KEY (the wv-vinay project)
+  //   VINAY_API_TOKEN (dedicated Claude Code token — NOT the shared CMO_API_TOKEN)
+  //   VINAY_OWNER_EMAIL (optional — defaults to garrett@windedvertigo.com)
 
   // ── OpenNext config ───────────────────────────────────────────────────────
   // open-next.config.ts must be created at port/open-next.config.ts (G.2.1)

@@ -50,3 +50,19 @@ export function corsHeaders(): Record<string, string> {
     "Access-Control-Max-Age": "86400",
   };
 }
+
+/**
+ * vinay (garrett's personal-assistant agent) is single-principal: its connector
+ * is gated to garrett ALONE, not the @windedvertigo.com domain. This is the
+ * boundary that keeps personal context out of any teammate's reach — the DB
+ * project split protects data at rest, this protects the query door. Env-
+ * overridable for testing; defaults to garrett@ (same idiom as
+ * GOOGLE_IMPERSONATE_SUBJECT elsewhere in the worker).
+ */
+export const VINAY_OWNER_EMAIL = (
+  process.env.VINAY_OWNER_EMAIL ?? "garrett@windedvertigo.com"
+).toLowerCase();
+
+export function isVinayOwner(email: string | null | undefined): boolean {
+  return !!email && email.toLowerCase() === VINAY_OWNER_EMAIL;
+}
