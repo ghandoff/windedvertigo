@@ -24,18 +24,20 @@ The exec MCP gate admits any `@windedvertigo.com` account (`isAllowedEmail`) plu
 
 ## phase 0 — memory + connector (this slice)
 
-**Built (merged, pending deploy):**
+**Status: LIVE + verified 2026-07-24.** PR #424 (docs) + #425 (build) merged; `wv-vinay` project created (ref `geejfowrxvfhaevrevla`, us-west-1); migration applied; secrets set; deployed. Smoke test passed: unauth GET/POST → 401 with the OAuth challenge, bogus token → 401, and an authed `vinay_context` returns a clean empty state (confirming the DB URL + service-role key). The connector is **not** reachable via `/api/mcp/agents/all`.
+
+**Built:**
 - `wv-vinay` schema: `vinay_memory`, `vinay_decisions`, `vinay_commitments`, `vinay_journal` (RLS-on / service-role-only) — `port/supabase/migrations/20260723_vinay_phase0.sql`.
 - Data layer `port/lib/vinay/*` (lazy per-request client over wv-vinay; `booking/client.ts` pattern).
 - Garrett-only connector `port/app/api/mcp/vinay/route.ts` with 6 tools: `vinay_context`, `vinay_set_memory`, `vinay_add_commitment`, `vinay_update_commitment`, `vinay_log_journal`, `vinay_log_decision`.
 - Session-end journaling: `/end-of-day-sync` skill logs a 3-line `did/open/next` to vinay when its connector is present.
 
-**Gated on garrett (after merge):**
-1. Create the `wv-vinay` Supabase project (+$10/mo).
-2. Apply the migration in the wv-vinay SQL editor.
-3. Set secrets: `VINAY_SUPABASE_URL`, `VINAY_SUPABASE_SERVICE_ROLE_KEY`, `VINAY_API_TOKEN` (+ optional `VINAY_OWNER_EMAIL`).
-4. Deploy: `cd port && npm run deploy:cf`.
-5. Connect the vinay MCP connector in Cowork (recommended phase-0 method: the dedicated `VINAY_API_TOKEN`).
+**Go-live steps (all complete 2026-07-24):**
+1. ✅ Created the `wv-vinay` Supabase project (+$10/mo).
+2. ✅ Applied the migration in the wv-vinay project.
+3. ✅ Set secrets: `VINAY_SUPABASE_URL`, `VINAY_SUPABASE_SERVICE_ROLE_KEY`, `VINAY_API_TOKEN` (+ optional `VINAY_OWNER_EMAIL`).
+4. ✅ Deployed (`cd port && npm run deploy:cf`).
+5. Connect the vinay MCP connector in Cowork at `https://port.windedvertigo.com/api/mcp/vinay` with the `VINAY_API_TOKEN` — ready whenever garrett wants day-to-day use.
 
 ## deferred (later phases — the phasing is a hypothesis, not a commitment)
 
