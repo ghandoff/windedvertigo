@@ -72,6 +72,13 @@ const CRON_TABLE: CronEntry[] = [
   // Council meeting record (by gcal_event_id). Idempotent (transcript_doc_id).
   { path: "/api/cron/meet-transcript-ingest" },
 
+  // ── Hourly (soundings sweep — sounding-board lifecycle) ─────────────────────
+  // Catch-up of missed thread replies (conversations.replies), transcript
+  // retries, ONE-max reminder DMs, digest at deadline (or early when everyone
+  // responded), graceful expiry, receipt DMs, grace auto-close. Idempotent —
+  // every mutation is behind a unique index or an atomic status claim.
+  { path: "/api/cron/soundings-sweep" },
+
   // ── Daily at fixed times ────────────────────────────────────────────────────
   { path: "/api/cron/rfp-gmail-scanner",   hours: [8] },
   { path: "/api/rfp-radar/poll-rss",       hours: [8], originalMinute: 15 },

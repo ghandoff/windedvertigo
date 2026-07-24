@@ -17,7 +17,7 @@
  */
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { putObject, deleteObject, R2_PUBLIC_URL } from "./client";
+import { putObject, getObject, deleteObject, R2_PUBLIC_URL } from "./client";
 import "@/lib/cf-env"; // ensure CloudflareEnv is augmented with PORT_ASSETS
 
 /**
@@ -55,6 +55,51 @@ export async function uploadAsset(
   await putObject(key, buffer, contentType);
 
   return `${R2_PUBLIC_URL}/${key}`;
+}
+
+/**
+ * Read an asset back from R2 as a Buffer — the mirror of uploadAsset(), with
+ * the same two-tier strategy (native PORT_ASSETS binding in production,
+ * aws4fetch fallback in local dev). Returns null when the key doesn't exist
+ * or the read fails, so retry paths (soundings transcript re-runs) degrade
+ * to "skip this one" rather than crashing the sweep.
+ */
+export async function getAssetBuffer(
+  key: string,
+): Promise<{ buffer: Buffer; contentType: string } | null> {
+  try {
+    const { env } = getCloudflareContext();
+    const bucket = (env as unknown as {
+      PORT_ASSETS: {
+        get(k: string): Promise<{
+          arrayBuffer(): Promise<ArrayBuffer>;
+          httpMetadata?: { contentType?: string };
+        } | null>;
+      };
+    }).PORT_ASSETS;
+    if (bucket?.get) {
+      const obj = await bucket.get(key);
+      if (!obj) return null;
+      return {
+        buffer: Buffer.from(await obj.arrayBuffer()),
+        contentType: obj.httpMetadata?.contentType ?? "application/octet-stream",
+      };
+    }
+  } catch {
+    // Not in CF Workers context — fall through to the S3 fallback below.
+  }
+
+  try {
+    const res = await getObject(key);
+    if (!res.ok) return null;
+    return {
+      buffer: Buffer.from(await res.arrayBuffer()),
+      contentType: res.headers.get("content-type") ?? "application/octet-stream",
+    };
+  } catch (err) {
+    console.warn(`[r2] getAssetBuffer failed for ${key}:`, err);
+    return null;
+  }
 }
 
 /** Delete an asset from R2. */
