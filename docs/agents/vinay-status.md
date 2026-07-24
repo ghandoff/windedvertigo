@@ -39,14 +39,14 @@ The exec MCP gate admits any `@windedvertigo.com` account (`isAllowedEmail`) plu
 4. ✅ Deployed (`cd port && npm run deploy:cf`).
 5. Connect the vinay MCP connector in Cowork at `https://port.windedvertigo.com/api/mcp/vinay` with the `VINAY_API_TOKEN` — ready whenever garrett wants day-to-day use.
 
-## phase 1a — perception, reachable sources (merged, pending deploy)
+## phase 1a — perception, reachable sources (LIVE + verified 2026-07-24)
 
-Read-only daily sweep of garrett's **reachable** streams (zero new OAuth) into a graded anticipation brief.
+Read-only daily sweep of garrett's **reachable** streams (zero new OAuth) into a graded anticipation brief. Validated on the first real run: swept **82 events across all four sources** (work calendar, work Gmail, pam commitments, interventions), generated a 6-item Sonnet brief, and — when the initial run hit an Anthropic credit cutoff — recorded a fail-loud `error` heartbeat, then flipped to `ok` on retry (review #11 behaviour confirmed in the wild).
 - Schema (wv-vinay): `vinay_events`, `vinay_briefs`, `vinay_brief_grades`, `vinay_runs` (heartbeat) — `20260724_vinay_phase1.sql`.
 - Sources: work calendar (`gcal.listEvents`), work Gmail (`gmail.listMessages`, read-only), and exec-agent tables (garrett's `pam_commitments` / proposed interventions / open L2 escalations). No new Slack scopes — Slack load arrives indirectly via those tables.
 - Brief: daily `/api/cron/vinay-anticipation` cron (12:00 UTC, one `CRON_TABLE` line) → Sonnet (`vinay-anticipation` feature) → `vinay_briefs`. Every run records a `vinay_runs` heartbeat (fail-loud); each source is fail-soft.
 - Surfaces: `vinay_brief` + `vinay_grade_brief` MCP tools, and a garrett-only `/vinay` page (finn-pattern gate, not linked from the shared nav) with grade controls.
-- Gated on garrett: apply the migration to wv-vinay, deploy, (optionally) tune the daily hour.
+- Go-live complete: migration applied to wv-vinay, deployed, first sweep verified. Runs daily at 12:00 UTC (adjust the `CRON_TABLE` hour to taste).
 
 ## deferred (later phases — the phasing is a hypothesis, not a commitment)
 
