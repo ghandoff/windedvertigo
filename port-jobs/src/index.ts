@@ -66,6 +66,7 @@ import { queryBibliography } from "@/lib/notion/bibliography";
 import { queryRateReference } from "@/lib/notion/rate-reference";
 import { createDeal } from "@/lib/notion/deals";
 import { generateProposal, TEAM_BIOS, computeTraceabilityScore } from "@/lib/ai/proposal-generator";
+import { renderProposalHtml } from "./lib/proposal-html";
 import { matchCitations } from "@/lib/ai/citation-matcher";
 import { upsertProposalTraceability } from "@/lib/supabase/rfp-proposal-traceability";
 import { postToSlack } from "@/lib/slack";
@@ -410,7 +411,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       citationCount,
     }).catch((e) => console.warn("[proposal] traceability persist failed (non-fatal):", e));
 
-    // 6. Create Deal in Notion
+    // 6. Deliver the draft. DURABLE FIRST (R2), then Notion best-effort — so a
+    //    downstream Notion write can never discard an already-generated (paid)
+    //    draft, and a delivery failure never re-runs the model on retry.
     setProposalStep(rfpId, "building_documents").catch((e) =>
       console.warn("[proposal] step tracking:", e),
     );
@@ -420,7 +423,39 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       : null;
     const dealTitle  = `${rfpName}${org ? ` — ${org.organization}` : ""}`;
 
-    let deal;
+    // 6a. Render the proposal to a self-contained HTML doc + store to R2. This is
+    //     the durable, Notion-independent deliverable.
+    let proposalUrl: string | null = null;
+    try {
+      const typedEnv = env as unknown as Env;
+      const html = renderProposalHtml(draft, {
+        rfpName,
+        orgName: org?.organization ?? null,
+        dueLabel,
+        valueLabel,
+        traceability: traceabilityScore,
+      });
+      const key = `rfp-proposals/${rfpId}/${Date.now()}.html`;
+      await typedEnv.PORT_ASSETS.put(key, html, {
+        httpMetadata: { contentType: "text/html; charset=utf-8" },
+      });
+      proposalUrl = `${typedEnv.R2_PUBLIC_URL}/${key}`;
+    } catch (err) {
+      console.error("[proposal] R2 proposal write failed:", err);
+    }
+
+    // 6b. Mark ready-for-review in Supabase NOW (the store the UI polls). The card
+    //     is done regardless of any Notion write below.
+    if (proposalUrl) setProposalUrls(rfpId, { proposalDraftUrl: proposalUrl }).catch(() => {});
+    setProposalStatus(rfpId, "ready-for-review").catch((e) =>
+      console.warn("[proposal] supabase status sync failed:", e),
+    );
+    setProposalReviewStage(rfpId, "v1-generated", "system", { action: "advance", stageFrom: null })
+      .catch((e) => console.warn("[proposal] review stage sync failed:", e));
+
+    // 6c. Best-effort mirror to Notion (Deal + blocks + sub-pages) for the team's
+    //     Notion workflow. NON-FATAL — never discards the draft nor fails the job.
+    let deal: Awaited<ReturnType<typeof createDeal>> | null = null;
     try {
       deal = await createDeal({
         deal: dealTitle,
@@ -432,11 +467,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
         notes: `Auto-generated from RFP Lighthouse on ${new Date().toISOString().split("T")[0]}. Triggered by ${triggeredBy}.`,
       });
     } catch (err) {
-      console.error("[proposal] failed to create Deal:", err);
-      updateRfpOpportunity(rfpId, { proposalStatus: "failed" }).catch(() => {});
-      setProposalStatus(rfpId, "failed").catch(() => {}); // sync to Supabase immediately
-      await postToSlack(`⚠️ Proposal draft was generated for *${rfpName}* but could not create a Deal record in Notion.`);
-      return { success: false, error: "deal_creation_failed" };
+      console.error("[proposal] createDeal failed (non-fatal — draft delivered via R2):", err);
     }
 
     // 6b. Append proposal content as Notion blocks
@@ -492,16 +523,18 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       );
     }
 
-    try {
-      await appendBlocks(deal.id, blocks);
-    } catch (err) {
-      console.warn("[proposal] block append failed:", err);
+    if (deal) {
+      try {
+        await appendBlocks(deal.id, blocks);
+      } catch (err) {
+        console.warn("[proposal] block append failed:", err);
+      }
     }
 
-    // 6c. Write proposal status back to RFP
-    const dealUrl = notionUrl(deal.id);
+    // 6d. Write proposal status + URL back to the RFP (Notion best-effort).
+    const dealUrl = deal ? notionUrl(deal.id) : null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rfpUpdates: any = { proposalStatus: "ready-for-review", proposalDraftUrl: dealUrl };
+    const rfpUpdates: any = { proposalStatus: "ready-for-review", proposalDraftUrl: dealUrl ?? proposalUrl };
 
     // 6d. Increment timesUsed on cited BD assets
     const citedAssetIds = draft.relevantExperience.map((e) => e.assetId).filter((id): id is string => !!id);
@@ -514,7 +547,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       console.warn("[proposal] step tracking:", e),
     );
     let coverLetterUrl: string | null = null;
-    if (draft.requiresCoverLetter && draft.coverLetter) {
+    if (deal && draft.requiresCoverLetter && draft.coverLetter) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const clPage = await notion.pages.create({ parent: { page_id: deal.id }, properties: { title: [{ type: "text", text: { content: `Cover Letter — ${rfpName}` } }] } } as any);
@@ -531,7 +564,7 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       console.warn("[proposal] step tracking:", e),
     );
     let teamCvsUrl: string | null = null;
-    if (draft.teamMembersForCvs.length > 0) {
+    if (deal && draft.teamMembersForCvs.length > 0) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const cvsPage = await notion.pages.create({ parent: { page_id: deal.id }, properties: { title: [{ type: "text", text: { content: `Team CVs — ${rfpName}` } }] } } as any);
@@ -560,22 +593,13 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
 
     updateRfpOpportunity(rfpId, rfpUpdates).catch(() => {});
 
-    // Sync final status + URLs to Supabase so the progress tracker sees
-    // "ready-for-review" immediately (it polls Supabase, not Notion).
-    // Without this, the tracker stays spinning until the 15-min sweep cron.
-    setProposalStatus(rfpId, "ready-for-review").catch((e) =>
-      console.warn("[proposal] supabase status sync failed:", e),
-    );
-    setProposalReviewStage(rfpId, "v1-generated", "system", {
-      action: "advance",
-      stageFrom: null,
-    }).catch((e) => console.warn("[proposal] review stage sync failed:", e));
+    // Final URL sync to Supabase (adds the Notion Deal + sub-page links if they
+    // were created). Status was already set to ready-for-review in 6b.
     setProposalUrls(rfpId, {
-      proposalDraftUrl: dealUrl,
+      proposalDraftUrl: dealUrl ?? proposalUrl,
       coverLetterUrl: coverLetterUrl ?? null,
       teamCvsUrl: teamCvsUrl ?? null,
     }).catch((e) => console.warn("[proposal] supabase url sync failed:", e));
-    // Clear the active step now that generation is complete
     setProposalStep(rfpId, null).catch((e) =>
       console.warn("[proposal] step tracking:", e),
     );
@@ -587,7 +611,8 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       `📅 Due ${dueLabel}`,
       valueLabel ? `💰 ${valueLabel}` : "",
       ``,
-      `<${dealUrl}|Open proposal draft in Notion →>`,
+      proposalUrl ? `<${proposalUrl}|Open proposal draft →>` : "(draft generated)",
+      dealUrl ? `<${dealUrl}|Notion deal →>` : "",
       coverLetterUrl ? `<${coverLetterUrl}|Cover letter →>` : "",
       teamCvsUrl ? `<${teamCvsUrl}|Team CVs →>` : "",
       ``,
@@ -603,9 +628,9 @@ const proposalConsumer = createQueueConsumer<RfpProposalJob>(
       draft.missingInfo.forEach((m) => lines.push(`• ${m}`));
     }
 
-    await postToSlack(lines.filter(Boolean).join("\n"));
+    await postToSlack(lines.filter(Boolean).join("\n")).catch(() => {});
 
-    return { success: true, message: `proposal ready: ${dealUrl}` };
+    return { success: true, message: `proposal ready: ${proposalUrl ?? dealUrl ?? rfpId}` };
   },
 );
 
