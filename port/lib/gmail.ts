@@ -167,7 +167,7 @@ export async function listMessages(
 /**
  * Fetch message headers (subject, from, date) for a single message.
  */
-async function getMessage(
+export async function getMessage(
   messageId: string,
   accessToken: string,
   userId = "me",

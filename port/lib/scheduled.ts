@@ -304,6 +304,12 @@ const CRON_TABLE: CronEntry[] = [
   // evidence base for claim-boundary / citation problems; flags concerns to
   // Garrett, logs clean drafts silently for dedup. Daily 16:00 UTC.
   { path: "/api/cron/carl-citation-gate", hours: [16] },
+
+  // vinay — daily anticipation sweep (garrett's PA, phase 1a). Perceives his
+  // reachable streams (work calendar, work Gmail, exec-agent tables) into a
+  // read-only anticipation brief. 12:00 UTC ≈ 5am Pacific, ready before the
+  // morning routine. Adjust the hour to taste.
+  { path: "/api/cron/vinay-anticipation", hours: [12] },
 ];
 
 // Every-5-minutes jobs — handled by the */5 trigger, NOT via CRON_TABLE

@@ -36,6 +36,9 @@ import {
 } from "@/lib/vinay/commitments";
 import { logVinayJournal, listVinayJournal } from "@/lib/vinay/journal";
 import { logVinayDecision, listVinayDecisions } from "@/lib/vinay/decisions";
+import { getLatestVinayBrief } from "@/lib/vinay/briefs";
+import { getLatestVinayRun } from "@/lib/vinay/runs";
+import { gradeVinayBrief, type VinayGrade } from "@/lib/vinay/grades";
 
 export const maxDuration = 60;
 
@@ -136,6 +139,26 @@ const VINAY_TOOLS: ToolDef[] = [
       required: ["decision"],
     },
   },
+  {
+    name: "vinay_brief",
+    description:
+      "Read vinay's latest daily anticipation brief — what's coming, what might slip, what to do first — plus when the sweep last ran. Read this in the morning.",
+    inputSchema: { type: "object", properties: {}, required: [] },
+  },
+  {
+    name: "vinay_grade_brief",
+    description:
+      "Grade vinay's latest brief (or one item in it) so it learns what's useful. Use right after reading the brief.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        grade: { type: "string", enum: ["useful", "not-useful", "wrong"], description: "Your verdict" },
+        item_key: { ...STR, description: "Which item (e.g. 'item-2'); omit to grade the whole brief" },
+        note: { ...STR, description: "Optional note on why" },
+      },
+      required: ["grade"],
+    },
+  },
 ];
 
 // ── tool dispatch (calls lib/vinay/* directly) ───────────────────────────────
@@ -214,6 +237,30 @@ async function callVinay(
       logged_by: actor,
     });
     return { text: `decision logged (id: ${d.id})` };
+  }
+  if (name === "vinay_brief") {
+    const [brief, run] = await Promise.all([getLatestVinayBrief(), getLatestVinayRun("anticipation")]);
+    const runNote = run ? `last sweep: ${run.status} at ${run.ran_at}${run.detail ? ` — ${run.detail}` : ""}` : "the daily sweep hasn't run yet";
+    if (!brief) return { text: `no brief yet. ${runNote}` };
+    const lines: string[] = [`# vinay brief — ${brief.brief_date}`, "", brief.body ?? ""];
+    if (brief.items?.length) {
+      lines.push("", "## items");
+      for (const it of brief.items) lines.push(`- \`${it.key}\` ${it.title}${it.detail ? ` — ${it.detail}` : ""}`);
+    }
+    lines.push("", `_${runNote}_`);
+    return { text: lines.join("\n") };
+  }
+  if (name === "vinay_grade_brief") {
+    if (!a.grade) return { text: "grade is required", isError: true };
+    const brief = await getLatestVinayBrief();
+    if (!brief) return { text: "no brief to grade yet", isError: true };
+    await gradeVinayBrief({
+      brief_id: brief.id,
+      grade: a.grade as VinayGrade,
+      item_key: (a.item_key as string) || null,
+      note: (a.note as string) || null,
+    });
+    return { text: `graded ${a.item_key ? `item ${a.item_key}` : "the brief"} as ${a.grade}` };
   }
   return { text: `unknown tool: ${name}`, isError: true };
 }
