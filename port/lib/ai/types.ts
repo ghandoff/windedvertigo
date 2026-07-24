@@ -84,6 +84,9 @@ export const FEATURE_MODELS: Record<AiFeature, ModelId> = {
   // Sonnet: cross-reviewer synthesis of sounding-board feedback (themes,
   // conflicts, actions) — a few per week, quality over cost.
   "soundings-digest": "claude-sonnet-4-6",
+  // Sonnet: vinay's once-daily personal anticipation brief — it's the artifact
+  // garrett grades, so quality matters more than the trivial per-day cost.
+  "vinay-anticipation": "claude-sonnet-4-6",
 };
 
 // ── AI features ──────────────────────────────────────────
@@ -116,7 +119,8 @@ export type AiFeature =
   | "collective-digest"
   | "ambient-prefilter"
   | "ambient-agent-run"
-  | "soundings-digest";
+  | "soundings-digest"
+  | "vinay-anticipation";
 
 export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "email-draft": "AI Email Drafting",
@@ -147,6 +151,7 @@ export const AI_FEATURE_LABELS: Record<AiFeature, string> = {
   "ambient-prefilter": "Ambient Agent Pre-filter",
   "ambient-agent-run": "Ambient Agent Run",
   "soundings-digest": "Sounding Board Digest",
+  "vinay-anticipation": "vinay Anticipation Brief",
 };
 
 // ── token usage tracking ─────────────────────────────────

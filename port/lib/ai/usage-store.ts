@@ -208,6 +208,7 @@ export async function getCostBreakdown(): Promise<CostBreakdown> {
     "ambient-prefilter":      summary.byFeature["ambient-prefilter"]?.costUsd       ?? 0,
     "ambient-agent-run":      summary.byFeature["ambient-agent-run"]?.costUsd       ?? 0,
     "soundings-digest":       summary.byFeature["soundings-digest"]?.costUsd        ?? 0,
+    "vinay-anticipation":     summary.byFeature["vinay-anticipation"]?.costUsd      ?? 0,
   };
 
   // Estimate Notion API calls: ~3 per AI request (fetch context)

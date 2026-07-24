@@ -39,9 +39,18 @@ The exec MCP gate admits any `@windedvertigo.com` account (`isAllowedEmail`) plu
 4. ✅ Deployed (`cd port && npm run deploy:cf`).
 5. Connect the vinay MCP connector in Cowork at `https://port.windedvertigo.com/api/mcp/vinay` with the `VINAY_API_TOKEN` — ready whenever garrett wants day-to-day use.
 
+## phase 1a — perception, reachable sources (merged, pending deploy)
+
+Read-only daily sweep of garrett's **reachable** streams (zero new OAuth) into a graded anticipation brief.
+- Schema (wv-vinay): `vinay_events`, `vinay_briefs`, `vinay_brief_grades`, `vinay_runs` (heartbeat) — `20260724_vinay_phase1.sql`.
+- Sources: work calendar (`gcal.listEvents`), work Gmail (`gmail.listMessages`, read-only), and exec-agent tables (garrett's `pam_commitments` / proposed interventions / open L2 escalations). No new Slack scopes — Slack load arrives indirectly via those tables.
+- Brief: daily `/api/cron/vinay-anticipation` cron (12:00 UTC, one `CRON_TABLE` line) → Sonnet (`vinay-anticipation` feature) → `vinay_briefs`. Every run records a `vinay_runs` heartbeat (fail-loud); each source is fail-soft.
+- Surfaces: `vinay_brief` + `vinay_grade_brief` MCP tools, and a garrett-only `/vinay` page (finn-pattern gate, not linked from the shared nav) with grade controls.
+- Gated on garrett: apply the migration to wv-vinay, deploy, (optionally) tune the daily hour.
+
 ## deferred (later phases — the phasing is a hypothesis, not a commitment)
 
-- **Phase 1 — perception (read-only):** calendar + Gmail + Slack sweeps into an event log; daily anticipation brief. Work-account Gmail/Calendar already reachable server-side; **personal Google account = a new OAuth connector with real security surface** (a personal token leaked once before — store it as a secret, never baked into the build). Slack channel-history reading is one admin scope grant away.
+- **Phase 1b — personal Google accounts:** fold garrett's **two** personal @gmail accounts (+ their calendars) into the sweep. Needs a new OAuth client + a `.readonly` refresh token per account (net-new minter) — the one real new security surface (a personal token leaked once; secrets only, never baked into the build). Known friction: test-app refresh-token expiry + `gmail.readonly` being a restricted scope.
 - **Phase 2 — interventions:** `vinay_interventions` table (own budget helper parameterised from `intervention-budget.ts`), preview cards/DMs. **A fail-loud heartbeat is required here** — a silent no-op is the worst failure mode for a "did you forget X" agent (the spine fails open).
 - **Phase 3 — delegation:** graduated action types act without preview, via the static Opsy classifier (`getActionTypeMetrics` parameterised to read vinay's table). Build the **demotion path first** — it is net-new code, not spine reuse.
 
